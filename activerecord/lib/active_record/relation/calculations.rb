@@ -220,7 +220,7 @@ module ActiveRecord
     #        ...
     #      end
     def calculate(operation, column_name)
-      operation = operation.to_s.downcase
+      operation = (operation.is_a?(Symbol) ? operation.name : operation.to_s).downcase
 
       if @none
         case operation
@@ -407,7 +407,7 @@ module ActiveRecord
         when :all
           Arel.star
         else
-          arel_column(column_name.to_s)
+          arel_column(column_name.is_a?(Symbol) ? column_name.name : column_name.to_s)
         end
       end
 
@@ -421,7 +421,7 @@ module ActiveRecord
       end
 
       def perform_calculation(operation, column_name)
-        operation = operation.to_s.downcase
+        operation = (operation.is_a?(Symbol) ? operation.name : operation.to_s).downcase
 
         # If #count is used with #distinct (i.e. `relation.distinct.count`) it is
         # considered distinct.

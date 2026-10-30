@@ -49,9 +49,9 @@ module ActiveRecord
             if args.is_a?(Array) && (options = args.first).is_a?(Hash)
               options = options.transform_keys do |key|
                 if key.is_a?(Array)
-                  key.map(&:to_s)
+                  key.map { |k| k.is_a?(Symbol) ? k.name : k.to_s }
                 else
-                  key.to_s
+                  key.is_a?(Symbol) ? key.name : key.to_s
                 end
               end
               args[0] = options
