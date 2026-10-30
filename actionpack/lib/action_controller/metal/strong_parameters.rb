@@ -1222,7 +1222,7 @@ module ActionController
           transformed = value.transform_values do |v|
             convert_parameters_to_hashes(v, using)
           end
-          (block_given? ? transformed.to_h(&block) : transformed).with_indifferent_access
+          (block_given? ? transformed.to_h(&block) : transformed).nested_under_indifferent_access
         when Parameters
           value.send(using)
         else
