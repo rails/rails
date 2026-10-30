@@ -55,6 +55,8 @@ module ActiveRecord
         case associations
         when Symbol, String
           hash[associations.to_sym] ||= {}
+        when Reflection::AbstractReflection
+          hash[associations] ||= {}
         when Array
           associations.each do |assoc|
             walk_tree assoc, hash
@@ -237,7 +239,7 @@ module ActiveRecord
 
         def build(associations, base_klass)
           associations.map do |name, right|
-            reflection = find_reflection base_klass, name
+            reflection = name.is_a?(Reflection::AbstractReflection) ? name : find_reflection(base_klass, name)
             reflection.check_validity!
             reflection.check_eager_loadable!
 

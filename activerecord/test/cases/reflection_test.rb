@@ -270,6 +270,21 @@ class ReflectionTest < ActiveRecord::TestCase
     assert_predicate Topic._reflections, :frozen?
   end
 
+  def test_frozen_through_reflection_with_source_type_has_source_type_reflection
+    model = Class.new(ActiveRecord::Base) do
+      set_temporary_name "frozen_source_type_tag"
+      self.table_name = "tags"
+      has_many :taggings, foreign_key: :tag_id
+      has_many :tagged_posts, through: :taggings, source: :taggable, source_type: "Post"
+    end
+
+    reflection = model.reflect_on_association(:tagged_posts).freeze
+    source_type_reflection = reflection.source_type_reflection
+
+    assert_equal Post, source_type_reflection.klass
+    assert_not_predicate source_type_reflection, :polymorphic?
+  end
+
   if RUBY_VERSION >= "4.0"
     def test_association_reflections_can_be_read_from_a_ractor_in_ractor_mode
       ActiveSupport::Ractors.with(unshareable_proc_action: :raise) do

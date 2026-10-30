@@ -7,6 +7,8 @@ class Tag < ActiveRecord::Base
 
   has_many :tagged_posts, through: :taggings, source: "taggable", source_type: "Post"
   has_many :tagged_posts_by_bob, -> { joins(:author).where(authors: { name: "Bob" }) }, through: :taggings, source: "taggable", source_type: "Post"
+  has_many :second_tagged_posts, -> { where(taggings: { comment: "second" }) }, through: :taggings, source: "taggable", source_type: "Post"
+  has_many :first_tagged_posts_by_bob, -> { joins(:author).where(taggings: { comment: "first" }, authors: { name: "Bob" }) }, through: :taggings, source: "taggable", source_type: "Post"
 end
 
 class OrderedTag < Tag
