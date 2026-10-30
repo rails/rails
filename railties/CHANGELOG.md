@@ -1,3 +1,13 @@
+*   Exit with a failure status when `rails` is run with an unrecognized command
+    outside of an application.
+
+    Previously, running a command such as `rails db:migrate` outside of an
+    application printed the `rails new` usage and exited with status 0.
+
+    Fixes #42607.
+
+    *Haresh Goyal*, *endenis*
+
 *   Create the local development/test secret file (`tmp/local_secret.txt`) with
     owner-only permissions (`0600`) instead of inheriting the process umask,
     and tighten the permissions of an existing file on read on non-Windows
