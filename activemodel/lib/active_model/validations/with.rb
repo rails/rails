@@ -64,18 +64,18 @@ module ActiveModel
       #   or an array of symbols. (e.g. `on: :create` or
       #   `on: :custom_validation_context` or
       #   `on: [:create, :custom_validation_context]`)
-      # * `:if` - Specifies a method, proc, or string to call to determine
+      # * `:if` - Specifies a method, proc, or lambda to call to determine
       #   if the validation should occur (e.g. `if: :allow_validation`,
       #   or `if: Proc.new { |user| user.signup_step > 2 }`).
-      #   The method, proc, or string should return or evaluate to a `true` or
+      #   The method, proc, or lambda should return or evaluate to a `true` or
       #   `false` value. Multiple methods or procs can be passed as an array to
       #   check multiple conditions, all of which must pass for validation to occur
       #   (e.g. `if: [:allow_validation, Proc.new { |user| user.signup_step > 2 }]`)
-      # * `:unless` - Specifies a method, proc, or string to call to
+      # * `:unless` - Specifies a method, proc, or lambda to call to
       #   determine if the validation should not occur
       #   (e.g. `unless: :skip_validation`, or
       #   `unless: Proc.new { |user| user.signup_step <= 2 }`).
-      #   The method, proc, or string should return or evaluate to a `true` or
+      #   The method, proc, or lambda should return or evaluate to a `true` or
       #   `false` value. Multiple methods or procs can be passed as an array to
       #   check multiple conditions, all of which must pass for validation not to occur
       #   (e.g. `unless: [:skip_validation, Proc.new { |user| user.signup_step <= 2 }]`)

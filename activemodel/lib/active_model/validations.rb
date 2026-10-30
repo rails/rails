@@ -89,17 +89,17 @@ module ActiveModel
       # * `:allow_blank` - Specify a method, proc, or boolean, to skip
       #   validation if attribute is `blank` (e.g. `allow_blank: true`,
       #   or `allow_blank: Proc.new { |user| user.signup_step > 2 }`).
-      # * `:if` - Specifies a method, proc, or string to call to determine
+      # * `:if` - Specifies a method, proc, or lambda to call to determine
       #   if the validation should occur (e.g. `if: :allow_validation`,
       #   or `if: Proc.new { |user| user.signup_step > 2 }`). The method,
-      #   proc or string should return or evaluate to a `true` or `false` value.
+      #   proc or lambda should return or evaluate to a `true` or `false` value.
       #   Multiple methods or procs can be passed as an array to check multiple
       #   conditions, all of which must pass for validation to occur
       #   (e.g. `if: [:allow_validation, Proc.new { |user| user.signup_step > 2 }]`)
-      # * `:unless` - Specifies a method, proc, or string to call to
+      # * `:unless` - Specifies a method, proc, or lambda to call to
       #   determine if the validation should not occur (e.g. `unless: :skip_validation`,
       #   or `unless: Proc.new { |user| user.signup_step <= 2 }`). The
-      #   method, proc, or string should return or evaluate to a `true` or `false`
+      #   method, proc, or lambda should return or evaluate to a `true` or `false`
       #   value. Multiple methods or procs can be passed as an array to check
       #   multiple conditions, all of which must pass for validation not to occur
       #   (e.g. `unless: [:skip_validation, Proc.new { |user| user.signup_step <= 2 }]`)
