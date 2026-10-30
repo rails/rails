@@ -4,6 +4,13 @@ require "cases/helper"
 require "active_record/test_databases"
 
 class TestDatabasesTest < ActiveRecord::TestCase
+  def test_connection_pools_are_usable_in_run_cleanup_hooks
+    ActiveSupport::Testing::Parallelization.run_cleanup_hooks.each { |cb| cb.call(0) }
+
+    assert_not_predicate ActiveRecord::Base.connection_pool, :discarded?
+    assert_equal 1, ActiveRecord::Base.lease_connection.select_value("SELECT 1")
+  end
+
   unless in_memory_db?
     def test_databases_are_created
       previous_env, ENV["RAILS_ENV"] = ENV["RAILS_ENV"], "arunit"
@@ -131,5 +138,22 @@ class TestDatabasesTest < ActiveRecord::TestCase
       ActiveRecord::Base.establish_connection(:arunit)
       ENV["RAILS_ENV"] = previous_env
     end
+  end
+end
+
+class TestDatabasesShutdownHookTest < ActiveRecord::TestCase
+  self.use_transactional_tests = false
+
+  def test_connection_pools_are_discarded_in_shutdown_hooks
+    db_config = ActiveRecord::Base.connection_db_config
+    old_handler = ActiveRecord::Base.connection_handler
+    ActiveRecord::Base.connection_handler = ActiveRecord::ConnectionAdapters::ConnectionHandler.new
+    pool = ActiveRecord::Base.establish_connection(db_config)
+
+    ActiveSupport::Testing::Parallelization.shutdown_hooks.each(&:call)
+
+    assert_predicate pool, :discarded?
+  ensure
+    ActiveRecord::Base.connection_handler = old_handler
   end
 end

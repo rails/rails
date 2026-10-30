@@ -17,7 +17,7 @@ module ActiveRecord
       end
     end
 
-    ActiveSupport::Testing::Parallelization.run_cleanup_hook do
+    ActiveSupport::Testing::Parallelization.shutdown_hook do
       ActiveRecord::Base.connection_handler.each_connection_pool.each(&:discard!)
     end
 
