@@ -1572,7 +1572,8 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
     author = organization.author
     post_direct = author.posts.build
     post_through = organization.posts.build
-    assert_equal post_direct.author_id, post_through.author_id
+    assert_equal author.id, post_through.author_id
+    assert_equal author.id, post_direct.author_id
   end
 
   def test_build_through_singular_association_uses_the_source_primary_key
