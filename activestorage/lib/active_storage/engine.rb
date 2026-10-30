@@ -167,6 +167,7 @@ module ActiveStorage
           -version
           -write
           -write-mask
+          @
         )
 
         ActiveStorage.variable_content_types = app.config.active_storage.variable_content_types || []
