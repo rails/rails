@@ -131,5 +131,37 @@ class TestDatabasesTest < ActiveRecord::TestCase
       ActiveRecord::Base.establish_connection(:arunit)
       ENV["RAILS_ENV"] = previous_env
     end
+
+    def test_create_databases_after_fork_skips_configs_with_database_tasks_false
+      previous_env, ENV["RAILS_ENV"] = ENV["RAILS_ENV"], "arunit"
+      prev_configs, ActiveRecord::Base.configurations = ActiveRecord::Base.configurations, {
+        "arunit" => {
+          "primary" => { "adapter" => "sqlite3", "database" => "test/db/primary.sqlite3" },
+          "external" => { "adapter" => "sqlite3", "database" => "test/db/external.sqlite3", "database_tasks" => false }
+        }
+      }
+
+      idx = 42
+      primary_db_config = ActiveRecord::Base.configurations.configs_for(env_name: "arunit", name: "primary")
+      expected_primary_database = "#{primary_db_config.database}_#{idx}"
+      external_db_config = ActiveRecord::Base.configurations.configs_for(env_name: "arunit", name: "external", include_hidden: true)
+      expected_external_database = external_db_config.database
+      reconstruct_calls = 0
+
+      ActiveRecord::Tasks::DatabaseTasks.stub(:reconstruct_from_schema, ->(db_config, _) {
+        reconstruct_calls += 1
+        assert_equal expected_primary_database, db_config.database
+      }) do
+        ActiveSupport::Testing::Parallelization.after_fork_hooks.each { |cb| cb.call(idx) }
+      end
+
+      assert_equal 1, reconstruct_calls
+      assert_equal expected_primary_database, ActiveRecord::Base.configurations.configs_for(env_name: "arunit", name: "primary").database
+      assert_equal expected_external_database, ActiveRecord::Base.configurations.configs_for(env_name: "arunit", name: "external", include_hidden: true).database
+    ensure
+      ActiveRecord::Base.configurations = prev_configs
+      ActiveRecord::Base.establish_connection(:arunit)
+      ENV["RAILS_ENV"] = previous_env
+    end
   end
 end
