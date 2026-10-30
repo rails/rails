@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require "singleton"
+require "concurrent/map"
 require "action_dispatch/deprecator"
 require "active_support/core_ext/string/filters"
 
@@ -148,6 +149,15 @@ module Mime
     attr_reader :symbol
 
     @on_change_callbacks = []
+    @parse_cache = Concurrent::Map.new
+    # Bounds the parsed Accept headers kept, like the ParameterFilter cache in
+    # ActionDispatch::Http::FilterParameters, against clients sending ever-changing
+    # headers. Browsers and API clients send few distinct ones; an entry for a
+    # browser's header takes about 300 bytes, and one for an 8 KB header about
+    # 9 KB. With more distinct headers than this in rotation, the cache is
+    # cleared often and parsing costs what it does without it.
+    PARSE_CACHE_SIZE = 100
+    private_constant :PARSE_CACHE_SIZE
 
     # A simple helper class used in parsing the accept header.
     class AcceptItem # :nodoc:
@@ -269,6 +279,25 @@ module Mime
       end
 
       def parse(accept_header)
+        # Once the registry is frozen, the result depends only on the header, and
+        # clients send few distinct ones, so the latest results are kept. Each is
+        # tied to the registry it was parsed against, which registering a type
+        # replaces.
+        registry = Mime.registry
+        if registry.frozen? && ActiveSupport::Ractors.main?
+          parsed_registry, types = @parse_cache[accept_header]
+          unless registry.equal?(parsed_registry)
+            types = parse_uncached(accept_header).freeze
+            @parse_cache.clear if @parse_cache.size >= PARSE_CACHE_SIZE
+            @parse_cache[accept_header] = [registry, types].freeze
+          end
+          types.dup
+        else
+          parse_uncached(accept_header)
+        end
+      end
+
+      def parse_uncached(accept_header) # :nodoc:
         if !accept_header.include?(",")
           if (index = accept_header.index(PARAMETER_SEPARATOR_REGEXP))
             accept_header = accept_header[0, index].strip

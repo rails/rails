@@ -395,6 +395,80 @@ class MimeTypeRegistryFreezeTest < ActiveSupport::TestCase
     assert_ractor_shareable Mime.lookup_by_extension
   end
 
+  ACCEPT_HEADERS = [
+    "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8",
+    "application/json, text/plain, */*",
+    "application/json",
+    "*/*",
+    "text/*, text/html, application/json, multipart/form-data",
+    "application/*",
+    "text/xml,application/xhtml+xml,text/yaml; q=0.3,application/xml,text/html; q=0.8,image/png,text/plain; q=0.5,application/pdf,*/*; encoding=UTF-8; q=0.2",
+    "text/html;q=0.9",
+    'multipart/form-data; boundary="simple, boundary", text/xml',
+    "text/xml,application/xml,application/xhtml+xml,text/html;q=0.9,text/plain;q=0.8,image/*,,*/*;q=0.5",
+    'application/vnd.api+json; profile="https://jsonapi.org/profiles/example"',
+    "text/x-unregistered, text/html",
+    "",
+  ].freeze
+
+  test "after eager_load! parsing an Accept header returns what it did before, in a new array each time" do
+    expected = ACCEPT_HEADERS.index_with { |header| Mime::Type.parse(header) }
+    Mime.eager_load!
+
+    ACCEPT_HEADERS.each do |header|
+      first, second = Mime::Type.parse(header.dup), Mime::Type.parse(header.dup)
+
+      assert_equal expected[header], first, header
+      assert_equal expected[header], second, header
+      assert_not_same first, second, header
+      assert_not_predicate first, :frozen?, header
+    end
+
+    parsed = Mime::Type.parse(ACCEPT_HEADERS.first)
+    parsed << Mime[:json]
+    parsed.reverse!
+    assert_equal expected[ACCEPT_HEADERS.first], Mime::Type.parse(ACCEPT_HEADERS.first)
+  end
+
+  test "after eager_load! registering a type is reflected in parsed Accept headers" do
+    Mime.eager_load!
+    assert_nil Mime::Type.parse("text/x-ractor, text/html").first.symbol
+
+    assert_deprecated("after the application has been initialized", ActionDispatch.deprecator) do
+      Mime::Type.register("text/x-ractor", :ractor)
+    end
+    assert_equal :ractor, Mime::Type.parse("text/x-ractor, text/html").first.symbol
+
+    assert_deprecated("after the application has been initialized", ActionDispatch.deprecator) do
+      Mime::Type.unregister(:ractor)
+    end
+    assert_nil Mime::Type.parse("text/x-ractor, text/html").first.symbol
+  end
+
+  test "after eager_load! an invalid Accept header raises on every parse" do
+    Mime.eager_load!
+
+    2.times do
+      assert_raises(Mime::Type::InvalidMimeType) { Mime::Type.parse("text/html, foo") }
+    end
+  end
+
+  test "after eager_load! parsed Accept headers are kept for a bounded number of headers" do
+    Mime.eager_load!
+
+    limit = Mime::Type.const_get(:PARSE_CACHE_SIZE)
+    (limit + 50).times { |i| Mime::Type.parse("text/x-#{i}, text/html") }
+
+    assert_operator Mime::Type.instance_variable_get(:@parse_cache).size, :<=, limit
+    assert_equal ["text/x-#{limit + 49}", "text/html"], Mime::Type.parse("text/x-#{limit + 49}, text/html").map(&:to_s)
+  end
+
+  test "after eager_load! Accept headers can be parsed outside the main Ractor" do
+    Mime.eager_load!
+
+    assert_equal ["application/json", "text/html"], on_ractor { Mime::Type.parse("application/json, text/html;q=0.9").map(&:to_s) }
+  end
+
   test "registering after eager_load! is deprecated, falls back to copy-on-write, and stays shareable" do
     Mime.eager_load!
 
