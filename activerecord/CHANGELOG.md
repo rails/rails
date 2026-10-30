@@ -1,3 +1,11 @@
+*   Exclude `default_order` from aggregate calculations.
+
+    Calculations such as `count` and `sum` now remove default ordering where they
+    already remove explicit ordering. This avoids invalid SQL on PostgreSQL,
+    including `distinct.count` with a custom select.
+
+    *Kengo Johira*
+
 *   Exclude `default_order` in `Relation#exists?`.
 
     Previously, `exists?` only excluded explicit `order` values, causing
