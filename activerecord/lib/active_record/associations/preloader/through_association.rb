@@ -74,7 +74,9 @@ module ActiveRecord
           end
 
           def source_preloaders
-            @source_preloaders ||= ActiveRecord::Associations::Preloader.new(records: middle_records, associations: source_reflection.name, scope: scope, associate_by_default: false).loaders
+            @source_preloaders ||= ActiveRecord::Associations::Preloader.new(records: middle_records, associations: source_reflection.name, scope: scope, associate_by_default: false).loaders.tap do |loaders|
+              loaders.each(&:ignore_loaded_target!) if source_scope_filters_source?
+            end
           end
 
           def middle_records
@@ -124,6 +126,12 @@ module ActiveRecord
           def through_scope_filters_source?
             options = reflection.options
             !options[:disable_joins] && !options[:source_type] && !reflection_scope.where_clause.empty?
+          end
+
+          # When the through scope doesn't eager load the source records with the
+          # conditions, the source scope filters them instead.
+          def source_scope_filters_source?
+            !reflection_scope.where_clause.empty? && !through_scope_filters_source?
           end
 
           def through_scope

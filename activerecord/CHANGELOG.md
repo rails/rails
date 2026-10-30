@@ -1,3 +1,23 @@
+*   Fix preloading a `has_many :through` association with `source_type` or
+    `disable_joins` and conditions reusing already loaded source records.
+
+    The conditions of such an association are applied by the source query
+    rather than the through query, but source records already loaded on the
+    through records were reused without the conditions.
+
+    ```ruby
+    class Tag < ActiveRecord::Base
+      has_many :taggings
+      has_many :tagged_posts_by_bob, -> { joins(:author).where(authors: { name: "Bob" }) },
+        through: :taggings, source: :taggable, source_type: "Post"
+    end
+
+    Tag.preload(taggings: :taggable).preload(:tagged_posts_by_bob).first.tagged_posts_by_bob
+    # => no longer includes posts by other authors
+    ```
+
+    *Ryuta Kamizono*
+
 *   Fix preloading a scoped `has_many :through` association reusing the
     through records already loaded by an unscoped one.
 
