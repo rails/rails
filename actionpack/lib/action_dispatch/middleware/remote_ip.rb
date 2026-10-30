@@ -184,9 +184,17 @@ module ActionDispatch
       def sanitize_ips(ips) # :doc:
         ips.select! do |ip|
           # Only return IPs that are valid according to the IPAddr#new method.
-          range = IPAddr.new(ip).to_range
-          # We want to make sure nobody is sneaking a netmask in.
-          range.begin == range.end
+          addr = IPAddr.new(ip)
+          # We want to make sure nobody is sneaking a netmask in, which can only be
+          # given after a slash.
+          if ip.include?("/")
+            range = addr.to_range
+            next false unless range.begin == range.end
+          end
+          # Keep the parsed address for #first_non_proxy, by identity since the
+          # same strings are checked there.
+          (@parsed_ips ||= {}.compare_by_identity)[ip] = addr
+          true
         rescue ArgumentError
           nil
         end
@@ -197,7 +205,7 @@ module ActionDispatch
         ips.find do |raw_ip|
           return unless raw_ip
 
-          ip = IPAddr.new(raw_ip)
+          ip = @parsed_ips&.[](raw_ip) || IPAddr.new(raw_ip)
           @proxies.none? do |proxy|
             if proxy.is_a?(IPAddr)
               proxy.include?(ip)

@@ -324,6 +324,44 @@ class RequestIP < BaseRequestTest
     assert_equal "2001:0db8:85a3:0000:0000:8a2e:0370:7334", request.remote_ip
   end
 
+  test "remote ip ignores addresses with a netmask" do
+    # Client-Ip and REMOTE_ADDR, as X-Forwarded-For is parsed by Rack, which drops
+    # addresses with a netmask in some versions.
+    {
+      "1.2.3.0/24" => "10.0.0.1",
+      "1.2.3.4/32" => "1.2.3.4/32",
+      "3.4.5.6/31" => "10.0.0.1",
+      "10.0.0.0/8" => "10.0.0.1",
+      "3.4.5.6, 1.2.3.0/24" => "3.4.5.6",
+      "1.2.3.0/24, 3.4.5.6" => "3.4.5.6",
+      "3.4.5.6/32, 10.0.0.2" => "3.4.5.6/32",
+      "2001:db8::/32" => "10.0.0.1",
+      "2001:db8::1/128" => "2001:db8::1/128",
+      "fe80::1%eth0, 2001:db8::/32" => "fe80::1%eth0",
+    }.each do |client_ip, remote_ip|
+      request = stub_request "REMOTE_ADDR" => "10.0.0.1", "HTTP_CLIENT_IP" => client_ip
+      assert_equal remote_ip, request.remote_ip, client_ip
+    end
+
+    {
+      "2001:db8::1/128" => "2001:db8::1/128",
+      "3.4.5.6, 2001:db8::/32" => "3.4.5.6",
+      "2001:db8::2, 2001:db8::1/127" => "2001:db8::2",
+    }.each do |remote_addr, remote_ip|
+      request = stub_request "REMOTE_ADDR" => remote_addr
+      assert_equal remote_ip, request.remote_ip, remote_addr
+    end
+    assert_nil stub_request("REMOTE_ADDR" => "2001:db8::/32").remote_ip
+  end
+
+  test "remote ip is the same when calculated again" do
+    request = stub_request "REMOTE_ADDR" => "10.0.0.1", "HTTP_X_FORWARDED_FOR" => "3.4.5.6, 10.0.0.2"
+    get_ip = ActionDispatch::RemoteIp::GetIp.new(request, true, ActionDispatch::RemoteIp::TRUSTED_PROXIES)
+
+    assert_equal "3.4.5.6", get_ip.calculate_ip
+    assert_equal "3.4.5.6", get_ip.calculate_ip
+  end
+
   test "remote ip middleware not present still returns an IP" do
     request = stub_request("REMOTE_ADDR" => "127.0.0.1")
     assert_equal "127.0.0.1", request.remote_ip
