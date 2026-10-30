@@ -596,6 +596,8 @@ module ActiveRecord
       def freeze
         return self if frozen?
 
+        check_validity!
+
         unless polymorphic?
           klass
           association_primary_key_definition if belongs_to?
@@ -607,7 +609,6 @@ module ActiveRecord
         association_foreign_key_definition
         counter_cache_column
         foreign_key_definition
-        check_validity!
         @scope = ActiveSupport::Ractors.try_shareable_proc(@scope) if @scope
 
         super
@@ -1192,6 +1193,7 @@ module ActiveRecord
       def freeze
         return self if frozen?
 
+        check_validity!
         klass
         source_reflection_name
         association_primary_key
@@ -1201,7 +1203,6 @@ module ActiveRecord
         inverse_which_updates_counter_cache
         deprecated_nested_reflections
         source_type_reflection
-        check_validity!
 
         super
       end

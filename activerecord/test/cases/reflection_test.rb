@@ -285,6 +285,43 @@ class ReflectionTest < ActiveRecord::TestCase
     assert_not_predicate source_type_reflection, :polymorphic?
   end
 
+  def test_freezing_through_reflection_with_missing_through_association_raises_not_found_error
+    model = Class.new(ActiveRecord::Base) do
+      set_temporary_name "missing_through_tag"
+      self.table_name = "tags"
+      has_many :tagged_posts, through: :nonexistent, source: :taggable, source_type: "Post"
+    end
+
+    assert_raises(ActiveRecord::HasManyThroughAssociationNotFoundError) do
+      model.reflect_on_association(:tagged_posts).freeze
+    end
+  end
+
+  def test_freezing_through_reflection_with_missing_source_association_raises_not_found_error
+    model = Class.new(ActiveRecord::Base) do
+      set_temporary_name "missing_source_tag"
+      self.table_name = "tags"
+      has_many :taggings, foreign_key: :tag_id
+      has_many :tagged_posts, through: :taggings, source: :nonexistent
+    end
+
+    assert_raises(ActiveRecord::HasManyThroughSourceAssociationNotFoundError) do
+      model.reflect_on_association(:tagged_posts).freeze
+    end
+  end
+
+  def test_freezing_reflection_with_missing_inverse_of_raises_not_found_error
+    model = Class.new(ActiveRecord::Base) do
+      set_temporary_name "missing_inverse_post"
+      self.table_name = "posts"
+      has_many :comments, inverse_of: :nonexistent
+    end
+
+    assert_raises(ActiveRecord::InverseOfAssociationNotFoundError) do
+      model.reflect_on_association(:comments).freeze
+    end
+  end
+
   if RUBY_VERSION >= "4.0"
     def test_association_reflections_can_be_read_from_a_ractor_in_ractor_mode
       ActiveSupport::Ractors.with(unshareable_proc_action: :raise) do
