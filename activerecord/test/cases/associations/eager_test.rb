@@ -1280,6 +1280,27 @@ class EagerAssociationTest < ActiveRecord::TestCase
     end
   end
 
+  def test_preload_has_many_through_with_source_type_and_conditions_on_through_table
+    tags = Tag.where(id: [tags(:misc).id, tags(:blue).id]).order(:id).to_a
+    assert_equal [[], [posts(:misc_by_bob)]], tags.map { |tag| tag.second_tagged_posts.to_a }
+
+    tags_with_preloads = Tag.where(id: tags.map(&:id)).order(:id)
+    assert_queries_count(2) do
+      assert_equal [[], [posts(:misc_by_bob)]], tags_with_preloads.preload(:second_tagged_posts).map { |tag| tag.second_tagged_posts.to_a }
+    end
+  end
+
+  def test_preload_has_many_through_with_source_type_and_conditions_on_through_and_source_tables_ignores_loaded_through_records
+    tag = tags(:blue)
+    expected = [posts(:misc_by_bob), posts(:other_by_bob)]
+    assert_equal expected, tag.first_tagged_posts_by_bob.sort_by(&:id)
+
+    tag_with_preloads = Tag.preload(taggings: :taggable).preload(:first_tagged_posts_by_bob).find(tag.id)
+    assert_no_queries do
+      assert_equal expected, tag_with_preloads.first_tagged_posts_by_bob.sort_by(&:id)
+    end
+  end
+
   def test_preload_has_many_through_with_disable_joins_and_conditions_ignores_loaded_source_records
     author = authors(:david)
     expected = author.no_joins_good_ratings.to_a

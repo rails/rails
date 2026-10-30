@@ -124,8 +124,7 @@ module ActiveRecord
           end
 
           def through_scope_filters_source?
-            options = reflection.options
-            !options[:disable_joins] && !options[:source_type] && !reflection_scope.where_clause.empty?
+            !reflection.options[:disable_joins] && !reflection_scope.where_clause.empty?
           end
 
           # When the through scope doesn't eager load the source records with the
@@ -147,27 +146,34 @@ module ActiveRecord
 
             if options[:source_type]
               scope.where! reflection.foreign_type => options[:source_type]
-            elsif !reflection_scope.where_clause.empty?
-              scope.where_clause = reflection_scope.where_clause
+            end
 
-              if includes = values[:includes]
-                scope.includes!(source_reflection.name => includes)
+            unless reflection_scope.where_clause.empty?
+              scope.where_clause += reflection_scope.where_clause
+
+              includes = values[:includes]
+
+              # The class fixed by `source_type` can't be preloaded, only eager loaded.
+              if source_type_reflection = reflection.source_type_reflection
+                source = source_type_reflection
+                scope.eager_load!(includes ? { source => includes } : source)
               else
-                scope.includes!(source_reflection.name)
+                source = source_reflection.name
+                scope.includes!(includes ? { source => includes } : source)
               end
 
               if values[:references] && !values[:references].empty?
                 scope.references_values |= values[:references]
               else
-                scope.references!(source_reflection.table_name)
+                scope.references!((source_type_reflection || source_reflection).table_name)
               end
 
               if joins = values[:joins]
-                scope.joins!(source_reflection.name => joins)
+                scope.joins!(source => joins)
               end
 
               if left_outer_joins = values[:left_outer_joins]
-                scope.left_outer_joins!(source_reflection.name => left_outer_joins)
+                scope.left_outer_joins!(source => left_outer_joins)
               end
 
               if scope.eager_loading? && order_values = values[:order]

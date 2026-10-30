@@ -1200,6 +1200,7 @@ module ActiveRecord
         association_foreign_key
         inverse_which_updates_counter_cache
         deprecated_nested_reflections
+        source_type_reflection
         check_validity!
 
         super
@@ -1226,6 +1227,18 @@ module ActiveRecord
         return unless source_reflection_name
 
         through_reflection.klass._reflect_on_association(source_reflection_name)
+      end
+
+      # The polymorphic source reflection fixed to +source_type+ for eager loading.
+      def source_type_reflection # :nodoc:
+        return unless source_type = options[:source_type]
+
+        @source_type_reflection ||= begin
+          source = source_reflection
+          source_options = source.options.except(:polymorphic, :foreign_type)
+          source_options = source_options.merge(class_name: source_type.to_s, foreign_key: source.foreign_key)
+          Reflection.create(:belongs_to, source.name, source.scope, source_options, source.active_record)
+        end
       end
 
       # Returns the AssociationReflection object specified in the <tt>:through</tt> option

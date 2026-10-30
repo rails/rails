@@ -1,9 +1,25 @@
-*   Fix preloading a `has_many :through` association with `source_type` or
-    `disable_joins` and conditions reusing already loaded source records.
+*   Fix preloading a `has_many :through` association with `source_type` and
+    conditions on the through table.
 
-    The conditions of such an association are applied by the source query
-    rather than the through query, but source records already loaded on the
-    through records were reused without the conditions.
+    Loading such an association normally or with `eager_load` worked, but
+    preloading it raised, since the source query didn't join the through table.
+
+    ```ruby
+    class Tag < ActiveRecord::Base
+      has_many :taggings
+      has_many :second_tagged_posts, -> { where(taggings: { comment: "second" }) },
+        through: :taggings, source: :taggable, source_type: "Post"
+    end
+
+    Tag.preload(:second_tagged_posts).to_a
+    # => no longer raises `ActiveRecord::StatementInvalid`
+    ```
+
+    *Ryuta Kamizono*
+
+*   Fix preloading a `has_many :through` association with `source_type` or
+    `disable_joins` and conditions reusing already loaded source records
+    without the conditions.
 
     ```ruby
     class Tag < ActiveRecord::Base
