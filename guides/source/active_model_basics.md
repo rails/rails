@@ -75,7 +75,7 @@ end
 ```irb
 irb> email_contact = EmailContact.new(name: "David", email: "david@example.com", message: "Hello World")
 
-irb> email_contact.name # Attribute Assignment
+irb> email_contact.name # Attribute Reading
 => "David"
 
 irb> email_contact.to_model == email_contact # Conversion
