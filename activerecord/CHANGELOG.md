@@ -23,6 +23,12 @@
     end
     ```
 
+    To render it as a 400 Bad Request, add it to `rescue_responses`:
+
+    ```ruby
+    config.action_dispatch.rescue_responses["ActiveRecord::NullByteError"] = :bad_request
+    ```
+
     *Simon Isler*
 
 *   Fix preloading a `has_many :through` association with `source_type` and
