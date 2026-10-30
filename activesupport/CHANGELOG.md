@@ -1,3 +1,12 @@
+*   Add `Northwest Territories` to `ActiveSupport::TimeZone::MAPPING`.
+
+    The Northwest Territories no longer shares winter clocks with US Mountain
+    time. The existing `Mountain Time (US & Canada)` entry remains mapped to
+    `America/Denver` for compatibility. Prefer `Northwest Territories` (or the
+    IANA identifier `America/Inuvik`) for users in that region.
+
+    *Andrew Quinn*
+
 *   `Symbol#to_param` now returns `Symbol#name`, the symbol's interned frozen
     String, instead of allocating a new one on every call before Ruby 4.1.
 
