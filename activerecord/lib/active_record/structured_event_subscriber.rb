@@ -5,6 +5,8 @@ require "active_support/structured_event_subscriber"
 
 module ActiveRecord
   class StructuredEventSubscriber < ActiveSupport::StructuredEventSubscriber # :nodoc:
+    self.event_namespace = "active_record"
+
     IGNORE_PAYLOAD_NAMES = ["SCHEMA", "EXPLAIN"].freeze
 
     def strict_loading_violation(event)
