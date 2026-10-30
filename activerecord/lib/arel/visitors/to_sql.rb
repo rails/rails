@@ -24,13 +24,13 @@ module Arel # :nodoc: all
           collector.retryable = false
           o = prepare_delete_statement(o)
 
+          collector << "DELETE"
+          collect_optimizer_hints(o, collector)
           if has_join_sources?(o)
-            collector << "DELETE "
+            collector << " "
             visit o.relation.left, collector
-            collector << " FROM "
-          else
-            collector << "DELETE FROM "
           end
+          collector << " FROM "
           collector = visit o.relation, collector
 
           collect_nodes_for o.wheres, collector, " WHERE ", " AND "
@@ -50,7 +50,9 @@ module Arel # :nodoc: all
           collector.retryable = false
           o = prepare_update_statement(o)
 
-          collector << "UPDATE "
+          collector << "UPDATE"
+          collect_optimizer_hints(o, collector)
+          collector << " "
           collector = visit o.relation, collector
           collect_nodes_for o.values, collector, " SET "
 
@@ -997,6 +999,7 @@ module Arel # :nodoc: all
           core.projections = [key]
           core.groups      = o.groups unless o.groups.empty?
           core.havings     = o.havings unless o.havings.empty?
+          core.optimizer_hints = o.optimizer_hints
           stmt.limit       = o.limit
           stmt.offset      = o.offset
           stmt.orders      = o.orders

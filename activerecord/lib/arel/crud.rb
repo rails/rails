@@ -26,6 +26,7 @@ module Arel # :nodoc: all
       um.key = key
 
       um.ast.groups = @ctx.groups
+      um.ast.optimizer_hints = @ctx.optimizer_hints
       @ctx.havings.each { |h| um.having(h) }
       um
     end
@@ -39,6 +40,7 @@ module Arel # :nodoc: all
       dm.comment(comment)
       dm.key = key
       dm.ast.groups = @ctx.groups
+      dm.ast.optimizer_hints = @ctx.optimizer_hints
       @ctx.havings.each { |h| dm.having(h) }
       dm
     end

@@ -155,6 +155,7 @@ module Arel # :nodoc: all
           visit_edge o, "comment"
           visit_edge o, "key"
           visit_edge o, "returning"
+          visit_edge o, "optimizer_hints"
         end
 
         def visit_Arel_Nodes_DeleteStatement(o)
@@ -166,6 +167,7 @@ module Arel # :nodoc: all
           visit_edge o, "comment"
           visit_edge o, "key"
           visit_edge o, "returning"
+          visit_edge o, "optimizer_hints"
         end
 
         def visit_Arel_Table(o)

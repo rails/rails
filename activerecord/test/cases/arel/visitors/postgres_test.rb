@@ -11,6 +11,13 @@ module Arel
         @attr = @table[:id]
       end
 
+      test "update statement places optimizer hints after the keyword" do
+        stmt = Nodes::UpdateStatement.new(Table.new(name: :users))
+        stmt.values = [Arel.sql("name = 'foo'")]
+        stmt.optimizer_hints = Nodes::OptimizerHints.new(["SeqScan(users)"])
+        assert_equal %(UPDATE /*+ SeqScan(users) */ "users" SET name = 'foo'), compile(stmt)
+      end
+
       test "locking defaults to FOR UPDATE" do
         assert_like %{
           FOR UPDATE

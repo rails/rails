@@ -27,6 +27,18 @@ class PostgresqlOptimizerHintsTest < ActiveRecord::PostgreSQLTestCase
       end
     end
 
+    def test_optimizer_hints_with_update_all_and_delete_all
+      posts = Post.optimizer_hints("SeqScan(posts)").where(author_id: [0, 1])
+
+      assert_queries_match(%r{\AUPDATE /\*\+ SeqScan\(posts\) \*/ "posts"}) do
+        assert_operator posts.update_all(title: "hinted"), :>, 0
+      end
+
+      assert_queries_match(%r{\ADELETE /\*\+ SeqScan\(posts\) \*/ FROM "posts"}) do
+        assert_operator posts.delete_all, :>, 0
+      end
+    end
+
     def test_optimizer_hints_is_sanitized
       assert_queries_match(%r{\ASELECT /\*\+ SeqScan\(posts\) \*/}) do
         posts = Post.optimizer_hints("/*+ SeqScan(posts) */")

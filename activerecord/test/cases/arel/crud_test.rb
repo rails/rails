@@ -55,5 +55,16 @@ module Arel
       stmt = fc.compile_delete
       assert_instance_of Arel::DeleteManager, stmt
     end
+
+    test "update and delete keep optimizer hints" do
+      table = Table.new name: :users
+      fc = FakeCrudder.new
+      fc.from table
+      fc.optimizer_hints("NO_INDEX_MERGE(users)")
+      hints = Nodes::OptimizerHints.new(["NO_INDEX_MERGE(users)"])
+
+      assert_equal hints, fc.compile_update([[table[:id], "foo"]]).ast.optimizer_hints
+      assert_equal hints, fc.compile_delete.ast.optimizer_hints
+    end
   end
 end
