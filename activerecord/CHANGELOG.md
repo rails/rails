@@ -1,3 +1,20 @@
+*   Fix preloading a scoped `has_many :through` association reusing the
+    through records already loaded by an unscoped one.
+
+    ```ruby
+    class Post < ActiveRecord::Base
+      has_many :taggings
+      has_many :tags, through: :taggings
+      has_many :inactive_tags, -> { where(active: false) }, through: :taggings, source: :tag
+    end
+
+    Post.preload(:tags, :inactive_tags).first.inactive_tags # => no longer includes active tags
+    ```
+
+    Fixes #57861.
+
+    *Ryuta Kamizono*
+
 *   Fix preloading a `has_many :through` / `has_one :through` association with
     `source_type` when the through association is already loaded.
 

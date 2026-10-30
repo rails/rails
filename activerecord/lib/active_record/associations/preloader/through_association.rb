@@ -94,7 +94,9 @@ module ActiveRecord
           end
 
           def through_preloaders
-            @through_preloaders ||= ActiveRecord::Associations::Preloader.new(records: owners, associations: through_reflection.name, scope: through_scope, associate_by_default: false).loaders
+            @through_preloaders ||= ActiveRecord::Associations::Preloader.new(records: owners, associations: through_reflection.name, scope: through_scope, associate_by_default: false).loaders.tap do |loaders|
+              loaders.each(&:ignore_loaded_target!) if through_scope_filters_source?
+            end
           end
 
           def through_reflection
@@ -117,6 +119,11 @@ module ActiveRecord
             @preload_index ||= preloaded_records.each_with_object({}).with_index do |(record, result), index|
               result[record] = index
             end
+          end
+
+          def through_scope_filters_source?
+            options = reflection.options
+            !options[:disable_joins] && !options[:source_type] && !reflection_scope.where_clause.empty?
           end
 
           def through_scope
