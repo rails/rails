@@ -1187,12 +1187,14 @@ module ActionController
       # Filters self and optionally checks for unpermitted keys
       def permit_filters(filters, on_unpermitted: nil, explicit_arrays: true)
         params = self.class.new
+        multi_parameter_keys = nil
 
         filters.flatten.each do |filter|
           case filter
           when Symbol, String
             # Declaration [:name, "age"]
-            permitted_scalar_filter(params, filter)
+            multi_parameter_keys ||= keys.keep_if { |key| key.end_with?(")") }
+            permitted_scalar_filter(params, filter, multi_parameter_keys)
           when Hash
             # Declaration [{ person: ... }]
             hash_filter(params, filter, on_unpermitted:, explicit_arrays:)
@@ -1415,18 +1417,18 @@ module ActionController
       #     puts self.keys #=> ["zipcode(90210i)"]
       #     params = {}
       #
-      #     permitted_scalar_filter(params, "zipcode")
+      #     permitted_scalar_filter(params, "zipcode", ["zipcode(90210i)"])
       #
-      #     puts params.keys # => ["zipcode"]
-      def permitted_scalar_filter(params, permitted_key)
+      #     puts params.keys # => ["zipcode(90210i)"]
+      def permitted_scalar_filter(params, permitted_key, multi_parameter_keys)
         permitted_key = permitted_key.is_a?(Symbol) ? permitted_key.name : permitted_key.to_s
 
         if has_key?(permitted_key) && permitted_scalar?(self[permitted_key])
           params[permitted_key] = self[permitted_key]
         end
 
-        each_key do |key|
-          next unless key.end_with?(")") && key =~ /\(\d+[if]?\)\z/
+        multi_parameter_keys.each do |key|
+          next unless key =~ /\(\d+[if]?\)\z/
           next unless $~.pre_match == permitted_key
 
           params[key] = self[key] if permitted_scalar?(self[key])
