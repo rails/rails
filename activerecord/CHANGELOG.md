@@ -1,3 +1,18 @@
+*   Fix preloading a `has_many :through` / `has_one :through` association with
+    `source_type` when the through association is already loaded.
+
+    The source records were preloaded for all already loaded through records,
+    including ones whose polymorphic type doesn't match `source_type`, which
+    could raise `NameError` for an unknown type. And a Symbol `source_type`
+    never matched the stored type, so the association was preloaded as empty.
+
+    ```ruby
+    Tag.preload(:taggings, :tagged_posts)        # no longer preloads non-Post taggables
+    Club.preload(:sponsor, :sponsored_member)    # source_type: :Member works
+    ```
+
+    *Ryuta Kamizono*
+
 *   Exclude `default_order` from aggregate calculations.
 
     Calculations such as `count` and `sum` now remove default ordering where they

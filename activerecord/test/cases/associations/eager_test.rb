@@ -1206,6 +1206,30 @@ class EagerAssociationTest < ActiveRecord::TestCase
     assert_equal posts(:welcome, :thinking), posts
   end
 
+  def test_preload_has_many_through_with_source_type_ignores_other_types_in_loaded_through_records
+    tag = tags(:general)
+    expected = tag.tagged_posts.to_a
+    assert tag.taggings.any? { |tagging| tagging.taggable_type == "FakeModel" }
+
+    tag_with_preloads = assert_queries_count(3) do
+      Tag.preload(:taggings, :tagged_posts).find(tag.id)
+    end
+    assert_no_queries do
+      assert_equal expected, tag_with_preloads.tagged_posts
+    end
+  end
+
+  def test_preload_has_one_through_with_symbol_source_type_and_loaded_through_record
+    club = clubs(:moustache_club)
+    expected = club.sponsored_member
+    assert_not_nil expected
+
+    club_with_preloads = Club.preload(:sponsor, :sponsored_member).find(club.id)
+    assert_no_queries do
+      assert_equal expected, club_with_preloads.sponsored_member
+    end
+  end
+
   def test_preload_has_many_with_association_condition_and_default_scope
     post = Post.create!(title: "Beaches", body: "I like beaches!")
     Reader.create! person: people(:david), post: post

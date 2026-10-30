@@ -25,15 +25,7 @@ module ActiveRecord
               next
             end
 
-            through_records = through_records_by_owner[owner] || []
-
-            if owners.first.association(through_reflection.name).loaded?
-              if source_type = reflection.options[:source_type]
-                through_records = through_records.select do |record|
-                  record.read_attr(reflection.foreign_type) == source_type
-                end
-              end
-            end
+            through_records = filter_by_source_type(through_records_by_owner[owner] || [])
 
             records = through_records.flat_map do |record|
               source_records_by_owner[record]
@@ -86,7 +78,19 @@ module ActiveRecord
           end
 
           def middle_records
-            through_records_by_owner.values.flatten
+            filter_by_source_type(through_records_by_owner.values.flatten)
+          end
+
+          # Already loaded through records aren't filtered by `source_type`.
+          def filter_by_source_type(through_records)
+            if source_type = reflection.options[:source_type]
+              source_type = source_type.to_s
+              through_records.select do |record|
+                record.read_attr(reflection.foreign_type) == source_type
+              end
+            else
+              through_records
+            end
           end
 
           def through_preloaders
