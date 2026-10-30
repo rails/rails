@@ -597,15 +597,22 @@ module Rails
     # +production+ environment), or +config/credentials.yml.enc+ if that file
     # does not exist.
     #
-    # The encryption key is taken from either <tt>ENV["RAILS_MASTER_KEY"]</tt>,
-    # or from the file specified by +config.credentials.key_path+. By default,
-    # +config.credentials.key_path+ will point to either
-    # <tt>config/credentials/#{environment}.key</tt> for the current
-    # environment, or +config/master.key+ if that file does not exist.
+    # The encryption key is taken from either the environment variable
+    # specified by +config.credentials.env_key+ or from the file specified
+    # by +config.credentials.key_path+. By default,
+    # +config.credentials.env_key+ will point to
+    # <tt>ENV["RAILS_MASTER_KEY"]</tt>, and +config.credentials.key_path+ will
+    # point to either <tt>config/credentials/#{environment}.key</tt> for the
+    # current environment, or +config/master.key+ if that file does not exist.
+
     #
     # Is best used via #creds to ensure that values can be overwritten via ENV (or .env in dev).
     def credentials
-      @credentials ||= encrypted(config.credentials.content_path, key_path: config.credentials.key_path)
+      @credentials ||= encrypted(
+        config.credentials.content_path,
+        key_path: config.credentials.key_path,
+        env_key: config.credentials.env_key
+      )
     end
 
     # Returns an ActiveSupport::EncryptedConfiguration instance for an encrypted

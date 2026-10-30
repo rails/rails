@@ -336,6 +336,12 @@ Defaults to `config/credentials/#{Rails.env}.yml.enc` if it exists, or
 NOTE: In order for the `bin/rails credentials` commands to recognize this value,
 it must be set in `config/application.rb` or `config/environments/#{Rails.env}.rb`.
 
+#### `config.credentials.env_key`
+
+The environment variable that contains the master key.
+
+Defaults to `RAILS_MASTER_KEY`.
+
 #### `config.credentials.key_path`
 
 The path of the encrypted credentials key file.

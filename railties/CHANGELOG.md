@@ -1,3 +1,8 @@
+*   Add `config.credentials.env_key` to specify the environment variable that
+    contains the master key.
+
+    *Jeff Tsang*
+
 *   Create the local development/test secret file (`tmp/local_secret.txt`) with
     owner-only permissions (`0600`) instead of inheriting the process umask,
     and tighten the permissions of an existing file on read on non-Windows
