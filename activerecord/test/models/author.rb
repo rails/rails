@@ -154,6 +154,7 @@ class Author < ActiveRecord::Base
 
   has_many :categorized_posts, through: :categorizations, source: :post
   has_many :unique_categorized_posts, -> { distinct }, through: :categorizations, source: :post
+  has_many :categorized_posts_desc, -> { order(id: :desc) }, through: :categorizations, source: :post
 
   has_many :nothings, through: :kateggorizatons, class_name: "Category"
 
