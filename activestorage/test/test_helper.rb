@@ -52,6 +52,18 @@ class ActiveSupport::TestCase
       ActiveStorage::Blob.create_before_direct_upload! key: key, filename: filename, byte_size: byte_size, checksum: checksum, content_type: content_type, record: record
     end
 
+    def create_playlist_blob(referencing:, filename:, content_type:)
+      playlist = <<~M3U8
+        #EXTM3U
+        #EXT-X-TARGETDURATION:10
+        #EXTINF:10,
+        file://#{file_fixture(referencing).realpath}
+        #EXT-X-ENDLIST
+      M3U8
+
+      create_blob(data: playlist, filename: filename, content_type: content_type, identify: false)
+    end
+
     def build_blob_after_unfurling(key: nil, data: "Hello world!", filename: "hello.txt", content_type: "text/plain", identify: true, record: nil)
       ActiveStorage::Blob.build_after_unfurling key: key, io: StringIO.new(data), filename: filename, content_type: content_type, identify: identify, record: record
     end

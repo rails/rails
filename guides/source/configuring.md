@@ -3422,6 +3422,20 @@ The default value depends on the `config.load_defaults` target version:
 | (original)            | `"-y -vframes 1 -f image2"` |
 | 7.0                   | `"-vf 'select=eq(n\\,0)+eq(key\\,1)+gt(scene\\,0.015)"`<sup><mark><strong><em>1</em></strong></mark></sup> <br> `+ ",loop=loop=-1:size=2,trim=start_frame=1'"`<sup><mark><strong><em>2</em></strong></mark></sup><br> `+ " -frames:v 1 -f image2"` <br><br> <ol><li>Select the first video frame, plus keyframes, plus frames that meet the scene change threshold.</li> <li>Use the first video frame as a fallback when no other frames meet the criteria by looping the first (one or) two selected frames, then dropping the first looped frame.</li></ol> |
 
+#### `config.active_storage.ffmpeg_allowed_formats`
+
+The ffmpeg demuxers that ffmpeg and ffprobe may use to open a file when
+generating video previews and analyzing videos and audio. Active Storage passes
+them as `-format_whitelist` before the input, so a file in any other
+format fails to preview and yields no metadata. Names match `ffmpeg -demuxers`, and
+any one name admits a demuxer that registers several, so `mov` also admits
+MP4, M4A and 3GP files.
+
+Set this to `nil` to let ffmpeg choose any demuxer it was built with.
+
+The default value is
+`%w[ mov matroska avi mpeg mpegts flv asf ogg mp3 wav flac aac aiff caf ]`.
+
 #### `config.active_storage.multiple_file_field_include_hidden`
 
 In Rails 7.1 and beyond, Active Storage `has_many_attached` relationships will
