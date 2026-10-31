@@ -4712,6 +4712,17 @@ class TestOptimizedNamedRoutes < ActionDispatch::IntegrationTest
     end
   end
 
+  test "a trailing slash isn't added after a format passed as a required segment, as in the general path" do
+    assert_equal "/projects/1.json", project_path(1, :json, trailing_slash: true)
+    assert_equal "/projects/1.json#x", project_path(1, "json", trailing_slash: true, anchor: "x")
+
+    [[1, :json, { trailing_slash: true }], [1, "json", { trailing_slash: true, anchor: "x" }],
+     [1, :json, { trailing_slash: true, page: 2 }]].each do |args|
+      expected = Routes.stub(:optimize_routes_generation?, false) { project_path(*args) }
+      assert_equal expected, project_path(*args), "project_path(#{args.map(&:inspect).join(", ")})"
+    end
+  end
+
   test "a blank format option is dropped rather than rendered as a trailing dot" do
     assert_equal "/articles/1", article_path(1, format: "")
     assert_equal "/articles/1", article_path(1, format: " ")
