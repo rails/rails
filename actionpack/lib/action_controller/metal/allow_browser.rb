@@ -60,7 +60,7 @@ module ActionController # :nodoc:
       #       allow_browser versions: { opera: 104, chrome: 119 }, only: :show
       #     end
       def allow_browser(versions:, block: nil, **options)
-        require "useragent"
+        require "useragent" unless defined?(::UserAgent)
 
         before_action -> { allow_browser(versions: versions, block: block || DEFAULT_UNSUPPORTED_BROWSER_RESPONSE) }, **options
       end
