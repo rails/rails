@@ -140,9 +140,12 @@ module ActiveStorage
             "-show_streams",
             "-show_format",
             "-v", "error",
+            *ActiveStorage.ffmpeg_format_whitelist_arguments,
             file.path
           ]) do |output|
             JSON.parse(output.read)
+          end.tap do
+            logger.warn "Video analysis failed because ffprobe exited with status #{$?.exitstatus}. The file may be corrupt, or in a format outside config.active_storage.ffmpeg_allowed_formats." unless $?.success?
           end
         end
       rescue Errno::ENOENT
