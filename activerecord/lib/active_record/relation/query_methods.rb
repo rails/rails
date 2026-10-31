@@ -2629,18 +2629,36 @@ module ActiveRecord
         Relation::VALUE_METHODS -
         [:extending, :where, :having, :unscope, :references, :annotate, :optimizer_hints]
       ).freeze # :nodoc:
+      STRUCTURAL_VALUE_METHOD_LOOKUP = STRUCTURAL_VALUE_METHODS.index_with(true).freeze # :nodoc:
 
       def structurally_incompatible_values_for(other)
         values = other.values
-        STRUCTURAL_VALUE_METHODS.reject do |method|
-          v1, v2 = @values[method], values[method]
 
-          # `and`/`or` are focused to combine where-like clauses, so it relaxes
-          # the difference when other's multi values are uninitialized.
-          next true if v1.is_a?(Array) && v2.nil?
-
-          v1 == v2
+        # A value set on neither relation can't differ, so only the values set
+        # on either one are compared. When one differs, every incompatible
+        # value is collected, in order, for the error message.
+        if structurally_incompatible_key?(@values, values) || structurally_incompatible_key?(values, values)
+          STRUCTURAL_VALUE_METHODS.select { |method| structurally_incompatible_value?(method, values) }
+        else
+          []
         end
+      end
+
+      def structurally_incompatible_key?(set_values, values)
+        set_values.each_key do |method|
+          return true if STRUCTURAL_VALUE_METHOD_LOOKUP[method] && structurally_incompatible_value?(method, values)
+        end
+        false
+      end
+
+      def structurally_incompatible_value?(method, values)
+        v1, v2 = @values[method], values[method]
+
+        # `and`/`or` are focused to combine where-like clauses, so it relaxes
+        # the difference when other's multi values are uninitialized.
+        return false if v1.is_a?(Array) && v2.nil?
+
+        !(v1 == v2)
       end
   end
 end
