@@ -475,45 +475,8 @@ module ActionDispatch
         # :action
         # :   The route's action.
         #
-        # :param
-        # :   Overrides the default resource identifier `:id` (name of the dynamic
-        #     segment used to generate the routes). You can access that segment from
-        #     your controller using `params[<:param>]`. In your router:
-        #
-        #         resources :users, param: :name
-        #
-        #     The `users` resource here will have the following routes generated for it:
-        #
-        #         GET       /users(.:format)
-        #         POST      /users(.:format)
-        #         GET       /users/new(.:format)
-        #         GET       /users/:name/edit(.:format)
-        #         GET       /users/:name(.:format)
-        #         PATCH/PUT /users/:name(.:format)
-        #         DELETE    /users/:name(.:format)
-        #
-        #     You can override `ActiveRecord::Base#to_param` of a related model to
-        #     construct a URL:
-        #
-        #         class User < ActiveRecord::Base
-        #           def to_param
-        #             name
-        #           end
-        #         end
-        #
-        #         user = User.find_by(name: 'Phusion')
-        #         user_path(user)  # => "/users/Phusion"
-        #
         # :path
         # :   The path prefix for the routes.
-        #
-        # :module
-        # :   The namespace for :controller.
-        #
-        #         match 'path', to: 'c#a', module: 'sekret', controller: 'posts', via: :get
-        #         # => Sekret::PostsController
-        #
-        #     See `Scoping#namespace` for its scope equivalent.
         #
         # :as
         # :   The name used to generate routing helpers.
@@ -1193,7 +1156,7 @@ module ActionDispatch
         # Allows you to set default parameters for a route, such as this:
         #
         #     defaults id: 'home' do
-        #       match 'scoped_pages/(:id)', to: 'pages#show'
+        #       get 'scoped_pages/(:id)', to: 'pages#show'
         #     end
         #
         # Using this, the `:id` parameter here will default to 'home'.
@@ -1663,7 +1626,33 @@ module ActionDispatch
         #     disable it by supplying `false`.
         #
         # :param
-        # :   Allows you to override the default param name of `:id` in the URL.
+        # :   Overrides the default resource identifier `:id` (name of the dynamic
+        #     segment used to generate the routes). You can access that segment from
+        #     your controller using `params[<:param>]`. In your router:
+        #
+        #         resources :users, param: :name
+        #
+        #     The `users` resource here will have the following routes generated for it:
+        #
+        #         GET       /users(.:format)
+        #         POST      /users(.:format)
+        #         GET       /users/new(.:format)
+        #         GET       /users/:name/edit(.:format)
+        #         GET       /users/:name(.:format)
+        #         PATCH/PUT /users/:name(.:format)
+        #         DELETE    /users/:name(.:format)
+        #
+        #     You can override `ActiveRecord::Base#to_param` of a related model to
+        #     construct a URL:
+        #
+        #         class User < ActiveRecord::Base
+        #           def to_param
+        #             name
+        #           end
+        #         end
+        #
+        #         user = User.find_by(name: 'Phusion')
+        #         user_path(user)  # => "/users/Phusion"
         #
         #
         # ### Examples
@@ -2273,7 +2262,7 @@ module ActionDispatch
         # through the concern:
         #
         #     concern :commentable do |options|
-        #       resources :comments, options
+        #       resources :comments, **options
         #     end
         #
         #     resources :posts, concerns: :commentable
