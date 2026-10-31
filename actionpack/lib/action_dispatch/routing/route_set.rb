@@ -88,6 +88,10 @@ module ActionDispatch
           @path_helpers.map(&:to_s) + @url_helpers.map(&:to_s)
         end
 
+        def helper_name_symbols # :nodoc:
+          @path_helpers.to_a + @url_helpers.to_a
+        end
+
         def clear!
           @path_helpers.each do |helper|
             @path_helpers_module.remove_method helper
