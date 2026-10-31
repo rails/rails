@@ -125,7 +125,7 @@ module ActionMailbox
 
           # Allow for 2 minutes of drift between Mailgun time and local server time.
           def recent?
-            @parsed_timestamp && Time.at(@parsed_timestamp) >= 2.minutes.ago
+            @parsed_timestamp && Time.at(@parsed_timestamp).between?(2.minutes.ago, 2.minutes.from_now)
           end
 
           def expected_signature

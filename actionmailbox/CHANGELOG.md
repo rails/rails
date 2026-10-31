@@ -1,3 +1,10 @@
+*   Reject Mailgun inbound emails whose timestamp is more than 2 minutes ahead
+    of local time.
+
+    [GHSA-5957-c7qm-m469]
+
+    *Mike Dalessio*
+
 *   Return `422 Unprocessable Content` for malformed Mailgun, Postmark, and SendGrid raw email parameters.
 
     *Andrii Furmanets*
