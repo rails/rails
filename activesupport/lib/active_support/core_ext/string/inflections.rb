@@ -37,7 +37,7 @@ class String
   # ```
   #
   # See ActiveSupport::Inflector.pluralize.
-  #: (?(Integer | Symbol)?, ?Symbol?) -> String
+  #: (?(Integer | Symbol)?, ?Symbol) -> String
   def pluralize(count = nil, locale = :en)
     locale = count if count.is_a?(Symbol)
     if count == 1
