@@ -221,6 +221,12 @@ module ActionView
         @sub_templates << template_path
       end
 
+      # The templates that were rendering when the error was raised: the one
+      # that raised it, then each template that rendered it, outwards.
+      def templates
+        @sub_templates ? [@template, *@sub_templates] : [@template]
+      end
+
       def line_number
         @line_number ||=
           if file_name
