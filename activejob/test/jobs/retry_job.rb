@@ -57,7 +57,8 @@ class RetryJob < ActiveJob::Base
   end
 
   def perform(raising, attempts, *)
-    raising = raising.shift if raising.is_a?(Array)
+    # The perform parameter is a copy when immutable_arguments is enabled.
+    raising = arguments[0].shift if raising.is_a?(Array)
     if raising && executions < attempts
       JobBuffer.add("Raised #{raising} for the #{executions.ordinalize} time")
       raise raising.constantize
