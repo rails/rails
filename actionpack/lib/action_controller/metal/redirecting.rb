@@ -189,7 +189,7 @@ module ActionController
     #
     # #### Options
     # *   `:allow_other_host` - Allow or disallow redirection to the host that is
-    #     different to the current host, defaults to true.
+    #     different to the current host, defaults to false.
     #
     #
     # All other options that can be passed to #redirect_to are accepted as options,
