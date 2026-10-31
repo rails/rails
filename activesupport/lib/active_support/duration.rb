@@ -121,6 +121,14 @@ module ActiveSupport
     SECONDS_PER_MONTH  = 2629746  # 1/12 of a gregorian year
     SECONDS_PER_YEAR   = 31556952 # length of a gregorian year (365.2425 days)
 
+    SECONDS_PER_MINUTE_F = SECONDS_PER_MINUTE.to_f
+    SECONDS_PER_HOUR_F   = SECONDS_PER_HOUR.to_f
+    SECONDS_PER_DAY_F    = SECONDS_PER_DAY.to_f
+    SECONDS_PER_WEEK_F   = SECONDS_PER_WEEK.to_f
+    SECONDS_PER_MONTH_F  = SECONDS_PER_MONTH.to_f
+    SECONDS_PER_YEAR_F   = SECONDS_PER_YEAR.to_f
+    private_constant :SECONDS_PER_MINUTE_F, :SECONDS_PER_HOUR_F, :SECONDS_PER_DAY_F, :SECONDS_PER_WEEK_F, :SECONDS_PER_MONTH_F, :SECONDS_PER_YEAR_F
+
     PARTS_IN_SECONDS = {
       seconds: 1,
       minutes: SECONDS_PER_MINUTE,
@@ -399,7 +407,7 @@ module ActiveSupport
     # 1.day.in_minutes # => 1440.0
     # ```
     def in_minutes
-      value / SECONDS_PER_MINUTE.to_f
+      value / SECONDS_PER_MINUTE_F
     end
 
     # Returns the amount of hours a duration covers as a float
@@ -408,7 +416,7 @@ module ActiveSupport
     # 1.day.in_hours # => 24.0
     # ```
     def in_hours
-      value / SECONDS_PER_HOUR.to_f
+      value / SECONDS_PER_HOUR_F
     end
 
     # Returns the amount of days a duration covers as a float
@@ -417,7 +425,7 @@ module ActiveSupport
     # 12.hours.in_days # => 0.5
     # ```
     def in_days
-      value / SECONDS_PER_DAY.to_f
+      value / SECONDS_PER_DAY_F
     end
 
     # Returns the amount of weeks a duration covers as a float
@@ -426,7 +434,7 @@ module ActiveSupport
     # 2.months.in_weeks # => 8.696
     # ```
     def in_weeks
-      value / SECONDS_PER_WEEK.to_f
+      value / SECONDS_PER_WEEK_F
     end
 
     # Returns the amount of months a duration covers as a float
@@ -435,7 +443,7 @@ module ActiveSupport
     # 9.weeks.in_months # => 2.07
     # ```
     def in_months
-      value / SECONDS_PER_MONTH.to_f
+      value / SECONDS_PER_MONTH_F
     end
 
     # Returns the amount of years a duration covers as a float
@@ -444,7 +452,7 @@ module ActiveSupport
     # 30.days.in_years # => 0.082
     # ```
     def in_years
-      value / SECONDS_PER_YEAR.to_f
+      value / SECONDS_PER_YEAR_F
     end
 
     # Returns `true` if `other` is also a Duration instance, which has the
