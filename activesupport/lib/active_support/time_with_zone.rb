@@ -447,7 +447,7 @@ module ActiveSupport
       if options[:zone]
         new_zone = ::Time.find_zone(options[:zone])
       elsif options[:offset]
-        new_zone = ::Time.find_zone(new_time.utc_offset)
+        new_zone = ActiveSupport::TimeZone.all.find { |zone| zone.periods_for_local(new_time).map(&:utc_total_offset) == [new_time.utc_offset] }
       end
 
       new_zone ||= time_zone
