@@ -2159,6 +2159,26 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     I18n.backend.reload!
   end
 
+  def test_restrict_with_error_exposes_association_name_without_downcasing
+    I18n.backend = I18n::Backend::Simple.new
+    I18n.backend.store_translations "de",
+      activerecord: {
+        attributes: { restricted_with_error_firm: { companies: "Firmen" } },
+        errors: { messages: { restrict_dependent_destroy: { has_many: "Datensatz kann nicht gelöscht werden, da abhängige %{association_name} existieren" } } }
+      }
+    firm = RestrictedWithErrorFirm.create!(name: "restrict")
+    firm.companies.create(name: "child")
+
+    I18n.with_locale(:de) do
+      firm.destroy
+      assert_equal "Datensatz kann nicht gelöscht werden, da abhängige Firmen existieren", firm.errors[:base].first
+    end
+    assert RestrictedWithErrorFirm.exists?(name: "restrict")
+    assert firm.companies.exists?(name: "child")
+  ensure
+    I18n.backend.reload!
+  end
+
   def test_included_in_collection
     assert_equal true, companies(:first_firm).clients.include?(Client.find(2))
   end
