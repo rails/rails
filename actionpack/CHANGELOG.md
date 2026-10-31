@@ -1,3 +1,14 @@
+*   Apply dotted `filter_parameters` to nested query string keys when filtering
+    request and redirect logs.
+
+    A filter such as `"user.phone_number"`, which Active Record encryption
+    adds for `encrypts :phone_number`, now also filters `user[phone_number]`
+    in the query string. Previously the value was written unfiltered to the
+    `Started GET` and `Redirected to` log lines, while the `Parameters` line
+    showed `[FILTERED]`.
+
+    *Dhruv Patel*
+
 *   Reset the parsed HTML document after `options` in integration tests.
 
     `options` was the only request helper that the integration test runner
