@@ -574,9 +574,15 @@ module ActionController # :nodoc:
       # Appends Sec-Fetch-Site to the Vary header. This ensures proper cache behavior since
       # the response may vary based on this header.
       def append_sec_fetch_site_to_vary_header # :doc:
-        vary_header = response.headers["Vary"].to_s.split(",").map(&:strip).reject(&:blank?)
-        unless vary_header.include?("Sec-Fetch-Site")
-          response.headers["Vary"] = (vary_header + ["Sec-Fetch-Site"]).join(", ")
+        vary = response.headers["Vary"]
+
+        if vary.nil? || vary.empty?
+          response.headers["Vary"] = "Sec-Fetch-Site"
+        else
+          vary_header = vary.split(",").map(&:strip).reject(&:blank?)
+          unless vary_header.include?("Sec-Fetch-Site")
+            response.headers["Vary"] = (vary_header + ["Sec-Fetch-Site"]).join(", ")
+          end
         end
       end
 
