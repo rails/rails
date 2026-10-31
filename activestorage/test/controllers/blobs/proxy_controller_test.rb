@@ -26,6 +26,7 @@ class ActiveStorage::Blobs::ProxyControllerTest < ActionDispatch::IntegrationTes
     end
     assert_response :not_found
     assert_equal "no-cache", response.headers["Cache-Control"]
+    assert_equal "0", response.headers["Content-Length"]
   end
 
 
@@ -39,6 +40,7 @@ class ActiveStorage::Blobs::ProxyControllerTest < ActionDispatch::IntegrationTes
     end
     assert_response :internal_server_error
     assert_equal "no-cache", response.headers["Cache-Control"]
+    assert_not_equal blob.byte_size.to_s, response.headers["Content-Length"]
   end
 
 
