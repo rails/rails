@@ -1,3 +1,12 @@
+*   Load Action Mailbox's extensions to the Mail gem with `ActionMailbox::InboundEmail`.
+
+    Requiring Action Mailbox no longer loads the Mail gem and its address parser, which made
+    up about 40 ms of booting a new application in development and of every `bin/rails`
+    command. Code that uses the extensions, like `Mail::Message#recipients`, outside of Action
+    Mailbox needs to require `action_mailbox/mail_ext`.
+
+    *Lawrence Lin*
+
 *   Return `422 Unprocessable Content` for malformed Mailgun, Postmark, and SendGrid raw email parameters.
 
     *Andrii Furmanets*

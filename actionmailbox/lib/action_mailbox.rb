@@ -6,7 +6,6 @@ require "active_support/core_ext/numeric/time"
 
 require "action_mailbox/version"
 require "action_mailbox/deprecator"
-require "action_mailbox/mail_ext"
 
 # :include: ../README.md
 module ActionMailbox

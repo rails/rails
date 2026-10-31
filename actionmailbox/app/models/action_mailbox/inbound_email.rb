@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require "mail"
+require "action_mailbox/mail_ext"
 
 module ActionMailbox
   # The `InboundEmail` is an Active Record that keeps a reference to the raw email stored in Active Storage
