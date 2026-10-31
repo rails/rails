@@ -831,7 +831,7 @@ module ActiveRecord
     # #   END ASC
     # ```
     def in_order_of(column, values, filter: true)
-      model.disallow_raw_sql!([column], permit: model.adapter_class.column_name_with_order_matcher)
+      model.disallow_raw_sql!([column], order: true)
       return spawn.none! if values.empty?
 
       references = column_references([column])
@@ -2390,7 +2390,7 @@ module ActiveRecord
       def preprocess_order_args(order_args)
         model.disallow_raw_sql!(
           flattened_args(order_args),
-          permit: model.adapter_class.column_name_with_order_matcher
+          order: true
         )
 
         validate_order_args(order_args)
