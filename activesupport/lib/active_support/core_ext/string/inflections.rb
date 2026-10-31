@@ -141,7 +141,7 @@ class String
   # ```
   #
   # See ActiveSupport::Inflector.titleize.
-  #: (?keep_id_suffix: bool) -> String
+  #: (?keep_id_suffix: boolish) -> String
   def titleize(keep_id_suffix: false)
     ActiveSupport::Inflector.titleize(self, keep_id_suffix: keep_id_suffix)
   end
@@ -247,7 +247,7 @@ class String
   # ```
   #
   # See ActiveSupport::Inflector.parameterize.
-  #: (?separator: String?, ?preserve_case: bool, ?locale: Symbol?) -> String
+  #: (?separator: String?, ?preserve_case: boolish, ?locale: Symbol?) -> String
   def parameterize(separator: "-", preserve_case: false, locale: nil)
     ActiveSupport::Inflector.parameterize(self, separator: separator, preserve_case: preserve_case, locale: locale)
   end
@@ -303,7 +303,7 @@ class String
   # ```
   #
   # See ActiveSupport::Inflector.humanize.
-  #: (?capitalize: bool, ?keep_id_suffix: bool) -> String
+  #: (?capitalize: boolish, ?keep_id_suffix: boolish) -> String
   def humanize(capitalize: true, keep_id_suffix: false)
     ActiveSupport::Inflector.humanize(self, capitalize: capitalize, keep_id_suffix: keep_id_suffix)
   end
@@ -347,7 +347,7 @@ class String
   # ```
   #
   # See ActiveSupport::Inflector.foreign_key.
-  #: (?bool) -> String
+  #: (?boolish) -> String
   def foreign_key(separate_class_name_and_id_with_underscore = true)
     ActiveSupport::Inflector.foreign_key(self, separate_class_name_and_id_with_underscore)
   end
