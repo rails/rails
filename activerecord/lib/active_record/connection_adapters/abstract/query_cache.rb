@@ -1,6 +1,5 @@
 # frozen_string_literal: true
 
-# :markup: markdown
 require "concurrent/map"
 require "concurrent/atomic/atomic_fixnum"
 

@@ -1,6 +1,5 @@
 # frozen_string_literal: true
 
-# :markup: markdown
 require "active_record/associations"
 
 module ActiveRecord::Associations::Builder # :nodoc:

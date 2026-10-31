@@ -1,6 +1,5 @@
 # frozen_string_literal: true
 
-# :markup: markdown
 # :enddoc:
 
 module ActiveRecord

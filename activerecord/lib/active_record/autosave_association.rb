@@ -1,6 +1,5 @@
 # frozen_string_literal: true
 
-# :markup: markdown
 require "active_record/associations/nested_error"
 
 module ActiveRecord

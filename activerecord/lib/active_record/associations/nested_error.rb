@@ -1,6 +1,5 @@
 # frozen_string_literal: true
 
-# :markup: markdown
 # Validation error class to wrap association records' errors,
 # with index_errors support.
 module ActiveRecord

@@ -1,6 +1,5 @@
 # frozen_string_literal: true
 
-# :markup: markdown
 require "active_record/associations/join_dependency/join_part"
 require "active_support/core_ext/array/extract"
 

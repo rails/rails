@@ -1,7 +1,5 @@
 # frozen_string_literal: true
 
-# :markup: markdown
-
 require "active_record/connection_adapters/mysql/compatibility_behavior"
 
 module ActiveRecord

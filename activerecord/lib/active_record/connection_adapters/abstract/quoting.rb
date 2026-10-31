@@ -1,6 +1,5 @@
 # frozen_string_literal: true
 
-# :markup: markdown
 require "active_support/core_ext/big_decimal/conversions"
 
 module ActiveRecord

@@ -1,6 +1,5 @@
 # frozen_string_literal: true
 
-# :markup: markdown
 module ActiveRecord
   module AttributeAssignment
     class InvalidParameterKey < StandardError # :nodoc:

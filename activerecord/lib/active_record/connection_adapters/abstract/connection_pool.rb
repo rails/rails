@@ -1,6 +1,5 @@
 # frozen_string_literal: true
 
-# :markup: markdown
 require "concurrent/map"
 require "monitor"
 require "active_support/weak_key_map"
