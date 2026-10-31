@@ -286,6 +286,26 @@ class TagHelperTest < ActionView::TestCase
     assert_equal '<input pattern="\w+">', tag.input(pattern: /\w+/)
   end
 
+  def test_tags_can_be_appended_to_without_changing_later_tags
+    [
+      -> { content_tag(:div, "Content", class: "card") },
+      -> { tag.div("Content", id: "post_1", class: "card") },
+      -> { tag.input(type: "hidden", name: "authenticity_token") },
+      -> { tag("input", type: "hidden", name: "authenticity_token") },
+    ].each do |build|
+      html = build.call
+      original = String.new(html)
+
+      assert_not_predicate html, :frozen?
+      html << "<b>"
+      html.safe_concat("<i>")
+
+      assert_equal original + "&lt;b&gt;<i>", html
+      assert_predicate html, :html_safe?
+      assert_equal original, build.call
+    end
+  end
+
   def test_tag_builder_nested
     assert_equal "<div>content</div>",
                  tag.div { "content" }

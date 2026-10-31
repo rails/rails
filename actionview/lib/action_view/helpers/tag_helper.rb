@@ -1535,7 +1535,9 @@ module ActionView
           if escape && content.present?
             content = ERB::Util.unwrapped_html_escape(content)
           end
-          "<#{name}#{tag_options}>#{PRE_CONTENT_STRINGS[name]}#{content}</#{name}>".html_safe
+          # Freezing first lets the SafeBuffer share this string's contents, instead
+          # of Ruby allocating a hidden string for both to share.
+          "<#{name}#{tag_options}>#{PRE_CONTENT_STRINGS[name]}#{content}</#{name}>".freeze.html_safe
         end
 
         def tag_options(options, escape = true) # :nodoc:
@@ -1600,7 +1602,7 @@ module ActionView
           end
 
           def self_closing_tag_string(name, options, escape = true, tag_suffix = " />")
-            "<#{name}#{tag_options(options, escape)}#{tag_suffix}".html_safe
+            "<#{name}#{tag_options(options, escape)}#{tag_suffix}".freeze.html_safe
           end
 
           def boolean_tag_option(key)
