@@ -184,7 +184,11 @@ module ActionDispatch
           end
 
           def self.optimize_helper?(route)
-            route.path.requirements.empty? && !route.glob?
+            return false if route.glob?
+            # A route with requirements is optimized only without optional segments
+            # other than the format, which the general path fills from the current
+            # request.
+            route.path.requirements.empty? || (route.segment_keys - route.required_parts - [:format]).empty?
           end
 
           attr_reader :route_name
@@ -207,6 +211,10 @@ module ActionDispatch
               # (as in <tt>scope "(:locale)"</tt>) would take the first argument.
               @options_optimizable = @segment_keys.first(@arg_size) == @required_parts &&
                 !@segment_keys.intersect?(RESERVED_OPTIONS)
+              # As in the general path, only required segments are checked against
+              # the route's requirements.
+              @requirements = route.path.requirements_for_missing_keys_check.slice(*@required_parts)
+              @requirements = nil if @requirements.empty?
             end
 
             def call(t, method_name, args, inner_options, url_strategy)
@@ -215,8 +223,9 @@ module ActionDispatch
                 format = inner_options && inner_options[:format]
                 path = optimized_helper(args, format)
                 if path.nil?
-                  # With options, a missing argument raises the general path's error.
-                  return super if inner_options
+                  # With options, a missing argument raises the general path's error,
+                  # as does any argument that fails a requirement.
+                  return super if inner_options || @requirements
                   raise_generation_error(args)
                 end
                 merge_url_and_query_options!(options, inner_options) if inner_options && !sole_format?(inner_options)
@@ -272,6 +281,7 @@ module ActionDispatch
 
               def optimized_helper(args, format = nil)
                 params = parameterize_args(args) { return }
+                return if @requirements && !@requirements.all? { |key, test| test.match?(params[key]) }
                 if format
                   # As in the general path, a blank format is dropped rather than
                   # rendered as a trailing dot.
