@@ -1,6 +1,5 @@
 # frozen_string_literal: true
 
-# :markup: markdown
 module ActiveModel
   # Returns the currently loaded version of \Active \Model as a `Gem::Version`.
   def self.gem_version

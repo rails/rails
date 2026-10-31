@@ -1,6 +1,5 @@
 # frozen_string_literal: true
 
-# :markup: markdown
 require "active_support/core_ext/hash/except"
 require "active_support/core_ext/module/introspection"
 require "active_support/core_ext/module/redefine_method"

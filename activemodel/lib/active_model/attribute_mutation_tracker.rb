@@ -1,6 +1,5 @@
 # frozen_string_literal: true
 
-# :markup: markdown
 require "active_support/core_ext/hash/indifferent_access"
 require "active_support/core_ext/object/duplicable"
 

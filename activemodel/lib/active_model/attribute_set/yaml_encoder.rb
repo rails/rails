@@ -1,6 +1,5 @@
 # frozen_string_literal: true
 
-# :markup: markdown
 module ActiveModel
   class AttributeSet
     # Attempts to do more intelligent YAML dumping of an

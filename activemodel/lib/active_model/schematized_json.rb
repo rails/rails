@@ -1,6 +1,5 @@
 # frozen_string_literal: true
 
-# :markup: markdown
 require "active_support/core_ext/hash/reverse_merge"
 require "active_support/core_ext/string/filters"
 require "active_support/core_ext/symbol/starts_ends_with"
