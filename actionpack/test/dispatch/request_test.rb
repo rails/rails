@@ -1526,6 +1526,136 @@ class RequestParameterFilter < BaseRequestTest
     end
   end
 
+  test "filtered_path masks complete filtered values containing semicolons" do
+    {
+      "password=first;other=second" => { "password" => "[FILTERED]" },
+      "pass%77ord=first;other=second" => { "password" => "[FILTERED]" },
+      "password;other=secret" => { "password;other" => "[FILTERED]" }
+    }.each do |query, expected_parameters|
+      request = stub_request(
+        "QUERY_STRING" => query,
+        "PATH_INFO" => "/authenticate",
+        "action_dispatch.parameter_filter" => [:password]
+      )
+
+      assert_equal expected_parameters, request.filtered_parameters
+      assert_equal "/authenticate?#{query.split("=", 2).first}=[FILTERED]", request.filtered_path
+    end
+  end
+
+  test "filtered_path keeps a complete name mask when the raw value equals the mask" do
+    calls = []
+    request = stub_request(
+      "QUERY_STRING" => "password;other=[FILTERED]",
+      "PATH_INFO" => "/authenticate",
+      "action_dispatch.parameter_filter" => [
+        :password, ->(key, value) { calls << [key, value.dup]; value.replace("[REDACTED]") if key == "other" }
+      ]
+    )
+
+    assert_equal({ "password;other" => "[FILTERED]" }, request.filtered_parameters)
+    assert_equal "/authenticate?password;other=[FILTERED]", request.filtered_path
+    assert_equal [["other", "[FILTERED]"]], calls
+  end
+
+  test "filtered_path applies proc filters to original semicolon segments" do
+    calls = []
+    request = stub_request(
+      "QUERY_STRING" => "visible=ok;secret=private",
+      "PATH_INFO" => "/authenticate",
+      "action_dispatch.parameter_filter" => [
+        ->(key, value) { calls << [key, value.dup]; value.replace("[FILTERED]") if key == "secret" }
+      ]
+    )
+
+    assert_equal "/authenticate?visible=ok;secret=[FILTERED]", request.filtered_path
+    assert_equal [["visible", "ok"], ["secret", "private"]], calls
+  end
+
+  test "filtered_path preserves value-sensitive proc filtering of semicolon segments" do
+    request = stub_request(
+      "QUERY_STRING" => "token=secret;other=public",
+      "PATH_INFO" => "/authenticate",
+      "action_dispatch.parameter_filter" => [
+        ->(key, value, original_params) { value.replace("[FILTERED]") if original_params[key] == "secret" }
+      ]
+    )
+
+    assert_equal "/authenticate?token=[FILTERED];other=public", request.filtered_path
+  end
+
+  test "filtered_path preserves proc transformations of semicolon segments" do
+    request = stub_request(
+      "QUERY_STRING" => "visible=ok;secret=private",
+      "PATH_INFO" => "/authenticate",
+      "action_dispatch.parameter_filter" => [->(_key, value) { value.reverse! }]
+    )
+
+    assert_equal "/authenticate?visible=ko;secret=etavirp", request.filtered_path
+  end
+
+  test "filtered_path preserves custom proc masks on semicolon segments" do
+    request = stub_request(
+      "QUERY_STRING" => "password=first;other=second",
+      "PATH_INFO" => "/authenticate",
+      "action_dispatch.parameter_filter" => [
+        ->(key, value) { value.replace("[REDACTED]") if key == "password" }
+      ]
+    )
+
+    assert_equal "/authenticate?password=[REDACTED];other=second", request.filtered_path
+  end
+
+  test "filtered_path preserves mixed proc and name filtering of semicolon segments" do
+    request = stub_request(
+      "QUERY_STRING" => "visible=ok;secret=private",
+      "PATH_INFO" => "/authenticate",
+      "action_dispatch.parameter_filter" => [
+        :secret, ->(key, value) { value.upcase! if key == "visible" }
+      ]
+    )
+
+    assert_equal "/authenticate?visible=OK;secret=[FILTERED]", request.filtered_path
+  end
+
+  test "filtered_path keeps stateful proc calls across requests" do
+    calls = 0
+    filter = ->(key, value) do
+      calls += 1
+      value.replace("[REDACTED]") if key == "password" && calls.odd?
+    end
+    first = stub_request(
+      "QUERY_STRING" => "password=first;other=second",
+      "PATH_INFO" => "/authenticate",
+      "action_dispatch.parameter_filter" => [filter]
+    )
+    second = stub_request(
+      "QUERY_STRING" => "password=third",
+      "PATH_INFO" => "/authenticate",
+      "action_dispatch.parameter_filter" => [filter]
+    )
+
+    assert_equal "/authenticate?password=[REDACTED];other=second", first.filtered_path
+    assert_equal "/authenticate?password=[REDACTED]", second.filtered_path
+    assert_equal 3, calls
+  end
+
+  test "filtered_path keeps stateful proc calls after a complete name match" do
+    calls = 0
+    filter = ->(key, value) do
+      calls += 1
+      value.replace("[REDACTED]") if key == "secret" && calls == 2
+    end
+    request = stub_request(
+      "QUERY_STRING" => "password=a;b=c&secret=d",
+      "PATH_INFO" => "/authenticate",
+      "action_dispatch.parameter_filter" => [:password, filter]
+    )
+
+    assert_equal "/authenticate?password=[FILTERED]&secret=[REDACTED]", request.filtered_path
+    assert_equal 2, calls
+  end
+
   test "filtered_path passes the parameter to a proc filter as the original params" do
     request = stub_request(
       "QUERY_STRING" => "username=sikachu&secret=bd4f21f",

@@ -83,6 +83,37 @@ class ParameterFilterTest < ActiveSupport::TestCase
     assert_equal "non secret value", parameter_filter.filter_param("baz", "non secret value")
   end
 
+  test "filter_key_without_procs matches key filters without invoking procs" do
+    calls = []
+    parameter_filter = ActiveSupport::ParameterFilter.new(
+      [:password, ->(key, value) { calls << key; value.replace("[REDACTED]") }],
+      mask: "[MASKED]"
+    )
+
+    assert_equal [true, "[MASKED]"], parameter_filter.filter_key_without_procs("password")
+    assert_equal [false, nil], parameter_filter.filter_key_without_procs("other")
+    assert_empty calls
+    assert_equal "[REDACTED]", parameter_filter.filter_param("other", "visible")
+  end
+
+  test "filter_key_without_procs distinguishes a nil mask from no match" do
+    parameter_filter = ActiveSupport::ParameterFilter.new([:password], mask: nil)
+
+    assert_equal [true, nil], parameter_filter.filter_key_without_procs("password")
+    assert_equal [false, nil], parameter_filter.filter_key_without_procs("other")
+  end
+
+  test "filter_key_without_procs checks deep keys without invoking procs" do
+    calls = []
+    parameter_filter = ActiveSupport::ParameterFilter.new([
+      "user.password", ->(key, _value) { calls << key }
+    ])
+
+    assert_equal [true, "[FILTERED]"], parameter_filter.filter_key_without_procs("user.password")
+    assert_equal [false, nil], parameter_filter.filter_key_without_procs("user.other")
+    assert_empty calls
+  end
+
   test "filter_param passes the pair to a proc filter as the original params" do
     parameter_filter = ActiveSupport::ParameterFilter.new([
       ->(key, value, original_params) { value.replace("[FILTERED]") if original_params[key] == "secret" }
