@@ -1,3 +1,12 @@
+*   Detect axis-swapping orientations in the Vips image analyzer from libvips' normalized
+    `orientation` field instead of parsing the `exif-ifd0-Orientation` label.
+
+    This is the same field `autorot` reads when generating variants, so the reported width and
+    height now match the variant output by construction. It also covers formats that store the
+    orientation outside an EXIF block, such as TIFF, which the label parsing missed.
+
+    *Greg Pavlik*
+
 *   Forward other options from `has_one_attached` and `has_many_attached` to the attachment association.
 
     ```ruby

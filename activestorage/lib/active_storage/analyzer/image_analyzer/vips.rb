@@ -43,9 +43,12 @@ module ActiveStorage
         {}
       end
 
-      ROTATIONS = /Left-top|Right-top|Right-bottom|Left-bottom/
+
+      # Orientations 5 to 8 involve a 90 or 270 degree rotation, so the stored width and height are
+      # transposed. This is the same libvips field that `autorot` reads when generating variants.
+      AXIS_SWAPPING_ORIENTATIONS = 5..8
       def rotated_image?(image)
-        ROTATIONS === image.get("exif-ifd0-Orientation")
+        AXIS_SWAPPING_ORIENTATIONS.cover?(image.get("orientation"))
       rescue ::Vips::Error
         false
       end
