@@ -279,6 +279,66 @@ class TextHelperTest < ActionView::TestCase
     )
   end
 
+  def test_highlight_escapes_quotes_in_the_highlighted_phrase
+    assert_equal(
+      "<a href=\"search?q=rails&quot; onclick=&quot;alert(1)\">rails&quot; onclick=&quot;alert(1)</a>",
+      highlight("rails\" onclick=\"alert(1)", "rails\" onclick=\"alert(1)", highlighter: '<a href="search?q=\1">\1</a>')
+    )
+    assert_equal(
+      "<a title='rails&#39; onclick=&#39;alert(1)'>rails&#39; onclick=&#39;alert(1)</a>",
+      highlight("rails' onclick='alert(1)", /rails.*/, highlighter: "<a title='\\1'>\\1</a>")
+    )
+    assert_equal(
+      "<a title=\"rails&quot; onclick=&quot;alert(1)\">rails&quot; onclick=&quot;alert(1)</a>",
+      highlight("rails\" onclick=\"alert(1)", /rails.*/, highlighter: '<a title="\0">\0</a>', sanitize: false)
+    )
+  end
+
+  def test_highlight_does_not_escape_the_highlighted_phrase_twice
+    assert_equal(
+      "<mark title=\"ruby &amp; rails\">ruby &amp; rails</mark>",
+      highlight("ruby & rails", /ruby.*rails/, highlighter: '<mark title="\1">\1</mark>')
+    )
+  end
+
+  def test_highlight_with_regexp_groups_in_highlighter
+    assert_equal(
+      "ruby <b>on</b> <i title=\"&quot;rails&quot;\">&quot;rails&quot;</i>",
+      highlight("ruby on \"rails\"", /(on) (\S+)/, highlighter: '<b>\2</b> <i title="\3">\3</i>\4')
+    )
+  end
+
+  def test_highlight_with_html_safe_highlighter
+    assert_equal(
+      "<mark title=\"&quot;rails&quot;\">&quot;rails&quot;</mark>",
+      highlight("\"rails\"", "\"rails\"", highlighter: content_tag(:mark, '\1', title: '\1'))
+    )
+  end
+
+  def test_highlight_does_not_replace_the_end_of_a_tag
+    text = "<img src=\"x\"> onerror=alert(1) a=\" <b>end</b>"
+    assert_equal text, highlight(text, ">", highlighter: '\1')
+    assert_equal text, highlight(text, ">") { |match| "" }
+    assert_equal text, highlight(text, /.*end/, highlighter: '\1')
+    assert_equal text, highlight(text, />.*/, highlighter: '\1')
+    assert_equal text, highlight(text, ">", highlighter: '\1', sanitize: false)
+    assert_equal text, highlight(text, />.*/, highlighter: '\1', sanitize: false)
+
+    assert_equal "<p>rails</p>", highlight("<p>rails</p>", ">")
+    assert_equal "<p>rails</p>", highlight("<p>rails</p>", />rails/)
+    assert_equal "<p><mark>rails</mark></p>", highlight("<p>rails</p>", /.*rails.*/)
+    assert_equal "<p><mark>rails</mark></p>", highlight("<p>rails</p>", /.*rails.*/) { |match| "<mark>#{match}</mark>" }
+
+    assert_equal "<mark>&gt;</mark> 1 <mark>&gt;</mark> 2", highlight("> 1 > 2", "&gt;")
+    assert_equal "<mark>&gt;</mark> 1 <mark>&gt;</mark> 2", highlight("> 1 > 2", ">", sanitize: false)
+    assert_equal "<p>1 <mark>&gt;</mark> 2</p>", highlight("<p>1 > 2</p>", ">", sanitize: false)
+  end
+
+  def test_highlight_preserves_regexp_boundaries_after_a_tag
+    assert_equal "<p>rails</p>", highlight("<p>rails</p>", /\Arails/)
+    assert_equal "<p><mark>rails</mark></p>", highlight("<p>rails</p>", /(?<=>)rails/)
+  end
+
   def test_highlight_does_not_modify_the_options_hash
     options = { highlighter: '<b>\1</b>', sanitize: false }
     passed_options = options.dup
