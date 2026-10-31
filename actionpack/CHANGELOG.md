@@ -1,3 +1,11 @@
+*   Accept a Symbol for the routing `format:` option.
+
+    `format: :json` now sets the same format requirement and `"json"` default as
+    `format: "json"`. `scope format: :json` and `resources ..., format: :json`
+    use the same path.
+
+    *Cestercian*
+
 *   Reset the parsed HTML document after `options` in integration tests.
 
     `options` was the only request helper that the integration test runner

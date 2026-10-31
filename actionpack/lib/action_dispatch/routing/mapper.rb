@@ -264,9 +264,10 @@ module ActionDispatch
             when Regexp
               { requirements: { format: formatted },
                 defaults:     { format: nil } }
-            when String
-              { requirements: { format: Regexp.compile(formatted) },
-                defaults:     { format: formatted } }
+            when String, Symbol
+              format = formatted.to_s
+              { requirements: { format: Regexp.compile(format) },
+                defaults:     { format: format } }
             else
               { requirements: {}, defaults: {} }
             end
