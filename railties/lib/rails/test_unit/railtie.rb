@@ -1,7 +1,6 @@
 # frozen_string_literal: true
 
 # :markup: markdown
-require "rails/test_unit/line_filtering"
 
 module Rails
   class TestUnitRailtie < Rails::Railtie
@@ -15,6 +14,9 @@ module Rails
 
     initializer "test_unit.line_filtering" do
       ActiveSupport.on_load(:active_support_test_case) {
+        # Required here so that the test runner, and the Rake and Prism it loads,
+        # are only loaded when testing.
+        require "rails/test_unit/line_filtering"
         ActiveSupport::TestCase.extend Rails::LineFiltering
       }
     end
