@@ -1,3 +1,9 @@
+*   Compute `action_methods` without converting every public instance method to a String.
+
+    Speeds up eager loading for applications whose controllers include the url helpers.
+
+    *Igor Wiedler*
+
 *   Accept a Symbol for the routing `format:` option.
 
     `format: :json` now sets the same format requirement and `"json"` default as
