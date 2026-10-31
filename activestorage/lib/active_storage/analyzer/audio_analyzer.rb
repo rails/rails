@@ -62,7 +62,7 @@ module ActiveStorage
             "-v", "error",
             file.path
           ]) do |output|
-            JSON.parse(output.read)
+            JSON.parse(output.read, allow_duplicate_key: true)
           end
         end
       rescue Errno::ENOENT
