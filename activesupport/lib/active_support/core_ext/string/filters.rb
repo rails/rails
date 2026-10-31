@@ -25,7 +25,7 @@ class String
   # str.squish!                         # => "foo bar boo"
   # str                                 # => "foo bar boo"
   # ```
-  #: () -> String
+  #: () -> self
   def squish!
     # Search for two or more `[[:space:]]` OR a single
     # [[:space:]] that isn't `" "`.
@@ -54,7 +54,7 @@ class String
   # str.remove!(" test", /bar/)         # => "foo "
   # str                                 # => "foo "
   # ```
-  #: (*String | Regexp) -> String
+  #: (*String | Regexp) -> self
   def remove!(*patterns)
     patterns.each do |pattern|
       gsub! pattern, ""
