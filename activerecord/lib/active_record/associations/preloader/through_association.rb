@@ -129,9 +129,10 @@ module ActiveRecord
           end
 
           # When the through scope doesn't eager load the source records with the
-          # conditions, the source scope filters them instead.
+          # conditions or the order, the source scope filters or sorts them instead.
           def source_scope_filters_source?
-            !reflection_scope.where_clause.empty? && !through_scope_filters_source?
+            !through_scope_filters_source? &&
+              (!reflection_scope.where_clause.empty? || !reflection_scope.order_values.empty?)
           end
 
           def through_scope
