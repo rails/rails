@@ -1,3 +1,11 @@
+*   Add a `checkout_wait.active_record` notification.
+
+    It is emitted when a connection checkout waits because the pool is full,
+    and its duration is the time spent waiting, so pool saturation can be
+    measured without patching `ConnectionPool`.
+
+    *Andrew Fader*
+
 *   Pass the association's human name unchanged to `restrict_with_error` messages.
 
     The `restrict_dependent_destroy` messages interpolate `%{record}`, which is
