@@ -669,6 +669,11 @@ module Rails
     def ractorize! # :nodoc:
       warn "Ractor support in Rails is experimental and subject to change.", category: :experimental, uplevel: 1
 
+      unless config.eager_load
+        raise "ractorize! requires config.eager_load = true: application code and the class state " \
+              "computed on eager load can't be loaded from a non-main Ractor."
+      end
+
       env_config
       revision
       routes
