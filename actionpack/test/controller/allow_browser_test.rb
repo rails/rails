@@ -93,6 +93,22 @@ class AllowBrowserTest < ActionController::TestCase
     assert_not_empty notification.payload[:versions]
   end
 
+  test "the user agent's version and browser are read once" do
+    reads = Hash.new(0)
+    counting_agent = Class.new(SimpleDelegator) do
+      define_method(:version) { reads[:version] += 1; super() }
+      define_method(:browser) { reads[:browser] += 1; super() }
+    end
+    parse = UserAgent.method(:parse)
+
+    UserAgent.stub(:parse, ->(string) { counting_agent.new(parse.(string)) }) do
+      get_with_agent :modern, CHROME_118
+    end
+
+    assert_response :upgrade_required
+    assert_equal({ version: 1, browser: 1 }, reads)
+  end
+
   private
     def get_with_agent(action, agent)
       @request.headers["User-Agent"] = agent
