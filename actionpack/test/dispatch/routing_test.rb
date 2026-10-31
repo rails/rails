@@ -4640,6 +4640,9 @@ class TestOptimizedNamedRoutes < ActionDispatch::IntegrationTest
       get "(/:locale)/products/:id(.:format)" => ok, as: :product
       get "/things/:params" => ok, as: :thing
       get "/items/:id(/:slug)(.:format)" => ok, as: :item
+      get "/users/:username/statuses/:id(.:format)" => ok, as: :user_status, constraints: { username: %r{[^@/.]+}, id: /-?\d+/ }
+      get "/feeds/:id(.:format)" => ok, as: :feed, format: /rss|atom/
+      get "(/:locale)/guides/:id" => ok, as: :guide, locale: /en|fr/, id: /\d+/
     end
   end
 
@@ -4787,6 +4790,55 @@ class TestOptimizedNamedRoutes < ActionDispatch::IntegrationTest
     ].each do |helper, args, options|
       expected = Routes.stub(:optimize_routes_generation?, false) { generate.(helper, args, options) }
       assert_equal expected, generate.(helper, args, options), "#{helper}(#{args.join(", ")}, #{options.inspect})"
+    end
+  end
+
+  test "routes with requirements keep the optimized helpers for arguments that meet them" do
+    Routes.stub(:url_for, ->(*) { flunk "called the general path" }) do
+      assert_equal "/users/david/statuses/-1", user_status_path("david", -1)
+      assert_equal "/users/david/statuses/1.json", user_status_path("david", 1, format: :json)
+      assert_equal "http://example.com/users/david/statuses/1#x", Routes.url_helpers.user_status_url("david", 1, host: "example.com", anchor: "x")
+      assert_equal "/feeds/1", feed_path(1)
+    end
+  end
+
+  test "routes with requirements generate the same URL or error as the general path" do
+    generate = lambda do |helper, args, options|
+      public_send(helper, *args, **options)
+    rescue ActionController::UrlGenerationError => error
+      error.message
+    end
+
+    record = Struct.new(:to_param)
+    [
+      ["david", 1], ["david", "-12"], ["david", record.new("42")], ["da-vid_9", 1],
+      ["da.vid", 1], ["da/vid", 1], ["da@vid", 1], ["david", "1a"], ["david", "1\n"], ["david\n", 1],
+      ["david", record.new("42-hello")], ["david", nil], [nil, 1], ["", 1], ["david", ""],
+    ].product([{}, { format: :json }, { anchor: "x" }, { page: 2 }, { host: "example.org" }]).each do |args, options|
+      [:user_status_path, :user_status_url].each do |helper|
+        expected = Routes.stub(:optimize_routes_generation?, false) { generate.(helper, args, options) }
+        assert_equal expected, generate.(helper, args, options), "#{helper}(#{args.map(&:inspect).join(", ")}, #{options.inspect})"
+      end
+    end
+
+    # Only required segments are checked against requirements, as in the general path.
+    [{ format: :rss }, { format: :json }, {}].each do |options|
+      expected = Routes.stub(:optimize_routes_generation?, false) { generate.(:feed_path, [1], options) }
+      assert_equal expected, generate.(:feed_path, [1], options), "feed_path(1, #{options.inspect})"
+    end
+  end
+
+  test "an optional segment of a route with requirements is filled from the request as the general path" do
+    stub(:url_options, { _recall: { locale: "fr" } }) do
+      expected = Routes.stub(:optimize_routes_generation?, false) { guide_path(id: 1) }
+      assert_equal "/fr/guides/1", expected
+      assert_equal expected, guide_path(id: 1)
+
+      # As in the general path, a positional argument fills the optional segment first.
+      expected = Routes.stub(:optimize_routes_generation?, false) do
+        assert_raises(ActionController::UrlGenerationError) { guide_path(1) }
+      end
+      assert_equal expected.message, assert_raises(ActionController::UrlGenerationError) { guide_path(1) }.message
     end
   end
 
