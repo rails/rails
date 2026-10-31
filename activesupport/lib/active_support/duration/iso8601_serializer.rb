@@ -72,7 +72,7 @@ module ActiveSupport
             number
           when Float
             str = number.to_s
-            if str.include?('e')
+            if str.include?("e")
               BigDecimal(str).to_s("F")
             else
               str
