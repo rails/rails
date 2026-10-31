@@ -1,6 +1,5 @@
 # frozen_string_literal: true
 
-# :markup: markdown
 module ActiveRecord
   module Encryption
     # The algorithm used for encrypting and decrypting `Message` objects.

@@ -1,6 +1,5 @@
 # frozen_string_literal: true
 
-# :markup: markdown
 require "active_support/core_ext/enumerable"
 require "active_support/parameter_filter"
 require "active_support/ractors"

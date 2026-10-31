@@ -1,6 +1,5 @@
 # frozen_string_literal: true
 
-# :markup: markdown
 # This file is generated. Do not edit manually.
 #
 # To regenerate:

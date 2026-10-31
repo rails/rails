@@ -1,6 +1,5 @@
 # frozen_string_literal: true
 
-# :markup: markdown
 require "uri"
 require "active_record/database_configurations/database_config"
 require "active_record/database_configurations/hash_config"

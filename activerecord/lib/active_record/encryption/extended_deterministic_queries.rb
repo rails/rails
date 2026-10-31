@@ -1,6 +1,5 @@
 # frozen_string_literal: true
 
-# :markup: markdown
 module ActiveRecord
   module Encryption
     # Automatically expand encrypted arguments to support querying both encrypted and unencrypted data

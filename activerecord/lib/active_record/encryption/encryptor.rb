@@ -1,6 +1,5 @@
 # frozen_string_literal: true
 
-# :markup: markdown
 require "openssl"
 require "active_support/core_ext/numeric"
 

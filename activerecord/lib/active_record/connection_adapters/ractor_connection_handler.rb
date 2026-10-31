@@ -1,7 +1,5 @@
 # frozen_string_literal: true
 
-# :markup: markdown
-
 module ActiveRecord
   module ConnectionAdapters
     # Worker-Ractor stand-in for ConnectionHandler

@@ -1,6 +1,5 @@
 # frozen_string_literal: true
 
-# :markup: markdown
 module ActiveRecord
   module Encryption
     # A `NullEncryptor` that will raise an error when trying to encrypt data

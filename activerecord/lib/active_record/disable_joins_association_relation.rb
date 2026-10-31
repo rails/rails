@@ -1,6 +1,5 @@
 # frozen_string_literal: true
 
-# :markup: markdown
 module ActiveRecord
   class DisableJoinsAssociationRelation < Relation # :nodoc:
     attr_reader :ids, :key
