@@ -1,3 +1,7 @@
+*   Skip blobs that are already analyzed in `ActiveStorage::AnalyzeJob`.
+
+    *Andrew Fader*
+
 *   Forward other options from `has_one_attached` and `has_many_attached` to the attachment association.
 
     ```ruby
