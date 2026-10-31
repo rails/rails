@@ -529,6 +529,36 @@ class LoadingTest < ActiveSupport::TestCase
     end
   end
 
+  test "Marcel is loaded with ActiveStorage::Blob" do
+    boot_app "development"
+
+    assert_not marcel_loaded?
+
+    assert_kind_of Class, ActiveStorage::Blob
+    assert marcel_loaded?
+  end
+
+  test "Marcel can be referenced from an initializer" do
+    app_file "config/initializers/marcel.rb", <<~RUBY
+      Marcel::MimeType.extend "text/x-rails-test", extensions: %w( railstest )
+    RUBY
+
+    boot_app "development"
+
+    assert_equal "text/x-rails-test", Marcel::MimeType.for(name: "file.railstest")
+  end
+
+  test "Marcel is loaded when eager loading" do
+    add_to_config <<~RUBY
+      config.enable_reloading = false
+      config.eager_load = true
+    RUBY
+
+    boot_app "production"
+
+    assert marcel_loaded?
+  end
+
   test "active record query cache hooks are installed before first request in production" do
     app_file "app/controllers/omg_controller.rb", <<-RUBY
       begin
@@ -612,5 +642,10 @@ class LoadingTest < ActiveSupport::TestCase
       require "#{app_path}/config/environment"
     ensure
       ENV.delete "RAILS_ENV"
+    end
+
+    # Rather than defined?(Marcel), which is true for a pending autoload.
+    def marcel_loaded?
+      $LOADED_FEATURES.any? { |feature| feature.end_with?("/marcel.rb") }
     end
 end

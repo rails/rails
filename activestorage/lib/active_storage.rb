@@ -34,7 +34,8 @@ require "active_storage/version"
 require "active_storage/deprecator"
 require "active_storage/errors"
 
-require "marcel"
+# Loaded with ActiveStorage::Blob, or when an initializer first references it.
+Object.autoload :Marcel, "marcel" unless defined?(::Marcel)
 require "openssl"
 
 # :markup: markdown
