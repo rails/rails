@@ -1,3 +1,24 @@
+*   Fix subclasses missing associations added to their parent class later.
+
+    A subclass that defined an association of its own kept a copy of the
+    parent's reflections, so an association added to the parent afterwards
+    (for example by an engine or a concern loaded later) had its methods on the
+    subclass, but raised `ActiveRecord::AssociationNotFoundError` when called.
+
+    ```ruby
+    class Post < ActiveRecord::Base; end
+    class FancyPost < Post
+      has_many :tags
+    end
+    Post.has_many :comments
+
+    FancyPost.first.comments # => no longer raises
+    ```
+
+    Fixes #20678.
+
+    *Jason Lee*
+
 *   Wrap the PostgreSQL driver's null byte error in `ActiveRecord::NullByteError`.
 
     PostgreSQL cannot store null bytes (`\0`) in text columns. Previously the
