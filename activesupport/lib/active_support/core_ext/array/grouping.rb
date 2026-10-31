@@ -22,7 +22,12 @@ class Array
   # ["3", "4"]
   # ["5"]
   # ```
-  #: [FillType] (Integer | Float, ?FillType) ?{ (Array[Elem | FillType | nil]) -> void } -> (Array[Elem | FillType | nil] | Array[Array[Elem | FillType | nil]])
+  #: (Integer | Float, ?nil) -> Array[Array[Elem?]]
+  #: (Integer | Float, ?nil) { (Array[Elem?]) -> void } -> Array[Elem?]
+  #: (Integer | Float, false) -> Array[Array[Elem]]
+  #: (Integer | Float, false) { (Array[Elem]) -> void } -> Array[Elem]
+  #: [FillType] (Integer | Float, FillType) -> Array[Array[Elem | FillType]]
+  #: [FillType] (Integer | Float, FillType) { (Array[Elem | FillType]) -> void } -> Array[Elem | FillType]
   def in_groups_of(number, fill_with = nil, &block)
     if number.to_i <= 0
       raise ArgumentError,
@@ -65,7 +70,9 @@ class Array
   # ["4", "5"]
   # ["6", "7"]
   # ```
-  #: [FillType] (Integer | Float, ?FillType) ?{ (Array[Elem | FillType | nil]) -> void } -> Array[Array[Elem | FillType | nil]]
+  #: (Integer | Float, ?nil) ?{ (Array[Elem?]) -> void } -> Array[Array[Elem?]]
+  #: (Integer | Float, false) ?{ (Array[Elem]) -> void } -> Array[Array[Elem]]
+  #: [FillType] (Integer | Float, FillType) ?{ (Array[Elem | FillType]) -> void } -> Array[Array[Elem | FillType]]
   def in_groups(number, fill_with = nil, &block)
     if number.to_i <= 0
       raise ArgumentError,
