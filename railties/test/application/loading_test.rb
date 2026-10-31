@@ -529,6 +529,15 @@ class LoadingTest < ActiveSupport::TestCase
     end
   end
 
+  test "Marcel is loaded with ActiveStorage::Blob" do
+    boot_app "development"
+
+    assert_not defined?(Marcel)
+
+    assert_kind_of Class, ActiveStorage::Blob
+    assert defined?(Marcel::MimeType)
+  end
+
   test "active record query cache hooks are installed before first request in production" do
     app_file "app/controllers/omg_controller.rb", <<-RUBY
       begin

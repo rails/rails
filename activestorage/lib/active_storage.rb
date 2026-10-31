@@ -34,7 +34,6 @@ require "active_storage/version"
 require "active_storage/deprecator"
 require "active_storage/errors"
 
-require "marcel"
 require "openssl"
 
 # :markup: markdown
