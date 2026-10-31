@@ -4871,6 +4871,79 @@ class TestOptimizedNamedRoutes < ActionDispatch::IntegrationTest
       assert_equal 1, general_path_calls, "article_path(1, #{options.inspect})"
     end
   end
+
+  test "default URL options that do not shape the path generate the same URL as the general path" do
+    record = Struct.new(:to_param).new("42-hello-world")
+    calls = [
+      [:foo_path, [], {}], [:foo_url, [], {}],
+      [:article_path, [1], {}], [:article_url, [1], {}], [:article_path, [record], { format: :json }],
+      [:article_url, [1], { anchor: "x", page: 2 }], [:article_path, [1], { host: "example.com", only_path: false }],
+      [:report_path, [1], {}], [:report_url, [1], { format: :xml }],
+      [:posts_path, [], {}], [:bar_path, ["foo", "baz", "1"], {}], [:project_path, [1, :json], {}],
+      [:page_path, ["foo?bar"], {}], [:wiki_path, ["foo/bar"], {}], [:thing_path, [1], {}],
+      [:product_path, [1], {}], [:product_path, ["fr", 1], {}], [:item_path, [1], {}], [:item_path, [1, "slug"], {}],
+      [:user_status_url, ["david", 1], {}], [:user_status_path, ["da.vid", 1], {}], [:guide_path, [], { id: 1 }],
+    ]
+    [
+      { host: "example.org" },
+      { host: "example.org", protocol: "https", port: 8080 },
+      { host: "example.org", protocol: "https://", trailing_slash: false },
+      { trailing_slash: true },
+      { script_name: "/blog" },
+      { original_script_name: "/app", script_name: "/blog" },
+      { subdomain: "blog", domain: "example.net", host: "www.example.org" },
+      { tld_length: 2, host: "example.co.uk", subdomain: "www" },
+      { anchor: "top" },
+      { only_path: true, host: "example.org" },
+    ].each do |defaults|
+      calls.each do |helper, args, options|
+        call = "#{helper}(#{args.map(&:inspect).join(", ")}, #{options.inspect})"
+        generate = -> do
+          public_send(helper, *args, **options)
+        rescue ActionController::UrlGenerationError => error
+          error.message
+        end
+
+        # On the route set, as with routes.default_url_options, and on the helpers'
+        # receiver, as with a controller's default_url_options.
+        [Routes, self].each do |receiver|
+          receiver.stub(:default_url_options, defaults) do
+            expected = Routes.stub(:optimize_routes_generation?, false) { generate.() }
+            assert_equal expected, generate.(), "#{call} with #{receiver == Routes ? "routes." : ""}default_url_options #{defaults.inspect}"
+          end
+        end
+      end
+    end
+  end
+
+  test "default URL options that do not shape the path keep the optimized helpers" do
+    [{ host: "example.org" }, { host: "example.org", protocol: "https", trailing_slash: false }, { script_name: "/blog" }].each do |defaults|
+      [Routes, self].each do |receiver|
+        receiver.stub(:default_url_options, defaults) do
+          Routes.stub(:url_for, ->(*) { flunk "article_path(1) with #{defaults.inspect} called the general path" }) do
+            assert_predicate Routes.url_helpers, :optimize_routes_generation? if receiver == Routes
+            article_path(1)
+          end
+        end
+      end
+    end
+  end
+
+  test "default URL options the general path reads keep it" do
+    [{ locale: "fr" }, { format: :json }, { params: { page: 2 } }, { host: "example.org", page: 2 }, { "host" => "example.org" }].each do |defaults|
+      [Routes, self].each do |receiver|
+        receiver.stub(:default_url_options, defaults) do
+          expected = Routes.stub(:optimize_routes_generation?, false) { article_path(1) }
+          general_path_calls = 0
+          url_for = Routes.method(:url_for)
+          Routes.stub(:url_for, ->(*args) { general_path_calls += 1; url_for.call(*args) }) do
+            assert_equal expected, article_path(1)
+          end
+          assert_equal 1, general_path_calls, "article_path(1) with default_url_options #{defaults.inspect}"
+        end
+      end
+    end
+  end
 end
 
 class TestNamedRouteUrlHelpers < ActionDispatch::IntegrationTest

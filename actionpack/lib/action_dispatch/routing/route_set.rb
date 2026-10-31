@@ -225,8 +225,12 @@ module ActionDispatch
             end
 
             def call(t, method_name, args, inner_options, url_strategy)
-              if args.size == arg_size && optimizable_options?(inner_options) && optimize_routes_generation?(t)
+              if args.size == arg_size && optimizable_options?(inner_options) && optimize_routes_generation?(t) &&
+                  (@options_optimizable || !default_url_options?(t))
                 options = t.url_options.merge @options
+                # As in RouteSet#url_for, the route set's default URL options come last.
+                route_set_defaults = t._routes.default_url_options
+                options = route_set_defaults.merge(options) unless route_set_defaults.empty?
                 format = inner_options && inner_options[:format]
                 path = optimized_helper(args, format)
                 if path.nil?
@@ -301,6 +305,13 @@ module ActionDispatch
 
               def optimize_routes_generation?(t)
                 t.send(:optimize_routes_generation?)
+              end
+
+              # Whether default URL options apply, which the general path handles
+              # differently on routes whose options aren't optimizable.
+              def default_url_options?(t)
+                !t._routes.default_url_options.empty? ||
+                  (t.respond_to?(:default_url_options, true) && !t.send(:default_url_options).empty?)
               end
 
               def parameterize_args(args)
@@ -915,8 +926,18 @@ module ActionDispatch
                           :trailing_slash, :anchor, :params, :only_path, :script_name,
                           :original_script_name].freeze
 
+      # Default URL options that the optimized URL helpers handle as the general path
+      # does: it passes them to ActionDispatch::Http::URL without generating the path
+      # from them.
+      OPTIMIZABLE_DEFAULT_URL_OPTIONS = (RESERVED_OPTIONS - [:params]).freeze
+
+      def self.optimizable_default_url_options?(options) # :nodoc:
+        options.each_key { |key| return false unless OPTIMIZABLE_DEFAULT_URL_OPTIONS.include?(key) }
+        true
+      end
+
       def optimize_routes_generation?
-        default_url_options.empty?
+        RouteSet.optimizable_default_url_options?(default_url_options)
       end
 
       def find_script_name(options)
