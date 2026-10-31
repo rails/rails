@@ -357,6 +357,23 @@ class HostAuthorizationTest < ActionDispatch::IntegrationTest
     assert_equal "Success", body
   end
 
+  test "empty forwarded host lists use the permitted origin host" do
+    @app = build_app("www.example.com")
+
+    get "/", env: { "HTTP_X_FORWARDED_HOST" => "," }
+
+    assert_response :ok
+    assert_equal "www.example.com", request.get_header("action_dispatch.authorized_host")
+  end
+
+  test "empty forwarded host lists do not bypass origin host checks" do
+    @app = build_app("allowed.example.com")
+
+    get "/", env: { "HTTP_X_FORWARDED_HOST" => "," }
+
+    assert_response :forbidden
+  end
+
   test "forwarded secondary hosts are blocked when mismatch" do
     @app = build_app("domain.com")
 

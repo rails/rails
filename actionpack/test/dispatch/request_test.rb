@@ -691,6 +691,16 @@ class RequestHost < BaseRequestTest
     assert_equal "rubyonrails.org", request.host_with_port
   end
 
+  test "ignores blank forwarded hosts" do
+    [",", ",,", ", ,", " , , ", "\t,\t", "forwarded.example,  "].each do |forwarded_host|
+      request = stub_request "HTTP_X_FORWARDED_HOST" => forwarded_host, "HTTP_HOST" => "rubyonrails.org:8080"
+
+      assert_equal "rubyonrails.org:8080", request.raw_host_with_port
+      assert_equal "rubyonrails.org", request.host
+      assert_equal 8080, request.port
+    end
+  end
+
   test "host with port if http standard port is specified" do
     request = stub_request "HTTP_X_FORWARDED_HOST" => "glu.ttono.us:80"
     assert_equal "glu.ttono.us", request.host_with_port
