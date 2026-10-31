@@ -1,3 +1,16 @@
+*   Write `ActiveSupport::Duration#iso8601` values as plain decimal numbers.
+
+    Very small or very large float parts were written in scientific notation and
+    rational parts as fractions, which are not valid ISO 8601 and can't be read
+    back with `ActiveSupport::Duration.parse`.
+
+    ```ruby
+    0.00005.seconds.iso8601     # => "PT0.00005S" (was "PT5.0e-05S")
+    Rational(3, 2).days.iso8601 # => "P1.5D" (was "P3/2D")
+    ```
+
+    *Wleeaf*
+
 *   Add `Northwest Territories` to `ActiveSupport::TimeZone::MAPPING`.
 
     The Northwest Territories no longer shares winter clocks with US Mountain
