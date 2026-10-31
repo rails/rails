@@ -1,6 +1,5 @@
 # frozen_string_literal: true
 
-# :markup: markdown
 begin
   gem "mini_magick"
   require "mini_magick"

@@ -1,6 +1,5 @@
 # frozen_string_literal: true
 
-# :markup: markdown
 #--
 # Copyright (c) David Heinemeier Hansson, 37signals LLC
 #
@@ -37,7 +36,6 @@ require "active_storage/errors"
 require "marcel"
 require "openssl"
 
-# :markup: markdown
 # :include: ../README.md
 module ActiveStorage
   extend ActiveSupport::Autoload

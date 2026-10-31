@@ -1,6 +1,5 @@
 # frozen_string_literal: true
 
-# :markup: markdown
 class ActiveStorage::TransformJob < ActiveStorage::BaseJob
   queue_as { ActiveStorage.queues[:transform] }
 

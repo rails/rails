@@ -1,6 +1,5 @@
 # frozen_string_literal: true
 
-# :markup: markdown
 gem "google-cloud-storage", "~> 1.11"
 require "google/apis/iamcredentials_v1"
 require "google/cloud/storage"

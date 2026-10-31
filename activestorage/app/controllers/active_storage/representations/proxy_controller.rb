@@ -1,6 +1,5 @@
 # frozen_string_literal: true
 
-# :markup: markdown
 # Finds a representation by a `signed_id` and a `variation_key`, and proxies the file through the application.
 # The representation is streamed from storage directly to the response. This avoids having
 # a redirect and makes files easier to cache.

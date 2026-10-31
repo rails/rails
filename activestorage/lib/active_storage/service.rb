@@ -1,6 +1,5 @@
 # frozen_string_literal: true
 
-# :markup: markdown
 require "active_storage/log_subscriber"
 require "active_storage/structured_event_subscriber"
 require "action_dispatch"

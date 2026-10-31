@@ -1,6 +1,5 @@
 # frozen_string_literal: true
 
-# :markup: markdown
 module ActiveStorage::Blob::Servable # :nodoc:
   def content_type_for_serving
     forcibly_serve_as_binary? ? ActiveStorage.binary_content_type : content_type
