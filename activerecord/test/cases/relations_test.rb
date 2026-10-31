@@ -1939,6 +1939,49 @@ class RelationTest < ActiveRecord::TestCase
     assert_predicate scope.references(:comments), :eager_loading?
   end
 
+  def test_includes_with_joins_on_different_associations_does_not_trigger_eager_loading
+    scope = Post.includes(:author).joins(:comments)
+    assert_not_predicate scope, :eager_loading?
+    assert_empty scope.joined_includes_values
+
+    posts = scope.to_a
+    assert_predicate posts.first.association(:author), :loaded?
+  end
+
+  def test_includes_with_joins_on_same_association_triggers_eager_loading
+    scope = Post.includes(:comments).joins(:comments)
+    assert_predicate scope, :eager_loading?
+    assert_equal [:comments], scope.joined_includes_values
+  end
+
+  def test_includes_with_joins_and_references_triggers_eager_loading
+    scope = Post.includes(:author).joins(:comments).references(:author)
+    assert_predicate scope, :eager_loading?
+  end
+
+  def test_includes_with_joins_and_references_to_own_table_does_not_trigger_eager_loading
+    scope = Post.includes(:author).joins(:comments).references(:posts)
+    assert_not_predicate scope, :eager_loading?
+
+    posts = scope.to_a
+    assert_equal Post.joins(:comments).to_a.sort_by(&:id), posts.sort_by(&:id)
+    assert_predicate posts.first.association(:author), :loaded?
+  end
+
+  def test_includes_with_joins_and_references_to_own_and_associated_tables_triggers_eager_loading
+    scope = Post.includes(:author).joins(:comments).references(:posts, :authors)
+    assert_predicate scope, :eager_loading?
+
+    posts = scope.to_a
+    assert_equal Post.joins(:comments).to_a.uniq.sort_by(&:id), posts.sort_by(&:id)
+    assert_predicate posts.first.association(:author), :loaded?
+  end
+
+  def test_includes_with_joins_and_where_hash_triggers_eager_loading
+    scope = Post.includes(:author).joins(:comments).where(authors: { name: "David" })
+    assert_predicate scope, :eager_loading?
+  end
+
   def test_references_doesnt_trigger_eager_loading_if_reference_not_included
     scope = Post.references(:comments)
     assert_not_predicate scope, :eager_loading?
