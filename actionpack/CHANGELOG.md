@@ -1,3 +1,19 @@
+*   Don't write upgraded cookies to a response that skips the session.
+
+    Reading a signed or encrypted cookie written under a rotated secret, or in
+    the format a `:hybrid` serializer migrates from, writes it back in the
+    current format. That write ignored `request.session_options[:skip]`, so a
+    response that skips the session, such as the Active Storage proxy's
+    public, cacheable response, could still carry the session cookie in
+    `Set-Cookie`. Such a response now leaves the cookie unchanged, and a later
+    request that does not skip the session upgrades it. An application that
+    skips the session on every request no longer upgrades its signed or
+    encrypted cookies. Cookies the application sets are still written.
+
+    [GHSA-x6mj-8jx9-qhqv]
+
+    *Mike Dalessio*
+
 *   Detect conflicts between the `Forwarded` and `X-Forwarded-For` headers in
     `ActionDispatch::RemoteIp`.
 
