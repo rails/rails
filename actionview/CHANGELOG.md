@@ -1,3 +1,19 @@
+*   Escape the matched phrase before substituting it into `highlight`'s
+    `:highlighter`.
+
+    A match was copied into each `\1` of the highlighter as it appeared in
+    the sanitized text, which keeps `"` and `'` as they are, so a match
+    containing a quote ended a quoted attribute value such as the
+    documented `'<a href="search?q=\1">\1</a>'` and added attributes of
+    its own. Each substituted group now goes through
+    `ERB::Util.html_escape_once`, so quotes in a match render as `&quot;`
+    and `&#39;`. Only the numbered placeholders `\0` to `\9` are expanded,
+    and a match never replaces the `>` that closes a tag.
+
+    [GHSA-v6rj-xm57-3p59]
+
+    *Jeremy Daer*
+
 *   Require rails-html-sanitizer 1.7.2 or later.
 
     With the HTML5 sanitizer, Nokogiri before 1.19.5 left `<` and `>`
