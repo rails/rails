@@ -6,6 +6,10 @@ require "active_storage/analyzer/null_analyzer"
 # Active Storage \Blob \Analyzable
 # ================================
 module ActiveStorage::Blob::Analyzable
+  # Set once an attachment has requested analysis of this in-memory blob, so
+  # other attachments of the same blob committed alongside it don't request it again.
+  attr_accessor :analysis_requested # :nodoc:
+
   # Extracts and stores metadata from the file associated with this blob using a relevant analyzer. Active Storage comes
   # with built-in analyzers for images and videos. See ActiveStorage::Analyzer::ImageAnalyzer and
   # ActiveStorage::Analyzer::VideoAnalyzer for information about the specific attributes they extract and the third-party

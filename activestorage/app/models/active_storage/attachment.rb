@@ -185,7 +185,9 @@ class ActiveStorage::Attachment < ActiveStorage::Record
     end
 
     def analyze_blob_later
-      blob.analyze_later unless blob.analyzed? || skip_later_analysis?
+      return if blob.analyzed? || blob.analysis_requested || skip_later_analysis?
+
+      blob.analysis_requested = true if blob.analyze_later
     end
 
     def analyze_blob_from_io(io)

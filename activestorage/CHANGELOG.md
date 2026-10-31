@@ -1,3 +1,9 @@
+*   Enqueue `ActiveStorage::AnalyzeJob` once when the same blob is attached to several records in one commit.
+
+    Each attachment's commit callback saw the blob as unanalyzed and enqueued its own job.
+
+    *Andrew Fader*
+
 *   Forward other options from `has_one_attached` and `has_many_attached` to the attachment association.
 
     ```ruby
