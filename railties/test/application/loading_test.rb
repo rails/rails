@@ -529,6 +529,15 @@ class LoadingTest < ActiveSupport::TestCase
     end
   end
 
+  test "Action Mailbox's Mail extensions are loaded with ActionMailbox::InboundEmail" do
+    boot_app "development"
+
+    assert_not $LOADED_FEATURES.any? { |feature| feature.end_with?("/action_mailbox/mail_ext.rb") }
+
+    assert_kind_of Class, ActionMailbox::InboundEmail
+    assert Mail::Message.method_defined?(:recipients)
+  end
+
   test "active record query cache hooks are installed before first request in production" do
     app_file "app/controllers/omg_controller.rb", <<-RUBY
       begin
