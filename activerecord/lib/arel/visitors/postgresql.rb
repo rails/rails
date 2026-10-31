@@ -131,8 +131,11 @@ module Arel # :nodoc: all
           visit o.right, collector
         end
 
-        BIND_BLOCK = ActiveSupport::Ractors.shareable_proc { |i| "$#{i}" }
-        private_constant :BIND_BLOCK
+        # Placeholders for the first binds of a query, rather than a new String for every
+        # bind of every query compiled.
+        BIND_PLACEHOLDERS = Array.new(256) { |i| -"$#{i}" }.freeze
+        BIND_BLOCK = ActiveSupport::Ractors.shareable_proc { |i| BIND_PLACEHOLDERS[i] || "$#{i}" }
+        private_constant :BIND_PLACEHOLDERS, :BIND_BLOCK
 
         def bind_block; BIND_BLOCK; end
 
