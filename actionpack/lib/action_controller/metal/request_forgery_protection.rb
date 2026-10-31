@@ -653,7 +653,10 @@ module ActionController # :nodoc:
         when "cross-site"
           origin_trusted?
         when nil
-          !request.ssl? && !ActionDispatch::Http::URL.secure_protocol
+          # Browsers do not send Sec-Fetch-Site to non-secure origins, so
+          # fall back to the Origin header, which browsers send on every POST.
+          # Requests without a matching Origin are rejected.
+          request.origin == request.base_url && !request.ssl? && !ActionDispatch::Http::URL.secure_protocol
         else
           false
         end
