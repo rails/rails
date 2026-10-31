@@ -1001,7 +1001,7 @@ callback for you to use.
 
 ```ruby
 class Author < ApplicationRecord
-  has_many :books, before_add: [:check_limit, :calculate_shipping_charges]
+  has_many :books, before_add: [:check_limit, :log_book_addition]
 
   def check_limit(_book)
     if books.count >= 5
@@ -1010,11 +1010,8 @@ class Author < ApplicationRecord
     end
   end
 
-  def calculate_shipping_charges(book)
-    weight_in_pounds = book.weight_in_pounds || 1
-    shipping_charges = weight_in_pounds * 2
-
-    shipping_charges
+  def log_book_addition(book)
+    Rails.logger.info("Adding #{book.title} to #{name}'s books")
   end
 end
 ```
