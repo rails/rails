@@ -1,3 +1,9 @@
+*   Keep the `Content-Length` header on responses streamed by `ActiveStorage::Blobs::ProxyController`.
+
+    `ActionController::Live` dropped the header before the first write, so proxied blobs were sent chunked with no length.
+
+    *Andrew Fader*
+
 *   Forward other options from `has_one_attached` and `has_many_attached` to the attachment association.
 
     ```ruby
