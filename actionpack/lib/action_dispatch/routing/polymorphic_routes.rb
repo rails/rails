@@ -167,11 +167,21 @@ module ActionDispatch
 
       private
         def polymorphic_url_for_action(action, record_or_hash, options)
-          polymorphic_url(record_or_hash, options.merge(action: action))
+          if options.empty? && !(Hash === record_or_hash) && !polymorphic_mapping(record_or_hash)
+            # What polymorphic_url does with action: as the only option.
+            HelperMethodBuilder.polymorphic_method(self, record_or_hash, action, :url, options)
+          else
+            polymorphic_url(record_or_hash, options.merge(action: action))
+          end
         end
 
         def polymorphic_path_for_action(action, record_or_hash, options)
-          polymorphic_path(record_or_hash, options.merge(action: action))
+          if options.empty? && !(Hash === record_or_hash) && !polymorphic_mapping(record_or_hash)
+            # What polymorphic_path does with action: as the only option.
+            HelperMethodBuilder.polymorphic_method(self, record_or_hash, action, :path, options)
+          else
+            polymorphic_path(record_or_hash, options.merge(action: action))
+          end
         end
 
         def polymorphic_mapping(record)
@@ -291,48 +301,49 @@ module ActionDispatch
             end
           end
 
+          # Takes ownership of +list+, a copy made by the caller.
           def handle_list(list)
-            record_list = list.dup
-            record      = record_list.pop
+            record = list.pop
 
             args = []
+            named_route = prefix.dup
 
-            route = record_list.map do |parent|
-              case parent
+            list.each do |parent|
+              named_route <<
+                case parent
+                when Symbol
+                  parent.name
+                when String
+                  raise(ArgumentError, "Please use symbols for polymorphic route arguments.")
+                when Class
+                  args << parent
+                  parent.model_name.singular_route_key
+                else
+                  args << parent.to_model
+                  parent.to_model.model_name.singular_route_key
+                end
+              named_route << "_"
+            end
+
+            named_route <<
+              case record
               when Symbol
-                parent.to_s
+                record.name
               when String
                 raise(ArgumentError, "Please use symbols for polymorphic route arguments.")
               when Class
-                args << parent
-                parent.model_name.singular_route_key
+                @key_strategy.call record.model_name
               else
-                args << parent.to_model
-                parent.to_model.model_name.singular_route_key
+                model = record.to_model
+                if model.persisted?
+                  args << model
+                  model.model_name.singular_route_key
+                else
+                  @key_strategy.call model.model_name
+                end
               end
-            end
 
-            route <<
-            case record
-            when Symbol
-              record.to_s
-            when String
-              raise(ArgumentError, "Please use symbols for polymorphic route arguments.")
-            when Class
-              @key_strategy.call record.model_name
-            else
-              model = record.to_model
-              if model.persisted?
-                args << model
-                model.model_name.singular_route_key
-              else
-                @key_strategy.call model.model_name
-              end
-            end
-
-            route << suffix
-
-            named_route = prefix + route.join("_")
+            named_route << "_" << suffix.to_s
             [named_route, args]
           end
 
