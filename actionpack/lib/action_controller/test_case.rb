@@ -83,13 +83,19 @@ module ActionController
       set_header "CONTENT_TYPE", type
     end
 
-    def assign_parameters(routes, controller_path, action, parameters, generated_path, query_string_keys)
+    def assign_parameters(routes, controller_path, action, parameters, generated_path, query_string_keys, generated_route = nil)
       non_path_parameters = {}
       path_parameters = {}
 
       parameters.each do |key, value|
-        if query_string_keys.include?(key)
+        if query_string_keys.include?(key) ||
+            (nested_parameter?(value) && generated_route && !generated_route.segment_keys.include?(key))
           non_path_parameters[key] = value
+          if generated_route&.defaults&.key?(key)
+            # Route defaults are path parameters in a real request, so they take
+            # precedence over same-named query and body parameters.
+            path_parameters[key.to_sym] = generated_route.defaults[key]
+          end
         else
           if value.is_a?(Array)
             value = value.map(&:to_param)
@@ -174,6 +180,10 @@ module ActionController
     end.new
 
     private
+      def nested_parameter?(value)
+        value.is_a?(Hash) || value.is_a?(Array)
+      end
+
       def params_parsers
         super.merge @custom_param_parsers
       end
@@ -619,11 +629,12 @@ module ActionController
         end
 
         def setup_request(controller_class_name, action, parameters, session, flash, xhr)
-          generated_extras = @routes.generate_extras(parameters.merge(controller: controller_class_name, action: action))
+          generated_extras = @routes.generate_extras_with_route(parameters.merge(controller: controller_class_name, action: action))
           generated_path = generated_path(generated_extras)
           query_string_keys = query_parameter_names(generated_extras)
+          generated_route = generated_extras[2]
 
-          @request.assign_parameters(@routes, controller_class_name, action, parameters, generated_path, query_string_keys)
+          @request.assign_parameters(@routes, controller_class_name, action, parameters, generated_path, query_string_keys, generated_route)
 
           @request.session.update(session) if session
           @request.flash.update(flash || {})
