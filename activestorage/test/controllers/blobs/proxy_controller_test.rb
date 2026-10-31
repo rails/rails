@@ -157,6 +157,26 @@ class ActiveStorage::Blobs::ProxyControllerTest < ActionDispatch::IntegrationTes
       "Expected request.session_options[:skip] to be true"
   end
 
+  test "a session cookie under a rotated secret is not rewritten" do
+    old_key_generator = ActiveSupport::KeyGenerator.new("old secret key base", iterations: 1000)
+    old_secret = old_key_generator.generate_key("authenticated encrypted cookie", 32)
+    session_key = Rails.application.config.session_options[:key]
+
+    old_cookie_jar = ActionDispatch::Request.new(Rails.application.env_config.merge("action_dispatch.key_generator" => old_key_generator)).cookie_jar
+    old_cookie_jar.encrypted[session_key] = { value: { "session_id" => SecureRandom.hex(16) } }
+
+    rotations = ActiveSupport::Messages::RotationConfiguration.new
+    rotations.rotate :encrypted, old_secret
+
+    with_env_config("action_dispatch.cookies_rotations" => rotations) do
+      get rails_storage_proxy_url(create_file_blob(filename: "racecar.jpg")),
+        headers: { "Cookie" => "#{session_key}=#{Rack::Utils.escape(old_cookie_jar[session_key])}" }
+    end
+
+    assert_response :success
+    assert_nil response.headers["Set-Cookie"]
+  end
+
   test "rails_storage_proxy include Content-Length header" do
     Rails.application.config.active_storage.resolve_model_to_route = :rails_storage_proxy
     blob = create_file_blob(filename: "racecar.jpg")
@@ -175,6 +195,15 @@ class ActiveStorage::Blobs::ProxyControllerTest < ActionDispatch::IntegrationTes
       yield
     ensure
       ActiveStorage.streaming_chunk_max_size = old_size
+    end
+
+    def with_env_config(overrides)
+      env_config = Rails.application.env_config
+      original = env_config.slice(*overrides.keys)
+      env_config.merge!(overrides)
+      yield
+    ensure
+      env_config.except!(*overrides.keys).merge!(original)
     end
 end
 
