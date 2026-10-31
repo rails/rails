@@ -6,6 +6,16 @@ require "database/setup"
 require "active_storage/analyzer/image_analyzer"
 
 class ActiveStorage::Analyzer::ImageAnalyzer::ImageMagickTest < ActiveSupport::TestCase
+  test "analyzing raises when mini_magick cannot apply the security policy" do
+    analyze_with_image_magick do
+      blob = create_file_blob(filename: "racecar.jpg", content_type: "image/jpeg")
+
+      stub_const(ActiveStorage, :MINIMAGICK_UNSECURABLE, true) do
+        assert_raises(RuntimeError, match: /requires mini_magick 5.1 or later/) { extract_metadata_from(blob) }
+      end
+    end
+  end
+
   test "analyzing a JPEG image" do
     analyze_with_image_magick do
       blob = create_file_blob(filename: "racecar.jpg", content_type: "image/jpeg")

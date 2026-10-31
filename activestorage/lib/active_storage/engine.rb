@@ -93,6 +93,10 @@ module ActiveStorage
         ActiveStorage.previewers        = app.config.active_storage.previewers || []
         ActiveStorage.analyzers         = app.config.active_storage.analyzers || []
 
+        if ActiveStorage::MINIMAGICK_AVAILABLE && !ActiveStorage::MINIMAGICK_UNSECURABLE
+          ActiveStorage::ImageMagick.apply_policy
+        end
+
         begin
           ActiveStorage.variant_transformer =
             case ActiveStorage.variant_processor
@@ -124,7 +128,7 @@ module ActiveStorage
           when /mini_magick/
             ActiveStorage.logger.warn <<~WARNING.squish
               Generating image variants with ImageMagick requires the mini_magick gem.
-              Please add `gem "mini_magick", "~> 5.0"` to your Gemfile.
+              Please add `gem "mini_magick", "~> 5.1"` to your Gemfile.
             WARNING
           else
             raise

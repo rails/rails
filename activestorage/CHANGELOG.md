@@ -1,3 +1,50 @@
+*   Ship an ImageMagick security policy and apply it to every ImageMagick
+    process MiniMagick spawns.
+
+    ImageMagick chooses a coder from the content of the file it is given, and
+    some coders act on files named inside the image rather than on the image
+    itself. Active Storage constrained none of them, so an uploaded file could
+    reach any coder the host's policy allowed, through the ImageMagick analyzer
+    at attach time, with no variant or `analyze` call in the application.
+
+    Active Storage now ships a `policy.xml` in
+    `ActiveStorage::ImageMagick::POLICY_DIRECTORY` and prepends that directory
+    to `MAGICK_CONFIGURE_PATH` through `MiniMagick.cli_env`. ImageMagick applies
+    every policy file on its search path, so the shipped policy adds to the
+    host's policy rather than replacing it. A `MAGICK_CONFIGURE_PATH` set in the
+    environment or in `MiniMagick.cli_env`, including by an initializer or
+    dotenv, is kept after the shipped directory.
+
+    The shipped policy denies the coders that script ImageMagick (`MSL`), read
+    or delete files other than the image (`TEXT`, `EPHEMERAL`), fetch remote
+    references (`URL`, `HTTP`, `HTTPS`, `FTP`), display to a screen (`SHOW`,
+    `WIN`, `PLT`), or hand the file to Ghostscript (the `PS`, `EPS`, `EPT` and
+    `PDF` coders, every alias of them, and the `gs` delegate), or reach a file
+    directly (`FILE`, `MPC`, `XPS`, `PCL`), and it refuses `@filename`
+    indirection. The policy applies to every ImageMagick command MiniMagick
+    runs, not only Active Storage's.
+
+    These applications must act:
+
+    *   One whose variant processor is `:mini_magick` has to use mini_magick 5.1
+        or later, which applying the policy requires. With an older mini_magick,
+        it raises at boot.
+    *   One that renders PostScript or PDF through ImageMagick has to re-allow
+        the `gs` delegate and the coders it uses in the host's `policy.xml`. A
+        host policy that allows a coder overrides the shipped deny.
+    *   One that replaces `MiniMagick.cli_env` after it boots, clears the
+        environment with `MiniMagick.cli_prefix`, or installs its own
+        `MiniMagick::Shell` never receives the shipped policy and has to carry
+        its rules in ImageMagick's system policy. So does one that uses
+        GraphicsMagick, which does not read ImageMagick policies.
+
+    Every other application needs no change. See "ImageMagick Security Policy"
+    in the Active Storage guide.
+
+    [GHSA-f3w6-w445-fwh9]
+
+    *Mike Dalessio*
+
 *   Enforce the declared content length on Google Cloud Storage direct uploads.
 
     The signed URL now requires an `x-goog-content-length-range` header matching the blob's
