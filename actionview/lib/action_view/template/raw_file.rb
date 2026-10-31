@@ -1,6 +1,5 @@
 # frozen_string_literal: true
 
-# :markup: markdown
 module ActionView # :nodoc:
   class Template # :nodoc:
     # Action View RawFile Template

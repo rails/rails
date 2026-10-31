@@ -1,6 +1,5 @@
 # frozen_string_literal: true
 
-# :markup: markdown
 module ActionView
   class Template
     # Action View Renderable Template for objects that respond to #render_in
