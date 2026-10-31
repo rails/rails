@@ -202,6 +202,9 @@ module ActionDispatch
               # The general path omits a format equal to the route's default, and fills
               # optional segments before the format from the current request.
               @format_optimizable = !route.defaults.key?(:format) && @segment_keys - @required_parts == [:format]
+              # As in the general path, a trailing slash isn't added after a format,
+              # including a format passed as a required segment.
+              @format_required = @required_parts.include?(:format)
               # With options, the general path assigns positional arguments to all
               # segment keys in order, so an optional segment before a required one
               # (as in <tt>scope "(:locale)"</tt>) would take the first argument.
@@ -220,7 +223,7 @@ module ActionDispatch
                   raise_generation_error(args)
                 end
                 merge_url_and_query_options!(options, inner_options) if inner_options && !sole_format?(inner_options)
-                path << "/" if options[:trailing_slash] && !format && !options[:format] && !path.end_with?("/")
+                path << "/" if options[:trailing_slash] && !format && !@format_required && !options[:format] && !path.end_with?("/")
                 options[:path] = path
 
                 original_script_name = options.delete(:original_script_name)
