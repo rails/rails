@@ -1,3 +1,25 @@
+*   Restrict the formats ffmpeg and ffprobe will open when previewing and
+    analyzing video and audio.
+
+    Active Storage now passes `-format_whitelist` before the input at every
+    ffmpeg and ffprobe call site, limiting demuxer selection to common audio and
+    video container formats. Configure the list with
+    `config.active_storage.ffmpeg_allowed_formats`, or set it to `nil` to let
+    ffmpeg choose any demuxer it was built with.
+
+    Files in other formats, such as MXF, DV, AC3, WavPack, AU, W64, and raw
+    H.264 or MPEG-1/2 video streams, now fail to preview with
+    `ActiveStorage::PreviewError`, and their analysis stores no media metadata
+    and logs a warning. Add their demuxers to the list to keep them.
+
+    ```ruby
+    config.active_storage.ffmpeg_allowed_formats += %w[ mxf ]
+    ```
+
+    [GHSA-3f4q-8x5m-76v8]
+
+    *Mike Dalessio*
+
 *   Detect axis-swapping orientations in the Vips image analyzer from libvips' normalized
     `orientation` field instead of parsing the `exif-ifd0-Orientation` label.
 

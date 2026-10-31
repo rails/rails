@@ -29,6 +29,7 @@ module ActiveStorage
     config.active_storage.paths = ActiveSupport::OrderedOptions.new
     config.active_storage.queues = ActiveSupport::InheritableOptions.new
     config.active_storage.precompile_assets = true
+    config.active_storage.ffmpeg_allowed_formats = ActiveStorage.ffmpeg_allowed_formats
 
     config.active_storage.variable_content_types = %w(
       image/png
@@ -178,6 +179,7 @@ module ActiveStorage
         ActiveStorage.video_preview_arguments = app.config.active_storage.video_preview_arguments || "-y -vframes 1 -f image2"
         ActiveStorage.video_preview_input_arguments = app.config.active_storage.video_preview_input_arguments || ""
         ActiveStorage.ffprobe_arguments = app.config.active_storage.ffprobe_arguments || ""
+        ActiveStorage.ffmpeg_allowed_formats = app.config.active_storage.ffmpeg_allowed_formats
         ActiveStorage.track_variants = app.config.active_storage.track_variants || false
         ActiveStorage.s3_public_uploads_via_acl = app.config.active_storage.s3_public_uploads_via_acl != false
         ActiveStorage.analyze = app.config.active_storage.analyze || :later
