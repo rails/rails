@@ -529,6 +529,26 @@ class LoadingTest < ActiveSupport::TestCase
     end
   end
 
+  test "Action View's helpers are loaded when used, with their configuration" do
+    add_to_config <<~RUBY
+      config.action_view.image_loading = "lazy"
+      config.action_view.button_to_generates_button_tag = false
+    RUBY
+
+    # In a new process, as this one has loaded the helpers already.
+    app_file "bin/print_helpers.rb", <<~RUBY
+      p [
+        ActionView.autoload?(:Helpers),
+        ActionView::Helpers::AssetTagHelper.image_loading,
+        ActionView::Helpers::NavigationHelper.button_to_generates_button_tag,
+        ActionView::Helpers::SanitizeHelper.sanitizer_vendor == Rails::HTML::Sanitizer.best_supported_vendor,
+      ]
+    RUBY
+    output = Dir.chdir(app_path) { `bin/rails runner bin/print_helpers.rb` }
+
+    assert_equal '["action_view/helpers", "lazy", false, true]', output.lines.last&.chomp
+  end
+
   test "active record query cache hooks are installed before first request in production" do
     app_file "app/controllers/omg_controller.rb", <<-RUBY
       begin

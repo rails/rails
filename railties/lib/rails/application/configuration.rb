@@ -316,12 +316,12 @@ module Rails
           end
 
           if respond_to?(:action_view)
-            require "action_view/helpers"
+            require_html_sanitizer
             action_view.sanitizer_vendor = Rails::HTML::Sanitizer.best_supported_vendor
           end
 
           if respond_to?(:action_text)
-            require "action_view/helpers"
+            require_html_sanitizer
             action_text.sanitizer_vendor = Rails::HTML::Sanitizer.best_supported_vendor
           end
         when "7.2"
@@ -695,6 +695,14 @@ module Rails
       private
         def instance_variables_to_inspect
           [].freeze
+        end
+
+        # Loads Rails::HTML::Sanitizer. rails-html-sanitizer's own entry point reopens
+        # ActionView::Helpers, which would load all of Action View's helpers.
+        def require_html_sanitizer
+          require "loofah"
+          require "rails/html/scrubbers"
+          require "rails/html/sanitizer"
         end
 
         def credentials_defaults
