@@ -29,9 +29,11 @@ require "active_support/rails"
 require "active_support/ordered_options"
 require "active_support/core_ext/array/conversions"
 require "active_model"
-require "arel"
 require "yaml"
 require "zlib"
+
+# Loaded with ActiveRecord::Base, rather than by every process that requires Active Record.
+autoload :Arel, "arel"
 
 require "active_record/version"
 require "active_record/deprecator"
