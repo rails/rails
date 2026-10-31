@@ -325,8 +325,8 @@ module ActiveSupport
     # This method has the same semantics of `update`, except it does not
     # modify the receiver but rather returns a new hash with indifferent
     # access with the result of the merge.
-    def merge(*hashes, &block)
-      dup.update(*hashes, &block)
+    def merge(...)
+      dup.update(...)
     end
 
     # Like `merge` but the other way around: Merges the receiver into the
