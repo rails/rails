@@ -434,8 +434,8 @@ module ActiveModel
           @generated_attribute_methods&.method_defined?(method_name)
         end
 
-        # Define a method \`name\` in \`mod\` that dispatches to \`send\`
-        # using the given \`extra\` args. This falls back on \`send\`
+        # Define a method `name` in `mod` that dispatches to `send`
+        # using the given `extra` args. This falls back on `send`
         # if the called name cannot be compiled.
         def define_proxy_call(code_generator, name, proxy_target, parameters, *call_args, namespace:, as: name)
           mangled_name = build_mangled_name(name)

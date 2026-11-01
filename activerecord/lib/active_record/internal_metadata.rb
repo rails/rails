@@ -8,7 +8,7 @@ module ActiveRecord
   # as which environment migrations were run in.
   #
   # This is enabled by default. To disable this functionality set
-  # \`use_metadata_table\` to false in your database configuration.
+  # `use_metadata_table` to false in your database configuration.
   class InternalMetadata # :nodoc:
     class NullInternalMetadata # :nodoc:
     end

@@ -602,7 +602,7 @@ module ActiveRecord
 
         # Create a new instance for the specified db configuration object
         # For classes that have been converted to use db_config objects, pass a
-        # \`DatabaseConfig\`, otherwise pass a \`Hash\`
+        # `DatabaseConfig`, otherwise pass a `Hash`
         def database_adapter_for(db_config, *arguments)
           klass = class_for_adapter(db_config.adapter)
           converted = klass.respond_to?(:using_database_configurations?) && klass.using_database_configurations?

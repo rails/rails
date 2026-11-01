@@ -209,7 +209,7 @@ module ActiveRecord
           !updated_at_came_from_user?
       end
 
-      # Converts a raw database string to \`:usec\`
+      # Converts a raw database string to `:usec`
       # format.
       #
       # Example:

@@ -34,7 +34,7 @@ module ActiveRecord
     # objects. This is useful for creating a custom handler that responds to
     # methods your application needs but Active Record doesn't implement. For
     # example if you are using Vitess, you may want your Vitess configurations
-    # to respond to \`sharded?\`. To implement this define the following in an
+    # to respond to `sharded?`. To implement this define the following in an
     # initializer:
     #
     # ```
@@ -145,7 +145,7 @@ module ActiveRecord
     # as primary. This is used as the "default" configuration and is used
     # when the application needs to treat one configuration differently. For
     # example, when Rails dumps the schema, the primary configuration's schema
-    # file will be named \`schema.rb\` instead of \`primary_schema.rb\`.
+    # file will be named `schema.rb` instead of `primary_schema.rb`.
     def primary?(name) # :nodoc:
       return true if name == "primary"
 

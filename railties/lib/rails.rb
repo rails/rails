@@ -154,7 +154,7 @@ module Rails
 
     # Provides access to the application autoloaders.
     #
-    # The autoloader that manages \`autoload_paths\` is reachable as
+    # The autoloader that manages `autoload_paths` is reachable as
     #
     # ```
     # Rails.autoloaders.main
@@ -163,7 +163,7 @@ module Rails
     # This autoloader manages the constants that are reloaded when reloading is
     # enabled.
     #
-    # The autoloader that manages \`autoload_once_paths\` is reachable as
+    # The autoloader that manages `autoload_once_paths` is reachable as
     #
     # ```
     # Rails.autoloaders.once

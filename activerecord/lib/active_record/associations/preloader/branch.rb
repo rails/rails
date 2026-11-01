@@ -167,7 +167,7 @@ module ActiveRecord
           end
 
           # Returns a class containing the logic needed to load preload the data
-          # and attach it to a relation. The class returned implements a \`run\` method
+          # and attach it to a relation. The class returned implements a `run` method
           # that accepts a preloader.
           def preloader_for(reflection)
             if reflection.options[:through]

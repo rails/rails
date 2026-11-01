@@ -1182,7 +1182,7 @@ module ActiveRecord
         # and the configured `retry_deadline` limit. (Note that when
         # `allow_retry` is true, it's possible to return without having marked
         # the connection as verified. If the block is guaranteed to exercise the
-        # connection, consider calling \`verified!\` to avoid needless
+        # connection, consider calling `verified!` to avoid needless
         # verification queries in subsequent calls.)
         #
         # If `materialize_transactions` is false, the block will be run without
@@ -1240,7 +1240,7 @@ module ActiveRecord
         end
 
         # Mark the connection as verified. Call this inside a
-        # \`with_raw_connection\` block only when the block is guaranteed to
+        # `with_raw_connection` block only when the block is guaranteed to
         # exercise the raw connection.
         def verified!
           @last_activity = Process.clock_gettime(Process::CLOCK_MONOTONIC)

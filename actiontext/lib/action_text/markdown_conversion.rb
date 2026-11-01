@@ -5,27 +5,27 @@ require "uri"
 module ActionText
   # # Action Text Markdown Conversion
   #
-  # Converts an HTML fragment into a Markdown string. Used by \`ActionText::Content#to_markdown\`
-  # and \`ActionText::Fragment#to_markdown\` to produce Markdown representations of rich text.
+  # Converts an HTML fragment into a Markdown string. Used by `ActionText::Content#to_markdown`
+  # and `ActionText::Fragment#to_markdown` to produce Markdown representations of rich text.
   #
-  # Example: \`<h1>Release Notes</h1>\` => \`# Release Notes\`, a markdown heading.
+  # Example: `<h1>Release Notes</h1>` => `# Release Notes`, a markdown heading.
   #
   # Note that this converter escapes text nodes so it won't render as markdown.
   #
-  # Example: \`<p># Release Notes</p>\` => \`\# Release Notes\`, not a heading.
+  # Example: `<p># Release Notes</p>` => `\# Release Notes`, not a heading.
   module MarkdownConversion
     extend self
 
     RAW_MARKDOWN_TAG_NAME = "action-text-markdown" # :nodoc:
 
-    # Converts a Nokogiri HTML \`node\` into a Markdown string.
+    # Converts a Nokogiri HTML `node` into a Markdown string.
     #
     # ```
     # node = Nokogiri::HTML4.fragment("<p>Hello <strong>world</strong></p>")
     # MarkdownConversion.node_to_markdown(node) # => "Hello **world**"
     # ```
     #
-    # NOTE: text inside \`<action-text-markdown>\` elements is emitted without escaping, so this
+    # NOTE: text inside `<action-text-markdown>` elements is emitted without escaping, so this
     # method is not safe for untrusted content. Convert user-supplied markup through
     # ActionText::Content, which strips those elements while canonicalizing.
     def node_to_markdown(node)
@@ -34,7 +34,7 @@ module ActionText
       end.strip
     end
 
-    # Returns a copy of \`fragment\` with \`<action-text-markdown>\` elements replaced by their
+    # Returns a copy of `fragment` with `<action-text-markdown>` elements replaced by their
     # children, leaving the text to be escaped like any other.
     #
     # #render_attachment wraps already-rendered Markdown in that element so #node_to_markdown
@@ -49,7 +49,7 @@ module ActionText
       end
     end
 
-    # Returns an element holding \`attachment\`'s Markdown, for \`ActionText::Content#to_markdown\` to
+    # Returns an element holding `attachment`'s Markdown, for `ActionText::Content#to_markdown` to
     # substitute in place of the attachment. #node_to_markdown emits the element's text verbatim
     # rather than escaping it as ordinary Markdown source.
     def render_attachment(attachment, attachment_links: false)
@@ -58,25 +58,25 @@ module ActionText
       end
     end
 
-    # Returns a Markdown link: \`[title](url)\`.
+    # Returns a Markdown link: `[title](url)`.
     #
-    # Escapes metacharacters in \`title\`, and encodes characters in \`url\` that would break the link
-    # syntax or that Markdown would decode, such as \`\` and \`&\`.
+    # Escapes metacharacters in `title`, and encodes characters in `url` that would break the link
+    # syntax or that Markdown would decode, such as `\` and `&`.
     #
     # ```
     # MarkdownConversion.markdown_link("photo", "https://example.com/photo_(large).png")
     # # => "[photo](https://example.com/photo_%28large%29.png)"
     # ```
     #
-    # Pass \`image: true\` to produce an image link ([\`!](title)(url)\`).
+    # Pass `image: true` to produce an image link (`![title](url)`).
     #
     # ```
     # MarkdownConversion.markdown_link("photo", "https://example.com/photo.png", image: true)
     # # => "![photo](https://example.com/photo.png)"
     # ```
     #
-    # If the URI scheme is not allowed (per \`Rails::HTML::Sanitizer.allowed_uri?\`), returns the
-    # escaped title wrapped in escaped brackets ([\`\](title\)\`).
+    # If the URI scheme is not allowed (per `Rails::HTML::Sanitizer.allowed_uri?`), returns the
+    # escaped title wrapped in escaped brackets (`\[title\]`).
     #
     # ```
     # MarkdownConversion.markdown_link("click", "javascript:alert(1)")
@@ -90,7 +90,7 @@ module ActionText
       end
     end
 
-    # Backslash-escapes CommonMark metacharacters in \`text\` so they are treated
+    # Backslash-escapes CommonMark metacharacters in `text` so they are treated
     # as literal characters by Markdown renderers.
     #
     # ```
@@ -280,7 +280,7 @@ module ActionText
       # visitor at all. #join_children reads a trailing blank line as "this value is a block"
       # and uses it to keep the next value off the same line, so a container holding a block
       # has to report one too. Flatten that away and a fence inside the container lands
-      # mid-line, releasing the \`pre\` content #markdown_for_node emits unescaped.
+      # mid-line, releasing the `pre` content #markdown_for_node emits unescaped.
       def visit__container(_node, child_values)
         inner = join_children(child_values)
 
@@ -290,11 +290,9 @@ module ActionText
           inner
         end
       end
-      # Trix uses <div> as its default block element and represents newlines as
-      #  tags (see
+      # Trix uses <div> as its default block element and represents newlines as <br> tags (see
       # piece_view.js and block_view.js in the Trix source). Unlike <p>, a div of inline content
-      # adds no paragraph-separating newlines: its
-      #  children already provide the spacing.
+      # adds no paragraph-separating newlines: its <br> children already provide the spacing.
       alias_method :visit_div, :visit__container
       alias_method :visit_li, :visit__container
       alias_method :visit_td, :visit__container
@@ -334,8 +332,8 @@ module ActionText
 
       # A list item's later lines have to be indented to the width of its marker. Indent them
       # less and the item ends there, which for a fenced code block means the fence closes
-      # early and the rest of the \`pre\` content #markdown_for_node emits unescaped is released
-      # as Markdown source. \`- \` happens to be as wide as LIST_INDENT; \`1. \` is not.
+      # early and the rest of the `pre` content #markdown_for_node emits unescaped is released
+      # as Markdown source. `- ` happens to be as wide as LIST_INDENT; `1. ` is not.
       def format_list_item(lines, bullet)
         first, *rest = lines
         leader = first.match?(LIST_BULLET) ? LIST_INDENT : bullet
@@ -399,7 +397,7 @@ module ActionText
         end
       end
 
-      # Make sure \`<strong> hello </strong>\` becomes \` **hello*\* ` and not `\*\* hello \**\`
+      # Make sure `<strong> hello </strong>` becomes ` **hello** ` and not `** hello **`
       # (the latter is not valid markdown).
       def wrap_emphasis(text, marker)
         leading = text[/\A\s*/]
@@ -471,7 +469,7 @@ module ActionText
       # A fenced code block opens only at the start of a line. A link, a heading, a summary
       # and a table row or cell each splice their descendants into a line they have already
       # begun, and Markdown cannot hold a block inside an inline element at all, so under
-      # any of them the fence never opens and the \`pre\` content #markdown_for_node emits
+      # any of them the fence never opens and the `pre` content #markdown_for_node emits
       # unescaped is released as Markdown source. See SKIP_ESCAPING_PARENTS.
       def single_line_context?(node)
         node.ancestors.any? { |ancestor| ancestor.element? && ancestor.name.in?(SINGLE_LINE_ANCESTORS) }

@@ -288,7 +288,7 @@ module ActiveRecord
         end
 
         # Called by `_update_record` and `_delete_record`
-        # to build \`where\` clause from default scopes.
+        # to build `where` clause from default scopes.
         # Skips empty scopes.
         def build_default_constraint
           return unless default_scopes?(all_queries: true)
