@@ -1,3 +1,10 @@
+*   Fix subclasses missing `enum` definitions added to their parent class later.
+
+    `defined_enums` on a subclass that already existed did not include an enum
+    added to its parent afterwards.
+
+    *Ryuta Kamizono*
+
 *   Fix assigning an `attr_readonly` attribute added to a parent class not raising
     on a subclass whose attribute methods were already generated.
 
