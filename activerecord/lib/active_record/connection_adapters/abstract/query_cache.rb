@@ -95,7 +95,7 @@ module ActiveRecord
             @map.shift # evict the oldest entry
           end
 
-          @map[key] ||= yield
+          @map[key] = yield
         end
 
         def clear
