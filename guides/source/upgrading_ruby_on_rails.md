@@ -147,6 +147,37 @@ warning naming each route whose controller does not exist. Such routes used to
 go unnoticed until a request matched them. Check the boot log for
 `references a missing controller` and fix or remove the routes it lists.
 
+### Action Cable channel tests use the real connection class
+
+`ActionCable::Channel::TestCase` no longer stubs the connection and the channel.
+`stub_connection` builds an instance of the application's connection class,
+`ApplicationCable::Connection`, so each identifier it receives must be declared
+with `identified_by` on that class, or it raises a `NoMethodError`:
+
+```ruby
+module ApplicationCable
+  class Connection < ActionCable::Connection::Base
+    identified_by :current_user
+  end
+end
+```
+
+`stub_connection` now takes keyword arguments: pass `stub_connection(current_user: user)`,
+not a positional hash, and don't name an identifier `server`, which is reserved.
+Use `tests_connection` to run a channel test against another connection class.
+
+`assert_no_streams`, `assert_has_stream` and `assert_has_no_stream` now raise
+"Must be subscribed!" when the subscription was rejected or `subscribe` wasn't
+called. Read the messages sent to the client from `socket.transmissions`
+instead of `connection.transmissions`, and the started streams from
+`subscription.stream_names` instead of `subscription.streams`. Periodic timers
+are registered and fire only on `advance_time`.
+
+`ActionCable::Channel::ConnectionStub`, `ActionCable::Channel::ChannelStub`,
+`ActionCable::Connection::TestConnection` and `ActionCable::Connection::TestRequest`
+were removed. Test helpers or gems that referenced them can build on
+`ActionCable::Connection::TestSocket` and `ActionCable::Connection::TestServer`.
+
 ### The old Active Record 6.1 marshalling format was removed.
 
 If your application still sets `active_record.marshalling_format_version = 6.1`, which may

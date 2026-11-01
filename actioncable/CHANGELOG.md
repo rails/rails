@@ -28,8 +28,29 @@
     This refactoring separates socket handling, concurrency primitives, and
     other transport-specific behavior from application-level connections and
     channels. It makes Action Cable more flexible as a framework and opens the
-    door to alternative server implementations without changing user-facing
+    door to alternative server implementations without changing application
     channel and connection code.
+
+    Channel and connection tests now build the connection through
+    `initialize(server, socket)`, on an `ActionCable::Connection::TestSocket` and
+    an `ActionCable::Connection::TestServer`, instead of stubs and mixins.
+    `ActionCable::Channel::ConnectionStub`, `ActionCable::Channel::ChannelStub`,
+    `ActionCable::Connection::TestConnection` and
+    `ActionCable::Connection::TestRequest` are removed: test helpers and gems
+    that used them can build on `TestSocket` and `TestServer`. In
+    `ActionCable::Channel::TestCase`:
+
+    *   `connection` is an instance of the class returned by
+        `config.action_cable.connection_class` (`ApplicationCable::Connection`),
+        or of the class given to `tests_connection`, so the identifiers passed
+        to `stub_connection` must be declared there with `identified_by`.
+    *   `stub_connection` takes keyword arguments, `stub_connection(user: alice)`:
+        a positional hash raises `ArgumentError`, and `server:` is reserved.
+    *   `assert_no_streams`, `assert_has_stream` and `assert_has_no_stream`
+        raise "Must be subscribed!" when the subscription is rejected or missing.
+    *   `socket.transmissions` replaces `connection.transmissions`.
+    *   `subscription.stream_names` replaces `subscription.streams`.
+    *   Periodic timers are registered and fire only on `advance_time`.
 
     *Vladimir Dementyev*
 

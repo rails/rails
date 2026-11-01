@@ -86,8 +86,12 @@ module ActionCable
     # instance methods for use in the tests:
     #
     # connection
-    # :   An ActionCable::Channel::ConnectionStub, representing the current HTTP
-    #     connection.
+    # :   An instance of the connection class, representing the current HTTP
+    #     connection. See "Specifying connection identifiers" below.
+    #
+    # socket
+    # :   An ActionCable::Connection::TestSocket, recording everything transmitted
+    #     to the client, subscription confirmations and rejections included.
     #
     # subscription
     # :   An instance of the current channel, created when you call `subscribe`.
@@ -112,6 +116,16 @@ module ActionCable
     # identifiers. To do this just use:
     #
     #     stub_connection(user: users(:john))
+    #
+    # The connection is an instance of the class returned by
+    # `ActionCable.server.config.connection_class` (usually
+    # `ApplicationCable::Connection`), so each identifier must be declared with
+    # `identified_by` there. Use `tests_connection` to test against another
+    # connection class:
+    #
+    #     class ChatChannelTest < ActionCable::Channel::TestCase
+    #       tests_connection AdminCable::Connection
+    #     end
     #
     # ## Testing broadcasting
     #
@@ -198,8 +212,10 @@ module ActionCable
 
         # Set up test connection with the specified identifiers:
         #
-        #     class ApplicationCable < ActionCable::Connection::Base
-        #       identified_by :user, :token
+        #     module ApplicationCable
+        #       class Connection < ActionCable::Connection::Base
+        #         identified_by :user, :token
+        #       end
         #     end
         #
         #     stub_connection(user: users[:john], token: 'my-secret-token')
