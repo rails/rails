@@ -425,6 +425,7 @@ module ActionController
     module Token
       SCHEMES = ["Token", "Bearer", "DPoP"].freeze
       TOKEN_KEY = "token="
+      TOKEN_REGEX = /^(Token|Bearer)\s+/
       # Matches an RFC 9110 auth-scheme (a `token`: ALPHA / DIGIT / tchar symbols).
       AUTH_SCHEME_REGEX = /^([0-9A-Za-z!#$%&'*+\-.^_`|~]+)\s+/
       AUTHN_PAIR_DELIMITERS = /(?:,|;|\t)/
