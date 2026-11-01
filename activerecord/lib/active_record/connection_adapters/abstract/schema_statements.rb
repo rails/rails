@@ -1557,10 +1557,10 @@ module ActiveRecord
           visitor.compile(relation.table[column])
         end
 
-        values = columns_for_distinct(
-          primary_key_columns,
-          relation.order_values
-        )
+        orders = relation.order_values.compact_blank
+        orders = relation.default_order_values.compact_blank if orders.empty?
+
+        values = columns_for_distinct(primary_key_columns, orders)
 
         limited = relation.reselect(values).distinct!
         limited_ids = select_rows(limited.arel, "SQL").map do |results|

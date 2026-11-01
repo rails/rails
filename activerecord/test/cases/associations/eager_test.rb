@@ -999,6 +999,13 @@ class EagerAssociationTest < ActiveRecord::TestCase
     )
   end
 
+  def test_limited_eager_with_default_order
+    posts = Post.includes(:author, :comments).where("authors.name" => "David").limit(2).offset(1)
+
+    assert_equal posts(:thinking, :sti_comments), posts.default_order("UPPER(posts.title)").to_a
+    assert_equal posts(:sti_post_and_comments, :sti_comments), posts.default_order("UPPER(posts.title) DESC").to_a
+  end
+
   def test_limited_eager_with_multiple_order_columns
     assert_equal(
       posts(:thinking, :sti_comments),
