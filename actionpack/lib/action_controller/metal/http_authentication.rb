@@ -423,11 +423,21 @@ module ActionController
     #
     #     RewriteRule ^(.*)$ dispatch.fcgi [E=X-HTTP_AUTHORIZATION:%{HTTP:Authorization},QSA,L]
     module Token
+      include ActiveSupport::Deprecation::DeprecatedConstantAccessor
+
       SCHEMES = ["Token", "Bearer", "DPoP"].freeze
       TOKEN_KEY = "token="
       # Matches an RFC 9110 auth-scheme (a `token`: ALPHA / DIGIT / tchar symbols).
       AUTH_SCHEME_REGEX = /^([0-9A-Za-z!#$%&'*+\-.^_`|~]+)\s+/
       AUTHN_PAIR_DELIMITERS = /(?:,|;|\t)/
+      DEPRECATED_TOKEN_REGEX = /^(Token|Bearer)\s+/i # :nodoc:
+
+      deprecate_constant :TOKEN_REGEX, "ActionController::HttpAuthentication::Token::DEPRECATED_TOKEN_REGEX",
+        deprecator: ActionController.deprecator,
+        message: "ActionController::HttpAuthentication::Token::TOKEN_REGEX is deprecated and will be removed in Rails 9.0. " \
+          "Match the scheme captured by ActionController::HttpAuthentication::Token::AUTH_SCHEME_REGEX " \
+          "against ActionController::HttpAuthentication::Token::SCHEMES, ignoring case, instead."
+
       extend self
 
       module ControllerMethods

@@ -1,3 +1,11 @@
+*   Deprecate `ActionController::HttpAuthentication::Token::TOKEN_REGEX`.
+
+    Token authentication no longer uses it since it accepts the `DPoP` scheme
+    and any scheme given in `scheme:`. Match the scheme captured by
+    `AUTH_SCHEME_REGEX` against `SCHEMES`, ignoring case, instead.
+
+    *Clément Joubert*
+
 *   Apply `config.action_dispatch.cookies_same_site_protection` to every session
     store.
 

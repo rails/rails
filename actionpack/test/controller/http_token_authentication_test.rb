@@ -351,6 +351,16 @@ class HttpTokenAuthenticationTest < ActionController::TestCase
     assert_equal(expected, actual)
   end
 
+  test "TOKEN_REGEX is deprecated" do
+    regex = assert_deprecated(/ActionController::HttpAuthentication::Token::TOKEN_REGEX is deprecated/, ActionController.deprecator) do
+      ActionController::HttpAuthentication::Token::TOKEN_REGEX
+    end
+
+    assert_equal(/^(Token|Bearer)\s+/i, regex)
+    assert_match regex, "bearer lifo"
+    assert_no_match regex, "Basic dXNlcjpwYXNz"
+  end
+
   private
     def sample_request(token, options = { nonce: "def" })
       authorization = options.inject([%{Token token="#{token}"}]) do |arr, (k, v)|
