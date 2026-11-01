@@ -266,6 +266,12 @@ module ActiveSupport
       deserialize_with_metadata(decrypt(verify(message)), **options)
     end
 
+    def freeze # :nodoc:
+      length_of_encoded_iv
+      length_of_encoded_auth_tag
+      super
+    end
+
     ActiveSupport::InspectBackport.apply(self)
 
     private

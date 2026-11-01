@@ -322,6 +322,7 @@ module ActiveSupport
       return self if frozen?
 
       @hmac = nil
+      digest_length_in_hex
       super
     end
 

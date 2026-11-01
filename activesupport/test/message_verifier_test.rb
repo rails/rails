@@ -152,6 +152,12 @@ class MessageVerifierTest < ActiveSupport::TestCase
     assert_same @verifier, @verifier.freeze
   end
 
+  test "a verifier frozen before its first verification verifies messages" do
+    message = ActiveSupport::MessageVerifier.new(@secret).generate("alice")
+
+    assert_equal "alice", ActiveSupport::MessageVerifier.new(@secret).freeze.verified(message)
+  end
+
   private
     def make_codec(**options)
       ActiveSupport::MessageVerifier.new(@secret, **options)
@@ -163,18 +169,19 @@ class RactorMessageVerifierTest < ActiveSupport::TestCase
 
   setup do
     @secret = SecureRandom.random_bytes(32)
-    @message = ActiveSupport::MessageVerifier.new(@secret).generate("alice")
+    @message = ActiveSupport::MessageVerifier.new(@secret, serializer: JSON).generate("alice")
   end
 
-  test "a verifier shared across ractors signs messages" do
-    verifier = ActiveSupport::MessageVerifier.new(@secret)
+  test "a verifier shared across ractors signs and verifies messages" do
+    verifier = ActiveSupport::MessageVerifier.new(@secret, serializer: JSON)
     ActiveSupport::Ractors.make_shareable(verifier)
 
     assert_equal @message, on_ractor(verifier) { |verifier| verifier.generate("alice") }
+    assert_equal "alice", on_ractor(verifier, @message) { |verifier, message| verifier.verify(message) }
   end
 
   test "a verifier that signed messages before being shared across ractors signs and verifies them" do
-    verifier = ActiveSupport::MessageVerifier.new(@secret)
+    verifier = ActiveSupport::MessageVerifier.new(@secret, serializer: JSON)
     verifier.verify(verifier.generate("bob"))
     ActiveSupport::Ractors.make_shareable(verifier)
 

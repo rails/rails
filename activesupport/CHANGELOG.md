@@ -1,3 +1,13 @@
+*   Fix `FrozenError` when using a frozen `ActiveSupport::MessageVerifier` or
+    `ActiveSupport::MessageEncryptor` that had not verified or decrypted a
+    message yet, as after `Ractor.make_shareable`, and when freezing an already
+    frozen `ActiveSupport::CachingKeyGenerator`.
+
+    A `MessageVerifier` with an unknown digest now raises when it is frozen,
+    instead of when it first signs or verifies a message.
+
+    *Clément Joubert*
+
 *   `ActiveSupport::MessagePack` no longer deserializes an unsafe
     `ActiveSupport::SafeBuffer` as `html_safe`.
 
