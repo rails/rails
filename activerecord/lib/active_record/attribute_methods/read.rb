@@ -13,14 +13,20 @@ module ActiveRecord
         end
 
         private
+          #: (String, owner: ActiveSupport::CodeGenerator, ?as: String) -> void
           def define_method_attribute(canonical_name, owner:, as: canonical_name)
+            slot = attributes_builder.indexes[canonical_name]
+            unless slot
+              raise ArgumentError, "#{self.name} has no attribute `#{canonical_name}` to define a reader for"
+            end
+
             ActiveModel::AttributeMethods::AttrNames.define_attribute_accessor_method(
-              canonical_name
-            ) do |temp_method_name, attr_name_expr|
-              owner.define_cached_method(temp_method_name, as: as, namespace: :active_record) do |batch|
+              "_read_attribute_#{slot}"
+            ) do |temp_method_name|
+              owner.define_cached_method(temp_method_name, as: as, namespace: :active_record_slot) do |batch|
                 batch <<
                   "def #{temp_method_name}" <<
-                  "  _read_attribute!(#{attr_name_expr})" <<
+                  "  _read_attribute_at!(#{slot})" <<
                   "end"
               end
             end
@@ -59,6 +65,23 @@ module ActiveRecord
       rescue ActiveModel::MissingAttributeError
         raise if @attributes.key?(attr_name)
         missing_attribute(attr_name, RUBY_VERSION >= "3.4" ? caller_locations : caller)
+      end
+
+      # Like #_read_attribute, but takes the attribute's +index+ (its slot)
+      # instead of its name, and raises for uninitialized attributes. Called
+      # by the generated reader methods.
+      #: (Integer) -> untyped
+      def _read_attribute_at!(index) # :nodoc:
+        @attributes.fetch_value_at!(index)
+      rescue ActiveModel::MissingAttributeError
+        attr_name = @attributes.name_at(index)
+        raise if @attributes.key?(attr_name)
+        missing_attribute(attr_name, RUBY_VERSION >= "3.4" ? caller_locations : caller)
+      rescue ActiveModel::LazyAttributeSet::NotLaidOut
+        # Loaded from a Rails 6.1 Marshal dump, so the attributes need the
+        # model's layout before they can be read by slot.
+        @attributes = self.class.attributes_builder.relayout_attributes(@attributes)
+        retry
       end
 
       alias :attribute :_read_attribute

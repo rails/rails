@@ -81,12 +81,20 @@ module ActiveRecord
       # Person.where(nickname: "Bob")
       # # SELECT "people".* FROM "people" WHERE "people"."name" = "Bob"
       # ```
+      #: (Symbol | String, Symbol | String) -> void
       def alias_attribute(new_name, old_name)
         super
 
         include AliasResolution unless include?(AliasResolution)
 
-        if @alias_attributes_mass_generated
+        if abstract_class?
+          # Models that already generated their aliases need this one too.
+          descendants.each do |klass|
+            if klass.alias_attributes_mass_generated? && klass.abstract_ancestors.include?(self)
+              klass.generate_inherited_alias_attribute(new_name, old_name)
+            end
+          end
+        elsif @alias_attributes_mass_generated
           ActiveSupport::CodeGenerator.batch(generated_attribute_methods, __FILE__, __LINE__) do |code_generator|
             generate_alias_attribute_methods(code_generator, new_name, old_name)
           end
@@ -143,12 +151,28 @@ module ActiveRecord
         true
       end
 
+      # Generated readers read by slot, and an abstract class has no slots,
+      # so the aliases declared on abstract classes are generated in each
+      # model that inherits them instead.
+      #: () -> void
       def generate_alias_attributes # :nodoc:
         superclass.generate_alias_attributes unless superclass == Base
 
-        return if @alias_attributes_mass_generated
+        return if @alias_attributes_mass_generated || abstract_class?
 
         ActiveSupport::CodeGenerator.batch(generated_attribute_methods, __FILE__, __LINE__) do |code_generator|
+          abstract_ancestors.reverse_each do |klass|
+            klass.aliases_by_attribute_name.each do |old_name, new_names|
+              # Abstract classes are shared between models, so not every
+              # model has every attribute an abstract class aliases.
+              next unless has_attribute?(old_name)
+
+              new_names.each do |new_name|
+                generate_alias_attribute_methods(code_generator, new_name, old_name)
+              end
+            end
+          end
+
           aliases_by_attribute_name.each do |old_name, new_names|
             new_names.each do |new_name|
               generate_alias_attribute_methods(code_generator, new_name, old_name)
@@ -157,6 +181,33 @@ module ActiveRecord
         end
 
         @alias_attributes_mass_generated = true
+      end
+
+      #: () -> bool?
+      def alias_attributes_mass_generated? # :nodoc:
+        @alias_attributes_mass_generated
+      end
+
+      # The abstract classes between this class and its closest ancestor that
+      # isn't abstract, closest first. Their aliases are generated here.
+      #: () -> Array[singleton(ActiveRecord::Base)]
+      def abstract_ancestors # :nodoc:
+        ancestors = []
+        klass = superclass
+        while klass != Base && klass.abstract_class?
+          ancestors << klass
+          klass = klass.superclass
+        end
+        ancestors
+      end
+
+      #: (Symbol | String, Symbol | String) -> void
+      def generate_inherited_alias_attribute(new_name, old_name) # :nodoc:
+        return unless has_attribute?(old_name)
+
+        ActiveSupport::CodeGenerator.batch(generated_attribute_methods, __FILE__, __LINE__) do |code_generator|
+          generate_alias_attribute_methods(code_generator, new_name, old_name)
+        end
       end
 
       def undefine_attribute_methods # :nodoc:

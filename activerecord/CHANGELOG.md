@@ -1,3 +1,22 @@
+*   Cast and freeze a model's attribute defaults when its schema is loaded.
+
+    Unless the model declares an attribute with a `default:`, each default is
+    now type cast and frozen once, when the schema loads, instead of being
+    cast the first time a new record reads it. Two things can change for
+    custom types and coders.
+
+    A type's `cast`, through `deserialize`, now receives the default of a
+    column that has none, which is `nil`, including for `NOT NULL` columns.
+    A type that overrides `cast` rather than `cast_value` must handle `nil`
+    the way `ActiveModel::Type::Value#cast` does, or the schema fails to load.
+
+    A record works on a `dup` of the frozen default value. A mutable default,
+    such as the object a `serialize` coder returns for `nil`, must copy its
+    own state in `initialize_copy`, or changing it on a record raises
+    `FrozenError`.
+
+    *Aaron Patterson*
+
 *   Fix eager loading with `limit` or `offset` on a relation with a `default_order`.
 
     The `SELECT DISTINCT` of primary keys ignored `default_order`, which raised
