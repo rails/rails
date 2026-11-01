@@ -234,7 +234,7 @@ module ActiveModel
     # person.errors.delete(:name) # => ["cannot be nil"]
     # person.errors[:name]        # => []
     # ```
-    #: (Symbol | String, ?untyped, **untyped) -> Array[untyped]?
+    #: (Symbol | String, ?untyped, **untyped) -> Array[String]?
     def delete(attribute, type = nil, **options)
       attribute, type, options = normalize_arguments(attribute, type, **options)
       matches = where(attribute, type, **options)
@@ -251,7 +251,7 @@ module ActiveModel
     # person.errors[:name]  # => ["cannot be nil"]
     # person.errors['name'] # => ["cannot be nil"]
     # ```
-    #: (Symbol | String) -> Array[untyped]
+    #: (Symbol | String) -> Array[String]
     def [](attribute)
       messages_for(attribute)
     end
@@ -275,7 +275,7 @@ module ActiveModel
     # person.errors.as_json                      # => {:name=>["cannot be nil"]}
     # person.errors.as_json(full_messages: true) # => {:name=>["name cannot be nil"]}
     # ```
-    #: (?untyped) -> Hash[untyped, untyped]
+    #: (?untyped) -> Hash[Symbol, Array[String]]
     def as_json(options = nil)
       to_hash(options && options[:full_messages])
     end
@@ -287,7 +287,7 @@ module ActiveModel
     # person.errors.to_hash       # => {:name=>["cannot be nil"]}
     # person.errors.to_hash(true) # => {:name=>["name cannot be nil"]}
     # ```
-    #: (?untyped) -> Hash[Symbol, Array[untyped]]
+    #: (?untyped) -> Hash[Symbol, Array[String]]
     def to_hash(full_messages = false)
       message_method = full_messages ? :full_message : :message
       group_by_attribute.transform_values do |errors|
@@ -300,7 +300,7 @@ module ActiveModel
     EMPTY_ARRAY = [].freeze # :nodoc:
 
     # Returns a Hash of attributes with an array of their error messages.
-    #: () -> Hash[Symbol, Array[untyped]]
+    #: () -> Hash[Symbol, Array[String]]
     def messages
       hash = to_hash
       hash.default = EMPTY_ARRAY
@@ -471,7 +471,7 @@ module ActiveModel
     # person.errors.full_messages
     # # => ["Name is too short (minimum is 5 characters)", "Name can't be blank", "Email can't be blank"]
     # ```
-    #: () -> Array[untyped]
+    #: () -> Array[String]
     def full_messages
       @errors.map(&:full_message)
     end
@@ -493,7 +493,7 @@ module ActiveModel
     # person.errors.full_messages_for(:name, :invalid)
     # # => ["Name is invalid"]
     # ```
-    #: (Symbol | String, ?untyped) -> Array[untyped]
+    #: (Symbol | String, ?untyped) -> Array[String]
     def full_messages_for(attribute, type = nil)
       where(attribute, type).map(&:full_message).freeze
     end
@@ -514,7 +514,7 @@ module ActiveModel
     # person.errors.messages_for(:name, :invalid)
     # # => ["is invalid"]
     # ```
-    #: (Symbol | String, ?untyped) -> Array[untyped]
+    #: (Symbol | String, ?untyped) -> Array[String]
     def messages_for(attribute, type = nil)
       where(attribute, type).map(&:message)
     end
