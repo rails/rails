@@ -1,5 +1,5 @@
 *   Add support for comma-separated values in ENV["RAILS_MASTER_KEY"].
-    
+
     When multiple keys are provided as comma-separated values, Rails will
     try each key until it finds one that works.
 
