@@ -716,7 +716,7 @@ module ActiveRecord
       # #    ]
       #
       # person.pets.destroy("4")
-      # # => #<Pet id: 4, name: "Benny", person_id: 1>
+      # # => [#<Pet id: 4, name: "Benny", person_id: 1>]
       #
       # person.pets.size # => 2
       # person.pets
