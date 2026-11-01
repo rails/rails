@@ -553,7 +553,7 @@ module ActiveModel
     # * `activemodel.errors.messages.blank`
     # * `errors.attributes.title.blank`
     # * `errors.messages.blank`
-    #: (Symbol | String, ?untyped, ?untyped) -> untyped
+    #: (Symbol | String, ?Symbol, ?Hash[Symbol, untyped]) -> String
     def generate_message(attribute, type = :invalid, options = {})
       Error.generate_message(attribute, type, @base, options)
     end
