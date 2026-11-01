@@ -139,6 +139,19 @@ module ActiveSupport # :nodoc:
       new_safe_buffer
     end
 
+    def encode(...)
+      string_into_safe_buffer(super, html_safe?)
+    end
+
+    def -@
+      html_safe? ? super : (frozen? ? self : dup.freeze)
+    end
+    alias dedup -@
+
+    def +@
+      frozen? ? dup : self
+    end
+
     def html_safe?
       @html_unsafe.nil?
     end
