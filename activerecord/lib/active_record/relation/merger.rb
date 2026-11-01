@@ -52,7 +52,7 @@ module ActiveRecord
       NORMAL_VALUES = (Relation::VALUE_METHODS - Relation::CLAUSE_METHODS -
                       [
                         :select, :includes, :preload, :joins, :left_outer_joins,
-                        :order, :reverse_order, :lock, :create_with, :reordering
+                        :order, :default_order, :reverse_order, :lock, :create_with, :reordering
                       ]).freeze
 
       def merge
@@ -155,10 +155,10 @@ module ActiveRecord
         def merge_multi_values
           if other.reordering_value
             # override any order specified in the original relation
-            relation.reorder!(*other.order_values)
-          elsif other.order_values.any?
-            # merge in order_values from relation
-            relation.order!(*other.order_values)
+            relation.replace_order_values!(other.order_values, other.default_order_values)
+          else
+            relation.order!(*other.order_values) if other.order_values.any?
+            relation.default_order!(*other.default_order_values) if other.default_order_values.any?
           end
 
           relation.extending!(*other.extensions)
