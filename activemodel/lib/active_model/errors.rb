@@ -287,7 +287,7 @@ module ActiveModel
     # person.errors.to_hash       # => {:name=>["cannot be nil"]}
     # person.errors.to_hash(true) # => {:name=>["name cannot be nil"]}
     # ```
-    #: (?untyped) -> Hash[Symbol, Array[String]]
+    #: (?boolish) -> Hash[Symbol, Array[String]]
     def to_hash(full_messages = false)
       message_method = full_messages ? :full_message : :message
       group_by_attribute.transform_values do |errors|
