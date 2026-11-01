@@ -264,6 +264,12 @@ module ActiveRecord
         singleton_class.define_method(name.pluralize) { enum_values }
         defined_enums[name] = enum_values
 
+        # Every subclass holds its own copy of the enums, so pass the new one
+        # down unless a subclass defines that name itself.
+        descendants.each do |subclass|
+          subclass.defined_enums[name] = enum_values unless subclass.defined_enums.key?(name)
+        end
+
         detect_enum_conflict!(name, name)
         detect_enum_conflict!(name, "#{name}=")
 
