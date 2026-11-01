@@ -146,7 +146,7 @@ module Rails
         end
 
         # Asserts a given initializer exists. You need to supply a path relative
-        # to the \`config/initializers/\` directory.
+        # to the `config/initializers/` directory.
         #
         # ```
         # assert_initializer "mail_interceptors.rb"

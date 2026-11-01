@@ -31,8 +31,8 @@ module ActiveRecord
       # have not been requested by the application in a while (idle) and those
       # that have not spoken to their remote server in a while (inactive). The
       # former is a desirable opportunity to reduce our connection count
-      # (\`idle_timeout\`); the latter is a risk that the server or a firewall may
-      # drop a connection we still anticipate using (avoided by \`keepalive\`).
+      # (`idle_timeout`); the latter is a risk that the server or a firewall may
+      # drop a connection we still anticipate using (avoided by `keepalive`).
       class Reaper
         attr_reader :pool, :frequency
 

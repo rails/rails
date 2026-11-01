@@ -43,14 +43,14 @@ module ActiveRecord
 
     module ClassMethods
       # Do not use transactional tests for the given database. This overrides
-      # the default setting as defined by \`use_transactional_tests\`, which
+      # the default setting as defined by `use_transactional_tests`, which
       # applies to all database connection pools not explicitly configured here.
       def skip_transactional_tests_for_database(database_name)
         use_transactional_tests_for_database(database_name, false)
       end
 
       # Enable or disable transactions per database. This overrides the default
-      # setting as defined by \`use_transactional_tests\`, which applies to all
+      # setting as defined by `use_transactional_tests`, which applies to all
       # database connection pools not explicitly configured here.
       def use_transactional_tests_for_database(database_name, enabled = true)
         self.database_transactions_config = database_transactions_config.merge(database_name => enabled)

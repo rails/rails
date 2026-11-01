@@ -153,7 +153,7 @@ module ActiveRecord
           "'#{escape_bytea(value.to_s)}'"
         end
 
-        # \`column\` may be either an instance of Column or ColumnDefinition.
+        # `column` may be either an instance of Column or ColumnDefinition.
         def quote_default_expression(value, column) # :nodoc:
           if value.is_a?(Proc)
             value.call

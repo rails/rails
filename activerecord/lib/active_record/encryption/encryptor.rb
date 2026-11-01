@@ -97,7 +97,7 @@ module ActiveRecord
 
         # This threshold cannot be changed.
         #
-        # Users can search for attributes encrypted with \`deterministic: true\`.
+        # Users can search for attributes encrypted with `deterministic: true`.
         # That is possible because we are able to generate the message for the
         # given clear text deterministically, and with that perform a regular
         # string lookup in SQL.

@@ -31,7 +31,7 @@ module ActiveModel
       ##
       # :singleton-method:
       #
-      # Accepts a string that will be used as a delimiter of object's key values in the \`to_param\` method.
+      # Accepts a string that will be used as a delimiter of object's key values in the `to_param` method.
       class_attribute :param_delimiter, instance_reader: false, default: "-"
     end
 

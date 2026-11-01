@@ -291,7 +291,7 @@ module Rails
 
         # Appends the given block to the blocks registered under `type` for
         # this railtie class, and returns them; they are run later by
-        # \`#each_registered_block(type, &block)\`.
+        # `#each_registered_block(type, &block)`.
         def register_block_for(type, &blk)
           @registered_blocks ||= {}
           blocks = (@registered_blocks[type] ||= [])
@@ -352,7 +352,7 @@ module Rails
         [].freeze
       end
 
-      # run \`&block\` in every registered block in \`#register_block_for\`
+      # run `&block` in every registered block in `#register_block_for`
       def each_registered_block(type, &block)
         klass = self.class
         while klass.respond_to?(type)

@@ -23,7 +23,7 @@ module ActiveRecord
     # * ActiveRecord::Base - Used in `Contact.find_by_email_address(...)`
     # * ActiveRecord::Relation - Used in `Contact.internal.find_by_email_address(...)`
     #
-    # This module is included if \`config.active_record.encryption.extend_queries\` is \`true\`.
+    # This module is included if `config.active_record.encryption.extend_queries` is `true`.
     module ExtendedDeterministicQueries
       def self.install_support
         # ActiveRecord::Base relies on ActiveRecord::Relation (ActiveRecord::QueryMethods) but it does

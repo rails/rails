@@ -82,7 +82,7 @@ module ActiveRecord
       # # WHERE "authors"."id" IS NOT NULL AND "comments"."id" IS NOT NULL
       # ```
       #
-      # You can define join type in the scope and `associated` will not use \`JOIN\` by default.
+      # You can define join type in the scope and `associated` will not use `JOIN` by default.
       #
       # ```
       # Post.left_joins(:author).where.associated(:author)
