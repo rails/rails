@@ -508,7 +508,7 @@ module ActiveRecord
             subquery_column = "#{subquery_alias}.collection_cache_key_timestamp"
             arel = query.build_subquery(subquery_alias, select_values % subquery_column)
           else
-            query = collection.unscope(:order)
+            query = collection.except(:order, :default_order)
             query.select_values = [select_values % column]
             arel = query.arel
           end
