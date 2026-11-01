@@ -1,3 +1,11 @@
+*   Fix subclasses missing `composed_of` aggregations added to their parent class later.
+
+    A subclass that had already defined an aggregation of its own did not see
+    aggregations added to its parent afterwards, so `reflect_on_aggregation`
+    returned `nil` and `where` could not expand the value object.
+
+    *Kengo Johira*
+
 *   Fix preloading a `has_one :through` or `has_many :through` association when
     its through and source models share a table, such as STI subclasses.
 
