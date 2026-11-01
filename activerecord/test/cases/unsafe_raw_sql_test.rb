@@ -300,4 +300,20 @@ class UnsafeRawSqlTest < ActiveRecord::TestCase
 
     assert_match(/Dangerous query method \(method whose arguments are used as raw SQL\) called with non-attribute argument\(s\):/, e.message)
   end
+
+  test "in_order_of: disallows dangerous query method" do
+    e = assert_raises(ActiveRecord::UnknownAttributeReference) do
+      Post.in_order_of("REPLACE(title, 'misc', 'zzzz')", ["zzzz"])
+    end
+
+    assert_match(/Dangerous query method \(method whose arguments are used as raw SQL\) called with non-attribute argument\(s\):/, e.message)
+  end
+
+  test "sanitize_sql_for_order: disallows dangerous query method" do
+    e = assert_raises(ActiveRecord::UnknownAttributeReference) do
+      Post.sanitize_sql_for_order(["REPLACE(title, ?, ?)", "misc", "zzzz"])
+    end
+
+    assert_match(/Dangerous query method \(method whose arguments are used as raw SQL\) called with non-attribute argument\(s\):/, e.message)
+  end
 end
