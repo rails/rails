@@ -272,8 +272,24 @@ module ActionText
 
       # Attachment markdown is wrapped in <action-text-markdown> by Content#to_markdown so it passes
       # through without text escaping.
-      def visit_action_text_markdown(_node, child_values)
-        join_children(child_values)
+      #
+      # The attachment was converted on its own, so a nested ContentAttachment's \`pre\` became a
+      # fenced block without regard for where the attachment sits. In a single-line context the
+      # fence would land mid-line and release the unescaped code, so collapse it into a code span
+      # (escaping pipes in a table row, as #inline_code does). Elsewhere, multi-line Markdown has
+      # to start its own block for the same reason.
+      def visit_action_text_markdown(node, child_values)
+        markdown = join_children(child_values)
+
+        if single_line_context?(node)
+          markdown = flatten_to_inline(markdown)
+          markdown = markdown.gsub(/(?<!\\)\|/, "\\|") if node.ancestors.any? { |ancestor| ancestor.name == "tr" }
+          markdown
+        elsif markdown.match?(/[\r\n]/)
+          "#{markdown}\n\n"
+        else
+          markdown
+        end
       end
 
       # A container contributes no Markdown of its own, and neither does an element with no
