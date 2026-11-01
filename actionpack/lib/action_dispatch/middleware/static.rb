@@ -162,7 +162,7 @@ module ActionDispatch
 
       # Whether the root directory has an entry (file or directory) by this name.
       def root_entry?(name)
-        File.exist?("#{@root}/#{name.b}")
+        File.exist?("#{@root}/#{name.ascii_only? ? name : name.b}")
       end
 
       def compressible?(content_type)
