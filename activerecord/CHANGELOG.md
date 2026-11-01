@@ -1,3 +1,20 @@
+*   Fix nested preloads under a `:through` association attaching their
+    records to copies instead of the records the owners hold.
+
+    ```ruby
+    Author.strict_loading.preload(:comments, comments: :ratings).first.comments.first.ratings
+    # => raised ActiveRecord::StrictLoadingViolationError
+    ```
+
+    When the owners already had the through association loaded, the nested
+    association was preloaded on fresh copies of its records, so it raised
+    with `strict_loading`, and without it was loaded again lazily, one query
+    per record. Nested preloads now always use the records held by the owners.
+
+    Fixes #49197.
+
+    *Clément Joubert*
+
 *   Retry `ActiveRecord::SerializationFailure` on queries that opted into retries.
 
     A serialization failure rolls back whatever the statement was part of, so a
