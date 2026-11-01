@@ -1,6 +1,5 @@
 # frozen_string_literal: true
 
-# :markup: markdown
 require "active_record/fixture_set/table_row"
 require "active_record/fixture_set/model_metadata"
 

@@ -1,6 +1,5 @@
 # frozen_string_literal: true
 
-# :markup: markdown
 require "monitor"
 require "active_record/model_schema/schema_context"
 

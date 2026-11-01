@@ -1,6 +1,5 @@
 # frozen_string_literal: true
 
-# :markup: markdown
 module ActiveRecord
   class Migration
     # This class is used by the schema dumper to format versions information.

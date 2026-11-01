@@ -1,6 +1,5 @@
 # frozen_string_literal: true
 
-# :markup: markdown
 require "active_support/core_ext/module/attribute_accessors_per_thread"
 require "active_record/query_logs_formatter"
 

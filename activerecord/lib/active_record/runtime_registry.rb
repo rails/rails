@@ -1,6 +1,5 @@
 # frozen_string_literal: true
 
-# :markup: markdown
 module ActiveRecord
   # This is a thread locals registry for Active Record. For example:
   #

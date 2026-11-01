@@ -1,7 +1,5 @@
 # frozen_string_literal: true
 
-# :markup: markdown
-
 module ActiveRecord
   module ModelSchema
     # SchemaContext owns all schema-derived state for a model: columns,

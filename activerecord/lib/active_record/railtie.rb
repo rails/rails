@@ -1,6 +1,5 @@
 # frozen_string_literal: true
 
-# :markup: markdown
 require "rails"
 require "active_record"
 require "active_support/core_ext/object/try"

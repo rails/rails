@@ -1,6 +1,5 @@
 # frozen_string_literal: true
 
-# :markup: markdown
 module ActiveRecord # :nodoc:
   # Active Record \Serialization
   # ============================

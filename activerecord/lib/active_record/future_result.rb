@@ -1,6 +1,5 @@
 # frozen_string_literal: true
 
-# :markup: markdown
 require "active_record/connection_adapters/query_intent"
 
 module ActiveRecord

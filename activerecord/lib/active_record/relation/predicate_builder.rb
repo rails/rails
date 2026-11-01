@@ -1,6 +1,5 @@
 # frozen_string_literal: true
 
-# :markup: markdown
 module ActiveRecord
   class PredicateBuilder # :nodoc:
     NO_MATCH = Arel.sql("1=0", retryable: true).freeze
