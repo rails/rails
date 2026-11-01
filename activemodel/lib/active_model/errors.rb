@@ -109,8 +109,7 @@ module ActiveModel
 
     # The actual array of `Error` objects
     # This method is aliased to `objects`.
-    #: Array[ActiveModel::Error]
-    attr_reader :errors
+    attr_reader :errors #: Array[ActiveModel::Error]
     alias :objects :errors
 
     # Pass in the instance of the object that is using the errors object.
