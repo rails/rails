@@ -112,7 +112,12 @@ module ActiveSupport
       end
 
       def encryptor
-        @encryptor ||= ActiveSupport::MessageEncryptor.new([ key ].pack("H*"), cipher: CIPHER, serializer: Marshal)
+        @encryptor ||= begin
+          keys = key.split(',')
+          encryptor = ActiveSupport::MessageEncryptor.new([ keys.shift ].pack("H*"), cipher: CIPHER, serializer: Marshal)
+          keys.each { |key| encryptor.rotate([ key ].pack("H*")) }
+          encryptor
+        end
       end
 
 
