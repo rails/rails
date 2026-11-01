@@ -228,6 +228,23 @@ class AttributeMethodsTest < ActiveModel::TestCase
     assert_equal ["bar"], klass.send(:aliases_by_attribute_name)["foo"]
   end
 
+  test "#alias_attribute added to a parent reaches a subclass that defined its own alias first" do
+    parent = Class.new(ModelWithAttributes) { define_attribute_methods :foo }
+    child = Class.new(parent) { alias_attribute :baz, :foo }
+    parent.alias_attribute :bar, :foo
+
+    assert_equal({ "baz" => "foo", "bar" => "foo" }, child.attribute_aliases)
+    assert_equal({ "bar" => "foo" }, parent.attribute_aliases)
+  end
+
+  test "#alias_attribute added to a parent does not replace a subclass's own alias" do
+    parent = Class.new(ModelWithAttributes) { define_attribute_methods :foo, :baz }
+    child = Class.new(parent) { alias_attribute :bar, :baz }
+    parent.alias_attribute :bar, :foo
+
+    assert_equal "baz", child.attribute_alias(:bar)
+  end
+
   test "#define_attribute_methods generates attribute methods with spaces in their names" do
     ModelWithAttributesWithSpaces.define_attribute_methods(:'foo bar')
 

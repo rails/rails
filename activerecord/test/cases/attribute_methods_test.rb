@@ -1489,6 +1489,26 @@ class AttributeMethodsTest < ActiveRecord::TestCase
     assert_equal("hey", obj.subject)
   end
 
+  test "#alias_attribute added to a parent can be queried on a subclass that defined its own alias first" do
+    parent = Class.new(ActiveRecord::Base) { self.table_name = "customers" }
+    child = Class.new(parent) { alias_attribute :street, :address_street }
+    parent.alias_attribute :full_name, :name
+
+    customer = child.create!(name: "Aliased")
+    assert_equal [customer], child.where(full_name: "Aliased").to_a
+    assert_equal "Aliased", customer.full_name
+  end
+
+  test "#alias_attribute added to an abstract class can be queried on a model whose attribute methods were generated first" do
+    parent = Class.new(ActiveRecord::Base) { self.abstract_class = true }
+    child = Class.new(parent) { self.table_name = "customers" }
+    child.define_attribute_methods
+    parent.alias_attribute :full_name, :name
+
+    customer = child.create!(name: "Aliased")
+    assert_equal [customer], child.where(full_name: "Aliased").to_a
+  end
+
   test "aliases to the same attribute name do not conflict with each other" do
     first_model_object = ToBeLoadedFirst.new(author_name: "author 1")
     assert_equal("author 1", first_model_object.subject)
