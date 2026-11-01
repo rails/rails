@@ -297,6 +297,13 @@ class MemCacheStoreTest < ActiveSupport::TestCase
     end
   end
 
+  def test_write_multi_with_unless_exist_does_not_overwrite
+    @cache.write("foo", "bar")
+    @cache.write_multi({ "foo" => "baz", "fu" => "baz" }, unless_exist: true)
+    assert_equal "bar", @cache.read("foo")
+    assert_equal "baz", @cache.read("fu")
+  end
+
   def test_unless_exist_expires_when_configured
     cache = lookup_store(namespace: nil)
 

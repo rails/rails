@@ -236,6 +236,8 @@ module ActiveSupport
         if Dalli::Client.method_defined?(:set_multi)
           def write_multi_entries(entries, **options)
             return if entries.empty?
+            # Dalli has no multi counterpart to add.
+            return super if options[:unless_exist]
 
             entries = entries.transform_values { |entry| serialize_entry(entry, **options) }
             expires_in = options[:expires_in].to_i
@@ -245,6 +247,8 @@ module ActiveSupport
             end
 
             rescue_error_with(nil) do
+              # Don't pass compress option to Dalli since we are already dealing with compression.
+              options.delete(:compress)
               @data.with { |c| c.set_multi(entries, expires_in, options) }
             end
           end
