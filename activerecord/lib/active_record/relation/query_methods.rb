@@ -932,6 +932,16 @@ module ActiveRecord
       self
     end
 
+    # The explicit order values, or the default ones if there are none.
+    def effective_order_values # :nodoc:
+      orders = order_values
+      orders = orders.compact_blank unless orders.empty?
+      if orders.empty? && !default_order_values.empty?
+        orders = default_order_values.compact_blank
+      end
+      orders
+    end
+
     VALID_UNSCOPING_VALUES = Set.new([:where, :select, :group, :order, :lock,
                                      :limit, :offset, :joins, :left_outer_joins, :annotate,
                                      :includes, :eager_load, :preload, :from, :readonly,
@@ -2357,11 +2367,7 @@ module ActiveRecord
       end
 
       def build_order(arel)
-        orders = order_values
-        orders = orders.compact_blank unless orders.empty?
-        if orders.empty? && !default_order_values.empty?
-          orders = default_order_values.compact_blank
-        end
+        orders = effective_order_values
         arel.order(*orders) unless orders.empty?
       end
 
