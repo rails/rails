@@ -33,13 +33,25 @@ module ActiveStorage
       reset_associated_blobs
     end
 
+    def existing_attachment_for(blob)
+      existing_attachments_by_blob_id[blob.id]
+    end
+
     private
       def subchanges
         @subchanges ||= attachables.collect { |attachable| build_subchange_from(attachable) }
       end
 
       def build_subchange_from(attachable)
-        ActiveStorage::Attached::Changes::CreateOneOfMany.new(name, record, attachable)
+        ActiveStorage::Attached::Changes::CreateOneOfMany.new(name, record, attachable, self)
+      end
+
+      # Built once instead of scanning the attachments for every blob. Keeps the
+      # first attachment of each blob, as the scan did.
+      def existing_attachments_by_blob_id
+        @existing_attachments_by_blob_id ||= record.public_send("#{name}_attachments").each_with_object({}) do |attachment, attachments|
+          attachments[attachment.blob_id] ||= attachment
+        end
       end
 
       def subchanges_without_blobs
