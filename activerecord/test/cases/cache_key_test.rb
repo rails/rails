@@ -94,6 +94,101 @@ module ActiveRecord
       end
     end
 
+    test "cache_version does not check out a connection when value is from the database" do
+      record = CacheMeWithVersion.create
+      record_from_db = CacheMeWithVersion.find(record.id)
+      assert_not_called(CacheMeWithVersion.connection_pool, :with_connection) do
+        record_from_db.cache_version
+      end
+    end
+
+    test "cache_version does NOT call updated_at when value is from the database and attributes are time zone aware" do
+      skip("Mysql2, Trilogy, and PostgreSQL don't return a string value for updated_at") if current_adapter?(:Mysql2Adapter, :TrilogyAdapter, :PostgreSQLAdapter)
+
+      with_timezone_config aware_attributes: true, zone: "Pacific Time (US & Canada)" do
+        CacheMeWithVersion.reset_column_information
+        assert_kind_of AttributeMethods::TimeZoneConversion::TimeZoneConverter, CacheMeWithVersion.type_for_attribute("updated_at")
+
+        record = CacheMeWithVersion.create
+        record_from_db = CacheMeWithVersion.find(record.id)
+        assert_not_called(record_from_db, :updated_at) do
+          assert_not_called(CacheMeWithVersion.connection_pool, :with_connection) do
+            record_from_db.cache_version
+          end
+        end
+
+        assert_equal record.cache_version, record_from_db.cache_version
+      ensure
+        CacheMeWithVersion.reset_column_information
+      end
+    end
+
+    test "cache_version does call updated_at when the default timezone is local" do
+      with_env_tz "America/New_York" do
+        with_timezone_config default: :local do
+          record = CacheMeWithVersion.create
+          record_from_db = CacheMeWithVersion.find(record.id)
+          assert_called(record_from_db, :updated_at) do
+            record_from_db.cache_version
+          end
+
+          assert_equal record.updated_at.utc.to_fs(:usec), record_from_db.cache_version
+        end
+      end
+    end
+
+    unless in_memory_db?
+      test "cache_version does call updated_at when the timezone of the database is local" do
+        with_env_tz "America/New_York" do
+          with_timezone_config default: :utc do
+            new_config = ActiveRecord::Base.connection_db_config.configuration_hash.merge(default_timezone: "local")
+            ActiveRecord::Base.establish_connection(new_config)
+            CacheMeWithVersion.reset_column_information
+
+            record = CacheMeWithVersion.create
+            record_from_db = CacheMeWithVersion.find(record.id)
+            assert_called(record_from_db, :updated_at) do
+              record_from_db.cache_version
+            end
+
+            assert_equal record.updated_at.utc.to_fs(:usec), record_from_db.cache_version
+          end
+        end
+      ensure
+        ActiveRecord::Base.establish_connection :arunit
+        CacheMeWithVersion.reset_column_information
+        @connection = ActiveRecord::Base.lease_connection
+      end
+    end
+
+    test "cache_version does not check out a connection when updated_at is an alias" do
+      model = Class.new(ActiveRecord::Base) do
+        self.table_name = "cache_me_with_versions"
+        self.cache_versioning = true
+        self.ignored_columns = ["updated_at"]
+        alias_attribute :updated_at, :created_at
+      end
+
+      record = CacheMeWithVersion.create
+      record_from_db = model.find(record.id)
+      assert_not_called(model.connection_pool, :with_connection) do
+        assert_equal record.created_at.utc.to_fs(:usec), record_from_db.cache_version
+      end
+    end
+
+    test "cache_version when updated_at is a computed column" do
+      model = Class.new(ActiveRecord::Base) do
+        self.table_name = "cache_me_with_versions"
+        self.cache_versioning = true
+        self.ignored_columns = ["updated_at"]
+      end
+
+      record = CacheMeWithVersion.create
+      record_from_db = model.select("id, MAX(created_at) AS updated_at").group(:id).find(record.id)
+
+      assert_equal record.created_at.utc.to_fs(:usec), record_from_db.cache_version
+    end
+
     test "cache_version does call updated_at when it is assigned via a Time object" do
       record = CacheMeWithVersion.create
       record_from_db = CacheMeWithVersion.find(record.id)
