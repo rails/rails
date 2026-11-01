@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require "concurrent/map"
+require "active_support/core_ext/class/subclasses"
 
 module ActiveModel
   # Active \Model \Attribute \Methods
@@ -222,6 +223,16 @@ module ActiveModel
         old_name = -old_name.to_s
         new_name = -new_name.to_s
         self.attribute_aliases = attribute_aliases.merge(new_name => old_name).freeze
+
+        # Pass the new alias down to subclasses that hold their own copy,
+        # unless a subclass already has an alias with that name.
+        descendants.each do |subclass|
+          next if subclass.attribute_aliases.equal?(subclass.superclass.attribute_aliases)
+          next if subclass.attribute_aliases.key?(new_name)
+
+          subclass.attribute_aliases = subclass.attribute_aliases.merge(new_name => old_name).freeze
+        end
+
         record_alias_by_attribute_name(old_name, new_name)
         eagerly_generate_alias_attribute_methods(new_name, old_name)
       end
