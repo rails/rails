@@ -1245,6 +1245,16 @@ class EagerAssociationTest < ActiveRecord::TestCase
     end
   end
 
+  def test_preload_ordered_has_many_through_after_unordered_one_on_the_same_through_association
+    author = Author.create!(name: "Preload Test")
+    Categorization.create!(author: author, post: posts(:thinking), category: categories(:general))
+    Categorization.create!(author: author, post: posts(:welcome), category: categories(:general))
+    expected = [posts(:thinking), posts(:welcome)]
+
+    author_with_preloads = Author.preload(:categorized_posts, :categorized_posts_desc).find(author.id)
+    assert_equal expected, author_with_preloads.categorized_posts_desc
+  end
+
   def test_preload_has_many_through_with_source_type_ignores_other_types_in_loaded_through_records
     tag = tags(:general)
     expected = tag.tagged_posts.to_a

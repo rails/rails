@@ -1,3 +1,20 @@
+*   Fix preloading an ordered `has_many :through` association reusing the
+    source records already loaded by an unordered one, ignoring its order.
+
+    ```ruby
+    class Author < ActiveRecord::Base
+      has_many :categorizations
+      has_many :categorized_posts, through: :categorizations, source: :post
+      has_many :categorized_posts_desc, -> { order(id: :desc) }, through: :categorizations, source: :post
+    end
+
+    Author.preload(:categorized_posts, :categorized_posts_desc).first.categorized_posts_desc # => now sorted by id desc
+    ```
+
+    Fixes #56110.
+
+    *Clément Joubert*
+
 *   Add a `checkout_wait.active_record` notification.
 
     It is emitted when a connection checkout waits because the pool is full,
