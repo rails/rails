@@ -42,6 +42,7 @@ module ActionView
       TAG_TYPES.merge! DATA_PREFIXES.index_with(:data)
       TAG_TYPES.merge! ARIA_PREFIXES.index_with(:aria)
       TAG_TYPES.merge! CLASS_PREFIXES.index_with(:class)
+      TAG_TYPES.merge! ["popover", :popover].index_with(:popover)
       TAG_TYPES.freeze
 
       PRE_CONTENT_STRINGS = {
@@ -1581,6 +1582,12 @@ module ActionView
                 else
                   append_boolean_tag_option(output, key)
                 end
+              end
+            elsif type == :popover
+              if value
+                output << sep
+                # "true" or "popover" would fall back to the manual state, "" is auto
+                append_tag_option(output, key, value == true ? "" : value, escape)
               end
             elsif !value.nil?
               output << sep
