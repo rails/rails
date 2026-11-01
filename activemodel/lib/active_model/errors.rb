@@ -387,7 +387,7 @@ module ActiveModel
     # person.errors.details
     # # => {:base=>[{error: :name_or_email_blank}]}
     # ```
-    #: (Symbol | String, ?untyped, **untyped) -> ActiveModel::Error
+    #: (Symbol | String, ?Symbol | String | ^(untyped, Hash[Symbol, untyped]) -> (Symbol | String), **untyped) -> ActiveModel::Error
     def add(attribute, type = :invalid, **options)
       attribute, type, options = normalize_arguments(attribute, type, **options)
       error = Error.new(@base, attribute, type, **options)
