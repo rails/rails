@@ -1,3 +1,12 @@
+*   Fix `ActiveRecord::Type::Json#changed_in_place?` reporting a change for an equivalent value.
+
+    An in-place change that serializes to the same JSON, such as replacing `"two"` with `:two`,
+    marked the record as changed, so saving it wrote identical JSON, touched `updated_at`
+    and incremented `lock_version`. The new value is now cast before comparing, as whole-value
+    assignment already does, and only when the plain comparison reports a difference.
+
+    *Ahmad Mohsen*
+
 *   Fix eager loading with `limit` or `offset` on a relation with a `default_order`.
 
     The `SELECT DISTINCT` of primary keys ignored `default_order`, which raised
