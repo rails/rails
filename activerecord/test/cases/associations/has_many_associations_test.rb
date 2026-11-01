@@ -769,6 +769,21 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     assert_equal [6, 5, 4, 2, 1], author.posts_with_default_order.reload.map(&:id)
   end
 
+  def test_default_order_is_applied_when_the_association_is_preloaded
+    id = authors(:david).id
+    expected = [1, 2, 4, 5, 6]
+
+    assert_equal expected, Author.preload(:posts_with_ascending_default_order).find(id).posts_with_ascending_default_order.map(&:id)
+  end
+
+  def test_default_order_option_overrides_default_order_in_scope_when_the_association_is_preloaded
+    author = authors(:david)
+    expected = [1, 2, 4, 5, 6]
+
+    assert_equal expected, author.posts_with_default_order_overriding_scope.map(&:id)
+    assert_equal expected, Author.preload(:posts_with_default_order_overriding_scope).find(author.id).posts_with_default_order_overriding_scope.map(&:id)
+  end
+
   def test_default_order_keeps_using_the_statement_cache
     author = authors(:david)
     association = author.association(:posts_with_default_order)
