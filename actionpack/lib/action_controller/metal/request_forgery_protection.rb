@@ -572,8 +572,11 @@ module ActionController # :nodoc:
       end
 
       # Appends Sec-Fetch-Site to the Vary header. This ensures proper cache behavior since
-      # the response may vary based on this header.
+      # the response may vary based on this header. Requests that `verified_request?` allows
+      # by their method alone never read it, so their responses don't vary on it.
       def append_sec_fetch_site_to_vary_header # :doc:
+        return if verified_by_request_method?
+
         vary = response.headers["Vary"]
 
         if vary.nil? || vary.empty?
@@ -620,8 +623,12 @@ module ActionController # :nodoc:
       # any other POST.
       #
       def verified_request? # :doc:
-        request.get? || request.head? || verified_query_request? || !protect_against_forgery? ||
+        verified_by_request_method? || !protect_against_forgery? ||
           (valid_request_origin? && verified_request_for_forgery_protection?)
+      end
+
+      def verified_by_request_method?
+        request.get? || request.head? || verified_query_request?
       end
 
       # QUERY requests are exempt from forgery protection like GET and HEAD,

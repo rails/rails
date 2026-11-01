@@ -1435,7 +1435,7 @@ class SkipProtectionWhenUnprotectedControllerTest < ActionController::TestCase
   end
 
   test "does not add Sec-Fetch-Site to Vary header when forgery protection is skipped" do
-    get :index
+    post :index
     assert_response :success
     assert_nil response.headers["Vary"]
   end
@@ -1453,7 +1453,7 @@ end
 
 class SkipsInheritedProtectionControllerTest < ActionController::TestCase
   test "does not add Sec-Fetch-Site to Vary header when inherited forgery protection is skipped" do
-    get :index
+    post :index
     assert_response :success
     assert_nil response.headers["Vary"]
   end
@@ -1739,14 +1739,14 @@ class HeaderOnlyProtectionControllerTest < ActionController::TestCase
 
   test "appends Sec-Fetch-Site to Vary header" do
     @request.set_header "HTTP_SEC_FETCH_SITE", "same-origin"
-    get :index
+    post :index
     assert_includes response.headers["Vary"], "Sec-Fetch-Site"
   end
 
   test "appends Sec-Fetch-Site to existing Vary header" do
     @request.set_header "HTTP_SEC_FETCH_SITE", "same-origin"
     @request.set_header "HTTP_ACCEPT", "text/html"
-    get :index
+    post :index
 
     vary_values = response.headers["Vary"].split(",").map(&:strip)
     assert_includes vary_values, "Sec-Fetch-Site"
@@ -1754,12 +1754,32 @@ class HeaderOnlyProtectionControllerTest < ActionController::TestCase
 
   test "does not duplicate Sec-Fetch-Site in Vary header" do
     @request.set_header "HTTP_SEC_FETCH_SITE", "same-origin"
-    get :index
-    get :index
+    post :index
+    post :index
 
     vary_values = response.headers["Vary"].split(",").map(&:strip)
     sec_fetch_site_count = vary_values.count("Sec-Fetch-Site")
     assert_equal 1, sec_fetch_site_count
+  end
+
+  test "does not add Sec-Fetch-Site to Vary header for GET, HEAD and QUERY requests" do
+    @request.set_header "HTTP_SEC_FETCH_SITE", "same-origin"
+
+    get :index
+    assert_nil response.headers["Vary"]
+
+    head :index
+    assert_nil response.headers["Vary"]
+
+    query :index
+    assert_nil response.headers["Vary"]
+  end
+
+  test "appends Sec-Fetch-Site to Vary header for QUERY tunneled through method override" do
+    @request.set_header "HTTP_SEC_FETCH_SITE", "same-origin"
+    @request.env["rack.methodoverride.original_method"] = "POST"
+    query :index
+    assert_includes response.headers["Vary"], "Sec-Fetch-Site"
   end
 
   test "blocks POST with wrong Origin even with valid Sec-Fetch-Site" do
@@ -1959,8 +1979,14 @@ class HeaderOrLegacyTokenProtectionControllerTest < ActionController::TestCase
 
   test "appends Sec-Fetch-Site to Vary header" do
     @request.set_header "HTTP_SEC_FETCH_SITE", "same-origin"
-    get :index
+    post :index
     assert_includes response.headers["Vary"], "Sec-Fetch-Site"
+  end
+
+  test "does not add Sec-Fetch-Site to Vary header for GET requests" do
+    @request.set_header "HTTP_SEC_FETCH_SITE", "same-origin"
+    get :index
+    assert_nil response.headers["Vary"]
   end
 
   test "Sec-Fetch-Site check is case insensitive" do
