@@ -2073,6 +2073,55 @@ class RelationTest < ActiveRecord::TestCase
     assert_match(/ORDER BY title DESC/, relation.to_sql)
   end
 
+  def test_reorder_nil_with_default_order
+    relation = Post.default_order(:title).reorder(nil)
+    assert_empty relation.default_order_values
+    assert_no_match(/ORDER BY/, relation.to_sql)
+  end
+
+  def test_reorder_with_default_order
+    relation = Post.default_order(:title).reorder(:body)
+    assert_empty relation.default_order_values
+    assert_equal [Post.arel_table[:body].asc], relation.order_values
+    column = "#{Post.connection.quote_table_name('posts')}.#{Post.connection.quote_column_name('body')}"
+    assert_match(/ORDER BY #{Regexp.escape(column)} ASC/, relation.to_sql)
+  end
+
+  def test_reorder_with_hash_and_default_order
+    relation = Post.default_order(:title).reorder(body: :desc)
+    assert_empty relation.default_order_values
+    assert_equal [Post.arel_table[:body].desc], relation.order_values
+    column = "#{Post.connection.quote_table_name('posts')}.#{Post.connection.quote_column_name('body')}"
+    assert_match(/ORDER BY #{Regexp.escape(column)} DESC/, relation.to_sql)
+  end
+
+  def test_merge_with_reorder_nil_and_default_order
+    scope = Post.reorder(nil).default_order(:title)
+    merged = Post.all.merge(scope)
+    assert_equal scope.default_order_values, merged.default_order_values
+    column = "#{Post.connection.quote_table_name('posts')}.#{Post.connection.quote_column_name('title')}"
+    assert_match(/ORDER BY #{Regexp.escape(column)} ASC/, merged.to_sql)
+  end
+
+  def test_merge_default_order_overwrites_left_hand_default_order
+    left = Post.default_order(:title)
+    right = Post.default_order(:id)
+    merged = left.merge(right)
+
+    assert_equal right.default_order_values, merged.default_order_values
+    column = "#{Post.connection.quote_table_name('posts')}.#{Post.connection.quote_column_name('id')}"
+    assert_match(/ORDER BY #{Regexp.escape(column)} ASC/, merged.to_sql)
+  end
+
+  def test_merge_with_reorder_nil_clears_left_hand_default_order
+    left = Post.default_order(:title)
+    right = Post.reorder(nil)
+    merged = left.merge(right)
+
+    assert_empty merged.default_order_values
+    assert_no_match(/ORDER BY/, merged.to_sql)
+  end
+
   def test_reorder_with_first
     post = nil
 
