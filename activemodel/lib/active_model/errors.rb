@@ -262,7 +262,7 @@ module ActiveModel
     # person.errors.messages        # => {:name=>["cannot be nil", "must be specified"]}
     # person.errors.attribute_names # => [:name]
     # ```
-    #: () -> Array[Symbol | String]
+    #: () -> Array[Symbol]
     def attribute_names
       @errors.map(&:attribute).uniq.freeze
     end
@@ -287,7 +287,7 @@ module ActiveModel
     # person.errors.to_hash       # => {:name=>["cannot be nil"]}
     # person.errors.to_hash(true) # => {:name=>["name cannot be nil"]}
     # ```
-    #: (?untyped) -> Hash[Symbol | String, Array[untyped]]
+    #: (?untyped) -> Hash[Symbol, Array[untyped]]
     def to_hash(full_messages = false)
       message_method = full_messages ? :full_message : :message
       group_by_attribute.transform_values do |errors|
@@ -300,7 +300,7 @@ module ActiveModel
     EMPTY_ARRAY = [].freeze # :nodoc:
 
     # Returns a Hash of attributes with an array of their error messages.
-    #: () -> Hash[Symbol | String, Array[untyped]]
+    #: () -> Hash[Symbol, Array[untyped]]
     def messages
       hash = to_hash
       hash.default = EMPTY_ARRAY
@@ -309,7 +309,7 @@ module ActiveModel
     end
 
     # Returns a Hash of attributes with an array of their error details.
-    #: () -> Hash[Symbol | String, Array[Hash[Symbol, untyped]]]
+    #: () -> Hash[Symbol, Array[Hash[Symbol, untyped]]]
     def details
       hash = group_by_attribute.transform_values do |errors|
         errors.map(&:details)
@@ -325,7 +325,7 @@ module ActiveModel
     # person.errors.group_by_attribute
     # # => {:name=>[<#ActiveModel::Error>, <#ActiveModel::Error>]}
     # ```
-    #: () -> Hash[Symbol | String, Array[ActiveModel::Error]]
+    #: () -> Hash[Symbol, Array[ActiveModel::Error]]
     def group_by_attribute
       @errors.group_by(&:attribute)
     end
