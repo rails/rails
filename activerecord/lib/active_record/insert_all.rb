@@ -23,6 +23,7 @@ module ActiveRecord
 
       disallow_raw_sql!(on_duplicate)
       disallow_raw_sql!(returning)
+      disallow_raw_sql!(update_only)
 
       if @inserts.empty?
         @keys = []
@@ -216,12 +217,19 @@ module ActiveRecord
       end
 
       def disallow_raw_sql!(value)
-        return if !value.is_a?(String) || Arel.arel_node?(value)
+        # `value` is usually a single column/attribute (a Symbol, a String, or
+        # an Arel node), but :returning and :update_only also accept an Array
+        # of those, so we need to check every element, not just the value as
+        # a whole, or an Array sails through untouched.
+        Array(value).each do |arg|
+          next if Arel.arel_node?(arg)
+          next if !arg.is_a?(String)
 
-        raise ArgumentError, "Dangerous query method (method whose arguments are used as raw " \
-                             "SQL) called: #{value}. " \
-                             "Known-safe values can be passed " \
-                             "by wrapping them in Arel.sql()."
+          raise ArgumentError, "Dangerous query method (method whose arguments are used as raw " \
+                               "SQL) called: #{arg.inspect}. " \
+                               "Known-safe values can be passed " \
+                               "by wrapping them in Arel.sql()."
+        end
       end
 
       class Builder # :nodoc:
