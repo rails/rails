@@ -1278,6 +1278,18 @@ class RelationTest < ActiveRecord::TestCase
     assert_not_predicate posts_with_limit_one, :loaded?
   end
 
+  def test_many_with_group
+    posts = Post.joins(:comments).group(:id)
+
+    assert_queries_count(1) do
+      assert_predicate posts, :many?
+    end
+    assert_not_predicate posts, :loaded?
+
+    assert_not_predicate posts.where(id: 1), :many?
+    assert_not_predicate posts.where(id: -1), :many?
+  end
+
   def test_none?
     posts = Post.all
     assert_queries_count(1) do
@@ -1314,6 +1326,19 @@ class RelationTest < ActiveRecord::TestCase
     end
 
     assert_predicate posts, :loaded?
+  end
+
+  def test_one_with_group
+    posts = Post.joins(:comments).group(:id)
+
+    assert_queries_count(1) do
+      assert_not_predicate posts, :one?
+    end
+    assert_not_predicate posts, :loaded?
+
+    assert_operator Post.find(1).comments.count, :>, 1
+    assert_predicate posts.where(id: 1), :one?
+    assert_not_predicate posts.where(id: -1), :one?
   end
 
   def test_one_with_destroy

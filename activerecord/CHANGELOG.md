@@ -1,3 +1,16 @@
+*   Fix `one?` and `many?` on grouped relations.
+
+    A grouped count returns a hash, so `one?` returned `false` for a single
+    group and `many?` raised a `TypeError`. They now count the groups, which
+    matches the number of records the relation loads.
+
+    ```ruby
+    Post.joins(:comments).group(:id).many?
+    # => TypeError before, now true when more than one post has comments
+    ```
+
+    *Wei-Lun Li*
+
 *   Fix `in_batches(use_ranges: true)` yielding relations that keep an ignored `default_order`.
 
     Batching ignores `default_order` like an explicit order, but the ranged
