@@ -184,7 +184,7 @@ module ActiveModel
     # person.errors.merge!(other)
     # ```
     #
-    #: (untyped) -> Array[ActiveModel::Error]
+    #: (ActiveModel::Errors) -> Array[ActiveModel::Error]
     def merge!(other)
       return errors if equal?(other)
 
