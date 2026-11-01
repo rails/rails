@@ -123,7 +123,9 @@ module ActiveRecord
           end
 
           def through_scope_filters_source?
-            !reflection.options[:disable_joins] && !reflection_scope.where_clause.empty?
+            !reflection.options[:disable_joins] &&
+              through_reflection.klass.table_name != klass.table_name &&
+              !reflection_scope.where_clause.empty?
           end
 
           # When the through scope doesn't eager load the source records with the
@@ -148,7 +150,7 @@ module ActiveRecord
               scope.where! reflection.foreign_type => options[:source_type]
             end
 
-            unless reflection_scope.where_clause.empty?
+            if through_scope_filters_source?
               scope.where_clause += reflection_scope.where_clause
 
               includes = values[:includes]

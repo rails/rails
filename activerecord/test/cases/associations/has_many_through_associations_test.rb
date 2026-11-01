@@ -1433,6 +1433,38 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
     assert_equal [], person.posts
   end
 
+  class StiRoute < ActiveRecord::Base
+    self.table_name = "companies"
+  end
+
+  class CustomerRoute < StiRoute
+  end
+
+  class BranchRoute < StiRoute
+    has_many :customer_routes,
+      class_name: "HasManyThroughAssociationsTest::CustomerRoute",
+      foreign_key: :client_of
+  end
+
+  class Offer < ActiveRecord::Base
+    self.table_name = "accounts"
+
+    belongs_to :branch_route,
+      class_name: "HasManyThroughAssociationsTest::BranchRoute",
+      foreign_key: :firm_id
+    has_many :customer_routes, through: :branch_route
+  end
+
+  def test_preloading_has_many_through_with_sti_associations_sharing_a_table
+    branch_route = BranchRoute.create!
+    customer_route = CustomerRoute.create!(client_of: branch_route.id)
+    offer = Offer.create!(branch_route: branch_route)
+
+    preloaded_offer = Offer.preload(:customer_routes).find(offer.id)
+
+    assert_no_queries { assert_equal [customer_route], preloaded_offer.customer_routes.to_a }
+  end
+
   def test_preloading_empty_through_with_polymorphic_source_association
     owner = Owner.create!(name: "Rainbow Unicat")
     pet = Pet.create!(owner: owner)

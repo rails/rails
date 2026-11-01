@@ -1,3 +1,14 @@
+*   Fix preloading a `has_one :through` or `has_many :through` association when
+    its through and source models share a table, such as STI subclasses.
+
+    Source conditions, including the STI type condition, were merged into the
+    through model's query, where they filtered the through records instead of
+    the source records. They are now applied by the source preloader.
+
+    Fixes #43657.
+
+    *Masaki Ozawa*
+
 *   Fix counter caches being incremented twice when creating a new record with
     a `has_many :through` association and `partial_inserts` disabled.
 
