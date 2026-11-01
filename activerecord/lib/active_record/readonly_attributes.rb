@@ -41,7 +41,10 @@ module ActiveRecord
         end
 
         if ActiveRecord._raise_on_assign_to_attr_readonly
-          undefine_attribute_methods # The code generator changed
+          # The code generator changed, also for subclasses that already
+          # generated their own writers.
+          undefine_attribute_methods
+          descendants.each(&:undefine_attribute_methods)
           include(HasReadonlyAttributes)
         end
       end

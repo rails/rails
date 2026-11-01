@@ -1,3 +1,8 @@
+*   Fix assigning an `attr_readonly` attribute added to a parent class not raising
+    on a subclass whose attribute methods were already generated.
+
+    *Ryuta Kamizono*
+
 *   Fix subclasses missing `attr_readonly` attributes added to their parent class later.
 
     A subclass that had already declared readonly attributes of its own did
