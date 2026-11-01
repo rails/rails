@@ -31,7 +31,7 @@ module ActiveRecord
             end
 
             records.compact!
-            records.sort_by! { |rhs| preload_index[rhs] } if scope.order_values.any?
+            records.sort_by! { |rhs| preload_index[rhs] } if source_order_applies?
             records.uniq! if scope.distinct_value
             result[owner] = records
           end
@@ -132,7 +132,17 @@ module ActiveRecord
           # conditions or the order, the source scope filters or sorts them instead.
           def source_scope_filters_source?
             !through_scope_filters_source? &&
-              (!reflection_scope.where_clause.empty? || !reflection_scope.order_values.empty?)
+              (!reflection_scope.where_clause.empty? || !reflection_scope.effective_order_values.empty?)
+          end
+
+          # As in SQL, an explicit order on the through association beats the
+          # default order of the source.
+          def source_order_applies?
+            return @source_order_applies if defined?(@source_order_applies)
+
+            @source_order_applies = scope.order_values.any? ||
+              (!scope.effective_order_values.empty? &&
+                through_preloaders.none? { |loader| loader.scope.order_values.any? })
           end
 
           def through_scope
@@ -178,8 +188,10 @@ module ActiveRecord
                 scope.left_outer_joins!(source => left_outer_joins)
               end
 
-              if scope.eager_loading? && order_values = values[:order]
-                scope = scope.order(order_values)
+              # Both are kept so that `effective_order_values` picks one as for the source.
+              if scope.eager_loading?
+                scope.order_values = reflection_scope.order_values
+                scope.default_order_values = reflection_scope.default_order_values
               end
             end
 

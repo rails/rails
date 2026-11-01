@@ -1262,6 +1262,33 @@ class EagerAssociationTest < ActiveRecord::TestCase
     assert_equal expected, author_with_preloads.categorized_posts_desc
   end
 
+  def test_preload_has_many_through_with_default_order
+    author = Author.create!(name: "Preload Test")
+    [posts(:welcome), posts(:sti_post_and_comments), posts(:sti_comments), posts(:thinking)].each do |post|
+      Categorization.create!(author: author, post: post, category: categories(:general))
+    end
+    expected = [posts(:sti_post_and_comments), posts(:sti_comments), posts(:thinking), posts(:welcome)]
+
+    assert_equal expected, Author.preload(:categorized_posts_by_default_desc).find(author.id).categorized_posts_by_default_desc
+    assert_equal expected, Author.preload(:categorized_posts, :categorized_posts_by_default_desc).find(author.id).categorized_posts_by_default_desc
+    assert_equal expected.map(&:id), Author.preload(:categorized_posts_with_default_order_scope).find(author.id).categorized_posts_with_default_order_scope.map(&:id)
+
+    expected = [posts(:sti_post_and_comments), posts(:sti_comments), posts(:welcome)]
+    assert_equal expected, Author.preload(:popular_categorized_posts_by_default_desc).find(author.id).popular_categorized_posts_by_default_desc
+    assert_equal expected, Author.preload(:popular_categorized_posts_reordered_by_default_desc).find(author.id).popular_categorized_posts_reordered_by_default_desc
+  end
+
+  def test_preload_has_many_through_with_default_order_keeps_the_explicit_order_of_the_through_association
+    author = Author.create!(name: "Preload Test")
+    expected = [posts(:welcome), posts(:sti_comments), posts(:thinking)]
+    expected.each do |post|
+      Categorization.create!(author: author, post: post, category: categories(:general))
+    end
+
+    assert_equal expected, author.ordered_categorized_posts_by_default_desc.to_a
+    assert_equal expected, Author.preload(:ordered_categorized_posts_by_default_desc).find(author.id).ordered_categorized_posts_by_default_desc
+  end
+
   def test_preload_has_many_through_with_source_type_ignores_other_types_in_loaded_through_records
     tag = tags(:general)
     expected = tag.tagged_posts.to_a
