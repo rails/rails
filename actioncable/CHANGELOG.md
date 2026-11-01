@@ -1,3 +1,15 @@
+*   Filter parameters from the message logged when a command can't be handled.
+
+    When a channel action raised, the error log included the raw WebSocket message,
+    so values hidden by `filter_parameters` in the action's debug log were written
+    in clear at the error level. The message, its identifier and its data are now
+    filtered, and a message that can't be decoded or filtered is replaced by
+    `[FILTERED]` and its size. The identifier and command quoted by subscription
+    errors, and the identifier in the "Unsubscribing from channel" log, are
+    filtered too.
+
+    *Clément Joubert*
+
 *   Close the connection when the event loop can't attach its socket.
 
     If `NIO::Selector#register` raised, as it does on JRuby for UNIX sockets,
