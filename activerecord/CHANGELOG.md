@@ -1,3 +1,11 @@
+*   Fix subclasses missing `attr_readonly` attributes added to their parent class later.
+
+    A subclass that had already declared readonly attributes of its own did
+    not see attributes declared readonly on its parent afterwards, so they
+    could be changed and saved on the subclass.
+
+    *Kengo Johira*
+
 *   Fix subclasses missing `composed_of` aggregations added to their parent class later.
 
     A subclass that had already defined an aggregation of its own did not see

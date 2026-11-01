@@ -30,7 +30,15 @@ module ActiveRecord
       # post.update(title: "a different title") # raises ActiveRecord::ReadonlyAttributeError
       # ```
       def attr_readonly(*attributes)
-        self._attr_readonly = ActiveSupport::Ractors.make_shareable(_attr_readonly | attributes.map(&:to_s))
+        attributes = attributes.map(&:to_s)
+        self._attr_readonly = ActiveSupport::Ractors.make_shareable(_attr_readonly | attributes)
+
+        # Pass the new attributes down to subclasses that hold their own copy.
+        descendants.each do |subclass|
+          next if subclass._attr_readonly.equal?(subclass.superclass._attr_readonly)
+
+          subclass._attr_readonly = ActiveSupport::Ractors.make_shareable(subclass._attr_readonly | attributes)
+        end
 
         if ActiveRecord._raise_on_assign_to_attr_readonly
           undefine_attribute_methods # The code generator changed
