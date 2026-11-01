@@ -1,3 +1,13 @@
+*   Fix `FrozenError` when using a frozen `ActiveSupport::MessageVerifier` or
+    `ActiveSupport::MessageEncryptor` that had not verified or decrypted a
+    message yet, as after `Ractor.make_shareable`, and when freezing an already
+    frozen `ActiveSupport::CachingKeyGenerator`.
+
+    A `MessageVerifier` with an unknown digest now raises when it is frozen,
+    instead of when it first signs or verifies a message.
+
+    *Clément Joubert*
+
 *   Write `ActiveSupport::Duration#iso8601` values as plain decimal numbers.
 
     Very small or very large float parts were written in scientific notation and

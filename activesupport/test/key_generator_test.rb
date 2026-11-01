@@ -102,6 +102,13 @@ else
 
       assert_not_equal derived_key, different_length_key
     end
+
+    test "freezing a frozen caching key generator is a no-op" do
+      @caching_generator.freeze
+
+      assert_same @caching_generator, @caching_generator.freeze
+      assert_equal @generator.generate_key("some_salt", 32), @caching_generator.generate_key("some_salt", 32)
+    end
   end
 
   class RactorKeyGeneratorTest < ActiveSupport::TestCase
