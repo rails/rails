@@ -942,7 +942,7 @@ module ActiveRecord
       orders
     end
 
-    VALID_UNSCOPING_VALUES = Set.new([:where, :select, :group, :order, :lock,
+    VALID_UNSCOPING_VALUES = Set.new([:where, :select, :group, :order, :default_order, :lock,
                                      :limit, :offset, :joins, :left_outer_joins, :annotate,
                                      :includes, :eager_load, :preload, :from, :readonly,
                                      :having, :optimizer_hints, :with]).freeze

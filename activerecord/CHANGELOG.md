@@ -1,3 +1,16 @@
+*   Support `unscope(:default_order)`.
+
+    Previously, `unscope(:default_order)` raised an `ArgumentError`. It now
+    removes default ordering while keeping explicit ordering, just like
+    `unscope(:order)` removes explicit ordering while keeping default ordering.
+
+    ```ruby
+    Post.order(:id).default_order(:title).unscope(:default_order)
+    # SELECT "posts".* FROM "posts" ORDER BY "posts"."id" ASC
+    ```
+
+    *Kengo Johira*
+
 *   Fix eager loading with `limit` or `offset` on a relation with a `default_order`.
 
     The `SELECT DISTINCT` of primary keys ignored `default_order`, which raised
