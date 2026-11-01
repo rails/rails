@@ -1,3 +1,11 @@
+*   Reject the `+` prefixed forms of `unsupported_image_processing_arguments`
+    in the ImageMagick transformer.
+
+    ImageMagick accepts most options with either a `-` or a `+` prefix, so
+    `+write` and `+set` passed the check that rejects `-write` and `-set`.
+
+    *Richard Desmarais*
+
 *   Forward other options from `has_one_attached` and `has_many_attached` to the attachment association.
 
     ```ruby

@@ -34,8 +34,11 @@ module ActiveStorage
         end
 
         def validate_arg_string(argument)
+          normalized_argument = argument.to_s.downcase
+
           unsupported_arguments = ActiveStorage.unsupported_image_processing_arguments.any? do |bad_arg|
-            argument.to_s.downcase.include?(bad_arg)
+            # ImageMagick also accepts most options with a + prefix, e.g. +write.
+            normalized_argument.include?(bad_arg) || normalized_argument.include?(bad_arg.sub(/\A-/, "+"))
           end
 
           raise UnsupportedImageProcessingArgument if unsupported_arguments

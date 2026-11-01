@@ -273,6 +273,23 @@ class ActiveStorage::VariantTest < ActiveSupport::TestCase
     end
   end
 
+  test "variations with plus-prefixed dangerous argument raise UnsupportedImageProcessingArgument" do
+    process_variants_with :mini_magick do
+      blob = create_file_blob(filename: "racecar.jpg")
+      assert_raise(ActiveStorage::Transformers::ImageProcessingTransformer::UnsupportedImageProcessingArgument) do
+        blob.variant(resize: [123, "+write", "/tmp/file.erb"]).processed
+      end
+
+      assert_raise(ActiveStorage::Transformers::ImageProcessingTransformer::UnsupportedImageProcessingArgument) do
+        blob.variant(resize: [123, "+SeT", "comment"]).processed
+      end
+
+      assert_raise(ActiveStorage::Transformers::ImageProcessingTransformer::UnsupportedImageProcessingArgument) do
+        blob.variant(resize: { "+write": "/tmp/file.erb" }).processed
+      end
+    end
+  end
+
   test "variations with dangerous argument in a nested array raise UnsupportedImageProcessingArgument" do
     process_variants_with :mini_magick do
       blob = create_file_blob(filename: "racecar.jpg")
