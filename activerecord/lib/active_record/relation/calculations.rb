@@ -175,7 +175,7 @@ module ActiveRecord
     # relation, loading all records could result in performance issues.
     def sum(initial_value_or_column = 0, &block)
       if block_given?
-        map(&block).sum(initial_value_or_column)
+        records.sum(initial_value_or_column, &block)
       else
         calculate(:sum, initial_value_or_column)
       end
