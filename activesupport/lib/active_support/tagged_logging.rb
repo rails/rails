@@ -40,10 +40,13 @@ module ActiveSupport
       end
 
       def tagged(*tags)
+        position = tag_stack.tags.size
         pushed_count = tag_stack.push_tags(tags).size
         yield self
       ensure
-        pop_tags(pushed_count)
+        # Remove the tags pushed above, not just the newest ones, in case the
+        # block pushed more tags of its own.
+        tag_stack.remove_tags(position, pushed_count)
       end
 
       def push_tags(*tags)
@@ -97,6 +100,11 @@ module ActiveSupport
       def pop_tags(count)
         @tags_string = nil
         @tags.pop(count)
+      end
+
+      def remove_tags(position, count)
+        @tags_string = nil
+        @tags.slice!(position, count)
       end
 
       def clear
