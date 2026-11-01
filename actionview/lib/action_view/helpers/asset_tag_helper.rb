@@ -135,7 +135,7 @@ module ActionView
         sources_tags = sources.uniq.map! { |source|
           href = path_to_javascript(source, path_options)
           if use_preload_links_header && !options["defer"] && href.present? && !href.start_with?("data:")
-            preload_link = "<#{href}>; rel=#{rel}; as=script"
+            preload_link = "<#{preload_link_href(href)}>; rel=#{rel}; as=script"
             preload_link += "; crossorigin=#{crossorigin}" unless crossorigin.nil?
             preload_link += "; integrity=#{integrity}" unless integrity.nil?
             preload_link += "; nonce=#{content_security_policy_nonce}" if options["nonce"] == true
@@ -228,7 +228,7 @@ module ActionView
         sources_tags = sources.uniq.map! { |source|
           href = path_to_stylesheet(source, path_options)
           if use_preload_links_header && href.present? && !href.start_with?("data:")
-            preload_link = "<#{href}>; rel=preload; as=style"
+            preload_link = "<#{preload_link_href(href)}>; rel=preload; as=style"
             preload_link += "; crossorigin=#{crossorigin}" unless crossorigin.nil?
             preload_link += "; integrity=#{integrity}" unless integrity.nil?
             preload_link += "; nonce=#{content_security_policy_nonce}" if options["nonce"] == true
@@ -407,7 +407,7 @@ module ActionView
           fetchpriority: fetchpriority,
           **options.symbolize_keys)
 
-        preload_link = "<#{href}>; rel=#{rel}; as=#{as_type}"
+        preload_link = "<#{preload_link_href(href)}>; rel=#{rel}; as=#{as_type}"
         preload_link += "; type=#{mime_type}" if mime_type
         preload_link += "; crossorigin=#{crossorigin}" if crossorigin
         preload_link += "; fetchpriority=#{fetchpriority}" if fetchpriority
@@ -699,6 +699,11 @@ module ActionView
           else
             mime_type.to_s.split("/").first.presence_in(%w(audio video font image))
           end
+        end
+
+        # Percent-encodes characters that are not allowed inside <> in a Link header.
+        def preload_link_href(href)
+          href.gsub(/[<>\x00-\x20\x7f]/) { |char| "%%%02X" % char.ord }
         end
 
         # Some HTTP client and proxies have a 4kiB header limit, but more importantly
