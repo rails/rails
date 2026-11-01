@@ -134,10 +134,10 @@ module ActionView
 
         sources_tags = sources.uniq.map! { |source|
           href = path_to_javascript(source, path_options)
-          if use_preload_links_header && !options["defer"] && href.present? && !href.start_with?("data:")
-            preload_link = "<#{href}>; rel=#{rel}; as=script"
+          if use_preload_links_header && !options["defer"] && href.present? && !href.start_with?("data:") && header_safe_preload_link?(href, crossorigin, *integrity.to_s.split)
+            preload_link = "<#{preload_link_uri(href)}>; rel=#{rel}; as=script"
             preload_link += "; crossorigin=#{crossorigin}" unless crossorigin.nil?
-            preload_link += "; integrity=#{integrity}" unless integrity.nil?
+            preload_link += "; integrity=#{preload_link_integrity(integrity)}" unless integrity.nil?
             preload_link += "; nonce=#{content_security_policy_nonce}" if options["nonce"] == true
             preload_link += "; nopush" if nopush
             preload_links << preload_link
@@ -227,10 +227,10 @@ module ActionView
 
         sources_tags = sources.uniq.map! { |source|
           href = path_to_stylesheet(source, path_options)
-          if use_preload_links_header && href.present? && !href.start_with?("data:")
-            preload_link = "<#{href}>; rel=preload; as=style"
+          if use_preload_links_header && href.present? && !href.start_with?("data:") && header_safe_preload_link?(href, crossorigin, *integrity.to_s.split)
+            preload_link = "<#{preload_link_uri(href)}>; rel=preload; as=style"
             preload_link += "; crossorigin=#{crossorigin}" unless crossorigin.nil?
-            preload_link += "; integrity=#{integrity}" unless integrity.nil?
+            preload_link += "; integrity=#{preload_link_integrity(integrity)}" unless integrity.nil?
             preload_link += "; nonce=#{content_security_policy_nonce}" if options["nonce"] == true
             preload_link += "; nopush" if nopush
             preload_links << preload_link
@@ -407,15 +407,17 @@ module ActionView
           fetchpriority: fetchpriority,
           **options.symbolize_keys)
 
-        preload_link = "<#{href}>; rel=#{rel}; as=#{as_type}"
+        preload_link = "<#{preload_link_uri(href)}>; rel=#{rel}; as=#{as_type}"
         preload_link += "; type=#{mime_type}" if mime_type
         preload_link += "; crossorigin=#{crossorigin}" if crossorigin
         preload_link += "; fetchpriority=#{fetchpriority}" if fetchpriority
-        preload_link += "; integrity=#{integrity}" if integrity
+        preload_link += "; integrity=#{preload_link_integrity(integrity)}" if integrity
         preload_link += "; nonce=#{content_security_policy_nonce}" if add_nonce
         preload_link += "; nopush" if nopush
 
-        send_preload_links_header([preload_link])
+        if header_safe_preload_link?(href, as_type, mime_type, crossorigin, fetchpriority, *integrity.to_s.split)
+          send_preload_links_header([preload_link])
+        end
 
         link_tag
       end
@@ -704,6 +706,22 @@ module ActionView
         # Some HTTP client and proxies have a 4kiB header limit, but more importantly
         # including preload links has diminishing returns so it's best to not go overboard
         MAX_HEADER_SIZE = 1_000 # :nodoc:
+
+        def preload_link_uri(href)
+          URI::RFC2396_PARSER.escape(href, /[^\x00-\x7F]/)
+        end
+
+        def preload_link_integrity(integrity)
+          hashes = integrity.to_s.split
+          hashes.many? ? %("#{hashes.join(" ")}") : hashes.first
+        end
+
+        def header_safe_preload_link?(href, *parameters)
+          URI.parse(preload_link_uri(href))
+          parameters.none? { |parameter| parameter.to_s.match?(/[[:space:];,]/) }
+        rescue URI::Error
+          false
+        end
 
         def send_preload_links_header(preload_links, max_header_size: MAX_HEADER_SIZE)
           return if preload_links.empty?
