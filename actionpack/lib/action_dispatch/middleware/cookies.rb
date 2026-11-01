@@ -625,28 +625,32 @@ module ActionDispatch
     class SignedKeyRotatingCookieJar < AbstractCookieJar # :nodoc:
       include SerializedCookieJars
 
-      def initialize(parent_jar)
-        super
-
-        secret = request.key_generator.generate_key(request.signed_cookie_salt)
-        @verifier = ActiveSupport::MessageVerifier.new(secret, digest: signed_cookie_digest, serializer: SERIALIZER)
-
-        request.cookies_rotations.signed.each do |(*secrets)|
-          options = secrets.extract_options!
-          @verifier.rotate(*secrets, serializer: SERIALIZER, **options)
-        end
-      end
-
       private
+        # Built on first use: reading a cookie the request doesn't have never
+        # needs it.
+        def verifier
+          @verifier ||= begin
+            secret = request.key_generator.generate_key(request.signed_cookie_salt)
+            verifier = ActiveSupport::MessageVerifier.new(secret, digest: signed_cookie_digest, serializer: SERIALIZER)
+
+            request.cookies_rotations.signed.each do |(*secrets)|
+              options = secrets.extract_options!
+              verifier.rotate(*secrets, serializer: SERIALIZER, **options)
+            end
+
+            verifier
+          end
+        end
+
         def parse(name, signed_message, purpose: nil)
           rotated = false
-          data = @verifier.verified(signed_message, purpose: purpose, on_rotation: -> { rotated = true })
+          data = verifier.verified(signed_message, purpose: purpose, on_rotation: -> { rotated = true })
           super(name, data, force_reserialize: rotated)
         end
 
         def commit(name, options)
           super
-          options[:value] = @verifier.generate(options[:value], **cookie_metadata(name, options))
+          options[:value] = verifier.generate(options[:value], **cookie_metadata(name, options))
           check_for_overflow!(name, options)
         end
     end
@@ -654,43 +658,47 @@ module ActionDispatch
     class EncryptedKeyRotatingCookieJar < AbstractCookieJar # :nodoc:
       include SerializedCookieJars
 
-      def initialize(parent_jar)
-        super
-
-        if request.use_authenticated_cookie_encryption
-          key_len = ActiveSupport::MessageEncryptor.key_len(encrypted_cookie_cipher)
-          secret = request.key_generator.generate_key(request.authenticated_encrypted_cookie_salt, key_len)
-          @encryptor = ActiveSupport::MessageEncryptor.new(secret, cipher: encrypted_cookie_cipher, serializer: SERIALIZER)
-        else
-          key_len = ActiveSupport::MessageEncryptor.key_len("aes-256-cbc")
-          secret = request.key_generator.generate_key(request.encrypted_cookie_salt, key_len)
-          sign_secret = request.key_generator.generate_key(request.encrypted_signed_cookie_salt)
-          @encryptor = ActiveSupport::MessageEncryptor.new(secret, sign_secret, cipher: "aes-256-cbc", serializer: SERIALIZER)
-        end
-
-        request.cookies_rotations.encrypted.each do |(*secrets)|
-          options = secrets.extract_options!
-          @encryptor.rotate(*secrets, serializer: SERIALIZER, **options)
-        end
-
-        if upgrade_legacy_hmac_aes_cbc_cookies?
-          legacy_cipher = "aes-256-cbc"
-          secret = request.key_generator.generate_key(request.encrypted_cookie_salt, ActiveSupport::MessageEncryptor.key_len(legacy_cipher))
-          sign_secret = request.key_generator.generate_key(request.encrypted_signed_cookie_salt)
-
-          @encryptor.rotate(secret, sign_secret, cipher: legacy_cipher, digest: digest, serializer: SERIALIZER)
-        elsif prepare_upgrade_legacy_hmac_aes_cbc_cookies?
-          future_cipher = encrypted_cookie_cipher
-          secret = request.key_generator.generate_key(request.authenticated_encrypted_cookie_salt, ActiveSupport::MessageEncryptor.key_len(future_cipher))
-
-          @encryptor.rotate(secret, nil, cipher: future_cipher, serializer: SERIALIZER)
-        end
-      end
-
       private
+        # Built on first use: reading a cookie the request doesn't have never
+        # needs it.
+        def encryptor
+          @encryptor ||= begin
+            if request.use_authenticated_cookie_encryption
+              key_len = ActiveSupport::MessageEncryptor.key_len(encrypted_cookie_cipher)
+              secret = request.key_generator.generate_key(request.authenticated_encrypted_cookie_salt, key_len)
+              encryptor = ActiveSupport::MessageEncryptor.new(secret, cipher: encrypted_cookie_cipher, serializer: SERIALIZER)
+            else
+              key_len = ActiveSupport::MessageEncryptor.key_len("aes-256-cbc")
+              secret = request.key_generator.generate_key(request.encrypted_cookie_salt, key_len)
+              sign_secret = request.key_generator.generate_key(request.encrypted_signed_cookie_salt)
+              encryptor = ActiveSupport::MessageEncryptor.new(secret, sign_secret, cipher: "aes-256-cbc", serializer: SERIALIZER)
+            end
+
+            request.cookies_rotations.encrypted.each do |(*secrets)|
+              options = secrets.extract_options!
+              encryptor.rotate(*secrets, serializer: SERIALIZER, **options)
+            end
+
+            if upgrade_legacy_hmac_aes_cbc_cookies?
+              legacy_cipher = "aes-256-cbc"
+              secret = request.key_generator.generate_key(request.encrypted_cookie_salt, ActiveSupport::MessageEncryptor.key_len(legacy_cipher))
+              sign_secret = request.key_generator.generate_key(request.encrypted_signed_cookie_salt)
+
+              encryptor.rotate(secret, sign_secret, cipher: legacy_cipher, digest: digest, serializer: SERIALIZER)
+            elsif prepare_upgrade_legacy_hmac_aes_cbc_cookies?
+              future_cipher = encrypted_cookie_cipher
+              secret = request.key_generator.generate_key(request.authenticated_encrypted_cookie_salt, ActiveSupport::MessageEncryptor.key_len(future_cipher))
+
+              encryptor.rotate(secret, nil, cipher: future_cipher, serializer: SERIALIZER)
+            end
+
+            encryptor
+          end
+        end
+
         def parse(name, encrypted_message, purpose: nil)
           rotated = false
-          data = @encryptor.decrypt_and_verify(encrypted_message, purpose: purpose, on_rotation: -> { rotated = true })
+          data = encryptor.decrypt_and_verify(encrypted_message, purpose: purpose, on_rotation: -> { rotated = true })
           super(name, data, force_reserialize: rotated)
         rescue ActiveSupport::MessageEncryptor::InvalidMessage, ActiveSupport::MessageVerifier::InvalidSignature
           nil
@@ -698,7 +706,7 @@ module ActionDispatch
 
         def commit(name, options)
           super
-          options[:value] = @encryptor.encrypt_and_sign(options[:value], **cookie_metadata(name, options))
+          options[:value] = encryptor.encrypt_and_sign(options[:value], **cookie_metadata(name, options))
           check_for_overflow!(name, options)
         end
     end
