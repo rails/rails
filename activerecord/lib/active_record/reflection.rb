@@ -42,7 +42,19 @@ module ActiveRecord
       end
 
       def add_aggregate_reflection(ar, name, reflection)
-        ar.aggregate_reflections = ar.aggregate_reflections.merge(name.to_sym => reflection).freeze
+        name = name.to_sym
+        ar.aggregate_reflections = ar.aggregate_reflections.merge(name => reflection).freeze
+
+        # Like associations, pass the new aggregation down to subclasses that
+        # hold their own copy, unless a subclass defines that name itself.
+        ar.descendants.each do |subclass|
+          next if subclass.aggregate_reflections.equal?(subclass.superclass.aggregate_reflections)
+
+          existing = subclass.aggregate_reflections[name]
+          next if existing && existing.active_record < ar
+
+          subclass.aggregate_reflections = subclass.aggregate_reflections.merge(name => reflection).freeze
+        end
       end
 
       private
