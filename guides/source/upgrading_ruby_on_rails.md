@@ -147,6 +147,51 @@ warning naming each route whose controller does not exist. Such routes used to
 go unnoticed until a request matched them. Check the boot log for
 `references a missing controller` and fix or remove the routes it lists.
 
+### Action Cable channel tests use the real connection class
+
+`ActionCable::Channel::TestCase` no longer stubs the connection and the channel.
+`stub_connection` builds an instance of the application's connection class,
+`ApplicationCable::Connection`, so each identifier it receives must be declared
+with `identified_by` on that class, or it raises a `NoMethodError`:
+
+```ruby
+module ApplicationCable
+  class Connection < ActionCable::Connection::Base
+    identified_by :current_user
+  end
+end
+```
+
+`stub_connection` now takes keyword arguments, such as
+`stub_connection(current_user: user)`, and reserves `server:`. Use
+`tests_connection` to run a channel test against another connection class.
+
+`assert_no_streams`, `assert_has_stream`, `assert_has_no_stream`,
+`assert_has_stream_for` and `assert_has_no_stream_for` now raise
+"Must be subscribed!" when the subscription was rejected, where
+`assert_no_streams` and `assert_has_no_stream` used to pass: assert
+`subscription.rejected?` in those tests instead. Read the messages sent to the
+client from `socket.transmissions` instead of `connection.transmissions`, and
+the started streams from `subscription.stream_names` instead of
+`subscription.streams`. Periodic timers are registered and fire only on
+`advance_time`.
+
+`ActionCable::Channel::ConnectionStub`, `ActionCable::Channel::ChannelStub`,
+`ActionCable::Connection::TestConnection` and `ActionCable::Connection::TestRequest`
+were removed. Test helpers or gems that referenced them can build on
+`ActionCable::Connection::TestSocket` and `ActionCable::Connection::TestServer`.
+
+### Action Cable connections no longer expose server internals
+
+The WebSocket handling moved from `ActionCable::Connection::Base` to
+`ActionCable::Server::Socket`. Connections no longer respond to `event_loop`,
+`worker_pool` and `send_async`, and `server` is now private, so a channel
+calling `connection.server` raises a `NoMethodError`. Broadcast with
+`ActionCable.server.broadcast`, and replace `send_async(:method_name, *args)`
+with `perform_work(self, :method_name, *args)`, which calls only public methods
+in tests. `ActionCable.server.event_loop` and `ActionCable.server.worker_pool`
+are unchanged.
+
 ### The old Active Record 6.1 marshalling format was removed.
 
 If your application still sets `active_record.marshalling_format_version = 6.1`, which may
