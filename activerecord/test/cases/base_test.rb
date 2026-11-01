@@ -813,6 +813,18 @@ class BasicsTest < ActiveRecord::TestCase
     end
   end
 
+  def test_readonly_attributes_added_to_parent_reach_subclass_that_defined_its_own_first
+    parent = Class.new(ActiveRecord::Base) { self.table_name = "customers" }
+    child = Class.new(parent) { attr_readonly :address_street }
+    parent.attr_readonly :name
+
+    assert_equal [ "address_street", "name" ], child.readonly_attributes
+    assert_equal [ "name" ], parent.readonly_attributes
+
+    customer = child.create!(name: "cannot change this")
+    assert_raises(ActiveRecord::ReadonlyAttributeError) { customer.name = "changed" }
+  end
+
   def test_readonly_attributes_when_configured_to_not_raise
     with_raise_on_assign_to_attr_readonly_disabled do
       assert_equal [ "title" ], NonRaisingPost.readonly_attributes
