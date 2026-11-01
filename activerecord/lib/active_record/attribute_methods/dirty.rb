@@ -270,7 +270,8 @@ module ActiveRecord
             changed_attribute_names_to_save
           else
             attribute_names.reject do |attr_name|
-              if column_for_attribute(attr_name).auto_populated_on_insert?
+              if column_for_attribute(attr_name).auto_populated_on_insert? ||
+                  self.class.counter_cache_column?(attr_name)
                 !attribute_changed?(attr_name)
               end
             end

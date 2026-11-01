@@ -63,6 +63,10 @@ class RedundantJoinComment < ActiveRecord::Base
   has_one :post_author, through: :post, source: :author
 end
 
+class CategoryWithThroughCounterCache < Category
+  has_many :authors, through: :categorizations, counter_cache: :categorizations_count
+end
+
 class HasManyThroughAssociationsTest < ActiveRecord::TestCase
   fixtures :posts, :readers, :people, :comments, :authors, :categories, :taggings, :tags,
            :owners, :pets, :toys, :jobs, :references, :companies, :members, :author_addresses,
@@ -79,6 +83,20 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
 
   def test_has_many_through_create_record
     assert books(:awdr).subscribers.create!(nick: "bob")
+  end
+
+  def test_create_new_owner_with_counter_cache_and_partial_inserts_disabled
+    original_partial_inserts = ActiveRecord::Base.partial_inserts
+    ActiveRecord::Base.partial_inserts = false
+    category = CategoryWithThroughCounterCache.new(name: "New", authors: [Author.create!(name: "David")])
+
+    assert_equal 1, category.categorizations_count
+
+    category.save!
+
+    assert_equal 1, category.reload.categorizations_count
+  ensure
+    ActiveRecord::Base.partial_inserts = original_partial_inserts
   end
 
   def test_marshal_dump

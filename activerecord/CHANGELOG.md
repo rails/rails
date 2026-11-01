@@ -1,3 +1,15 @@
+*   Fix counter caches being incremented twice when creating a new record with
+    a `has_many :through` association and `partial_inserts` disabled.
+
+    The counter incremented in memory on the unsaved owner was written by the
+    `INSERT`, and then incremented again by the join model's `belongs_to`
+    counter cache. Unchanged counter cache columns are now omitted from the
+    `INSERT`, as they already are when `partial_inserts` is enabled.
+
+    Fixes #47555.
+
+    *Masaki Ozawa*
+
 *   Fix preloading an ordered `has_many :through` association reusing the
     source records already loaded by an unordered one, ignoring its order.
 
