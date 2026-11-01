@@ -28,6 +28,7 @@ module ActiveSupport
 
       cattr_reader :after_fork_hooks
 
+      # Run once in each worker, with the worker number, before the worker exits.
       @@run_cleanup_hooks = []
 
       def self.run_cleanup_hook(&blk)
@@ -35,6 +36,15 @@ module ActiveSupport
       end
 
       cattr_reader :run_cleanup_hooks
+
+      # Run once in the parent process, after every worker has exited.
+      @@shutdown_hooks = []
+
+      def self.shutdown_hook(&blk)
+        @@shutdown_hooks << blk
+      end
+
+      cattr_reader :shutdown_hooks
 
       def initialize(worker_count, work_stealing: false)
         @worker_count = worker_count
@@ -83,7 +93,7 @@ module ActiveSupport
 
         DRb.stop_service
 
-        Parallelization.run_cleanup_hooks.each(&:call)
+        Parallelization.shutdown_hooks.each(&:call)
       end
     end
   end
