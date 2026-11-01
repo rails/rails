@@ -237,9 +237,8 @@ module ActiveRecord
         end
 
         def rollback_savepoint_transaction(name) # :nodoc:
-          if current_transaction.savepoint_name == name
-            rollback_main_transaction
-          end
+          depth = current_transaction.savepoint_name == name ? open_transactions : open_transactions + 1
+          rollback_main_transaction(depth)
         end
 
         def restart_parent_transactions? # :nodoc:
@@ -418,10 +417,12 @@ module ActiveRecord
             end
           end
 
-          def rollback_main_transaction
+          def rollback_main_transaction(depth = nil)
             transaction_manager_id = @main_transaction_manager_id
             main_transaction_operation(nil) do |connection|
-              connection.rollback_transaction if connection.transaction_manager.object_id == transaction_manager_id
+              if connection.transaction_manager.object_id == transaction_manager_id && (depth.nil? || connection.open_transactions == depth)
+                connection.rollback_transaction
+              end
               nil
             end
           end
