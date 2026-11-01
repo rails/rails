@@ -160,7 +160,7 @@ module ActiveModel
     #
     # * `:attribute` - Override the attribute the error belongs to.
     # * `:type` - Override type of the error.
-    #: (ActiveModel::Error, ?untyped) -> Array[ActiveModel::Error]
+    #: (ActiveModel::Error, ?Hash[Symbol, untyped]) -> Array[ActiveModel::Error]
     def import(error, override_options = {})
       override_options = override_options.dup
       [:attribute, :type].each do |key|
