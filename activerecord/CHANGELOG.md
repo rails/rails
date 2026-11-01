@@ -1,3 +1,20 @@
+*   Clear `fallback_order` when calling `reorder`.
+
+    Previously, `reorder(nil)` removed only explicit ordering, so a relation
+    with a `fallback_order` was still ordered by it. `reorder` now replaces
+    both explicit and fallback ordering.
+
+    ```ruby
+    Post.fallback_order(:title).reorder(nil)
+    # SELECT "posts".* FROM "posts"
+    ```
+
+    When you merge a relation that uses `reorder`, Rails also replaces both
+    orders on the receiver. Rails keeps a `fallback_order` that you set after
+    `reorder` on the relation that you merge in.
+
+    *Kengo Johira*
+
 *   Ignore a schema cache dump that can't be deserialized instead of raising.
 
     A dump can reference classes that no longer exist, for instance after

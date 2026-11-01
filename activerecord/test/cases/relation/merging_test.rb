@@ -451,6 +451,13 @@ class MergingDifferentRelationsTest < ActiveRecord::TestCase
     assert_empty Post.all.merge(Post.order(:title)).references_values
   end
 
+  test "merging reorder with a fallback order into includes references the merged table" do
+    expected = Post.left_joins(:author).order("authors.name", "posts.id").map(&:id)
+    scope = Author.reorder(nil).fallback_order(:name, Post.arel_table[:id])
+
+    assert_equal expected, Post.includes(:author).order(:title).merge(scope).map(&:id)
+  end
+
   test "relation merging (using a proc argument)" do
     dev = Developer.where(name: "Jamis").first
 
