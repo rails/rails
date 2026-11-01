@@ -5,20 +5,32 @@ require "active_model/attribute"
 module ActiveModel
   class AttributeSet # :nodoc:
     class Builder # :nodoc:
+      class TypeTable # :nodoc:
+        attr_reader :types, :type_keys_lut, :type_keys
+
+        #: (Array[String], Hash[String, Type::Value]) -> void
+        def initialize(names, types)
+          @types = names.map { |name| types[name] }.freeze
+          @type_keys_lut = names.map { |name| types.key?(name) }.freeze
+          @type_keys = types.keys.freeze
+          freeze
+        end
+      end
+
       # What a LazyIndexedAttributeSet looks up about the model's attributes, by
       # their index in the builder's #indexes.
       class Context # :nodoc:
         attr_reader :type_keys
 
-        # +names+ are the attribute names by index, +types+ a Hash of types
-        # by name, and +defaults+ the default attributes by index that
+        # +names+ are the attribute names by index, +type_table+ their
+        # TypeTable, and +defaults+ the default attributes by index that
         # attributes a row doesn't have fall back to.
-        #: (Array[String], Hash[String, Type::Value], Array[Attribute?]) -> void
-        def initialize(names, types, defaults)
+        #: (Array[String], TypeTable, Array[Attribute?]) -> void
+        def initialize(names, type_table, defaults)
           @names = names
-          @types = names.map { |name| types[name] }.freeze
-          @type_keys_lut = names.map { |name| types.key?(name) }.freeze
-          @type_keys = types.keys.freeze
+          @types = type_table.types
+          @type_keys_lut = type_table.type_keys_lut
+          @type_keys = type_table.type_keys
           @defaults = defaults
           freeze
         end
@@ -60,12 +72,12 @@ module ActiveModel
       # defaults in +default_keys+. Other attributes the row doesn't have
       # are missing.
       class FromDBContext < Context # :nodoc:
-        #: (Array[String], Hash[String, Type::Value], Array[Attribute?], untyped) -> void
-        def initialize(names, types, defaults, default_keys)
+        #: (Array[String], TypeTable, Array[Attribute?], untyped) -> void
+        def initialize(names, type_table, defaults, default_keys)
           defaults = names.each_with_index.map do |name, index|
             defaults[index] if default_keys.include?(name)
           end
-          super(names, types, defaults.freeze)
+          super(names, type_table, defaults.freeze)
         end
       end
 
@@ -88,8 +100,9 @@ module ActiveModel
         @indexes = indexes_for(types, default_attributes.indexes)
         @names = names_for(@indexes)
         @defaults = @names.map { |name| default_attributes.fetch(name) { nil } }.freeze
-        @from_db_context = FromDBContext.new(@names, types, @defaults, default_keys)
-        @from_init_context = FromInitContext.new(@names, types, @defaults)
+        type_table = TypeTable.new(@names, types)
+        @from_db_context = FromDBContext.new(@names, type_table, @defaults, default_keys)
+        @from_init_context = FromInitContext.new(@names, type_table, @defaults)
         freeze
       end
 
@@ -171,7 +184,7 @@ module ActiveModel
 
         copy = dup
         copy.types = @types.merge(overrides)
-        copy.from_db_context = FromDBContext.new(@names, copy.types, @defaults, @default_keys)
+        copy.from_db_context = FromDBContext.new(@names, TypeTable.new(@names, copy.types), @defaults, @default_keys)
         copy.freeze
       end
 
