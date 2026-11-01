@@ -1052,7 +1052,7 @@ module ActiveRecord
 
       def test_connection_pool_stat
         Thread.report_on_exception, original_report_on_exception = false, Thread.report_on_exception
-        with_single_connection_pool do |pool|
+        with_single_connection_pool(reaping_frequency: nil) do |pool|
           pool.with_connection do |connection|
             stats = pool.stat
             assert_equal({ size: 1, connections: 1, busy: 1, dead: 0, idle: 0, waiting: 0, checkout_timeout: 0.2 }, stats)
