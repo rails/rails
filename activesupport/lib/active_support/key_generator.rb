@@ -67,6 +67,8 @@ module ActiveSupport
     end
 
     def freeze
+      return self if frozen?
+
       @ractor_key = "_caching_key_generator_#{object_id}".to_sym
       Ractor[@ractor_key] = @cache_keys
       @cache_keys = nil
