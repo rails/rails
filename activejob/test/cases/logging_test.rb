@@ -4,6 +4,7 @@ require "helper"
 require "active_support/log_subscriber/test_helper"
 require "active_support/core_ext/numeric/time"
 require "active_support/broadcast_logger"
+require "active_support/testing/method_call_assertions"
 require "support/test_logger"
 require "jobs/hello_job"
 require "jobs/logging_job"
@@ -21,6 +22,7 @@ require "active_support/testing/ractors_assertions"
 class LoggingTest < ActiveSupport::TestCase
   include ActiveJob::TestHelper
   include ActiveSupport::Logger::Severity
+  include ActiveSupport::Testing::MethodCallAssertions
   include TestLoggerHelper
 
   setup do
@@ -511,6 +513,65 @@ class LoggingTest < ActiveSupport::TestCase
     perform_enqueued_jobs { RetryJob.perform_later "DiscardableError", 2 }
     assert_match(/Discarded RetryJob \(Job ID: .*?\) due to a DiscardableError.*\./, @logger.messages)
   end
+
+  def test_structured_event_handlers_run_only_while_their_events_are_logged
+    with_only_log_subscribers do
+      structured_subscriber = ActiveSupport::Subscriber.subscribers.grep(ActiveJob::StructuredEventSubscriber).first
+      # Checks are skipped for a while after events of earlier tests were consumed.
+      structured_subscriber.instance_variable_set(:@checks_to_skip, 0)
+      enqueue_at = !adapter_is?(:inline, :sneakers)
+      enqueue_and_perform = -> do
+        perform_enqueued_jobs { LoggingJob.perform_later "Dummy" }
+        HelloJob.set(wait: 2.seconds).perform_later "Cristian" if enqueue_at
+        ActiveJob.perform_all_later(HelloJob.new("Cristian"), HelloJob.new("Cristian"))
+      end
+
+      @logger.level = WARN
+      handlers = %i[enqueue enqueue_all perform_start perform]
+      handlers << :enqueue_at if enqueue_at
+      assert_handlers_not_called(structured_subscriber, handlers, &enqueue_and_perform)
+      assert_empty @logger.messages
+
+      @logger.level = INFO
+      enqueue_and_perform.call
+      assert_match(/Enqueued LoggingJob \(Job ID: .*?\) to /, @logger.messages)
+      assert_match(/Performing LoggingJob \(Job ID: .*?\) from /, @logger.messages)
+      assert_match(/Performed LoggingJob \(Job ID: .*?\) from .*? in .*ms/, @logger.messages)
+      assert_match(/Enqueued HelloJob \(Job ID: .*?\) to .*? at /, @logger.messages) if enqueue_at
+      assert_match(/Enqueued 2 jobs to .* \(2 HelloJob\)/, @logger.messages)
+    end
+  end
+
+  def test_structured_event_handlers_are_declared_with_logged_events
+    emitted_events = ActiveJob::StructuredEventSubscriber.emitted_events
+    assert_not_empty emitted_events
+
+    emitted_events.each do |method, name|
+      assert ActiveJob::StructuredEventSubscriber.public_method_defined?(method), "#{method} is not a handler"
+      assert_equal "active_job", name.split(".").first, name
+      assert ActiveJob::LogSubscriber.log_levels.key?(ActiveJob::LogSubscriber.event_method_for(name)), "#{name} is not logged"
+    end
+  end
+
+  private
+    # Event reporter assertions used by other tests stay subscribed and consume
+    # every event, so keep only the log subscribers, as in an application.
+    def with_only_log_subscribers
+      subscribers = ActiveSupport.event_reporter.subscribers
+      old_subscribers = subscribers.dup
+      subscribers.select! { |entry| ActiveSupport::EventReporter::LogSubscriber === entry[:subscriber] }
+      yield
+    ensure
+      subscribers.replace(old_subscribers)
+    end
+
+    def assert_handlers_not_called(subscriber, handlers, &block)
+      return yield if handlers.empty?
+
+      assert_not_called(subscriber, handlers.first) do
+        assert_handlers_not_called(subscriber, handlers.drop(1), &block)
+      end
+    end
 end
 
 class LoggingRactorTest < ActiveSupport::TestCase

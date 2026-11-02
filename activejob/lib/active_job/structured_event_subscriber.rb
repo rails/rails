@@ -28,6 +28,7 @@ module ActiveJob
 
       emit_event("active_job.enqueued", payload)
     end
+    emits :enqueue, "active_job.enqueued"
 
     def enqueue_at(event)
       job = event.payload[:job]
@@ -53,6 +54,7 @@ module ActiveJob
 
       emit_event("active_job.enqueued_at", payload)
     end
+    emits :enqueue_at, "active_job.enqueued_at"
 
     def enqueue_all(event)
       jobs = event.payload[:jobs]
@@ -70,6 +72,7 @@ module ActiveJob
         end.tally
       )
     end
+    emits :enqueue_all, "active_job.bulk_enqueued"
 
     def perform_start(event)
       job = event.payload[:job]
@@ -86,6 +89,7 @@ module ActiveJob
       end
       emit_event("active_job.started", payload)
     end
+    emits :perform_start, "active_job.started"
 
     def perform(event)
       job = event.payload[:job]
@@ -108,6 +112,7 @@ module ActiveJob
 
       emit_event("active_job.completed", payload)
     end
+    emits :perform, "active_job.completed"
 
     def enqueue_retry(event)
       job = event.payload[:job]
