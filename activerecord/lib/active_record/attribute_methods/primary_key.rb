@@ -59,6 +59,10 @@ module ActiveRecord
       end
 
       private
+        def primary_key_is_composite?
+          false
+        end
+
         def attribute_method?(attr_name)
           attr_name == "id" || super
         end

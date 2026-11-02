@@ -186,6 +186,20 @@ module ActiveRecord
       end
     end
 
+    def test_dup_clears_the_primary_key_the_record_was_loaded_with
+      model = Class.new(ActiveRecord::Base) do
+        self.table_name = "topics"
+        self.primary_key = ["title", "id"]
+      end
+      record = model.instantiate("id" => 4, "title" => "Composite", "author_name" => "Mary")
+      model.primary_key = "id"
+
+      copy = record.dup
+
+      assert_equal [nil, nil], copy.id
+      assert_equal "Mary", copy.author_name
+    end
+
     def test_dup_record_not_persisted_after_rollback_transaction
       movie = Movie.new(name: "test")
 
