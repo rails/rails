@@ -99,6 +99,22 @@ class TestERBTemplate < ActiveSupport::TestCase
     assert_equal "Hello", render
   end
 
+  def test_method_name_predicate_matches_every_method_name
+    identifiers = ["hello template", "/app/views/Foo-Bar/\u00FCber.html.erb", "virtual/template", "1/2.erb"]
+    identifiers << (1..).lazy.map { |i| "template #{i}" }.find { |identifier| identifier.hash.negative? }
+
+    identifiers.each do |identifier|
+      method_name = ActionView::Template.new("", identifier, ERBHandler, format: :html, locals: []).method_name
+      assert ActionView::Template.method_name?(method_name), "expected #{method_name.inspect} to be a template method name"
+    end
+  end
+
+  def test_method_name_predicate_does_not_match_other_methods
+    ["_run_process_action_callbacks", "__send__", "_render_template", "render", "", nil].each do |name|
+      assert_not ActionView::Template.method_name?(name), "expected #{name.inspect} not to be a template method name"
+    end
+  end
+
   def test_render_with_a_different_compiled_method_container_raises
     @template = new_template
     assert_equal "Hello", render

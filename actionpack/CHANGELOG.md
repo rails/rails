@@ -1,3 +1,16 @@
+*   Map template frames in `ActionDispatch::ExceptionWrapper` without copying the
+    template cache of every view resolver.
+
+    The templates of an `ActionView::Template::Error` are now taken from the
+    error itself, and the resolvers are only searched when a backtrace has a
+    template frame the error does not account for. A routing error or an error
+    raised from a template no longer allocates megabytes in an application with
+    thousands of cached templates.
+
+    Fixes #58887.
+
+    *Lawrence Lin*
+
 *   Compute `action_methods` without converting every public instance method to a String.
 
     Speeds up eager loading for applications whose controllers include the url helpers.

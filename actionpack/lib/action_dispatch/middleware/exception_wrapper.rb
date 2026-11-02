@@ -49,6 +49,7 @@ module ActionDispatch
     attr_reader :backtrace_cleaner, :wrapped_causes, :exception_class_name, :exception
 
     def initialize(backtrace_cleaner, exception)
+      @outer_exception = nil
       @backtrace_cleaner = backtrace_cleaner
       @exception_class_name = exception.class.name
       @wrapped_causes = wrapped_causes_for(exception, backtrace_cleaner)
@@ -235,6 +236,11 @@ module ActionDispatch
       exception.object_id
     end
 
+    protected
+      # The exception this wrapper's exception is a cause of, whose
+      # Template::Error, if any, knows the templates of this backtrace.
+      attr_writer :outer_exception
+
     private
       class SourceMapLocation < ActiveSupport::Delegation::DelegateClass(Thread::Backtrace::Location) # :nodoc:
         def initialize(location, template)
@@ -260,15 +266,10 @@ module ActionDispatch
       end
 
       def build_backtrace
-        built_methods = {}
+        locations = @exception.backtrace_locations || []
+        built_methods = built_methods_for(locations)
 
-        ActionView::PathRegistry.all_resolvers.each do |resolver|
-          resolver.built_templates.each do |template|
-            built_methods[template.method_name] = template
-          end
-        end
-
-        (@exception.backtrace_locations || []).map do |loc|
+        locations.map do |loc|
           if built_methods.key?(loc.base_label)
             thread_backtrace_location = if loc.respond_to?(:__getobj__)
               loc.__getobj__
@@ -282,6 +283,36 @@ module ActionDispatch
         end
       end
 
+      # Maps the compiled template methods that can appear in +locations+ to
+      # their templates.
+      def built_methods_for(locations)
+        built_methods = {}
+
+        # A template rescues what it raises and rethrows it as a
+        # Template::Error, which records each template it goes through. Those
+        # are the templates whose methods are in the backtrace.
+        outermost = @outer_exception || @exception
+        [outermost, *causes_for(outermost)].each do |exception|
+          next unless exception.is_a?(ActionView::Template::Error)
+
+          exception.templates.each do |template|
+            built_methods[template.method_name] = template if template.respond_to?(:method_name)
+          end
+        end
+
+        # Otherwise collect the templates of every resolver, which is costly,
+        # so only when a template method is in the backtrace.
+        if locations.any? { |loc| !built_methods.key?(loc.base_label) && ActionView::Template.method_name?(loc.base_label) }
+          ActionView::PathRegistry.all_resolvers.each do |resolver|
+            resolver.built_templates.each do |template|
+              built_methods[template.method_name] = template
+            end
+          end
+        end
+
+        built_methods
+      end
+
       def causes_for(exception)
         return enum_for(__method__, exception) unless block_given?
 
@@ -289,7 +320,11 @@ module ActionDispatch
       end
 
       def wrapped_causes_for(exception, backtrace_cleaner)
-        causes_for(exception).map { |cause| self.class.new(backtrace_cleaner, cause) }
+        causes_for(exception).map do |cause|
+          wrapper = self.class.new(backtrace_cleaner, cause)
+          wrapper.outer_exception = exception
+          wrapper
+        end
       end
 
       def clean_backtrace(*args)

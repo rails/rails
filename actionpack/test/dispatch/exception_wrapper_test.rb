@@ -188,27 +188,27 @@ module ActionDispatch
       Object.const_set(:ErrorHighlight, error_highlight) if error_highlight
     end
 
-    class_eval "def _app_views_tests_show_html_erb;
+    class_eval "def _app_views_tests_show_html_erb__1234_5678;
       raise TestError; end", "app/views/tests/show.html.erb", 2
 
     test "#source_extracts wraps template lines in a SourceMapLocation" do
-      exception = begin _app_views_tests_show_html_erb; rescue TestError => ex; ex; end
+      exception = begin _app_views_tests_show_html_erb__1234_5678; rescue TestError => ex; ex; end
 
-      template = TestTemplate.new("_app_views_tests_show_html_erb")
+      template = TestTemplate.new("_app_views_tests_show_html_erb__1234_5678")
       resolver = Data.define(:built_templates).new(built_templates: [template])
 
       assert_called(ActionView::PathRegistry, :all_resolvers, nil, returns: [resolver]) do
         wrapper = ExceptionWrapper.new(nil, TopErrorProxy.new(exception, 1))
 
         assert_equal [{
-          code: { 1 => "translated @ _app_views_tests_show_html_erb:3" },
+          code: { 1 => "translated @ _app_views_tests_show_html_erb__1234_5678:3" },
           line_number: 1,
           trace: wrapper.source_extracts.first[:trace]
         }], wrapper.source_extracts
       end
     end
 
-    class_eval "def _app_views_tests_nested_html_erb;
+    class_eval "def _app_views_tests_nested_html_erb___1234_5678;
       [1].each do
         [2].each do
           raise TestError
@@ -217,9 +217,9 @@ module ActionDispatch
     end", "app/views/tests/nested.html.erb", 2
 
     test "#source_extracts works with nested template code" do
-      exception = begin _app_views_tests_nested_html_erb; rescue TestError => ex; ex; end
+      exception = begin _app_views_tests_nested_html_erb___1234_5678; rescue TestError => ex; ex; end
 
-      template = TestTemplate.new("_app_views_tests_nested_html_erb")
+      template = TestTemplate.new("_app_views_tests_nested_html_erb___1234_5678")
       resolver = Data.define(:built_templates).new(built_templates: [template])
 
       assert_called(ActionView::PathRegistry, :all_resolvers, nil, returns: [resolver]) do
@@ -227,22 +227,63 @@ module ActionDispatch
 
         extracts = wrapper.source_extracts
         assert_equal({
-          code: { 1 => "translated @ _app_views_tests_nested_html_erb:5" },
+          code: { 1 => "translated @ _app_views_tests_nested_html_erb___1234_5678:5" },
           line_number: 1,
           trace: extracts[0][:trace]
         }, extracts[0])
         # extracts[1] is Array#each (unreliable backtrace across rubies)
         assert_equal({
-          code: { 1 => "translated @ _app_views_tests_nested_html_erb:4" },
+          code: { 1 => "translated @ _app_views_tests_nested_html_erb___1234_5678:4" },
           line_number: 1,
           trace: extracts[2][:trace]
         }, extracts[2])
         # extracts[3] is Array#each (unreliable backtrace across rubies)
         assert_equal({
-          code: { 1 => "translated @ _app_views_tests_nested_html_erb:3" },
+          code: { 1 => "translated @ _app_views_tests_nested_html_erb___1234_5678:3" },
           line_number: 1,
           trace: extracts[4][:trace]
         }, extracts[4])
+      end
+    end
+
+    test "#source_extracts does not look up resolvers when no backtrace entry is in a template" do
+      exception = begin index; rescue TestError => ex; ex; end
+
+      assert_not_called(ActionView::PathRegistry, :all_resolvers) do
+        wrapper = ExceptionWrapper.new(nil, exception)
+
+        assert_equal exception.backtrace_locations.map(&:to_s), wrapper.source_extracts.map { |extract| extract[:trace].to_s }
+      end
+    end
+
+    test "#source_extracts maps the templates of a Template::Error without looking up resolvers" do
+      error = render_template_error(
+        "tests/show.html.erb" => "<%= render 'tests/item' %>",
+        "tests/_item.html.erb" => "<% [1].each do %><%= raise 'boom' %><% end %>"
+      )
+
+      assert_not_called(ActionView::PathRegistry, :all_resolvers) do
+        wrapper = ExceptionWrapper.new(nil, error)
+
+        assert_equal ["/tests/_item.html.erb", "/tests/show.html.erb"], template_paths(wrapper)
+        assert_equal ["/tests/_item.html.erb", "/tests/show.html.erb"], template_paths(wrapper.wrapped_causes.first)
+      end
+    end
+
+    test "#source_extracts maps a template from the resolvers when its error is not a Template::Error" do
+      template = ActionView::Template.new("<%= raise 'boom' %>", "virtual/template",
+        ActionView::Template.handler_for_extension(:erb), format: :html, locals: [], virtual_path: "custom/template")
+      error = begin
+        template.render(ActionView::Base.with_empty_template_cache.with_view_paths([]), {})
+      rescue ActionView::Template::Error => error
+        error
+      end
+      resolver = Data.define(:built_templates).new(built_templates: [template])
+
+      assert_called(ActionView::PathRegistry, :all_resolvers, nil, returns: [resolver]) do
+        wrapper = ExceptionWrapper.new(nil, error.cause)
+
+        assert_equal ["virtual/template"], template_paths(wrapper)
       end
     end
 
@@ -422,6 +463,20 @@ module ActionDispatch
 
       assert_equal true, wrapper.show?(request)
     end
+
+    private
+      def render_template_error(templates)
+        view_paths = ActionView::PathSet.new([ActionView::FixtureResolver.new(templates)])
+        ActionView::Base.with_empty_template_cache.with_view_paths(view_paths).render(template: "tests/show")
+      rescue ActionView::Template::Error => error
+        error
+      end
+
+      def template_paths(wrapper)
+        wrapper.source_extracts
+          .select { |extract| extract[:trace].is_a?(ExceptionWrapper::SourceMapLocation) }
+          .map { |extract| extract[:trace].path }.uniq.sort
+      end
   end
 
   class ExceptionWrapperRactorTest < ActiveSupport::TestCase

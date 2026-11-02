@@ -50,4 +50,19 @@ class TemplateErrorTest < ActiveSupport::TestCase
 
     assert_equal [], error.annotated_source_code
   end
+
+  def test_templates_lists_the_rendering_templates_from_the_innermost
+    view_paths = ActionView::PathSet.new([ActionView::FixtureResolver.new(
+      "tests/show.html.erb" => "<%= render 'tests/list' %>",
+      "tests/_list.html.erb" => "<%= render 'tests/item' %>",
+      "tests/_item.html.erb" => "<%= raise 'boom' %>"
+    )])
+    view = ActionView::Base.with_empty_template_cache.with_view_paths(view_paths)
+
+    error = assert_raises(ActionView::Template::Error) do
+      view.render(template: "tests/show")
+    end
+
+    assert_equal ["tests/_item", "tests/_list", "tests/show"], error.templates.map(&:virtual_path)
+  end
 end
