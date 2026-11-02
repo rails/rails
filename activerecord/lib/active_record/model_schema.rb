@@ -523,23 +523,11 @@ module ActiveRecord
       end
 
       def _returning_columns_for_insert(connection) # :nodoc:
-        @_returning_columns_for_insert || begin
-          columns = mapped_table._returning_columns_for_insert(connection)
-
-          ActiveSupport::Ractors.on_main(self) do
-            @_returning_columns_for_insert ||= columns
-          end
-        end
+        mapped_table._returning_columns_for_insert(connection)
       end
 
       def _returning_columns_for_update(connection) # :nodoc:
-        @_returning_columns_for_update || begin
-          columns = mapped_table._returning_columns_for_update(connection)
-
-          ActiveSupport::Ractors.on_main(self) do
-            @_returning_columns_for_update ||= columns
-          end
-        end
+        mapped_table._returning_columns_for_update(connection)
       end
 
       # Returns the column object for the named attribute.
@@ -691,8 +679,6 @@ module ActiveRecord
           @load_schema_monitor.synchronize do
             @schema_context = nil
             @loaded_mapped_table = nil
-            @_returning_columns_for_insert = nil
-            @_returning_columns_for_update = nil
           end
         end
 

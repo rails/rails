@@ -12,6 +12,7 @@ require "models/mixed_case_monkey"
 require "models/dashboard"
 require "models/non_primary_key"
 require "models/cpk"
+require "models/auto_id"
 
 class PrimaryKeysTest < ActiveRecord::TestCase
   include ActiveSupport::Testing::RactorsAssertions
@@ -29,6 +30,16 @@ class PrimaryKeysTest < ActiveRecord::TestCase
   def test_returning_columns_for_insert_is_ractor_shareable
     columns = Topic._returning_columns_for_insert(ActiveRecord::Base.lease_connection)
     assert_ractor_shareable columns
+  end
+
+  def test_returning_columns_for_insert_are_decided_by_the_inserting_connection
+    auto_id_only = Object.new
+    def auto_id_only.return_value_after_insert?(column) = column.name == "auto_id"
+    value_only = Object.new
+    def value_only.return_value_after_insert?(column) = column.name == "value"
+
+    assert_equal ["auto_id"], AutoId._returning_columns_for_insert(auto_id_only)
+    assert_equal ["value"], AutoId._returning_columns_for_insert(value_only)
   end
 
   def test_to_key_with_default_primary_key
