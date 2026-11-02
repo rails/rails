@@ -1,6 +1,5 @@
 # frozen_string_literal: true
 
-# :markup: markdown
 module Arel # :nodoc: all
   module Attributes
     class Attribute < Struct.new :relation, :name

@@ -1,6 +1,5 @@
 # frozen_string_literal: true
 
-# :markup: markdown
 module ActiveRecord
   module Type
     class DecimalWithoutScale < ActiveModel::Type::BigInteger # :nodoc:
