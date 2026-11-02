@@ -1346,7 +1346,7 @@ module ActionView
           code_generator.class_eval do |batch|
             batch << "\n" <<
               "def #{method_name}(content = nil, escape: true, **options, &block)" <<
-              "  tag_string(#{name.inspect}, content, options, escape: escape, &block)" <<
+              "  tag_string(#{name.inspect}, options, content, escape: escape, &block)" <<
               "end"
           end
         end
@@ -1365,7 +1365,7 @@ module ActionView
             batch << "\n" <<
               "def #{method_name}(content = nil, escape: true, **options, &block)" <<
               "  if content || block" <<
-              "    tag_string(#{name.inspect}, content, options, escape: escape, &block)" <<
+              "    tag_string(#{name.inspect}, options, content, escape: escape, &block)" <<
               "  else" <<
               "   self_closing_tag_string(#{name.inspect}, options, escape)" <<
               "  end" <<
@@ -1591,7 +1591,7 @@ module ActionView
         end
 
         private
-          def tag_string(name, content = nil, options, escape: true, &block)
+          def tag_string(name, options, content = nil, escape: true, &block)
             if content && block_given?
               content += @view_context.capture(self, &block)
             elsif block_given?
@@ -1673,7 +1673,7 @@ module ActionView
 
             TagHelper.ensure_valid_html5_tag_name(name)
 
-            tag_string(name, *args, options, escape: escape, &block)
+            tag_string(name, options, *args, escape: escape, &block)
           end
       end
 
