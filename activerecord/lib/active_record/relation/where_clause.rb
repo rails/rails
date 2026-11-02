@@ -191,21 +191,20 @@ module ActiveRecord
         end
 
         def predicates_with_wrapped_sql_literals
-          non_empty_predicates.map do |node|
-            case node
+          nodes = []
+          predicates.each do |node|
+            next if node.eql?("")
+
+            nodes << case node
             when Arel::Nodes::SqlLiteral, ::String
               Arel::Nodes::Grouping.new(node)
             else node
             end
           end
+          nodes
         end
 
         EMPTY = new([].freeze).freeze
-        ARRAY_WITH_EMPTY_STRING = [""].freeze
-
-        def non_empty_predicates
-          predicates - ARRAY_WITH_EMPTY_STRING
-        end
 
         def extract_node_value(node)
           if node.respond_to?(:value_before_type_cast)
