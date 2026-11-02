@@ -915,8 +915,11 @@ module ActiveRecord
           raise NotImplementedError
         end
 
+        NO_WARNINGS = [].freeze
+        private_constant :NO_WARNINGS
+
         def collect_warnings(raw_result)
-          []
+          NO_WARNINGS
         end
 
         # Receive a native adapter result object and returns an ActiveRecord::Result object.
