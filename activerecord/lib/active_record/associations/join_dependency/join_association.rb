@@ -27,7 +27,7 @@ module ActiveRecord
 
           reflection_chain = reflection.chain
           reflection_chain.each_with_index do |reflection, index|
-            table, terminated = yield reflection, reflection_chain[index..]
+            table, terminated = yield reflection, reflection_chain.drop(index)
             @table ||= table
 
             if terminated
