@@ -696,8 +696,8 @@ module ActiveRecord
     # go through Active Record's type casting and serialization.
     #
     # See #insert_all for documentation.
-    def insert(attributes, returning: nil, unique_by: nil, record_timestamps: nil)
-      insert_all([ attributes ], returning: returning, unique_by: unique_by, record_timestamps: record_timestamps)
+    def insert(attributes, returning: nil, unique_by: nil, record_timestamps: nil, select_duplicates: false)
+      insert_all([ attributes ], returning: returning, unique_by: unique_by, record_timestamps: record_timestamps, select_duplicates: select_duplicates)
     end
 
     # Inserts multiple records into the database in a single SQL INSERT
@@ -743,6 +743,25 @@ module ActiveRecord
     #     unique_by: %i[ author_id name ]
     #     unique_by: :index_books_on_isbn
     #
+    # [:select_duplicates]
+    #   (PostgreSQL 19+ only) By default duplicate rows are skipped, and nothing is
+    #   returned for them. Pass <tt>select_duplicates: true</tt> to return the
+    #   conflicting rows that already exist instead, so that every row passed in is
+    #   accounted for in the result.
+    #
+    #   This relies on <tt>ON CONFLICT ... DO SELECT</tt>, which requires both a
+    #   conflict target and a <tt>RETURNING</tt> clause, so <tt>:returning</tt> cannot
+    #   be <tt>false</tt> and <tt>:unique_by</tt> defaults to the primary key.
+    #
+    #   What comes back for a duplicate is the row as it exists in the table, not the
+    #   attributes that were passed in. <tt>:returning</tt> decides which of its columns
+    #   are included, as it does for any other insert: the primary key by default, an
+    #   array of attributes, or <tt>Arel.sql("*")</tt> for all of them.
+    #
+    #   The order of the returned rows is not guaranteed, so include the
+    #   <tt>:unique_by</tt> columns in <tt>:returning</tt> when rows need to be matched
+    #   back to the attributes they were inserted from.
+    #
     # [:record_timestamps]
     #   By default, automatic setting of timestamp columns is controlled by
     #   the model's <tt>record_timestamps</tt> config, matching typical
@@ -775,8 +794,18 @@ module ActiveRecord
     #     { id: 1, title: "Rework" },
     #     { id: 2, title: "Eloquent Ruby" }
     #   ])
-    def insert_all(attributes, returning: nil, unique_by: nil, record_timestamps: nil)
-      InsertAll.execute(self, attributes, on_duplicate: :skip, returning: returning, unique_by: unique_by, record_timestamps: record_timestamps)
+    #
+    #   # Insert records and return existing rows for any duplicates, instead
+    #   # of skipping them silently. Every row passed in is accounted for in
+    #   # the result, whether it was inserted or was already there.
+    #
+    #   Book.insert_all([
+    #     { isbn: "1934356379", title: "Rework" },
+    #     { isbn: "1934356980", title: "Eloquent Ruby" }
+    #   ], unique_by: :isbn, select_duplicates: true)
+    def insert_all(attributes, returning: nil, unique_by: nil, record_timestamps: nil, select_duplicates: false)
+      on_duplicate = select_duplicates ? :select : :skip
+      InsertAll.execute(self, attributes, on_duplicate: on_duplicate, returning: returning, unique_by: unique_by, record_timestamps: record_timestamps)
     end
 
     # Inserts a single record into the database in a single SQL INSERT

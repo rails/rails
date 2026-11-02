@@ -81,6 +81,7 @@ module AdapterHelper
     supports_insert_on_duplicate_skip?
     supports_insert_on_duplicate_update?
     supports_insert_conflict_target?
+    supports_insert_on_conflict_select?
     supports_optimizer_hints?
     supports_nulls_not_distinct?
     supports_virtual_columns?

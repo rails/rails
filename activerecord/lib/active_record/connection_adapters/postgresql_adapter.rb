@@ -328,6 +328,10 @@ module ActiveRecord
       alias supports_insert_on_duplicate_update? supports_insert_on_conflict?
       alias supports_insert_conflict_target? supports_insert_on_conflict?
 
+      def supports_insert_on_conflict_select?
+        database_version >= 19_00_00 # >= 19.0
+      end
+
       def supports_virtual_columns?
         database_version >= 12_00_00 # >= 12.0
       end
@@ -759,6 +763,8 @@ module ActiveRecord
 
         if insert.skip_duplicates?
           sql << " ON CONFLICT #{insert.conflict_target} DO NOTHING"
+        elsif insert.select_duplicates?
+          sql << " ON CONFLICT #{insert.conflict_target} DO SELECT"
         elsif insert.update_duplicates?
           sql << " ON CONFLICT #{insert.conflict_target} DO UPDATE SET "
           if insert.raw_update_sql?

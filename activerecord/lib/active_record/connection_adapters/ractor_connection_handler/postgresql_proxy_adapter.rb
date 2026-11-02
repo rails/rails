@@ -79,6 +79,10 @@ module ActiveRecord
           pure_remote_dispatch(:supports_insert_conflict_target?)
         end
 
+        def supports_insert_on_conflict_select?
+          pure_remote_dispatch(:supports_insert_on_conflict_select?)
+        end
+
         def supports_insert_on_duplicate_skip?
           pure_remote_dispatch(:supports_insert_on_duplicate_skip?)
         end
