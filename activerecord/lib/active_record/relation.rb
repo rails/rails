@@ -1366,7 +1366,7 @@ module ActiveRecord
       limit_value || offset_value
     end
 
-    def alias_tracker(joins = [], aliases = nil) # :nodoc:
+    def alias_tracker(joins = FROZEN_EMPTY_ARRAY, aliases = nil) # :nodoc:
       ActiveRecord::Associations::AliasTracker.create(model.connection_pool, table.name, joins, aliases)
     end
 
@@ -1512,7 +1512,7 @@ module ActiveRecord
             end
           else
             model.with_connection do |c|
-              model._query_by_sql(c, arel, async: async)
+              model._query_by_sql(c, arel, FROZEN_EMPTY_ARRAY, async: async)
             end
           end
         end
