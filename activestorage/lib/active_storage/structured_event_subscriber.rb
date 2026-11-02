@@ -4,6 +4,8 @@ require "active_support/structured_event_subscriber"
 
 module ActiveStorage
   class StructuredEventSubscriber < ActiveSupport::StructuredEventSubscriber # :nodoc:
+    self.event_namespace = "active_storage"
+
     def service_upload(event)
       emit_event("active_storage.service_upload",
         key: event.payload[:key],
