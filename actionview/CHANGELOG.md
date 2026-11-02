@@ -1,3 +1,13 @@
+*   Percent-encode `<`, `>`, whitespace and control characters in the `href`
+    of `Link` header entries built by `preload_link_tag`, `stylesheet_link_tag`
+    and `javascript_include_tag`.
+
+    A URL containing `>` used to close the URI reference early, so the rest of
+    the URL was parsed as extra link parameters or extra links. The HTML tag
+    is unchanged.
+
+    *Richard Desmarais*
+
 *   Treat `alpha`, `headingreset`, `shadowrootclonable`,
     `shadowrootcustomelementregistry`, `shadowrootdelegatesfocus` and
     `shadowrootserializable` as boolean attributes in the tag helpers.
