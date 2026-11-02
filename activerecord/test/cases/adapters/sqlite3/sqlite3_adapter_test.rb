@@ -1493,6 +1493,22 @@ module ActiveRecord
         conn.disconnect! if conn
       end
 
+      [:cascade, :nullify].each do |on_delete|
+        define_method("test_alter_table_inside_transaction_keeps_rows_with_on_delete_#{on_delete}") do
+          create_authors_and_books(on_delete: on_delete)
+          @conn.transaction { @conn.remove_column :authors, :name }
+          assert_equal 1, @conn.select_value("SELECT author_id FROM books")
+          assert_not @conn.column_exists?(:authors, :name)
+        end
+      end
+
+      def test_failed_alter_table_inside_transaction_restores_foreign_keys
+        create_authors_and_books(on_delete: :cascade)
+        assert_raises(ActiveRecord::NotNullViolation) { @conn.transaction { @conn.change_column_null :authors, :name, false } }
+        assert_equal 1, @conn.select_value("PRAGMA foreign_keys")
+        assert_equal 1, @conn.select_value("SELECT id FROM authors")
+      end
+
       def test_rename_column_used_in_partial_index
         @conn.create_table :books do |t|
           t.integer :pages
@@ -1582,6 +1598,13 @@ module ActiveRecord
       end
 
       private
+        def create_authors_and_books(on_delete:)
+          @conn.create_table(:authors) { |t| t.string :name }
+          @conn.create_table(:books) { |t| t.references :author, foreign_key: { on_delete: on_delete } }
+          @conn.execute("INSERT INTO authors (id) VALUES (1)")
+          @conn.execute("INSERT INTO books (author_id) VALUES (1)")
+        end
+
         def with_rails_root(&block)
           mod = Module.new do
             def self.root

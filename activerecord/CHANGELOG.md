@@ -1,3 +1,8 @@
+*   Fix SQLite3 data loss when altering a table referenced by `ON DELETE CASCADE`
+    or `ON DELETE SET NULL` foreign keys inside a transaction, such as a migration.
+
+    *Eugene Mironichev*
+
 *   Fix `one?` and `many?` on grouped relations.
 
     A grouped count returns a hash, so `one?` returned `false` for a single
