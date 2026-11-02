@@ -78,6 +78,17 @@ class ActiveRecord::Encryption::EncryptableRecordApiTest < ActiveRecord::Encrypt
     assert_not book.encrypted_attribute?(:name)
   end
 
+  test "encrypted_attribute? returns true for encrypted binary attributes which content is encrypted" do
+    book = EncryptedBookWithBinary.create!(logo: "Dune")
+    assert book.encrypted_attribute?(:logo)
+    assert book.reload.encrypted_attribute?(:logo)
+  end
+
+  test "encrypted_attribute? returns false for encrypted binary attributes which content is not encrypted" do
+    book = ActiveRecord::Encryption.without_encryption { EncryptedBookWithBinary.create!(logo: "Dune") }
+    assert_not book.reload.encrypted_attribute?(:logo)
+  end
+
   test "ciphertext_for returns the ciphertext for a given attribute" do
     book = EncryptedBook.create!(name: "Dune")
 
@@ -89,6 +100,13 @@ class ActiveRecord::Encryption::EncryptableRecordApiTest < ActiveRecord::Encrypt
 
     assert_equal post.title_before_type_cast, post.ciphertext_for(:title)
     assert_ciphertext_decrypts_to post, :title, post.ciphertext_for(:title)
+  end
+
+  test "ciphertext_for returns the persisted ciphertext for a non-deterministically encrypted binary attribute" do
+    book = EncryptedBookWithBinary.create!(logo: "Dune").reload
+
+    assert_equal book.logo_before_type_cast, book.ciphertext_for(:logo)
+    assert_ciphertext_decrypts_to book, :logo, book.ciphertext_for(:logo)
   end
 
   test "ciphertext_for returns the ciphertext of a new value" do

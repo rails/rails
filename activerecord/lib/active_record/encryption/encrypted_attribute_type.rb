@@ -45,7 +45,7 @@ module ActiveRecord
       end
 
       def encrypted?(value)
-        with_context { encryptor.encrypted? value }
+        with_context { encryptor.encrypted? database_type_to_text(value) }
       end
 
       def changed_in_place?(raw_old_value, new_value)
