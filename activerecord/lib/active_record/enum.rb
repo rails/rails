@@ -303,6 +303,12 @@ module ActiveRecord
               label = label.to_s
 
               value_method_name = "#{prefix}#{label}#{suffix}"
+              # The predicate methods are only defined when the batch is done,
+              # so a conflict with the alias of an earlier label is not seen
+              # by detect_enum_conflict!.
+              if instance_methods && value_method_names.include?(value_method_name)
+                klass.send(:raise_conflict_error, name, "#{value_method_name}?", "an instance", source: "another enum")
+              end
               value_method_names << value_method_name
               define_enum_methods(code_generator, name, value_method_name, value, scopes, instance_methods)
 
