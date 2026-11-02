@@ -98,6 +98,8 @@ module ActionView
         def implementation_for(template)
           implementation = self.class.erb_implementation
 
+          # Referencing Herb triggers its autoload, which requires the herb gem.
+          # If it hasn't been loaded yet, the implementation can't be Herb.
           if !ERB.autoload?(:Herb) && implementation == Herb && template.format != :html
             Erubi
           else
