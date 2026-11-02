@@ -117,6 +117,67 @@ module ApplicationTests
       end
     end
 
+    test "renders when a multipart form is invalid and routes are used as the custom exceptions app" do
+      controller :foo, <<~'RUBY'
+        class FooController < ActionController::Base
+          def index
+            render plain: "rendering index!"
+          end
+
+          def bad_request
+            render plain: "Oh no!", status: :bad_request
+          end
+        end
+      RUBY
+
+      routes <<~'RUBY'
+        post "/foo", to: "foo#index"
+        match "/400", to: "foo#bad_request", via: :all
+      RUBY
+
+      add_to_config "config.exceptions_app = self.routes"
+      add_to_config "config.action_dispatch.show_exceptions = :all"
+      add_to_config "config.consider_all_requests_local = false"
+
+      quietly do
+        post "/foo", {}, { "HTTPS" => "on", "CONTENT_TYPE" => "multipart/form-data; boundary=----WebKitFormBoundaryxQm6bAVJJEu1FxWw", input: "---invalid" }
+      end
+
+      assert_equal 400, last_response.status
+      assert_equal "Oh no!", last_response.body
+    end
+
+    test "renders when multipart form fields conflict and routes are used as the exceptions app" do
+      controller :foo, <<~RUBY
+        class FooController < ActionController::Base
+          def index
+            render plain: "rendering index!"
+          end
+
+          def bad_request
+            render plain: "Oh no!", status: :bad_request
+          end
+        end
+      RUBY
+
+      routes <<~RUBY
+        post "/foo", to: "foo#index"
+        match "/400", to: "foo#bad_request", via: :all
+      RUBY
+
+      add_to_config "config.exceptions_app = self.routes"
+      add_to_config "config.action_dispatch.show_exceptions = :all"
+      add_to_config "config.consider_all_requests_local = false"
+
+      body = "--boundary\r\nContent-Disposition: form-data; name=\"a\"\r\n\r\n1\r\n--boundary\r\nContent-Disposition: form-data; name=\"a[b]\"\r\n\r\n2\r\n--boundary--\r\n"
+      quietly do
+        post "/foo", {}, { "HTTPS" => "on", "CONTENT_TYPE" => "multipart/form-data; boundary=boundary", input: body }
+      end
+
+      assert_equal 400, last_response.status
+      assert_equal "Oh no!", last_response.body
+    end
+
     test "uses custom exceptions app" do
       add_to_config <<~'RUBY'
         config.exceptions_app = lambda do |env|
