@@ -1,6 +1,5 @@
 # frozen_string_literal: true
 
-# :markup: markdown
 require "rails/generators/base"
 require "rails/generators/generated_attribute"
 

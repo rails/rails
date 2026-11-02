@@ -1,6 +1,5 @@
 # frozen_string_literal: true
 
-# :markup: markdown
 require "rails/code_statistics_calculator"
 require "active_support/core_ext/enumerable"
 

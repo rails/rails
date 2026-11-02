@@ -1,6 +1,5 @@
 # frozen_string_literal: true
 
-# :markup: markdown
 begin
   require "thor/group"
 rescue LoadError
