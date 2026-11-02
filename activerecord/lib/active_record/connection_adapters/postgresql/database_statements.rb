@@ -273,6 +273,8 @@ module ActiveRecord
           end
 
           def collect_warnings(_result)
+            return super if @notice_receiver_sql_warnings.empty?
+
             warnings, @notice_receiver_sql_warnings = @notice_receiver_sql_warnings, []
             warnings
           end

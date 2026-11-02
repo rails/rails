@@ -975,7 +975,7 @@ module ActiveRecord
         end
 
         def collect_warnings(_initial_result)
-          return [] if ActiveRecord.db_warnings_action.nil? || @raw_connection.warning_count == 0
+          return super if ActiveRecord.db_warnings_action.nil? || @raw_connection.warning_count == 0
 
           warning_count = @raw_connection.warning_count
           result = @raw_connection.query("SHOW WARNINGS")
