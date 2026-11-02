@@ -245,7 +245,10 @@ module ActionController # :nodoc:
       #         browsers to verify that requests originate from the same site. This
       #         approach does not require authenticity tokens but only works with
       #         browsers that support the Fetch Metadata Request Headers. Requests
-      #         without a valid `Sec-Fetch-Site` header will be rejected. This is
+      #         without a valid `Sec-Fetch-Site` header will be rejected, except
+      #         for a request that sends none at all over plain HTTP with
+      #         `config.force_ssl` disabled, where a client that cannot send the
+      #         header is still served. This is
       #         the default. Forms and `csrf_meta_tags` don't render a token under
       #         this strategy; a form that posts to a controller still checking
       #         tokens can ask for one with `authenticity_token: true`.
