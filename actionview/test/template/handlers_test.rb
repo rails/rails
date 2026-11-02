@@ -32,4 +32,20 @@ class TemplateHandlersTest < ActiveSupport::TestCase
   ensure
     ActionView::Template.unregister_template_handler :custom
   end
+
+  def test_compiling_with_erubi_does_not_load_herb
+    script = <<~RUBY
+      require "action_view"
+      handler = ActionView::Template::Handlers::ERB.new
+      [:html, :text].each do |format|
+        template = ActionView::Template.new("<%= 1 %>", "test", handler, virtual_path: "test", format: format, locals: [])
+        handler.call(template, template.source)
+      end
+      print ActionView::Template::Handlers::ERB.autoload?(:Herb).inspect
+    RUBY
+
+    output = IO.popen([RbConfig.ruby, "-I", File.expand_path("../../lib", __dir__), "-rbundler/setup", "-e", script], &:read)
+
+    assert_equal %("action_view/template/handlers/erb/herb"), output
+  end
 end
