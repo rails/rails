@@ -188,6 +188,26 @@ class FormOptionsHelperTest < ActionView::TestCase
     )
   end
 
+  def test_array_options_for_select_markup
+    assert_equal(
+      "<option selected=\"selected\" disabled=\"disabled\" value=\"&quot;a&quot;\">&lt;A&gt;</option>\n" \
+      "<option value=\" \"> </option>\n" \
+      "<option class=\"c\" value=\"1\">C</option>",
+      options_for_select([ [ "<A>", '"a"' ], " ", [ "C", 1, { class: "c" } ] ], selected: '"a"', disabled: '"a"')
+    )
+  end
+
+  def test_array_options_for_select_is_html_safe
+    assert_predicate options_for_select([ "a", [ "b", { class: "b" } ] ]), :html_safe?
+  end
+
+  def test_array_options_for_select_does_not_escape_html_safe_text
+    assert_equal(
+      "<option value=\"&lt;b&gt;\"><b>bold</b></option>",
+      options_for_select([ [ "<b>bold</b>".html_safe, "<b>" ] ])
+    )
+  end
+
   def test_array_options_for_select_with_custom_defined_selected
     assert_dom_equal(
       "<option selected=\"selected\" type=\"Coach\" value=\"1\">Richard Bandler</option>\n<option type=\"Coachee\" value=\"1\">Richard Bandler</option>",

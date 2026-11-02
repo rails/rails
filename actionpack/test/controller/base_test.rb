@@ -17,6 +17,12 @@ end
 class CatController < ActionController::Base
 end
 
+class DogController < ActionController::Base
+end
+
+class FishController < ActionController::Base
+end
+
 class SimpleController < ActionController::Base
   def status
     head :ok
@@ -63,6 +69,12 @@ class UrlOptionsController < ActionController::Base
 
   def url_options
     super.merge(host: "www.override.com")
+  end
+end
+
+class UrlOptionsMemoizationController < ActionController::Base
+  def index
+    head :ok
   end
 end
 
@@ -120,6 +132,17 @@ class ControllerClassTests < ActiveSupport::TestCase
   def test_controller_name
     assert_equal "empty", EmptyController.controller_name
     assert_equal "contained_empty", Submodule::ContainedEmptyController.controller_name
+  end
+
+  def test_controller_name_set_on_the_main_ractor_is_accessible_from_a_ractor
+    assert_equal "dog", DogController.controller_name
+    assert_equal "dog", on_ractor { DogController.controller_name }
+  end
+
+  def test_controller_name_is_computed_on_eager_load_and_accessible_from_a_ractor
+    FishController.eager_load!
+
+    assert_equal "fish", on_ractor { FishController.controller_name }
   end
 
   def test_no_deprecation_when_action_view_record_identifier_is_included
@@ -295,6 +318,43 @@ class UrlOptionsTest < ActionController::TestCase
       end
 
       assert_not_includes @controller.class.action_methods, "account_overview_path"
+    end
+  end
+end
+
+class UrlOptionsMemoizationTest < ActionController::TestCase
+  tests UrlOptionsMemoizationController
+
+  def test_url_options_with_script_name_are_memoized_until_the_script_name_changes
+    with_routing do |set|
+      set.draw { get "index", to: "url_options_memoization#index" }
+      @request.env["action_dispatch.routes"] = set
+      @request.script_name = "/first"
+
+      get :index
+      options = @controller.url_options
+
+      assert_equal "/first", options[:script_name]
+      assert_same options, @controller.url_options
+
+      @controller.request.script_name = "/second"
+      assert_equal "/second", @controller.url_options[:script_name]
+    end
+  end
+
+  def test_url_options_follow_the_request_when_the_controller_is_recycled
+    with_routing do |set|
+      set.draw { get "index", to: "url_options_memoization#index" }
+
+      @request.env["action_dispatch.routes"] = set
+      @request.host = "first.example.com"
+      get :index
+      assert_equal "first.example.com", @controller.url_options[:host]
+
+      @request.env["action_dispatch.routes"] = set
+      @request.host = "second.example.com"
+      get :index
+      assert_equal "second.example.com", @controller.url_options[:host]
     end
   end
 end

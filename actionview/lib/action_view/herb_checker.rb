@@ -1,7 +1,5 @@
 # frozen_string_literal: true
 
-# :markup: markdown
-
 require "action_view/template/handlers/erb/herb"
 require "herb/engine/validators/security_validator"
 

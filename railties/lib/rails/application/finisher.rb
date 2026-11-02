@@ -169,7 +169,9 @@ module Rails
           # autoloaded constants are cleared we need to reload routes also in
           # case any was used there, as in
           #
-          #   mount MailPreview => 'mail_view'
+          # ```
+          # mount MailPreview => 'mail_view'
+          # ```
           #
           # This means routes are also reloaded if i18n is updated, which
           # might not be necessary, but in order to be more precise we need
@@ -229,7 +231,12 @@ module Rails
       end
 
       initializer :enable_yjit do
-        if config.yjit && defined?(RubyVM::YJIT.enable)
+        # Only one JIT can be enabled at a time: ZJIT, when asked for and
+        # available, otherwise YJIT.
+        if config.zjit && defined?(RubyVM::ZJIT.enable)
+          options = config.zjit.is_a?(Hash) ? config.zjit : {}
+          RubyVM::ZJIT.enable(**options)
+        elsif config.yjit && defined?(RubyVM::YJIT.enable)
           options = config.yjit.is_a?(Hash) ? config.yjit : {}
           RubyVM::YJIT.enable(**options)
         end

@@ -246,7 +246,7 @@ WARNING: When using  `where` or `find_by`, the key `id` matches against an `:id`
 attribute on the model only (if the model has one). It does not resolve to the
 full composite primary key the way `find` does. Use `find` when you want to look
 up a record by its full composite primary key. See the [Active Record
-Querying](active_record_querying.html#conditions-with-id) guide for more detail.
+Querying](active_record_querying.html#find-by) guide for more detail.
 
 Associations
 ------------

@@ -1,3 +1,80 @@
+*   Compute `action_methods` without converting every public instance method to a String.
+
+    Speeds up eager loading for applications whose controllers include the url helpers.
+
+    *Igor Wiedler*
+
+*   Accept a Symbol for the routing `format:` option.
+
+    `format: :json` now sets the same format requirement and `"json"` default as
+    `format: "json"`. `scope format: :json` and `resources ..., format: :json`
+    use the same path.
+
+    *Cestercian*
+
+*   Reset the parsed HTML document after `options` in integration tests.
+
+    `options` was the only request helper that the integration test runner
+    did not define, so it reached the session through `method_missing` and left
+    `html_document` (and so `assert_select`) reading the previous response.
+
+    *Tagami Daiki*
+
+*   Don't render authenticity tokens under the `:header_only` CSRF strategy.
+
+    `:header_only` verifies requests by their `Sec-Fetch-Site` header and never
+    reads a token, yet forms, `button_to` and `csrf_meta_tags` still minted a
+    masked one on every render, and the session stored the token behind it.
+    Under `:header_only` they now render none, so a page's bytes no longer
+    change from one request to the next. A form that posts to a controller still
+    checking tokens can ask for one with `authenticity_token: true`.
+
+    *Sam Ruby*
+
+*   Match URL-decoded query parameter names when filtering request and redirect logs.
+
+    A parameter such as `%70assword` is now matched by a `:password` filter.
+    Preserve the original URL encoding, parameter order, and duplicate keys in
+    the filtered URL. Actual redirect locations are unchanged.
+
+    *Basti*
+
+*   Keep route redirects from a string template on the request host.
+
+    For `redirect("/%{path}")`, the request `GET /old/%2Finjected.example` made
+    the target `//injected.example`, which browsers follow to another host. So did
+    a scheme in a param at the start of the template, as in `redirect("%{path}")`.
+    When interpolation would give the target a scheme or host that the template
+    lacks, the delimiter is now percent-encoded. Templates that name a scheme or
+    host, such as `redirect("//cdn.example.com/%{path}")`, are unchanged.
+
+    *Mike Dalessio*
+
+*   Deprecate the `ssl_default_redirect_status:` argument of `ActionDispatch::SSL`.
+
+    As of Rails 6.1, the default status is 308. This deprecates overriding it.
+    `ActionDispatch::SSL` used directly without the argument now also uses 308
+    instead of 307.
+
+    *Ben Sheldon*
+
+*   Short-circuit route matching for static paths.
+
+    The route set now precomputes an exact-match table from request method
+    and path to the route that is certain to be their first match: anchored
+    routes with a single request method, no extra request constraints, and
+    no dynamic segments outside trailing optional groups (so
+    `GET /posts(.:format)` is registered under `GET /posts`). Paths that an
+    earlier route could also match are excluded at build time, preserving
+    precedence, and anything not in the table takes the regular matcher.
+
+    Dispatching a request to such a route skips the simulator walk, the
+    pattern match, and parameter extraction: in a 193-route set, routing a
+    request to a static route takes ~0.8μs instead of 1.4–2.4μs, while
+    dynamic routes are unaffected. Matching behavior is unchanged.
+
+    *Akira Matsuda*
+
 *   Remove support for dynamic `:controller` and `:action` route segments.
 
     A route may no longer read the controller or the action out of the URL:

@@ -53,7 +53,7 @@ module ActiveSupport
     # filters = [/foo/, :bar, "nested.baz", /nested\.qux/]
     #
     # precompiled = ActiveSupport::ParameterFilter.precompile_filters(filters)
-    # # => [/(?-mix:foo)|(?i:bar)/, /(?i:nested\.baz)|(?-mix:nested\.qux)/]
+    # # => [/(?-mix:foo)|(?i-mx:bar)/, /(?-mix:nested\.qux)|(?i-mx:nested\.baz)/]
     #
     # ActiveSupport::ParameterFilter.new(precompiled)
     # ```
@@ -68,15 +68,21 @@ module ActiveSupport
 
       patterns.sort_by! { |p| [p.count("."), p.size] }
 
+      string_regexps = []
       patterns.each do |pattern|
         # Remove redundant patterns, e.g. it's pointless to search for `user.password` or `user.password_confirmation`
         # if `password` is already a filter.
-        unless regexps.any? { |r| r.match?(pattern) }
-          regexps << Regexp.new(Regexp.escape(pattern), Regexp::IGNORECASE)
+        unless string_regexps.any? { |r| r.match?(pattern) }
+          string_regexps << Regexp.new(Regexp.escape(pattern), Regexp::IGNORECASE)
         end
       end
 
-      filters << Regexp.union(regexps)
+      regexps.concat(string_regexps)
+      deep_regexps = regexps.extract! { |regexp| regexp.source.include?("\\.") }
+
+      filters << Regexp.union(regexps) unless regexps.empty?
+      filters << Regexp.union(deep_regexps) unless deep_regexps.empty?
+      filters
     end
 
     # Create instance with given filters. Supported type of filters are `String`, `Regexp`, and `Proc`.
@@ -96,9 +102,10 @@ module ActiveSupport
       @no_filters ? params.dup : call(params)
     end
 
-    # Returns filtered value for given key. For `Proc` filters, third block argument is not populated.
+    # Returns filtered value for given key. `Proc` filters receive `{ key => value }`
+    # as their third block argument, as `filter` would pass for that single pair.
     def filter_param(key, value)
-      @no_filters ? value : value_for_key(key, value)
+      @no_filters ? value : value_for_key(key, value, nil, @blocks && { key => value })
     end
 
   private

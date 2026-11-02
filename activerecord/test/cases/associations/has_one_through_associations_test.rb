@@ -477,6 +477,74 @@ class HasOneThroughAssociationsTest < ActiveRecord::TestCase
 
     assert_predicate(book.association(:order_agreement), :stale_target?)
   end
+
+  class SelfReferencingCompany < ActiveRecord::Base
+    self.table_name = "companies"
+    self.inheritance_column = nil
+
+    belongs_to :parent, class_name: name, foreign_key: :firm_id, optional: true
+    belongs_to :mentor, class_name: name, foreign_key: :client_of, optional: true
+    has_one :scoped_parents_mentor, ->(owner) { where.not(name: owner.name) }, through: :parent, source: :mentor
+  end
+
+  class StiRoute < ActiveRecord::Base
+    self.table_name = "companies"
+  end
+
+  class BranchRoute < StiRoute
+    belongs_to :customer_route,
+      class_name: "HasOneThroughAssociationsTest::CustomerRoute",
+      foreign_key: :client_of
+  end
+
+  class CustomerRoute < StiRoute
+  end
+
+  class Offer < ActiveRecord::Base
+    self.table_name = "accounts"
+
+    belongs_to :branch_route,
+      class_name: "HasOneThroughAssociationsTest::BranchRoute",
+      foreign_key: :firm_id
+    has_one :customer_route, through: :branch_route
+    has_one :named_customer_route, -> { where(name: "named") }, through: :branch_route, source: :customer_route
+  end
+
+  def test_preloading_has_one_through_with_sti_associations_sharing_a_table
+    customer_route = CustomerRoute.create!
+    branch_route = BranchRoute.create!(customer_route: customer_route)
+    offer = Offer.create!(branch_route: branch_route)
+
+    preloaded_offer = assert_queries_count(3) do
+      Offer.includes(:customer_route).find(offer.id)
+    end
+
+    assert_predicate preloaded_offer.association(:customer_route), :loaded?
+    assert_no_queries { assert_equal customer_route, preloaded_offer.customer_route }
+  end
+
+  def test_preloading_scoped_has_one_through_with_associations_sharing_a_table
+    customer_route = CustomerRoute.create!(name: "named")
+    branch_route = BranchRoute.create!(name: "unnamed", customer_route: customer_route)
+    offer = Offer.create!(branch_route: branch_route)
+
+    preloaded_offer = Offer.preload(:named_customer_route).find(offer.id)
+
+    assert_no_queries { assert_equal customer_route, preloaded_offer.named_customer_route }
+  end
+
+  def test_preloading_has_one_through_for_a_subclass_of_the_owner
+    owner_class = Class.new(SelfReferencingCompany) do
+      def self.name; "InheritedSelfReferencingCompany"; end
+    end
+    mentor = SelfReferencingCompany.create!(name: "Mentor")
+    parent = SelfReferencingCompany.create!(name: "Parent", mentor: mentor)
+    owner = owner_class.create!(name: "Owner", parent: parent)
+
+    ActiveRecord::Associations::Preloader.new(records: [owner], associations: :scoped_parents_mentor).call
+
+    assert_equal mentor, owner.scoped_parents_mentor
+  end
 end
 
 class DeprecatedHasOneThroughAssociationsTest < ActiveRecord::TestCase

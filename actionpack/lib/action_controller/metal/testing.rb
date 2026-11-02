@@ -1,7 +1,5 @@
 # frozen_string_literal: true
 
-# :markup: markdown
-
 module ActionController
   module Testing
     # Behavior specific to functional tests
@@ -17,6 +15,7 @@ module ActionController
 
       def recycle!
         @_url_options = nil
+        @_url_options_with_script_name = nil
         self.formats = nil
         self.params = nil
       end

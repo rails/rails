@@ -89,7 +89,7 @@ for your application. You can configure a global default policy and then
 override it on a per-resource basis and even use lambdas to inject per-request
 values into the header such as account subdomains in a multi-tenant application.
 You can read more about this in the
-[Securing Rails Applications](security.html#content-security-policy)
+[Securing Rails Applications](https://guides.rubyonrails.org/v5.2/security.html#content-security-policy)
 guide.
 
 Railties

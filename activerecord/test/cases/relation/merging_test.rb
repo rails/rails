@@ -11,7 +11,7 @@ require "models/project"
 require "models/rating"
 
 class RelationMergingTest < ActiveRecord::TestCase
-  fixtures :developers, :comments, :authors, :author_addresses, :posts
+  fixtures :developers, :comments, :authors, :author_addresses, :posts, :ratings
 
   def test_merge_in_clause
     david, mary, bob = authors = authors(:david, :mary, :bob)
@@ -206,6 +206,37 @@ class RelationMergingTest < ActiveRecord::TestCase
       post = posts.find { |p| p.id == 1 }
       assert_equal Post.find(1).last_comment, post.last_comment
     end
+  end
+
+  def test_relation_merging_with_eager_load_and_merged_left_joins
+    no_extra_address = Author.left_joins(:author_address_extra).where(author_address_extra: { id: nil })
+
+    expected = Post.left_joins(:author).merge(no_extra_address).order(:id).to_a
+    posts = Post.eager_load(:author).merge(no_extra_address).order(:id)
+
+    assert_not_empty expected
+    assert_equal expected, posts.to_a
+    assert_predicate posts.first.association(:author), :loaded?
+  end
+
+  def test_relation_merging_with_eager_load_and_merged_joins
+    rated = Comment.joins(:ratings)
+
+    expected = Post.joins(:comments).merge(rated).distinct.order(:id).to_a
+    posts = Post.eager_load(:comments).merge(rated).distinct.order(:id)
+
+    assert_not_empty expected
+    assert_equal expected, posts.to_a
+  end
+
+  def test_relation_merging_with_joins_and_eager_load_and_merged_left_joins
+    no_extra_address = Author.left_joins(:author_address_extra).where(author_address_extra: { id: nil })
+
+    expected = Post.joins(:comments).left_joins(:author).merge(no_extra_address).distinct.order(:id).to_a
+    posts = Post.joins(:comments).eager_load(:author).merge(no_extra_address).distinct.order(:id)
+
+    assert_not_empty expected
+    assert_equal expected, posts.to_a
   end
 
   def test_relation_merging_with_locks

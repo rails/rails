@@ -207,15 +207,65 @@ module AbstractController
 
       def test_protocol_with_and_without_separators
         add_host!
-        assert_equal("https://www.basecamphq.com/c/a/i",
-          W.new.url_for(controller: "c", action: "a", id: "i", protocol: "https")
-        )
-        assert_equal("https://www.basecamphq.com/c/a/i",
-          W.new.url_for(controller: "c", action: "a", id: "i", protocol: "https:")
-        )
-        assert_equal("https://www.basecamphq.com/c/a/i",
-          W.new.url_for(controller: "c", action: "a", id: "i", protocol: "https://")
-        )
+        %w[http https].each do |protocol|
+          [protocol, "#{protocol}:", "#{protocol}://"].each do |value|
+            assert_equal("#{protocol}://www.basecamphq.com/c/a/i",
+              W.new.url_for(controller: "c", action: "a", id: "i", protocol: value)
+            )
+          end
+        end
+      end
+
+      def test_protocol_encoding_is_preserved
+        add_host!
+        [Encoding::ISO_8859_1, Encoding::BINARY].each do |encoding|
+          url = W.new.url_for(controller: "c", action: "a", id: "i", protocol: "https".encode(encoding))
+          assert_equal "https://www.basecamphq.com/c/a/i", url
+          assert_equal encoding, url.encoding
+        end
+      end
+
+      def test_invalid_host_encoding_is_rejected_before_protocol
+        error = assert_raises(ArgumentError) do
+          W.new.url_for(controller: "c", action: "a", host: "\xFF", protocol: true)
+        end
+
+        assert_match(/invalid byte sequence in UTF-8/, error.message)
+      end
+
+      def test_host_string_subclasses_use_their_matcher
+        host = Class.new(String) do
+          def match(pattern)
+            "https://www.basecamphq.com:8443".match(pattern)
+          end
+        end.new("original.example.com")
+
+        assert_equal "https://www.basecamphq.com:8443/c/a/i",
+          W.new.url_for(controller: "c", action: "a", id: "i", host: host)
+      end
+
+      def test_host_and_protocol_string_proxies
+        proxy = Class.new(BasicObject) do
+          def initialize(value)
+            @value = value
+          end
+
+          def nil?
+            false
+          end
+
+          def to_str
+            @value
+          end
+
+          def match(pattern)
+            @value.match(pattern)
+          end
+        end
+
+        assert_equal "https://www.basecamphq.com/c/a/i",
+          W.new.url_for(controller: "c", action: "a", id: "i",
+            host: proxy.new("www.basecamphq.com"), protocol: proxy.new("https"))
       end
 
       def test_without_protocol

@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 
+# :markup: markdown
 module ActiveJob
   # Provides behavior for enqueuing jobs.
 
@@ -18,12 +19,15 @@ module ActiveJob
       # automatically defers the enqueue to after the transaction commits.
       #
       # It can be set on a per job basis:
-      #  - true forces the job to be deferred.
-      #  - false forces the job to be queued immediately.
+      #
+      # ```
+      # - true forces the job to be deferred.
+      # - false forces the job to be queued immediately.
+      # ```
       class_attribute :enqueue_after_transaction_commit, instance_accessor: false, instance_predicate: false, default: false
     end
 
-    # Includes the +perform_later+ method for job initialization.
+    # Includes the `perform_later` method for job initialization.
     module ClassMethods
       # Push a job onto the queue. By default the arguments must be either String,
       # Integer, Float, NilClass, TrueClass, FalseClass, BigDecimal, Symbol, Date,
@@ -33,7 +37,7 @@ module ActiveJob
       # custom serializers.
       #
       # Returns an instance of the job class queued with arguments available in
-      # Job#arguments or +false+ if the enqueue did not succeed.
+      # Job#arguments or `false` if the enqueue did not succeed.
       #
       # After the attempted enqueue, the job will be yielded to an optional block.
       #
@@ -41,13 +45,15 @@ module ActiveJob
       # inside an Active Record transaction, then the enqueue is implicitly deferred to after
       # the transaction is committed, or dropped if it's rolled back. In such case #perform_later
       # will return the job instance like if it was successfully enqueued, but will still return
-      # +false+ if a callback prevented the job from being enqueued.
+      # `false` if a callback prevented the job from being enqueued.
       #
       # This behavior can be changed on a per job basis:
       #
-      #  class NotificationJob < ApplicationJob
-      #    self.enqueue_after_transaction_commit = false
-      #  end
+      # ```
+      # class NotificationJob < ApplicationJob
+      #   self.enqueue_after_transaction_commit = false
+      # end
+      # ```
       def perform_later(...)
         job = job_or_instantiate(...)
         enqueue_result = job.enqueue
@@ -65,19 +71,22 @@ module ActiveJob
 
     # Enqueues the job to be performed by the queue adapter.
     #
-    # ==== Options
-    # * <tt>:wait</tt> - Enqueues the job with the specified delay
-    # * <tt>:wait_until</tt> - Enqueues the job at the time specified
-    # * <tt>:queue</tt> - Enqueues the job on the specified queue
-    # * <tt>:priority</tt> - Enqueues the job with the specified priority
+    # #### Options
     #
-    # ==== Examples
+    # * `:wait` - Enqueues the job with the specified delay
+    # * `:wait_until` - Enqueues the job at the time specified
+    # * `:queue` - Enqueues the job on the specified queue
+    # * `:priority` - Enqueues the job with the specified priority
     #
-    #    my_job_instance.enqueue
-    #    my_job_instance.enqueue wait: 5.minutes
-    #    my_job_instance.enqueue queue: :important
-    #    my_job_instance.enqueue wait_until: Date.tomorrow.midnight
-    #    my_job_instance.enqueue priority: 10
+    # #### Examples
+    #
+    # ```
+    # my_job_instance.enqueue
+    # my_job_instance.enqueue wait: 5.minutes
+    # my_job_instance.enqueue queue: :important
+    # my_job_instance.enqueue wait_until: Date.tomorrow.midnight
+    # my_job_instance.enqueue priority: 10
+    # ```
     def enqueue(options = {})
       set(options)
       self.successfully_enqueued = false

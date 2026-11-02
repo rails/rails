@@ -220,11 +220,28 @@ module ActiveRecord
     end
 
     def test_references_with_schema
-      assert_equal %w{schema.table}, ActiveRecord::PredicateBuilder.references(%w{schema.table.column})
+      attributes = Topic.predicate_builder.convert_dot_notation_to_hash("schema.table.column" => "value")
+
+      assert_equal({ "schema.table" => { "column" => "value" } }, attributes)
+      assert_equal %w{schema.table}, ActiveRecord::PredicateBuilder.references(attributes)
+    end
+
+    def test_convert_dot_notation_to_hash_is_a_noop_when_nothing_to_convert
+      attributes = { "title" => "Rails", "approved" => true }
+
+      assert_same attributes, Topic.predicate_builder.convert_dot_notation_to_hash(attributes)
+      assert_nil ActiveRecord::PredicateBuilder.references(attributes)
     end
 
     def test_build_from_hash_with_schema
       assert_match %r{schema.+table.+column}i, Topic.predicate_builder.build_from_hash("schema.table.column" => "value").first.to_sql
+    end
+
+    def test_build_from_hash_with_dot_notation_matches_nested_hash
+      dot_predicates = Topic.predicate_builder.build_from_hash("topics.title" => "Rails", "topics.author_name" => "David", "approved" => true)
+      hash_predicates = Topic.predicate_builder.build_from_hash("topics" => { "title" => "Rails", "author_name" => "David" }, "approved" => true)
+
+      assert_equal hash_predicates.map(&:to_sql), dot_predicates.map(&:to_sql)
     end
 
     def test_does_not_mutate

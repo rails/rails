@@ -48,6 +48,12 @@ class StaticTest < ActiveSupport::TestCase
     assert_equal "Hello, World!", get((+"/doorkeeper%E3E4").force_encoding("ASCII-8BIT")).body
   end
 
+  def test_serves_dynamic_content_with_escaped_utf8_top_level_name
+    env = Rack::MockRequest.env_for("/")
+    env["PATH_INFO"] = (+"/%E3%81%93%E3%82%93%E3%81%AB%E3%81%A1%E3%81%AF/1").force_encoding(Encoding::UTF_8)
+    assert_equal "Hello, World!", Rack::MockResponse.new(*@app.call(env)).body
+  end
+
   def test_handles_urls_with_null_byte
     assert_equal "Hello, World!", get("/doorkeeper%00").body
   end
@@ -266,6 +272,19 @@ class StaticTest < ActiveSupport::TestCase
     assert_equal "http://rubyonrails.org", response.headers["access-control-allow-origin"]
     assert_equal "public, max-age=60",     response.headers["cache-control"]
     assert_equal "I'm a teapot",           response.headers["x-custom-header"]
+  end
+
+  def test_skips_candidate_files_under_missing_top_level_entries
+    checked = []
+
+    File.stub(:file?, ->(file) { checked << file; false }) do
+      assert_equal "Hello, World!", get("/users").body
+      assert_equal "Hello, World!", get("/users/").body
+      assert_equal "Hello, World!", get("/users/1").body
+      assert_equal "Hello, World!", get("/users/1.json").body
+    end
+
+    assert_empty checked
   end
 
   def test_ignores_unknown_http_methods

@@ -47,6 +47,40 @@ class ActiveSupport::EventReporter::LogSubscriberTest < ActiveSupport::TestCase
     ActiveSupport.event_reporter.unsubscribe(@log_subscriber)
   end
 
+  test "consumes? follows the logger level" do
+    @logger.level = Logger::INFO
+
+    assert @log_subscriber.consumes?("test.info_only")
+    assert @log_subscriber.consumes?("test.error_only")
+    assert_not @log_subscriber.consumes?("test.debug_only")
+    assert_not @log_subscriber.consumes?("test.no_level")
+
+    @logger.level = Logger::DEBUG
+    assert @log_subscriber.consumes?("test.debug_only")
+  end
+
+  test "events nobody would log are not built" do
+    @logger.level = Logger::ERROR
+    # A dedicated reporter: the shared one may carry subscribers from other
+    # tests (such as the event reporter assertions' collector) that consume
+    # every event.
+    reporter = ActiveSupport::EventReporter.new(raise_on_error: true)
+    reporter.subscribe(@log_subscriber, &MyLogSubscriber.subscription_filter)
+
+    assert_not reporter.emitting?("test.info_only")
+    reporter.notify("test.info_only")
+    assert_empty @logger.logged(:info)
+
+    @logger.level = Logger::INFO
+    assert reporter.emitting?("test.info_only")
+  end
+
+  test "event_method_for maps an event name to its handler method" do
+    assert_equal "info_only", ActiveSupport::EventReporter::LogSubscriber.event_method_for("test.info_only")
+    assert_equal "info_only", ActiveSupport::EventReporter::LogSubscriber.event_method_for("other.info_only")
+    assert_equal "no_namespace", ActiveSupport::EventReporter::LogSubscriber.event_method_for("no_namespace")
+  end
+
   test "info logging" do
     ActiveSupport.event_reporter.notify("test.info_only")
     assert_equal ["hello test.info_only"], @logger.logged(:info)

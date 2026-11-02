@@ -480,8 +480,8 @@ Customer.where(first_name: "does not exist").take!
 ```
 
 If you are using [composite primary
-keys](active_record_composite_primary_keys.html), see the [Conditions with
-`id`](active_record_composite_primary_keys.html#conditions-with-id) section of
+keys](active_record_composite_primary_keys.html), see the [Using
+`where`](active_record_composite_primary_keys.html#using-where) section of
 the Composite Primary Keys guide for the `find_by(id:)` behavior.
 
 [`find_by`]:
@@ -944,7 +944,7 @@ You can use `find_or_initialize_by` to find the customer named 'Nina':
 
 ```irb
 store(dev)> nina = Customer.find_or_initialize_by(first_name: "Nina")
-=> #<Customer id: nil, first_name: "Nina", orders_count: 0, locked: true, created_at: "2011-08-30 06:09:27", updated_at: "2011-08-30 06:09:27">
+=> #<Customer id: nil, first_name: "Nina", orders_count: 0, locked: true, created_at: nil, updated_at: nil>
 
 store(dev)> nina.persisted?
 => false
@@ -1697,8 +1697,8 @@ If you want to call `order` multiple times, subsequent orders will be appended
 to the first:
 
 ```irb
-store(dev)> Book.order("title ASC").order("created_at DESC")
-SELECT * FROM books ORDER BY title ASC, created_at DESC
+store(dev)> Book.order(title: :asc).order(created_at: :desc)
+SELECT * FROM books ORDER BY books.title ASC, books.created_at DESC
 ```
 
 You can also order from a joined table:
@@ -1904,7 +1904,7 @@ You can specify certain conditions to be removed using the [`unscope`][] method.
 For example:
 
 ```ruby
-Book.where("id > 100").limit(20).order("id desc").unscope(:order)
+Book.where("id > 100").limit(20).order(id: :desc).unscope(:order)
 ```
 
 The SQL that would be executed:
@@ -1919,7 +1919,7 @@ SELECT *
 SELECT *
   FROM books
   WHERE id > 100
-  ORDER BY id desc
+  ORDER BY books.id DESC
   LIMIT 20
 ```
 
@@ -1941,7 +1941,7 @@ merged. In the following example the `order` is removed from the original
 relation:
 
 ```ruby
-Book.order("id desc").merge(Book.unscope(:order))
+Book.order(id: :desc).merge(Book.unscope(:order))
 ```
 
 This will generate the following SQL:
@@ -2000,7 +2000,7 @@ example only the `:order` and `:where` scopes are applied, but the `:limit`
 scope is removed:
 
 ```ruby
-Book.where("id > 10").limit(20).order("id desc").only(:order, :where)
+Book.where("id > 10").limit(20).order(id: :desc).only(:order, :where)
 ```
 
 The SQL that would be executed:
@@ -2009,13 +2009,13 @@ The SQL that would be executed:
 SELECT *
   FROM books
   WHERE id > 10
-  ORDER BY id DESC
+  ORDER BY books.id DESC
 
 -- Original query without `only`
 SELECT *
   FROM books
   WHERE id > 10
-  ORDER BY id DESC
+  ORDER BY books.id DESC
   LIMIT 20
 ```
 
@@ -2027,7 +2027,7 @@ SELECT *
 You can remove specific conditions using the [`except`][] method. For example:
 
 ```ruby
-Book.where("id > 100").limit(20).order("id desc").except(:order)
+Book.where("id > 100").limit(20).order(id: :desc).except(:order)
 ```
 
 The SQL that will be executed ignores the `:order` clause:
@@ -2042,14 +2042,14 @@ SELECT *
 SELECT *
   FROM books
   WHERE id > 100
-  ORDER BY id desc
+  ORDER BY books.id DESC
   LIMIT 20
 ```
 
 You can also remove multiple conditions:
 
 ```ruby
-Book.where("id > 100").limit(20).order("id desc").except(:order, :limit)
+Book.where("id > 100").limit(20).order(id: :desc).except(:order, :limit)
 ```
 
 This will generate the following SQL:
@@ -2130,11 +2130,11 @@ The `reorder` method also works with any order defined earlier in the query
 chain, not just one from a default scope:
 
 ```ruby
-Book.where("id > 100").order("id desc").reorder("title ASC")
+Book.where("id > 100").order(id: :desc).reorder(title: :asc)
 ```
 
 This will override both the default scope order and the previous
-`order("id desc")` clause, and only order by title.
+`order(id: :desc)` clause, and only order by title.
 
 ### `reverse_order`
 
@@ -2361,7 +2361,7 @@ The above session produces the following SQL for a MySQL backend:
 
 ```sql
 SQL (0.2ms)   BEGIN
-Book Load (0.3ms)   SELECT * FROM books LIMIT 1 FOR UPDATE
+Book Load (0.3ms)   SELECT * FROM books ORDER BY books.id ASC LIMIT 1 FOR UPDATE
 Book Update (0.4ms)   UPDATE books SET updated_at = "2009-02-07 18:05:56", title = "Algorithms, second edition" WHERE id = 1
 SQL (0.8ms)   COMMIT
 ```

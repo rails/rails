@@ -579,6 +579,13 @@ class AppGeneratorTest < Rails::Generators::TestCase
     end
   end
 
+  def test_system_test_gems_are_not_required_on_boot
+    run_generator
+
+    assert_gem "capybara", /require: false/
+    assert_gem "selenium-webdriver", /require: false/
+  end
+
   def test_generator_if_skip_system_test_is_given
     run_generator [destination_root, "--skip-system-test"]
     assert_no_gem "capybara"

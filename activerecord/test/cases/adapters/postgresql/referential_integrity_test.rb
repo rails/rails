@@ -2,9 +2,11 @@
 
 require "cases/helper"
 require "support/connection_helper"
+require "support/pg_schema_helper"
 
 class PostgreSQLReferentialIntegrityTest < ActiveRecord::PostgreSQLTestCase
   include ConnectionHelper
+  include PGSchemaHelper
 
   IS_REFERENTIAL_INTEGRITY_SQL = lambda do |sql|
     sql.match(/DISABLE TRIGGER ALL/) || sql.match(/ENABLE TRIGGER ALL/)
@@ -19,6 +21,14 @@ class PostgreSQLReferentialIntegrityTest < ActiveRecord::PostgreSQLTestCase
         super
       end
     end
+  end
+
+  class ShadowedParent < ActiveRecord::Base
+    self.table_name = "ri_offpath.ri_offpath_parents"
+  end
+
+  class ShadowedChild < ActiveRecord::Base
+    self.table_name = "ri_offpath.ri_offpath_shadowed_children"
   end
 
   module ProgrammerMistake
@@ -151,6 +161,40 @@ class PostgreSQLReferentialIntegrityTest < ActiveRecord::PostgreSQLTestCase
     ensure
       # A failure here would leave every table without foreign keys for the rest of the suite.
       @connection.execute(@connection.tables.map { |name| "ALTER TABLE #{@connection.quote_table_name(name)} ENABLE TRIGGER ALL" }.join(";"))
+    end
+  end
+
+  def test_disables_foreign_keys_of_a_table_shadowed_by_a_same_named_one_on_the_search_path
+    skip unless @connection.supports_enforced_foreign_keys?
+
+    create_table_shadowed_on_the_search_path
+
+    with_schema_search_path("public, ri_offpath") do
+      @connection.disable_referential_integrity do
+        assert_nothing_raised do
+          ShadowedChild.create!(parent_id: 1)
+          ShadowedParent.create!(id: 1)
+        end
+      end
+
+      assert_raises(ActiveRecord::InvalidForeignKey) { ShadowedChild.create!(parent_id: 2) }
+    end
+  end
+
+  def test_disables_triggers_of_a_table_shadowed_by_a_same_named_one_on_the_search_path
+    create_table_shadowed_on_the_search_path
+
+    with_schema_search_path("public, ri_offpath") do
+      @connection.stub(:supports_enforced_foreign_keys?, false) do
+        @connection.disable_referential_integrity do
+          assert_nothing_raised do
+            ShadowedChild.create!(parent_id: 1)
+            ShadowedParent.create!(id: 1)
+          end
+        end
+      end
+
+      assert_raises(ActiveRecord::InvalidForeignKey) { ShadowedChild.create!(parent_id: 2) }
     end
   end
 
@@ -490,6 +534,17 @@ class PostgreSQLReferentialIntegrityTest < ActiveRecord::PostgreSQLTestCase
   end
 
   private
+    def create_table_shadowed_on_the_search_path
+      @connection.create_table :ri_offpath_shadowed_children, force: true
+      @connection.create_schema :ri_offpath
+      @connection.create_table "ri_offpath.ri_offpath_parents"
+      @connection.create_table "ri_offpath.ri_offpath_shadowed_children" do |t|
+        t.references :parent, index: false, foreign_key: { to_table: "ri_offpath.ri_offpath_parents" }
+      end
+      ShadowedParent.reset_column_information
+      ShadowedChild.reset_column_information
+    end
+
     def assert_transaction_is_not_broken
       assert_equal 1, @connection.select_value("SELECT 1")
     end

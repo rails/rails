@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 
+# :markup: markdown
 require "active_support/core_ext/hash/except"
 require "rails/generators/rails/app/app_generator"
 require "date"

@@ -1,6 +1,5 @@
 # frozen_string_literal: true
 
-# :markup: markdown
 module ActionMailer
   def self.deprecator # :nodoc:
     @deprecator ||= ActiveSupport::Deprecation.new

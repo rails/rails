@@ -1,23 +1,9 @@
 # frozen_string_literal: true
 
-# :markup: markdown
 require "concurrent/map"
+require "active_support/core_ext/class/subclasses"
 
 module ActiveModel
-  # Raised when an attribute is not defined.
-  #
-  # ```
-  # class User < ActiveRecord::Base
-  #   has_many :pets
-  # end
-  #
-  # user = User.first
-  # user.pets.select(:id).first.user_id
-  # # => ActiveModel::MissingAttributeError: missing attribute 'user_id' for Pet
-  # ```
-  class MissingAttributeError < NoMethodError
-  end
-
   # Active \Model \Attribute \Methods
   # =================================
   #
@@ -237,6 +223,16 @@ module ActiveModel
         old_name = -old_name.to_s
         new_name = -new_name.to_s
         self.attribute_aliases = attribute_aliases.merge(new_name => old_name).freeze
+
+        # Pass the new alias down to subclasses that hold their own copy,
+        # unless a subclass already has an alias with that name.
+        descendants.each do |subclass|
+          next if subclass.attribute_aliases.equal?(subclass.superclass.attribute_aliases)
+          next if subclass.attribute_aliases.key?(new_name)
+
+          subclass.attribute_aliases = subclass.attribute_aliases.merge(new_name => old_name).freeze
+        end
+
         record_alias_by_attribute_name(old_name, new_name)
         eagerly_generate_alias_attribute_methods(new_name, old_name)
       end
@@ -267,12 +263,12 @@ module ActiveModel
 
       # Is `new_name` an alias?
       def attribute_alias?(new_name)
-        attribute_aliases.key? new_name.to_s
+        attribute_aliases.key?(new_name.is_a?(Symbol) ? new_name.name : new_name.to_s)
       end
 
       # Returns the original name for the alias `name`
       def attribute_alias(name)
-        attribute_aliases[name.to_s]
+        attribute_aliases[name.is_a?(Symbol) ? name.name : name.to_s]
       end
 
       # Declares the attributes that should be prefixed and suffixed by
@@ -438,8 +434,8 @@ module ActiveModel
           @generated_attribute_methods&.method_defined?(method_name)
         end
 
-        # Define a method \`name\` in \`mod\` that dispatches to \`send\`
-        # using the given \`extra\` args. This falls back on \`send\`
+        # Define a method `name` in `mod` that dispatches to `send`
+        # using the given `extra` args. This falls back on `send`
         # if the called name cannot be compiled.
         def define_proxy_call(code_generator, name, proxy_target, parameters, *call_args, namespace:, as: name)
           mangled_name = build_mangled_name(name)
@@ -606,7 +602,7 @@ module ActiveModel
         # but found among all methods. Which means that the given method is private.
         false
       else
-        !matched_attribute_method(method.to_s).nil?
+        !matched_attribute_method(method.is_a?(Symbol) ? method.name : method.to_s).nil?
       end
     end
 

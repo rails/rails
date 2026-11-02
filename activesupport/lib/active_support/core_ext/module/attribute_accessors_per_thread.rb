@@ -1,4 +1,3 @@
-# :markup: markdown
 # frozen_string_literal: true
 
 # Attribute Accessors per Thread

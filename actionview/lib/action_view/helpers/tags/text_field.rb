@@ -1,6 +1,5 @@
 # frozen_string_literal: true
 
-# :markup: markdown
 require "action_view/helpers/tags/placeholderable"
 
 module ActionView

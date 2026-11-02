@@ -7,7 +7,7 @@ require "active_storage/previewer/video_previewer"
 
 class ActiveStorage::Previewer::VideoPreviewerTest < ActiveSupport::TestCase
   setup do
-    if !ENV["BUILDKITE"] && !system("command", "-v", ActiveStorage.paths[:ffmpeg] || "ffmpeg")
+    if !ENV["BUILDKITE"] && !system("command", "-v", ActiveStorage.paths[:ffmpeg] || "ffmpeg", out: File::NULL)
       skip("ffmpeg isn't available")
     end
   end

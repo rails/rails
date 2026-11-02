@@ -1,7 +1,5 @@
 # frozen_string_literal: true
 
-# :markup: markdown
-
 require "abstract_controller/collector"
 
 module ActionController # :nodoc:

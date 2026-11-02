@@ -82,6 +82,18 @@ class TestERBTemplate < ActiveSupport::TestCase
     super
   end
 
+  def test_render_instruments_render_template_when_subscribed
+    @template = new_template
+    events = []
+    callback = ->(name, _start, _finish, _id, payload) { events << [name, payload] }
+
+    ActiveSupport::Notifications.subscribed(callback, "!render_template.action_view") do
+      assert_equal "Hello", render
+    end
+
+    assert_equal [["!render_template.action_view", { virtual_path: "hello", identifier: "hello template" }]], events
+  end
+
   def test_basic_template
     @template = new_template
     assert_equal "Hello", render

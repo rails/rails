@@ -8,6 +8,18 @@ require "models/book"
 class FieldOrderedValuesTest < ActiveRecord::TestCase
   fixtures :posts
 
+  FormatValue = Struct.new(:value)
+
+  class FormatType < ActiveModel::Type::Value
+    def cast(value)
+      value.is_a?(FormatValue) ? value : FormatValue[value]
+    end
+
+    def serialize(value)
+      cast(value)&.value
+    end
+  end
+
   def test_in_order_of
     order = [3, 4, 1]
     posts = Post.in_order_of(:id, order)
@@ -161,6 +173,21 @@ class FieldOrderedValuesTest < ActiveRecord::TestCase
     assert_empty(Book.in_order_of(:nullable_status, [:bogus]).ids)
   end
 
+  def test_in_order_of_serializes_values_once
+    model = Class.new(Book) do
+      def self.name = "BookWithSerializedFormat"
+
+      serialize :format, coder: JSON
+    end
+    model.destroy_all
+    paperback = model.create!(format: { "type" => "paperback" })
+    ebook = model.create!(format: { "type" => "ebook" })
+
+    books = model.in_order_of(:format, [{ "type" => "ebook" }, { "type" => "paperback" }])
+
+    assert_equal([ebook.id, paperback.id], books.ids)
+  end
+
   def test_in_order_of_with_array_values
     order = [3, [5, 2], [4, 7], 1]
     posts = Post.in_order_of(:id, order).order(id: :asc)
@@ -216,6 +243,29 @@ class FieldOrderedValuesTest < ActiveRecord::TestCase
         .in_order_of(:id, order)
 
       assert_equal([1], books.map(&:id))
+    end
+
+    def test_in_order_of_with_column_from_cte_serializes_custom_attribute_values
+      model = Class.new(Book) do
+        def self.name = "BookWithSerializedFormat"
+
+        attribute :format, FormatType.new
+      end
+
+      model.destroy_all
+      model.create!(format: "paperback")
+      model.create!(format: "ebook")
+      model.create!(format: "hardcover")
+
+      order = [FormatValue["hardcover"], FormatValue["paperback"], FormatValue["ebook"]]
+
+      books = model
+        .with(cte_books: model.select(:id, :format))
+        .from("cte_books")
+        .select(:id, :format)
+        .in_order_of(:format, order)
+
+      assert_equal(order, books.map(&:format))
     end
   end
 end

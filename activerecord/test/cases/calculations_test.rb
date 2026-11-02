@@ -367,6 +367,56 @@ class CalculationsTest < ActiveRecord::TestCase
     assert_no_match(/ORDER BY/, queries.first)
   end
 
+  def test_count_with_default_order
+    posts = Post.default_order(:title)
+    queries = capture_sql { assert_equal 11, posts.count }
+
+    assert_equal 1, queries.length
+    assert_no_match(/ORDER BY/, queries.first)
+    assert_equal [Post.arel_table[:title].asc], posts.default_order_values
+  end
+
+  def test_sum_with_default_order
+    queries = capture_sql { assert_equal 318, Account.default_order(:firm_id).sum(:credit_limit) }
+
+    assert_equal 1, queries.length
+    assert_no_match(/ORDER BY/, queries.first)
+  end
+
+  def test_count_with_default_order_and_limit
+    queries = capture_sql { assert_equal 4, Account.default_order(:firm_id).limit(4).count }
+
+    assert_equal 1, queries.length
+    assert_no_match(/ORDER BY/, queries.first)
+  end
+
+  def test_distinct_count_with_default_order_and_custom_select
+    accounts = Account.distinct.select(:credit_limit).default_order(:firm_id)
+    assert_equal 4, accounts.count(:all)
+  end
+
+  def test_count_with_eager_loading_and_default_order
+    posts = Post.includes(:comments).references(:comments).default_order("comments.id")
+    queries = capture_sql { assert_equal 11, posts.count }
+
+    assert_equal 1, queries.length
+    assert_no_match(/ORDER BY/, queries.first)
+  end
+
+  def test_distinct_count_with_eager_loading_and_default_order_and_custom_select
+    posts = Post.includes(:comments).references(:comments).select(:id, :title).distinct.default_order("comments.id")
+    assert_equal 11, posts.count
+  end
+
+  def test_grouped_count_preserves_default_order
+    queries = capture_sql do
+      assert_equal({ 9 => 1 }, Account.where.not(firm_id: nil).group(:firm_id).default_order(firm_id: :desc).limit(1).count)
+    end
+
+    assert_equal 1, queries.length
+    assert_match(/ORDER BY/, queries.first)
+  end
+
   def test_count_on_invalid_columns_raises
     error = assert_raises(ActiveRecord::StatementInvalid) do
       Account.select("credit_limit, firm_name").count
@@ -588,6 +638,14 @@ class CalculationsTest < ActiveRecord::TestCase
     assert_equal 1, c[companies(:first_client)]
   end
 
+  def test_should_calculate_grouped_association_with_primary_key_option
+    firm = companies(:first_firm)
+    clients = Client.where(id: [companies(:first_client).id, companies(:second_client).id])
+    clients.update_all(firm_name: firm.name)
+
+    assert_equal({ firm => 2 }, clients.group(:firm_with_primary_key).count)
+  end
+
   def test_should_calculate_grouped_by_function
     c = Company.group("UPPER(#{ARTest::QUOTED_TYPE})").count(:all)
     assert_equal 2, c[nil]
@@ -614,6 +672,15 @@ class CalculationsTest < ActiveRecord::TestCase
       some_companies.sum(&:name)
     end
     assert_equal "companies: LeetsoftJadedpixel", some_companies.sum("companies: ", &:name)
+  end
+
+  def test_sum_with_block_includes_new_records_of_an_association
+    companies = companies(:rails_core).companies
+    companies.build(name: "Unsaved")
+
+    assert_equal 25, companies.sum { |company| company.name.size }
+    assert_equal 3, companies.sum { 1 }
+    assert_equal 8, companies.sum(5) { 1 }
   end
 
   def test_should_sum_scoped_field

@@ -1,4 +1,3 @@
-# :markup: markdown
 # frozen_string_literal: true
 
 require "active_support/string_inquirer"
@@ -13,6 +12,7 @@ class String
   # env.production?  # => true
   # env.development? # => false
   # ```
+  #: () -> ActiveSupport::StringInquirer
   def inquiry
     ActiveSupport::StringInquirer.new(self)
   end

@@ -7,13 +7,15 @@ module ActiveRecord
         # Pretty prints the result of an EXPLAIN in a way that resembles the output of the
         # MySQL shell:
         #
-        #   +----+-------------+-------+-------+---------------+---------+---------+-------+------+-------------+
-        #   | id | select_type | table | type  | possible_keys | key     | key_len | ref   | rows | Extra       |
-        #   +----+-------------+-------+-------+---------------+---------+---------+-------+------+-------------+
-        #   |  1 | SIMPLE      | users | const | PRIMARY       | PRIMARY | 4       | const |    1 |             |
-        #   |  1 | SIMPLE      | posts | ALL   | NULL          | NULL    | NULL    | NULL  |    1 | Using where |
-        #   +----+-------------+-------+-------+---------------+---------+---------+-------+------+-------------+
-        #   2 rows in set (0.00 sec)
+        # ```
+        # +----+-------------+-------+-------+---------------+---------+---------+-------+------+-------------+
+        # | id | select_type | table | type  | possible_keys | key     | key_len | ref   | rows | Extra       |
+        # +----+-------------+-------+-------+---------------+---------+---------+-------+------+-------------+
+        # |  1 | SIMPLE      | users | const | PRIMARY       | PRIMARY | 4       | const |    1 |             |
+        # |  1 | SIMPLE      | posts | ALL   | NULL          | NULL    | NULL    | NULL  |    1 | Using where |
+        # +----+-------------+-------+-------+---------------+---------+---------+-------+------+-------------+
+        # 2 rows in set (0.00 sec)
+        # ```
         #
         # This is an exercise in Ruby hyperrealism :).
         def pp(result, elapsed)

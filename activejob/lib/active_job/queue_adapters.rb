@@ -1,49 +1,53 @@
 # frozen_string_literal: true
 
+# :markup: markdown
 module ActiveJob
-  # = Active Job adapters
+  # Active Job adapters
+  # ===================
   #
   # Active Job has adapters for the following queuing backends:
   #
-  # * {Backburner}[https://github.com/nesquena/backburner]
-  # * {Delayed Job}[https://github.com/collectiveidea/delayed_job]
-  # * {queue_classic}[https://github.com/QueueClassic/queue_classic]
-  # * {Resque}[https://github.com/resque/resque]
-  # * {Sneakers}[https://github.com/jondot/sneakers]
-  # * Please Note: We are not accepting pull requests for new adapters. See the {README}[link:files/activejob/README_md.html] for more details.
+  # * [Backburner](https://github.com/nesquena/backburner)
+  # * [Delayed Job](https://github.com/collectiveidea/delayed_job)
+  # * [queue_classic](https://github.com/QueueClassic/queue_classic)
+  # * [Resque](https://github.com/resque/resque)
+  # * [Sneakers](https://github.com/jondot/sneakers)
+  # * Please Note: We are not accepting pull requests for new adapters. See the [README](link:files/activejob/README_md.html) for more details.
   #
   # For testing and development Active Job has three built-in adapters:
   #
-  # * {Active Job Async}[https://api.rubyonrails.org/classes/ActiveJob/QueueAdapters/AsyncAdapter.html]
-  # * {Active Job Inline}[https://api.rubyonrails.org/classes/ActiveJob/QueueAdapters/InlineAdapter.html]
-  # * {Active Job Test}[https://api.rubyonrails.org/classes/ActiveJob/QueueAdapters/TestAdapter.html]
+  # * [Active Job Async](https://api.rubyonrails.org/classes/ActiveJob/QueueAdapters/AsyncAdapter.html)
+  # * [Active Job Inline](https://api.rubyonrails.org/classes/ActiveJob/QueueAdapters/InlineAdapter.html)
+  # * [Active Job Test](https://api.rubyonrails.org/classes/ActiveJob/QueueAdapters/TestAdapter.html)
   #
-  # === Backends Features
+  # ### Backends Features
   #
-  #   |                   | Async | Queues | Delayed    | Priorities | Timeout | Retries |
-  #   |-------------------|-------|--------|------------|------------|---------|---------|
-  #   | Backburner        | Yes   | Yes    | Yes        | Yes        | Job     | Global  |
-  #   | Delayed Job       | Yes   | Yes    | Yes        | Job        | Global  | Global  |
-  #   | queue_classic     | Yes   | Yes    | Yes*       | No         | No      | No      |
-  #   | Resque            | Yes   | Yes    | Yes (Gem)  | Queue      | Global  | Yes     |
-  #   | Sneakers          | Yes   | Yes    | No         | Queue      | Queue   | No      |
-  #   | Active Job Async  | Yes   | Yes    | Yes        | No         | No      | No      |
-  #   | Active Job Inline | No    | Yes    | N/A        | N/A        | N/A     | N/A     |
-  #   | Active Job Test   | No    | Yes    | N/A        | N/A        | N/A     | N/A     |
+  # ```
+  # |                   | Async | Queues | Delayed    | Priorities | Timeout | Retries |
+  # |-------------------|-------|--------|------------|------------|---------|---------|
+  # | Backburner        | Yes   | Yes    | Yes        | Yes        | Job     | Global  |
+  # | Delayed Job       | Yes   | Yes    | Yes        | Job        | Global  | Global  |
+  # | queue_classic     | Yes   | Yes    | Yes*       | No         | No      | No      |
+  # | Resque            | Yes   | Yes    | Yes (Gem)  | Queue      | Global  | Yes     |
+  # | Sneakers          | Yes   | Yes    | No         | Queue      | Queue   | No      |
+  # | Active Job Async  | Yes   | Yes    | Yes        | No         | No      | No      |
+  # | Active Job Inline | No    | Yes    | N/A        | N/A        | N/A     | N/A     |
+  # | Active Job Test   | No    | Yes    | N/A        | N/A        | N/A     | N/A     |
+  # ```
   #
-  # ==== Async
+  # #### Async
   #
   # Yes: The Queue Adapter has the ability to run the job in a non-blocking manner.
   # It either runs on a separate or forked process, or on a different thread.
   #
   # No: The job is run in the same process.
   #
-  # ==== Queues
+  # #### Queues
   #
   # Yes: Jobs may set which queue they are run in with queue_as or by using the set
   # method.
   #
-  # ==== Delayed
+  # #### Delayed
   #
   # Yes: The adapter will run the job in the future through perform_later.
   #
@@ -57,7 +61,7 @@ module ActiveJob
   # queue_classic supports job scheduling since version 3.1.
   # For older versions you can use the queue_classic-later gem.
   #
-  # ==== Priorities
+  # #### Priorities
   #
   # The order in which jobs are processed can be configured differently depending
   # on the adapter.
@@ -75,7 +79,7 @@ module ActiveJob
   #
   # N/A: The adapter does not support queuing, and therefore sorting them.
   #
-  # ==== Timeout
+  # #### Timeout
   #
   # When a job will stop after the allotted time.
   #
@@ -90,7 +94,7 @@ module ActiveJob
   # N/A: This adapter does not run in a separate process, and therefore timeout
   # is unsupported.
   #
-  # ==== Retries
+  # #### Retries
   #
   # Job: The number of retries can be set per instance of the job class.
   #
@@ -124,8 +128,10 @@ module ActiveJob
     class << self
       # Returns adapter for specified name.
       #
-      #   ActiveJob::QueueAdapters.lookup(:async)
-      #   # => ActiveJob::QueueAdapters::AsyncAdapter
+      # ```
+      # ActiveJob::QueueAdapters.lookup(:async)
+      # # => ActiveJob::QueueAdapters::AsyncAdapter
+      # ```
       def lookup(name)
         const_get(name.to_s.camelize << ADAPTER)
       end

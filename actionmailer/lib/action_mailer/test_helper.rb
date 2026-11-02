@@ -1,6 +1,5 @@
 # frozen_string_literal: true
 
-# :markup: markdown
 require "active_support/core_ext/array/extract_options"
 require "active_job"
 
@@ -266,6 +265,7 @@ module ActionMailer
     #   assert_equal "Hi there", emails.first.subject
     # end
     # ```
+    #: () ?{ () -> void } -> Array[Mail::Message]
     def capture_emails(&block)
       original_count = ActionMailer::Base.deliveries.size
       deliver_enqueued_emails(&block)

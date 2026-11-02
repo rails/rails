@@ -1,3 +1,84 @@
+*   Write `ActiveSupport::Duration#iso8601` values as plain decimal numbers.
+
+    Very small or very large float parts were written in scientific notation and
+    rational parts as fractions, which are not valid ISO 8601 and can't be read
+    back with `ActiveSupport::Duration.parse`.
+
+    ```ruby
+    0.00005.seconds.iso8601     # => "PT0.00005S" (was "PT5.0e-05S")
+    Rational(3, 2).days.iso8601 # => "P1.5D" (was "P3/2D")
+    ```
+
+    *Wleeaf*
+
+*   Add `Northwest Territories` to `ActiveSupport::TimeZone::MAPPING`.
+
+    The Northwest Territories no longer shares winter clocks with US Mountain
+    time. The existing `Mountain Time (US & Canada)` entry remains mapped to
+    `America/Denver` for compatibility. Prefer `Northwest Territories` (or the
+    IANA identifier `America/Inuvik`) for users in that region.
+
+    *Andrew Quinn*
+
+*   `Symbol#to_param` now returns `Symbol#name`, the symbol's interned frozen
+    String, instead of allocating a new one on every call before Ruby 4.1.
+
+    *Akira Matsuda*
+
+*   Fix `CurrentAttributes` defaults for attribute names given as strings.
+
+    ```ruby
+    class Current < ActiveSupport::CurrentAttributes
+      attribute "currency", default: "USD"
+    end
+
+    Current.currency # => "USD" (was nil)
+    ```
+
+    *Ryuta Kamizono*
+
+*   `ActiveSupport::Deprecation::DeprecatedObjectProxy` and
+    `DeprecatedInstanceVariableProxy` now inherit from `BasicObject`, so methods
+    added to `Object` after Active Support loads (such as `to_json`, `to_param`,
+    `blank?` or `in?`) are forwarded to the deprecated object with a warning
+    instead of running against the proxy itself.
+
+    *Akira Matsuda*
+
+*   Default `config.active_support.message_serializer` to `:json` for new apps.
+
+    With `config.load_defaults 8.2`, messages from `MessageVerifier` and
+    `MessageEncryptor` (signed IDs, signed GlobalIDs, Active Storage keys, etc.)
+    no longer fall back to deserializing `Marshal` payloads.
+
+    *Ben Sheldon*
+
+*   `ActiveSupport::ParameterFilter#filter_param` now passes `{ key => value }` to
+    `Proc` filters as their third argument, the same hash `filter` would pass for that
+    single pair, instead of `nil`.
+
+    *Kengo Johira, Akira Matsuda*
+
+*   Skip building `ActiveSupport::EventReporter` events that no subscriber would consume.
+
+    Subscribers can define `consumes?(name)` to say whether they would act on an
+    event with that name. `Rails.event.notify` now returns before resolving the
+    payload, capturing the source location and building the event when every
+    matching subscriber declines, and `Rails.event.emitting?(name)` exposes the
+    same answer so emitters can skip assembling payloads that would go nowhere:
+
+    ```ruby
+    if Rails.event.emitting?("user.created")
+      Rails.event.notify("user.created", expensive_payload_for(user))
+    end
+    ```
+
+    The framework log subscribers implement `consumes?` from their logger's level,
+    so a production app logging at `:warn` no longer builds the per-request
+    `action_controller.request_started` and `request_completed` events.
+
+    *Akira Matsuda*
+
 *   Freeze events emitted by `ActiveSupport::EventReporter`.
 
     Subscribers can no longer change the event seen by later subscribers.

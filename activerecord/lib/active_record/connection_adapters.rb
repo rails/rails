@@ -13,11 +13,14 @@ module ActiveRecord
       #
       # Can also be used to define aliases.
       #
-      # == Example
+      # Example
+      # -------
       #
-      #   ActiveRecord::ConnectionAdapters.register("megadb", "MegaDB::ActiveRecordAdapter", "mega_db/active_record_adapter")
+      # ```
+      # ActiveRecord::ConnectionAdapters.register("megadb", "MegaDB::ActiveRecordAdapter", "mega_db/active_record_adapter")
       #
-      #   ActiveRecord::ConnectionAdapters.register("mysql", "ActiveRecord::ConnectionAdapters::TrilogyAdapter", "active_record/connection_adapters/trilogy_adapter")
+      # ActiveRecord::ConnectionAdapters.register("mysql", "ActiveRecord::ConnectionAdapters::TrilogyAdapter", "active_record/connection_adapters/trilogy_adapter")
+      # ```
       #
       def register(name, class_name, path = class_name.underscore)
         @adapters = ActiveSupport::Ractors.make_shareable(@adapters.merge(name.to_s => [class_name, path]))

@@ -143,6 +143,7 @@ module ActiveRecord
             # escaped. In input, PostgreSQL accepts multiple escape styles for "
             # (either \" or "") but in output always uses "".
             # See:
+            #
             # * https://www.postgresql.org/docs/current/rangetypes.html#RANGETYPES-IO
             # * https://www.postgresql.org/docs/current/rowtypes.html#ROWTYPES-IO-SYNTAX
             def unquote(value)

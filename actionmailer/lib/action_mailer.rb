@@ -1,6 +1,5 @@
 # frozen_string_literal: true
 
-# :markup: markdown
 #--
 # Copyright (c) David Heinemeier Hansson
 #
@@ -36,8 +35,7 @@ require "active_support/core_ext/module/attr_internal"
 require "active_support/core_ext/string/inflections"
 require "active_support/lazy_load_hooks"
 
-# :markup: rdoc
-# :include: ../README.rdoc
+# :include: ../README.md
 module ActionMailer
   extend ::ActiveSupport::Autoload
 
@@ -89,6 +87,10 @@ module ActionMailer
     private
       def _deliver_all_later(delivery_method, *deliveries, **options)
         deliveries = deliveries.first if deliveries.first.is_a?(Array)
+
+        if deliveries.any?(&:processed?)
+          raise MessageDelivery::ALREADY_PROCESSED_MESSAGE
+        end
 
         jobs = deliveries.map do |delivery|
           mailer_class = delivery.mailer_class

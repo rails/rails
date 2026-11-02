@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+# :markup: rdoc
+
 class Array
   # Wraps its argument in an array unless it is already an array (or array-like).
   #

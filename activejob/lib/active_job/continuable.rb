@@ -1,14 +1,16 @@
 # frozen_string_literal: true
 
+# :markup: markdown
 module ActiveJob
-  # = Active Job Continuable
+  # Active Job Continuable
+  # ======================
   #
   # The Continuable module provides the ability to track the progress of your
   # jobs, and continue from where they left off if interrupted.
   #
   # Mix ActiveJob::Continuable into your job to enable continuations.
   #
-  # See {ActiveJob::Continuation}[rdoc-ref:ActiveJob::Continuation] for usage.
+  # See [ActiveJob::Continuation](rdoc-ref:ActiveJob::Continuation) for usage.
   #
   module Continuable
     extend ActiveSupport::Concern
@@ -34,6 +36,7 @@ module ActiveJob
     attr_accessor :continuation # :nodoc:
 
     # Start a new continuation step
+    #: (Symbol, ?start: untyped, ?isolated: bool) ?{ (ActiveJob::Continuation::Step) -> void } -> void
     def step(step_name, start: nil, isolated: false, &block)
       unless block_given?
         step_method = method(step_name)

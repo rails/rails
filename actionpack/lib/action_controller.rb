@@ -1,7 +1,5 @@
 # frozen_string_literal: true
 
-# :markup: markdown
-
 require "abstract_controller"
 require "action_dispatch"
 require "action_controller/deprecator"

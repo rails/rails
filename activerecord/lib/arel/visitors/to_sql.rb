@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 
+# :markup: markdown
 module Arel # :nodoc: all
   module Visitors
     class UnsupportedVisitError < StandardError
@@ -138,17 +139,9 @@ module Arel # :nodoc: all
             collector << " "
           end
 
-          collector = o.cores.inject(collector) { |c, x|
-            visit_Arel_Nodes_SelectCore(x, c)
-          }
+          o.cores.each { |core| collector = visit_Arel_Nodes_SelectCore(core, collector) }
 
-          unless o.orders.empty?
-            collector << " ORDER BY "
-            o.orders.each_with_index do |x, i|
-              collector << ", " unless i == 0
-              collector = visit(x, collector)
-            end
-          end
+          collect_nodes_for o.orders, collector, " ORDER BY "
 
           visit_Arel_Nodes_SelectOptions(o, collector)
         end
@@ -639,6 +632,8 @@ module Arel # :nodoc: all
         end
 
         def visit_Arel_Nodes_Or(o, collector)
+          return collector << "1=0" if o.children.empty?
+
           inject_join o.children, collector, " OR "
         end
 
@@ -926,8 +921,10 @@ module Arel # :nodoc: all
         end
 
         def inject_join(list, collector, join_str)
-          list.each_with_index do |x, i|
-            collector << join_str unless i == 0
+          first = true
+          list.each do |x|
+            collector << join_str unless first
+            first = false
             collector = visit(x, collector)
           end
           collector

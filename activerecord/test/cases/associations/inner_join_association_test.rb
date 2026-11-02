@@ -15,10 +15,11 @@ require "models/sharded/comment"
 require "models/friendship"
 require "models/reference"
 require "models/job"
+require "models/item"
 
 class InnerJoinAssociationTest < ActiveRecord::TestCase
   fixtures :authors, :author_addresses, :essays, :posts, :comments, :categories, :categories_posts, :categorizations,
-           :taggings, :tags, :people, :sharded_comments, :sharded_blog_posts
+           :taggings, :tags, :people, :sharded_comments, :sharded_blog_posts, :items
 
   def test_construct_finder_sql_applies_aliases_tables_on_association_conditions
     result = Author.joins(:thinking_posts, :welcome_posts).first
@@ -179,6 +180,13 @@ class InnerJoinAssociationTest < ActiveRecord::TestCase
     assert_empty scope.where("comments.type" => "Comment")
     assert_not_empty scope.where("comments.type" => "SpecialComment")
     assert_not_empty scope.where("comments.type" => "SubSpecialComment")
+  end
+
+  def test_join_polymorphic_has_one_declared_on_an_abstract_class
+    item = items(:dvd)
+    tagging = taggings(:godfather)
+
+    assert Item.joins(:tagging).where(items: { id: item.id }, taggings: { id: tagging.id }).exists?
   end
 
   def test_find_with_conditions_on_reflection

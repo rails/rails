@@ -19,6 +19,7 @@ require "models/department"
 require "models/cpk/author"
 require "models/cpk/book"
 require "models/cpk/order"
+require "models/cpk/order_agreement"
 
 class HasManyThroughDisableJoinsAssociationsTest < ActiveRecord::TestCase
   fixtures :posts, :authors, :comments, :pirates, :author_addresses
@@ -208,5 +209,13 @@ class HasManyThroughDisableJoinsAssociationsTest < ActiveRecord::TestCase
 
     assert_equal author.orders.to_a, author.no_joins_orders.to_a
     assert_equal [order2, order1], author.no_joins_orders.to_a
+  end
+
+  def test_disable_joins_through_with_composite_owner_foreign_key
+    order = Cpk::Order.create!(shop_id: 1)
+    book = Cpk::BookWithOrderAgreements.create!(id: [1, 2], order: order)
+    order_agreement = Cpk::OrderAgreement.create!(order: order)
+
+    assert_equal [order_agreement], book.no_joins_order_agreements.to_a
   end
 end

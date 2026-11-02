@@ -374,6 +374,10 @@ class FinderTest < ActiveRecord::TestCase
     assert_equal true, Topic.order(Arel.sql("invalid sql here")).exists?
   end
 
+  def test_exists_with_default_order
+    assert_equal true, Topic.default_order(Arel.sql("invalid sql here")).exists?
+  end
+
   def test_exists_with_large_number
     assert_equal true, Topic.where(id: [1, 9223372036854775808]).exists?
     assert_equal true, Topic.where(id: 1..9223372036854775808).exists?
@@ -2163,6 +2167,19 @@ class FinderTest < ActiveRecord::TestCase
     string_ids = books.map { |book| book.id.map(&:to_s) }
 
     assert_equal books.map(&:id), Cpk::Book.find(string_ids).map(&:id)
+  end
+
+  test "find with multiple sets of composite primary keys and select" do
+    books = [cpk_books(:cpk_great_author_first_book), cpk_books(:cpk_great_author_second_book)]
+    ids = books.map(&:id)
+
+    # Exercises find_some_ordered
+    found_books = Cpk::Book.select(:title).find(ids)
+    assert_equal books, found_books
+
+    # Exercises find_some (with explicit order)
+    found_books = Cpk::Book.select(:title).order(author_id: :asc, id: :asc).find(ids)
+    assert_equal books, found_books
   end
 
   test "#find_by with composite primary key" do

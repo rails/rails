@@ -1,6 +1,5 @@
 # frozen_string_literal: true
 
-# :markup: markdown
 require "active_support/core_ext/module/attr_internal"
 require "active_support/core_ext/module/attribute_accessors"
 require "active_support/ractors"
@@ -298,7 +297,18 @@ module ActionView # :nodoc:
     end
 
     attr_reader :view_renderer, :lookup_context
-    attr_internal :config, :assigns
+    attr_internal :assigns
+    attr_internal_writer :config
+
+    # The view's config copy is built on first read: most requests never
+    # touch it, and the copy would otherwise be allocated per rendering.
+    def config
+      @_config ||= if (controller = @_controller) && controller.respond_to?(:config)
+        controller.config.inheritable_copy
+      else
+        ActiveSupport::InheritableOptions.new
+      end
+    end
 
     delegate :formats, :formats=, :locale, :locale=, :view_paths, :view_paths=, to: :lookup_context
 

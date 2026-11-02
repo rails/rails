@@ -158,6 +158,8 @@ module ActiveSupport
           assert_equal("123,456.78", number_helper.number_to_delimited("123456.78"))
           assert_equal("1,23,456.78", number_helper.number_to_delimited("123456.78", delimiter_pattern: /(\d+?)(?=(\d\d)+(\d)(?!\d))/))
           assert_equal("123,456.78", number_helper.number_to_delimited("123456.78".html_safe))
+          assert_equal("1&nbsp;234&nbsp;567", number_helper.number_to_delimited("1234567".html_safe, delimiter: "&nbsp;"))
+          assert_instance_of(String, number_helper.number_to_delimited("1234567".html_safe))
         end
       end
 

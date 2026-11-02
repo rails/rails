@@ -5,6 +5,7 @@ require "models/college"
 require "models/course"
 require "models/professor"
 require "models/other_dog"
+require "support/database_slot"
 
 module ARTest
   def self.connection_name
@@ -55,6 +56,8 @@ module ARTest
     else
       ActiveRecord::Base.logger = ActiveSupport::Logger.new("debug.log", 1, 100.megabytes)
     end
+
+    DatabaseSlot.claim!
 
     ActiveRecord::Base.configurations = test_configuration_hashes
     ActiveRecord::Base.establish_connection :arunit

@@ -110,6 +110,17 @@ module ActionDispatch
         assert_no_match(/missing required keys: \[\]/, error.message)
       end
 
+      def test_static_route_declining_with_x_cascade_is_dispatched_once
+        calls = 0
+        get "/lol", to: lambda { |env| calls += 1; [404, { Constants::X_CASCADE => "pass" }, []] }
+        get "/lol", to: lambda { |env| [200, {}, ["fallback"]] }
+
+        status, _, body = router.serve(rails_env("REQUEST_METHOD" => "GET", "PATH_INFO" => "/lol"))
+        assert_equal 200, status
+        assert_equal ["fallback"], body
+        assert_equal 1, calls
+      end
+
       def test_x_cascade
         get "/messages(.:format)", to: "foo#bar"
         resp = router.serve(rails_env("REQUEST_METHOD" => "GET", "PATH_INFO" => "/lol"))
@@ -287,6 +298,13 @@ module ActionDispatch
           { action: "index" })
         assert_equal "/tasks/index/10", path
         assert_equal({}, params)
+      end
+
+      def test_generate_with_unknown_name_still_matches_redirects
+        get "/legacy", to: mapper.redirect("/tasks")
+
+        assert_equal "/legacy", @formatter.generate("unknown", {}, {}).path(nil)
+        assert_instance_of Formatter::MissingRoute, @formatter.generate(nil, {}, {})
       end
 
       def test_generate_with_name

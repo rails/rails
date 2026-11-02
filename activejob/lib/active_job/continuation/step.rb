@@ -1,8 +1,10 @@
 # frozen_string_literal: true
 
+# :markup: markdown
 module ActiveJob
   class Continuation
-    # = Active Job Continuation Step
+    # Active Job Continuation Step
+    # ============================
     #
     # Represents a step within a continuable job.
     #
@@ -44,8 +46,8 @@ module ActiveJob
 
       # Advance the cursor from the current or supplied value
       #
-      # The cursor will be advanced by calling the +succ+ method on the cursor.
-      # An UnadvanceableCursorError error will be raised if the cursor does not implement +succ+.
+      # The cursor will be advanced by calling the `succ` method on the cursor.
+      # An UnadvanceableCursorError error will be raised if the cursor does not implement `succ`.
       def advance!(from: nil)
         from = cursor if from.nil?
 

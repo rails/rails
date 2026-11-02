@@ -1,6 +1,5 @@
 # frozen_string_literal: true
 
-# :markup: markdown
 module ActionView
   # Returns the currently loaded version of Action View as a `Gem::Version`.
   def self.gem_version

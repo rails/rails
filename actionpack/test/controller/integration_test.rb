@@ -213,6 +213,16 @@ class IntegrationTestUsesCorrectClass < ActionDispatch::IntegrationTest
   end
 end
 
+class IntegrationRunnerTest < ActiveSupport::TestCase
+  def test_runner_defines_every_request_helper
+    runner_methods = ActionDispatch::Integration::Runner.public_instance_methods(false)
+
+    ActionDispatch::Integration::RequestHelpers.public_instance_methods(false).each do |method|
+      assert_includes runner_methods, method
+    end
+  end
+end
+
 class IntegrationProcessTest < ActionDispatch::IntegrationTest
   class IntegrationController < ActionController::Base
     def get
@@ -435,6 +445,17 @@ class IntegrationProcessTest < ActionDispatch::IntegrationTest
       follow_redirect!
 
       assert_response :ok
+      assert_not_same previous_html_document, html_document
+    end
+  end
+
+  def test_options_resets_html_document
+    with_test_route_set do
+      get "/get"
+      previous_html_document = html_document
+
+      options "/get"
+
       assert_not_same previous_html_document, html_document
     end
   end

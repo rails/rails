@@ -62,7 +62,7 @@ module ActiveRecord
       @pool.with_connection do |connection|
         unless connection.table_exists?(table_name)
           connection.create_table(table_name, id: false) do |t|
-            t.string :version, **connection.internal_string_options_for_primary_key
+            t.string :version, primary_key: true
           end
         end
       end

@@ -493,6 +493,48 @@ module ActiveRecord
         assert_equal ["In Transaction"], posts.map(&:title).uniq
       end
 
+      def test_async_queries_from_transaction_run_synchronously
+        events = []
+        Post.transaction do
+          Post.where(author_id: 1).update_all(title: "In Transaction")
+          scope = Post.where(title: "In Transaction")
+          expected_ids = scope.order(:id).ids
+
+          events = capture_notifications("sql.active_record") do
+            assert_equal expected_ids.size, scope.async_count.value
+            assert_equal expected_ids.sum, scope.async_sum(:id).value
+            assert_equal expected_ids.min, scope.async_minimum(:id).value
+            assert_equal expected_ids.max, scope.async_maximum(:id).value
+            assert_in_delta expected_ids.sum.fdiv(expected_ids.size), scope.async_average(:id).value
+            assert_equal expected_ids.min, scope.order(:id).async_pick(:id).value
+            assert_equal expected_ids, scope.order(:id).async_pluck(:id).value
+            assert_equal expected_ids, scope.order(:id).async_ids.value
+            assert_equal({ 1 => expected_ids.size }, scope.group(:author_id).async_count.value)
+            assert_equal expected_ids.size, Post.async_count_by_sql("SELECT COUNT(*) FROM posts WHERE title = 'In Transaction'").value
+            assert_equal expected_ids, Post.async_find_by_sql("SELECT * FROM posts WHERE title = 'In Transaction' ORDER BY id").value.map(&:id)
+            assert_equal expected_ids.size + 1, scope.async_count.then { |count| count + 1 }.value
+          end
+
+          raise ActiveRecord::Rollback
+        end
+
+        assert_not_empty events
+        assert events.none? { |event| event.payload[:async] }
+      end
+
+      def test_async_queries_outside_application_transaction_remain_async
+        expected_count = Post.where(author_id: 1).count
+
+        events = capture_notifications("sql.active_record") do
+          count = Post.where(author_id: 1).async_count
+          wait_for_async_query
+          assert_equal expected_count, count.value
+        end
+
+        event = events.find { |e| e.payload[:name] == "Post Count" }
+        assert_equal Post.lease_connection.supports_concurrent_connections?, event.payload[:async]
+      end
+
       def test_eager_loading_query
         expected_records = Post.where(author_id: 1).eager_load(:comments).to_a
 

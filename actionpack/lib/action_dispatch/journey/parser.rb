@@ -1,6 +1,5 @@
 # frozen_string_literal: true
 
-# :markup: markdown
 require "action_dispatch/journey/scanner"
 require "action_dispatch/journey/nodes/node"
 

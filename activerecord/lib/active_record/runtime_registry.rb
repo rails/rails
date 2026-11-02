@@ -3,7 +3,9 @@
 module ActiveRecord
   # This is a thread locals registry for Active Record. For example:
   #
-  #   ActiveRecord::RuntimeRegistry.stats.sql_runtime
+  # ```
+  # ActiveRecord::RuntimeRegistry.stats.sql_runtime
+  # ```
   #
   # returns the connection handler local to the current unit of execution (either thread of fiber).
   module RuntimeRegistry # :nodoc:

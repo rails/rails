@@ -98,8 +98,8 @@ module ActiveRecord
         #
         # Not passing any specific constraint names will set the value for all deferrable constraints.
         #
-        # [<tt>deferred</tt>]
-        #   Valid values are +:deferred+ or +:immediate+.
+        # `deferred`
+        # :   Valid values are `:deferred` or `:immediate`.
         #
         # See https://www.postgresql.org/docs/current/sql-set-constraints.html
         def set_constraints(deferred, *constraints)
@@ -129,6 +129,11 @@ module ActiveRecord
           )
           intent.execute!
           intent.finish
+        end
+
+        def tables_to_truncate # :nodoc:
+          internal_tables = [pool.schema_migration.table_name, pool.internal_metadata.table_name]
+          search_path_tables.filter_map { |name, table| name unless internal_tables.include?(table) }
         end
 
         private
@@ -220,10 +225,9 @@ module ActiveRecord
           end
 
           def cast_result(result)
-            ar_result = if result.fields.empty?
+            ar_result = if (fields = result.fields).empty?
               ActiveRecord::Result.empty(affected_rows: result.cmd_tuples)
             else
-              fields = result.fields
               types = Array.new(fields.size)
               field_types = Array.new(fields.size)
               missing_oids = []

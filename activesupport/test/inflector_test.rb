@@ -369,6 +369,43 @@ class InflectorTest < ActiveSupport::TestCase
     end
   end
 
+  def test_parameterize_with_separators_special_to_tr
+    assert_equal "Donald^E^Knuth", ActiveSupport::Inflector.parameterize("Donald E. Knuth", separator: "^", preserve_case: true)
+    assert_equal "donald\\e\\knuth", ActiveSupport::Inflector.parameterize("Donald E. Knuth", separator: "\\")
+    assert_equal "donald]e]knuth", ActiveSupport::Inflector.parameterize("Donald E. Knuth", separator: "]")
+    assert_equal "a-b-c", ActiveSupport::Inflector.parameterize("a - b -- c", separator: "-")
+    assert_equal "a+b_c", ActiveSupport::Inflector.parameterize("a !b_c?", separator: "+")
+  end
+
+  def test_parameterize_with_a_transliteration_rule_returning_non_ascii_chars
+    I18n.backend.store_translations(:xx, i18n: { transliterate: { rule: ->(string) { string } } })
+
+    assert_equal "a-b", ActiveSupport::Inflector.parameterize("a 日本 b", locale: :xx)
+    assert_equal "", ActiveSupport::Inflector.parameterize("Привет мир", locale: :xx)
+  ensure
+    I18n.backend.reload!
+  end
+
+  def test_parameterize_replaces_unwanted_chars_like_a_regexp_on_random_strings
+    I18n.backend.store_translations(:xx, i18n: { transliterate: { rule: ->(string) { string } } })
+    random = Random.new(42)
+    chars = ["a", "Z", "9", "-", "_", " ", ".", "^", "\\", "]", "\n", "é", "日"]
+
+    3000.times do
+      string = Array.new(random.rand(10)) { chars.sample(random: random) }.join
+      separator = ["-", "_", "+", "^", "\\", ""].sample(random: random)
+      locale = [:en, :xx].sample(random: random)
+
+      expected = ActiveSupport::Inflector.transliterate(string, locale: locale).gsub(/[^a-z0-9\-_]+/i, separator)
+      expected = expected.squeeze(separator).delete_prefix(separator).delete_suffix(separator) unless separator.empty?
+
+      assert_equal expected.downcase, ActiveSupport::Inflector.parameterize(string, separator: separator, locale: locale),
+        "#{string.inspect} with separator #{separator.inspect} and locale #{locale}"
+    end
+  ensure
+    I18n.backend.reload!
+  end
+
   def test_parameterize_with_multi_character_separator
     StringToParameterized.each do |some_string, parameterized_string|
       assert_equal(parameterized_string.gsub("-", "__sep__"), ActiveSupport::Inflector.parameterize(some_string, separator: "__sep__"))

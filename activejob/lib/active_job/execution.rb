@@ -1,13 +1,15 @@
 # frozen_string_literal: true
 
+# :markup: markdown
 require "active_support/rescuable"
 
 module ActiveJob
-  # = Active Job \Execution
+  # Active Job \Execution
+  # =====================
   #
   # Provides methods to execute jobs immediately, and wraps job execution so
   # that exceptions configured with
-  # {rescue_from}[rdoc-ref:ActiveSupport::Rescuable::ClassMethods#rescue_from]
+  # [rescue_from](rdoc-ref:ActiveSupport::Rescuable::ClassMethods#rescue_from)
   # are handled.
   module Execution
     extend ActiveSupport::Concern
@@ -17,7 +19,9 @@ module ActiveJob
     module ClassMethods
       # Performs the job immediately.
       #
-      #   MyJob.perform_now("mike")
+      # ```
+      # MyJob.perform_now("mike")
+      # ```
       #
       def perform_now(...)
         job_or_instantiate(...).perform_now
@@ -33,15 +37,17 @@ module ActiveJob
 
     # Performs the job immediately. The job is not sent to the queuing adapter
     # but directly executed by blocking the execution of others until it's finished.
-    # +perform_now+ returns the value of your job's +perform+ method.
+    # `perform_now` returns the value of your job's `perform` method.
     #
-    #   class MyJob < ActiveJob::Base
-    #     def perform
-    #       "Hello World!"
-    #     end
+    # ```
+    # class MyJob < ActiveJob::Base
+    #   def perform
+    #     "Hello World!"
     #   end
+    # end
     #
-    #   puts MyJob.new(*args).perform_now # => "Hello World!"
+    # puts MyJob.new(*args).perform_now # => "Hello World!"
+    # ```
     def perform_now
       # Guard against jobs that were persisted before we started counting executions by zeroing out nil counters
       self.executions = (executions || 0) + 1

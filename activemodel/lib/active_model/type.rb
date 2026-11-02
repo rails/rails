@@ -1,6 +1,5 @@
 # frozen_string_literal: true
 
-# :markup: markdown
 require "active_model/type/helpers"
 require "active_model/type/serialize_cast_value"
 require "active_model/type/value"

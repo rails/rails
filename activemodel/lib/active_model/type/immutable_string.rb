@@ -1,6 +1,5 @@
 # frozen_string_literal: true
 
-# :markup: markdown
 module ActiveModel
   module Type
     # Active Model \ImmutableString \Type
@@ -50,6 +49,10 @@ module ActiveModel
 
       def serialize_cast_value(value) # :nodoc:
         value
+      end
+
+      def to_immutable_string # :nodoc:
+        self
       end
 
       def as_schema_json

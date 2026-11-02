@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 
+# :markup: markdown
 if defined?(ActiveRecord::Base)
   begin
     ActiveRecord::Migration.maintain_test_schema!

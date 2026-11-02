@@ -1,7 +1,5 @@
 # frozen_string_literal: true
 
-# :markup: markdown
-
 require "rack/session/abstract/id"
 require "action_controller/metal/exceptions"
 require "active_support/security_utils"
@@ -137,6 +135,7 @@ module ActionController # :nodoc:
 
       helper_method :form_authenticity_token
       helper_method :protect_against_forgery?
+      helper_method :embed_authenticity_token?
     end
 
     module ClassMethods
@@ -247,7 +246,9 @@ module ActionController # :nodoc:
       #         approach does not require authenticity tokens but only works with
       #         browsers that support the Fetch Metadata Request Headers. Requests
       #         without a valid `Sec-Fetch-Site` header will be rejected. This is
-      #         the default.
+      #         the default. Forms and `csrf_meta_tags` don't render a token under
+      #         this strategy; a form that posts to a controller still checking
+      #         tokens can ask for one with `authenticity_token: true`.
       #
       #     *   `:header_or_legacy_token` - A hybrid approach that first checks the
       #         `Sec-Fetch-Site` header. If the header indicates same-site or
@@ -573,9 +574,15 @@ module ActionController # :nodoc:
       # Appends Sec-Fetch-Site to the Vary header. This ensures proper cache behavior since
       # the response may vary based on this header.
       def append_sec_fetch_site_to_vary_header # :doc:
-        vary_header = response.headers["Vary"].to_s.split(",").map(&:strip).reject(&:blank?)
-        unless vary_header.include?("Sec-Fetch-Site")
-          response.headers["Vary"] = (vary_header + ["Sec-Fetch-Site"]).join(", ")
+        vary = response.headers["Vary"]
+
+        if vary.nil? || vary.empty?
+          response.headers["Vary"] = "Sec-Fetch-Site"
+        else
+          vary_header = vary.split(",").map(&:strip).reject(&:blank?)
+          unless vary_header.include?("Sec-Fetch-Site")
+            response.headers["Vary"] = (vary_header + ["Sec-Fetch-Site"]).join(", ")
+          end
         end
       end
 
@@ -594,7 +601,7 @@ module ActionController # :nodoc:
 
       # Check for cross-origin JavaScript responses.
       def non_xhr_javascript_response? # :doc:
-        %r(\A(?:text|application)/javascript).match?(media_type) && !request.xhr?
+        %r(\A(?:text|application)/javascript).match?(content_type) && !request.xhr?
       end
 
       AUTHENTICITY_TOKEN_LENGTH = 32
@@ -719,7 +726,8 @@ module ActionController # :nodoc:
       # Creates a masked version of the authenticity token that varies on each
       # request. The masking is used to mitigate SSL attacks like BREACH.
       def masked_authenticity_token(form_options: {})
-        action, method = form_options.values_at(:action, :method)
+        action = form_options[:action]
+        method = form_options[:method]
 
         raw_token = if per_form_csrf_tokens && action && method
           action_path = normalize_action_path(action)
@@ -804,11 +812,18 @@ module ActionController # :nodoc:
           request.env[CSRF_TOKEN] = csrf_token_storage_strategy.fetch(request) || generate_csrf_token
         end
 
-        decode_csrf_token(csrf_token)
+        # Decoded once per token rather than once per read: a page asks for
+        # the real token once per form it renders.
+        if @_real_csrf_token_source == csrf_token
+          @_real_csrf_token
+        else
+          @_real_csrf_token_source = csrf_token
+          @_real_csrf_token = decode_csrf_token(csrf_token)
+        end
       end
 
       def per_form_csrf_token(session, action_path, method) # :doc:
-        csrf_token_hmac(session, [action_path, method.downcase].join("#"))
+        csrf_token_hmac(session, "#{action_path}##{method.downcase}")
       end
 
       GLOBAL_CSRF_TOKEN_IDENTIFIER = "!real_csrf_token"
@@ -819,11 +834,18 @@ module ActionController # :nodoc:
       end
 
       def csrf_token_hmac(session, identifier) # :doc:
-        OpenSSL::HMAC.digest(
-          OpenSSL::Digest::SHA256.new,
-          real_csrf_token(session),
-          identifier
-        )
+        key = real_csrf_token(session)
+
+        # Keyed once per real token, then copied for each identifier: setting
+        # up the key costs more than the digest, and a page computes one HMAC
+        # per form it renders.
+        keyed_with, hmac = @_csrf_token_hmac
+        unless keyed_with.equal?(key)
+          hmac = OpenSSL::HMAC.new(key, "SHA256")
+          @_csrf_token_hmac = [key, hmac]
+        end
+
+        hmac.dup.update(identifier).digest
       end
 
       def xor_byte_strings(s1, s2) # :doc:
@@ -845,6 +867,14 @@ module ActionController # :nodoc:
       # Checks if the controller allows forgery protection.
       def protect_against_forgery? # :doc:
         allow_forgery_protection && (!session.respond_to?(:enabled?) || session.enabled?)
+      end
+
+      # Checks if the forms and `csrf_meta_tags` this controller renders carry an
+      # authenticity token. Under the `:header_only` verification strategy no
+      # request is checked against a token, so none is rendered unless a form asks
+      # for one with `authenticity_token: true`.
+      def embed_authenticity_token? # :doc:
+        protect_against_forgery? && !using_header_only_for_forgery_protection?
       end
 
       NULL_ORIGIN_MESSAGE = <<~MSG
@@ -869,7 +899,15 @@ module ActionController # :nodoc:
         end
       end
 
+      # An absolute path made only of RFC 3986 path characters, and not a
+      # network-path reference ("//host/path"). The URI parser hands such a
+      # path back untouched, so it is not worth parsing.
+      PLAIN_ABSOLUTE_PATH = %r{\A/(?!/)(?:[A-Za-z0-9\-._~!$&'()*+,;=:@/]|%[0-9A-Fa-f]{2})*\z}
+      private_constant :PLAIN_ABSOLUTE_PATH
+
       def normalize_action_path(action_path)
+        return action_path.chomp("/") if action_path.match?(PLAIN_ABSOLUTE_PATH)
+
         uri = URI.parse(action_path)
 
         if uri.relative? && (action_path.blank? || !action_path.start_with?("/"))

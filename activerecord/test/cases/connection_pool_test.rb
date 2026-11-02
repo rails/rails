@@ -1223,6 +1223,23 @@ module ActiveRecord
         assert_equal ActiveSupport::Concurrency::NullLock, @pool.lease_connection.lock
       end
 
+      def test_pin_connection_nesting_keeps_lock
+        assert_equal ActiveSupport::Concurrency::NullLock, @pool.lease_connection.lock
+
+        @pool.pin_connection!(true)
+        actual_lock = @pool.lease_connection.lock
+        assert_not_equal ActiveSupport::Concurrency::NullLock, actual_lock
+
+        @pool.pin_connection!(true)
+        assert_same actual_lock, @pool.lease_connection.lock
+
+        @pool.unpin_connection!
+        assert_same actual_lock, @pool.lease_connection.lock
+
+        @pool.unpin_connection!
+        assert_equal ActiveSupport::Concurrency::NullLock, @pool.lease_connection.lock
+      end
+
       def test_inspect_does_not_show_secrets
         assert_match(/#<ActiveRecord::ConnectionAdapters::ConnectionPool env_name="\w+" role=:writing>/, @pool.inspect)
 
@@ -1463,6 +1480,39 @@ module ActiveRecord
         connection = cs.first
         connection.close
         assert_equal connection, t.join.value
+      end
+
+      def test_checkout_wait_is_instrumented_when_the_pool_is_full
+        events = []
+        subscriber = ActiveSupport::Notifications.subscribe("checkout_wait.active_record") { |event| events << event }
+
+        cs = @pool.size.times.map { @pool.checkout }
+        assert_empty events
+
+        t = new_thread { @pool.checkout }
+        pass_to(t) until @pool.num_waiting_in_queue == 1
+        cs.first.close
+        t.join
+
+        assert_equal 1, events.size
+        assert_same @pool, events.first.payload[:connection_pool]
+        assert_equal @pool.checkout_timeout, events.first.payload[:checkout_timeout]
+      ensure
+        ActiveSupport::Notifications.unsubscribe(subscriber)
+      end
+
+      def test_checkout_wait_is_instrumented_when_the_checkout_times_out
+        events = []
+        subscriber = ActiveSupport::Notifications.subscribe("checkout_wait.active_record") { |event| events << event }
+
+        @pool.checkout_timeout = 0.001
+        @pool.size.times { @pool.checkout }
+        assert_raises(ConnectionTimeoutError) { @pool.checkout }
+
+        assert_equal 1, events.size
+        assert_equal ConnectionTimeoutError.name, events.first.payload[:exception].first
+      ensure
+        ActiveSupport::Notifications.unsubscribe(subscriber)
       end
 
       def test_full_pool_blocking_shares_load_interlock

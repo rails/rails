@@ -1,6 +1,5 @@
 # frozen_string_literal: true
 
-# :markup: markdown
 require "action_view/rendering"
 require "active_support/core_ext/module/redefine_method"
 
@@ -486,7 +485,7 @@ module ActionView
     end
 
     def _include_layout?(options)
-      !options.keys.intersect?([:body, :plain, :html, :inline, :partial]) || options.key?(:layout)
+      !(options.key?(:body) || options.key?(:plain) || options.key?(:html) || options.key?(:inline) || options.key?(:partial)) || options.key?(:layout)
     end
   end
 end

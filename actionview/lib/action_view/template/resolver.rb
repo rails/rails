@@ -7,7 +7,8 @@ require "action_view/template"
 require "concurrent/map"
 
 module ActionView
-  # = Action View Resolver
+  # Action View Resolver
+  # ====================
   class Resolver
     class PathParser # :nodoc:
       ParsedPath = Struct.new(:path, :details)

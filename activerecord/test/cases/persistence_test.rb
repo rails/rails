@@ -82,14 +82,12 @@ class PersistenceTest < ActiveRecord::TestCase
 
       assert_equal "A", record.binary_default_function
 
-      if supports_identity_columns?
-        klass = Class.new(ActiveRecord::Base) do
-          self.table_name = "postgresql_identity_table"
-        end
-
-        record = klass.create!
-        assert_not_nil record.id
+      klass = Class.new(ActiveRecord::Base) do
+        self.table_name = "postgresql_identity_table"
       end
+
+      record = klass.create!
+      assert_not_nil record.id
     end
 
     def test_fills_auto_populated_columns_on_update
@@ -2003,5 +2001,16 @@ class QueryConstraintsTest < ActiveRecord::TestCase
   def test_child_class_with_query_constraints_overrides_parents
     assert_equal(["clothing_type", "color", "size"], ClothingItem::Sized.query_constraints_list)
     assert_predicate ClothingItem::Sized, :has_query_constraints?
+  end
+
+  def test_explicit_query_constraints_on_abstract_class_do_not_require_schema
+    abstract_class = Class.new(ActiveRecord::Base) do
+      self.abstract_class = true
+      query_constraints :blog_id, :id
+    end
+
+    assert_predicate abstract_class, :has_query_constraints?
+    assert_equal ["blog_id", "id"], abstract_class.query_constraints_list
+    assert_equal ["blog_id", "id"], abstract_class.composite_query_constraints_list
   end
 end

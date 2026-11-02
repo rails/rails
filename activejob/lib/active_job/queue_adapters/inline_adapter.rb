@@ -1,15 +1,19 @@
 # frozen_string_literal: true
 
+# :markup: markdown
 module ActiveJob
   module QueueAdapters
-    # = Active Job Inline adapter
+    # Active Job Inline adapter
+    # =========================
     #
     # When enqueuing jobs with the Inline adapter the job will be executed
     # immediately.
     #
-    # To use the Inline set the queue_adapter config to +:inline+.
+    # To use the Inline set the queue_adapter config to `:inline`.
     #
-    #   Rails.application.config.active_job.queue_adapter = :inline
+    # ```
+    # Rails.application.config.active_job.queue_adapter = :inline
+    # ```
     class InlineAdapter < AbstractAdapter
       def enqueue(job) # :nodoc:
         Base.execute(job.serialize)

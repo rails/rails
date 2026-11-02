@@ -36,7 +36,6 @@ require "active_storage/errors"
 require "marcel"
 require "openssl"
 
-# :markup: markdown
 # :include: ../README.md
 module ActiveStorage
   extend ActiveSupport::Autoload

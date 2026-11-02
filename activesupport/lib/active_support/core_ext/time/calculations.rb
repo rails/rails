@@ -1,4 +1,3 @@
-# :markup: markdown
 # frozen_string_literal: true
 
 require "time"
@@ -15,6 +14,8 @@ class Time
   include DateAndTime::Calculations
 
   COMMON_YEAR_DAYS_IN_MONTH = [nil, 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31].freeze
+  NOT_GIVEN = Object.new.freeze
+  private_constant :NOT_GIVEN
 
   class << self
     # Overriding case equality method so that it returns true for ActiveSupport::TimeWithZone instances
@@ -24,8 +25,8 @@ class Time
 
     # Returns the number of days in the given month.
     # If no year is specified, it will use the current year.
-    def days_in_month(month, year = current.year)
-      if month == 2 && ::Date.gregorian_leap?(year)
+    def days_in_month(month, year = NOT_GIVEN)
+      if month == 2 && ::Date.gregorian_leap?(NOT_GIVEN.equal?(year) ? current.year : year)
         29
       else
         COMMON_YEAR_DAYS_IN_MONTH[month]
@@ -39,6 +40,7 @@ class Time
     end
 
     # Returns `Time.zone.now` when `Time.zone` or `config.time_zone` are set, otherwise just returns `Time.now`.
+    #: () -> (ActiveSupport::TimeWithZone | ::Time)
     def current
       ::Time.zone ? ::Time.zone.now : ::Time.now
     end
@@ -163,7 +165,7 @@ class Time
 
     raise ArgumentError, "argument out of range" if new_usec >= 1000000
 
-    new_sec += Rational(new_usec, 1000000)
+    new_sec += Rational(new_usec, 1000000) unless new_usec == 0
 
     if new_offset
       ::Time.new(new_year, new_month, new_day, new_hour, new_min, new_sec, new_offset)

@@ -1,6 +1,5 @@
 # frozen_string_literal: true
 
-# :markup: markdown
 module ActionView
   class DependencyTracker # :nodoc:
     class WildcardResolver # :nodoc:

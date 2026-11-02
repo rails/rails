@@ -205,7 +205,7 @@ module ActiveRecord
       list_advisory_locks = <<~SQL
         SELECT (classid::bigint << 32) | objid::bigint AS lock_id
         FROM pg_locks
-        WHERE locktype = 'advisory'
+        WHERE locktype = 'advisory' AND pid = pg_backend_pid()
       SQL
 
       got_lock = @connection.get_advisory_lock(lock_id)

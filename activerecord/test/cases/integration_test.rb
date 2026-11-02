@@ -7,6 +7,7 @@ require "models/computer"
 require "models/owner"
 require "models/pet"
 require "models/cpk"
+require "models/subscriber"
 
 class IntegrationTest < ActiveRecord::TestCase
   fixtures :companies, :developers, :owners, :pets
@@ -24,6 +25,13 @@ class IntegrationTest < ActiveRecord::TestCase
     client = Client.new
     client.id = 1
     assert_equal "1", client.to_param
+  end
+
+  def test_to_param_with_a_string_primary_key_returns_a_copy_of_the_id
+    subscriber = Subscriber.new(nick: "nick")
+
+    assert_equal "nick", subscriber.to_param
+    assert_not_same subscriber.id, subscriber.to_param
   end
 
   def test_to_param_class_method
@@ -120,7 +128,7 @@ class IntegrationTest < ActiveRecord::TestCase
   def test_cache_key_for_existing_record_is_not_timezone_dependent
     utc_key = Developer.first.cache_key
 
-    with_timezone_config zone: "EST" do
+    with_timezone_config zone: "America/New_York" do
       est_key = Developer.first.cache_key
       assert_equal utc_key, est_key
     end

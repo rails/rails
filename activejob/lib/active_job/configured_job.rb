@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 
+# :markup: markdown
 module ActiveJob
   class ConfiguredJob # :nodoc:
     def initialize(job_class, options = {})

@@ -8,7 +8,8 @@ require "mysql2"
 
 module ActiveRecord
   module ConnectionAdapters
-    # = Active Record MySQL2 Adapter
+    # Active Record MySQL2 Adapter
+    # ============================
     class Mysql2Adapter < AbstractMysqlAdapter
       ER_BAD_DB_ERROR           = 1049
       ER_DBACCESS_DENIED_ERROR  = 1044

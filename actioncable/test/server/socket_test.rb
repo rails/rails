@@ -26,6 +26,37 @@ class ActionCable::Server::SocketTest < ActionCable::TestCase
     end
   end
 
+  class RecordingConnection < Connection
+    def log
+      @log ||= Concurrent::Array.new
+    end
+
+    def handle_open
+      super
+      log << :open
+    end
+
+    def handle_incoming(payload)
+      sleep 0.05
+      log << payload["n"]
+    end
+
+    def handle_close
+      super
+      log << :close
+    end
+
+    def record(entry)
+      log << entry
+    end
+  end
+
+  class ChatChannel < ActionCable::Channel::Base
+    def subscribed
+      stream_from "chat"
+    end
+  end
+
   setup do
     @server = TestServer.new
     @server.config.allowed_request_origins = %w( http://rubyonrails.com )
@@ -92,6 +123,60 @@ class ActionCable::Server::SocketTest < ActionCable::TestCase
       wait_for_async
 
       assert_equal({ "message" => "hello" }, socket.connection.last_message)
+    end
+  end
+
+  test "processing a connection's commands in the order they arrive" do
+    @server.config.connection_class = -> { ActionCable::Connection::Base }
+    @server.pubsub.unsubscribe_latency = 0.1
+    identifier = { channel: ChatChannel.name }.to_json
+
+    run_in_eventmachine do
+      socket = open_socket
+      socket.process
+      wait_for_async
+
+      socket.receive({ command: "subscribe", identifier: identifier }.to_json)
+      wait_for_async
+
+      # A page navigation unsubscribes and resubscribes to the same channel.
+      socket.receive({ command: "unsubscribe", identifier: identifier }.to_json)
+      socket.receive({ command: "subscribe", identifier: identifier }.to_json)
+      wait_for_async
+
+      assert_equal [ identifier ], socket.connection.send(:subscriptions).identifiers
+    end
+  end
+
+  test "closing a connection after its earlier commands" do
+    @server.config.connection_class = -> { RecordingConnection }
+
+    run_in_eventmachine do
+      socket = open_socket
+      socket.process
+
+      socket.receive({ n: 1 }.to_json)
+      socket.receive({ n: 2 }.to_json)
+      socket.on_close(nil, nil)
+      wait_for_async
+
+      assert_equal [ :open, 1, 2, :close ], socket.connection.log
+    end
+  end
+
+  test "performing a connection's work in order with its commands" do
+    @server.config.connection_class = -> { RecordingConnection }
+
+    run_in_eventmachine do
+      socket = open_socket
+      socket.process
+
+      socket.receive({ n: 1 }.to_json)
+      socket.perform_work(socket.connection, :record, :work)
+      socket.receive({ n: 2 }.to_json)
+      wait_for_async
+
+      assert_equal [ :open, 1, :work, 2 ], socket.connection.log
     end
   end
 

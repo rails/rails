@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 
+# :markup: markdown
 require "resque"
 require "active_support/core_ext/enumerable"
 require "active_support/core_ext/array/access"
@@ -16,17 +17,20 @@ end
 
 module ActiveJob
   module QueueAdapters
-    # = Resque adapter for Active Job
+    # Resque adapter for Active Job
+    # =============================
     #
     # Resque (pronounced like "rescue") is a Redis-backed library for creating
     # background jobs, placing those jobs on multiple queues, and processing
     # them later.
     #
-    # Read more about Resque {here}[https://github.com/resque/resque].
+    # Read more about Resque [here](https://github.com/resque/resque).
     #
-    # To use Resque set the queue_adapter config to +:resque+.
+    # To use Resque set the queue_adapter config to `:resque`.
     #
-    #   Rails.application.config.active_job.queue_adapter = :resque
+    # ```
+    # Rails.application.config.active_job.queue_adapter = :resque
+    # ```
     class ResqueAdapter < AbstractAdapter
       def check_adapter
         ActiveJob.deprecator.warn <<~MSG.squish

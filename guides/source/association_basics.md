@@ -1675,7 +1675,7 @@ instructed otherwise.
 If you're working with composite primary keys in your Rails models and need to
 ensure the correct handling of associations, please refer to the [Associations
 section of the Composite Primary Keys
-guide](active_record_composite_primary_keys.html#associations-between-models-with-composite-primary-keys).
+guide](active_record_composite_primary_keys.html#associations).
 This section provides comprehensive guidance on setting up and using
 associations with composite primary keys in Rails, including how to specify
 composite foreign keys when necessary.
@@ -2997,18 +2997,18 @@ fetched through an association.
 ```ruby
 class Parts < ApplicationRecord
   has_and_belongs_to_many :assemblies,
-    -> { order("created_at DESC").limit(50) }
+    -> { order(created_at: :desc).limit(50) }
 end
 ```
 
 ##### `order`
 
 The `order` method dictates the order in which associated objects will be
-received (in the syntax used by an SQL `ORDER BY` clause).
+received.
 
 ```ruby
 class Author < ApplicationRecord
-  has_many :books, -> { order "date_confirmed DESC" }
+  has_many :books, -> { order(date_confirmed: :desc) }
 end
 ```
 

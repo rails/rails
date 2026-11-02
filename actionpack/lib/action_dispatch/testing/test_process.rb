@@ -1,7 +1,5 @@
 # frozen_string_literal: true
 
-# :markup: markdown
-
 require "action_dispatch/middleware/cookies"
 require "action_dispatch/middleware/flash"
 

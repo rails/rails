@@ -1,6 +1,5 @@
 # frozen_string_literal: true
 
-# :markup: markdown
 require "active_support/code_generator"
 require "active_support/core_ext/enumerable"
 require "active_support/core_ext/string/output_safety"
@@ -19,15 +18,17 @@ module ActionView
       include CaptureHelper
       include OutputSafetyHelper
 
-      BOOLEAN_ATTRIBUTES = %w(allowfullscreen allowpaymentrequest async autofocus
-                              autoplay checked compact controls declare default
-                              defaultchecked defaultmuted defaultselected defer
-                              disabled enabled formnovalidate hidden indeterminate
-                              inert ismap itemscope loop multiple muted nohref
-                              nomodule noresize noshade novalidate nowrap open
-                              pauseonexit playsinline readonly required reversed
-                              scoped seamless selected sortable truespeed
-                              typemustmatch visible).to_set
+      BOOLEAN_ATTRIBUTES = %w(allowfullscreen allowpaymentrequest alpha async
+                              autofocus autoplay checked compact controls declare
+                              default defaultchecked defaultmuted defaultselected
+                              defer disabled enabled formnovalidate headingreset
+                              hidden indeterminate inert ismap itemscope loop
+                              multiple muted nohref nomodule noresize noshade
+                              novalidate nowrap open pauseonexit playsinline
+                              readonly required reversed scoped seamless selected
+                              shadowrootclonable shadowrootcustomelementregistry
+                              shadowrootdelegatesfocus shadowrootserializable
+                              sortable truespeed typemustmatch visible).to_set
 
       BOOLEAN_ATTRIBUTES.merge(BOOLEAN_ATTRIBUTES.map(&:to_sym))
       BOOLEAN_ATTRIBUTES.freeze
@@ -1534,7 +1535,9 @@ module ActionView
           if escape && content.present?
             content = ERB::Util.unwrapped_html_escape(content)
           end
-          "<#{name}#{tag_options}>#{PRE_CONTENT_STRINGS[name]}#{content}</#{name}>".html_safe
+          # Freezing first lets the SafeBuffer share this string's contents, instead
+          # of Ruby allocating a hidden string for both to share.
+          "<#{name}#{tag_options}>#{PRE_CONTENT_STRINGS[name]}#{content}</#{name}>".freeze.html_safe
         end
 
         def tag_options(options, escape = true) # :nodoc:
@@ -1550,7 +1553,7 @@ module ActionView
                 next if k.blank? || v.nil?
 
                 output << sep
-                output << prefix_tag_option(key, k, v, escape)
+                append_prefix_tag_option(output, key, k, v, escape)
               end
             elsif type == :aria && value.is_a?(Hash)
               value.each_pair do |k, v|
@@ -1563,20 +1566,25 @@ module ActionView
 
                   v = @view_context.safe_join(tokens, " ")
                 else
-                  v = v.to_s
+                  v = v.is_a?(Symbol) ? v.name : v.to_s
                 end
 
                 output << sep
-                output << prefix_tag_option(key, k, v, escape)
+                append_prefix_tag_option(output, key, k, v, escape)
               end
             elsif type == :boolean
               if value
                 output << sep
-                output << boolean_tag_option(key)
+                if (String === value || Symbol === value) && (key == :hidden || key == "hidden")
+                  # hidden also takes a keyword, such as "until-found"
+                  append_tag_option(output, key, value, escape)
+                else
+                  append_boolean_tag_option(output, key)
+                end
               end
             elsif !value.nil?
               output << sep
-              output << tag_option(key, value, escape)
+              append_tag_option(output, key, value, escape)
             end
           end
           output unless output.empty?
@@ -1594,36 +1602,66 @@ module ActionView
           end
 
           def self_closing_tag_string(name, options, escape = true, tag_suffix = " />")
-            "<#{name}#{tag_options(options, escape)}#{tag_suffix}".html_safe
+            "<#{name}#{tag_options(options, escape)}#{tag_suffix}".freeze.html_safe
           end
 
           def boolean_tag_option(key)
-            %(#{key}="#{key}")
+            output = +""
+            append_boolean_tag_option(output, key)
+            output
+          end
+
+          def append_boolean_tag_option(output, key)
+            key = Symbol === key ? key.name : key.to_s
+            output << key
+            output << "=\""
+            output << key
+            output << "\""
           end
 
           def tag_option(key, value, escape)
+            output = +""
+            append_tag_option(output, key, value, escape)
+            output
+          end
+
+          # Appends a single attribute to +output+ without allocating an
+          # intermediate string per attribute.
+          def append_tag_option(output, key, value, escape)
+            key = Symbol === key ? key.name : key.to_s
             key = ERB::Util.xml_name_escape(key) if escape
 
             case value
             when Array, Hash
-              value = TagHelper.build_tag_values(value) if key.to_s == "class"
+              value = TagHelper.build_tag_values(value) if key == "class"
               value = escape ? @view_context.safe_join(value, " ") : value.join(" ")
             when Regexp
               value = escape ? ERB::Util.unwrapped_html_escape(value.source) : value.source
+            when Symbol
+              value = escape ? ERB::Util.unwrapped_html_escape(value.name) : value.name
             else
               value = escape ? ERB::Util.unwrapped_html_escape(value) : value.to_s
             end
             value = value.gsub('"', "&quot;") if value.include?('"')
 
-            %(#{key}="#{value}")
+            output << key
+            output << "=\""
+            output << value
+            output << "\""
           end
 
           def prefix_tag_option(prefix, key, value, escape)
-            key = "#{prefix}-#{key.to_s.dasherize}"
+            output = +""
+            append_prefix_tag_option(output, prefix, key, value, escape)
+            output
+          end
+
+          def append_prefix_tag_option(output, prefix, key, value, escape)
+            key = "#{prefix}-#{(Symbol === key ? key.name : key.to_s).dasherize}"
             unless value.is_a?(String) || value.is_a?(Symbol) || value.is_a?(BigDecimal)
               value = value.to_json
             end
-            tag_option(key, value, escape)
+            append_tag_option(output, key, value, escape)
           end
 
           def respond_to_missing?(*args)
@@ -1772,9 +1810,18 @@ module ActionView
       #  # => "123 foo bar"
       # ```
       def token_list(*args)
-        tokens = build_tag_values(*args).flat_map { |value| CGI.unescape_html(value.to_s).split(/\s+/) }.uniq
+        tokens = []
+        build_tag_values(*args).each do |value|
+          value = value.to_s
+          value = CGI.unescape_html(value) if value.include?("&")
+          # The block form of split yields each token without building an
+          # array per value.
+          value.split(/\s+/) { |token| tokens << token }
+        end
+        tokens.uniq!
 
-        safe_join(tokens, " ")
+        # Inlined safe_join: the tokens are already a flat array.
+        tokens.map! { |token| ERB::Util.unwrapped_html_escape(token) }.join(" ").html_safe
       end
       alias_method :class_names, :token_list
 

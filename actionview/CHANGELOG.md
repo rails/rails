@@ -1,3 +1,39 @@
+*   Percent-encode `<`, `>`, whitespace and control characters in the `href`
+    of `Link` header entries built by `preload_link_tag`, `stylesheet_link_tag`
+    and `javascript_include_tag`.
+
+    A URL containing `>` used to close the URI reference early, so the rest of
+    the URL was parsed as extra link parameters or extra links. The HTML tag
+    is unchanged.
+
+    *Richard Desmarais*
+
+*   Treat `alpha`, `headingreset`, `shadowrootclonable`,
+    `shadowrootcustomelementregistry`, `shadowrootdelegatesfocus` and
+    `shadowrootserializable` as boolean attributes in the tag helpers.
+
+    `tag.template(shadowrootmode: "open", shadowrootdelegatesfocus: false)` used
+    to render `shadowrootdelegatesfocus="false"`, which turns the attribute on.
+    `false` and `nil` now omit these attributes, like the other boolean
+    attributes.
+
+    *Wleeaf*
+
+*   Render a string or symbol value of the `hidden` attribute as is, so
+    `tag.div(hidden: "until-found")` produces `hidden="until-found"` instead of
+    `hidden="hidden"`. `true` and `false` still render `hidden="hidden"` and no
+    attribute.
+
+    *Wleeaf*
+
+*   Fix the debug page for errors raised in view templates on Ruby 4.1.
+
+    Ruby 4.1 builds prism into the interpreter as `Ruby::Prism`, and
+    error_highlight accepts only its nodes. `ActionView::Template#spot` now
+    uses `Ruby::Prism` when it is available instead of the prism gem.
+
+    *Yasuo Honda*
+
 *   Allow setting `config.action_view.erb_implementation` to `:herb` to
     compile HTML+ERB templates through Herb.
 

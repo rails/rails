@@ -78,6 +78,18 @@ class CookieJarTest < ActiveSupport::TestCase
     request.cookie_jar.write(headers)
     assert_not_includes headers, "Set-Cookie"
   end
+
+  def test_reading_a_missing_signed_or_encrypted_cookie_derives_no_keys
+    request.env["action_dispatch.key_generator"] = Class.new do
+      def generate_key(*)
+        raise "no key should be derived"
+      end
+    end.new
+
+    assert_nil request.cookie_jar.signed[:missing]
+    assert_nil request.cookie_jar.encrypted[:missing]
+    assert_nil request.cookie_jar.signed_or_encrypted[:missing]
+  end
 end
 
 class CookiesMiddlewareTest < ActiveSupport::TestCase

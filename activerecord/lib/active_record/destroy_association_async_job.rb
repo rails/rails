@@ -4,7 +4,8 @@ module ActiveRecord
   class DestroyAssociationAsyncError < StandardError
   end
 
-  # = Active Record Destroy Association Async Job
+  # Active Record Destroy Association Async Job
+  # ===========================================
   #
   # Job to destroy the records associated with a destroyed record in background.
   class DestroyAssociationAsyncJob < ActiveJob::Base

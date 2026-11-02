@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 
+# :markup: markdown
 require "rails/generators/active_record"
 
 module ActiveRecord
@@ -60,7 +61,7 @@ module ActiveRecord
           attributes.select { |a| !a.reference? && a.has_index? }
         end
 
-        # A migration file name can only contain underscores (_), lowercase characters,
+        # A migration file name can only contain underscores (\_), lowercase characters,
         # and numbers 0-9. Any other file name will raise an IllegalMigrationNameError.
         def validate_file_name!
           unless /^[_a-z0-9]+$/.match?(file_name)

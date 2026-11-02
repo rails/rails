@@ -5,6 +5,7 @@ require "openssl"
 require "active_support/time"
 require "active_support/json"
 require "active_support/core_ext/securerandom"
+require "active_support/testing/ractors_assertions"
 require_relative "messages/message_codec_tests"
 
 class MessageVerifierTest < ActiveSupport::TestCase
@@ -133,8 +134,51 @@ class MessageVerifierTest < ActiveSupport::TestCase
     assert_match(/\A#<ActiveSupport::MessageVerifier:0x[0-9a-f]+>\z/, @verifier.inspect)
   end
 
+  test "signs every message with the HMAC of its secret and digest" do
+    ["SHA1", "SHA256", "SHA512"].each do |digest|
+      verifier = ActiveSupport::MessageVerifier.new(@secret, digest: digest)
+
+      ["alice", "bob", "alice"].each do |name|
+        encoded, signature = verifier.generate(name).split("--")
+        assert_equal OpenSSL::HMAC.hexdigest(digest, @secret, encoded), signature
+      end
+    end
+  end
+
+  test "freezing a frozen verifier is a no-op" do
+    @verifier.generate("alice")
+    @verifier.freeze
+
+    assert_same @verifier, @verifier.freeze
+  end
+
   private
     def make_codec(**options)
       ActiveSupport::MessageVerifier.new(@secret, **options)
     end
+end
+
+class RactorMessageVerifierTest < ActiveSupport::TestCase
+  include ActiveSupport::Testing::RactorsAssertions
+
+  setup do
+    @secret = SecureRandom.random_bytes(32)
+    @message = ActiveSupport::MessageVerifier.new(@secret).generate("alice")
+  end
+
+  test "a verifier shared across ractors signs messages" do
+    verifier = ActiveSupport::MessageVerifier.new(@secret)
+    ActiveSupport::Ractors.make_shareable(verifier)
+
+    assert_equal @message, on_ractor(verifier) { |verifier| verifier.generate("alice") }
+  end
+
+  test "a verifier that signed messages before being shared across ractors signs and verifies them" do
+    verifier = ActiveSupport::MessageVerifier.new(@secret)
+    verifier.verify(verifier.generate("bob"))
+    ActiveSupport::Ractors.make_shareable(verifier)
+
+    assert_equal @message, on_ractor(verifier) { |verifier| verifier.generate("alice") }
+    assert_equal "alice", on_ractor(verifier, @message) { |verifier, message| verifier.verify(message) }
+  end
 end

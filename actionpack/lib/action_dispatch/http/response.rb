@@ -1,7 +1,5 @@
 # frozen_string_literal: true
 
-# :markup: markdown
-
 require "active_support/core_ext/class/attribute"
 require "action_dispatch/http/filter_redirect"
 require "action_dispatch/http/cache"
@@ -210,6 +208,8 @@ module ActionDispatch # :nodoc:
       @committed    = false
       @sending      = false
       @sent         = false
+      @parsed_content_type = nil
+      @parsed_content_type_raw = nil
 
       prepare_cache_control!
 
@@ -312,7 +312,7 @@ module ActionDispatch # :nodoc:
 
     # Media type of response.
     def media_type
-      parsed_content_type_header.mime_type
+      parsed_content_type_header.mime_type&.dup
     end
 
     def sending_file=(v)
@@ -327,7 +327,7 @@ module ActionDispatch # :nodoc:
     #     response.charset = 'utf-16' # => 'utf-16'
     #     response.charset = nil      # => 'utf-8'
     def charset=(charset)
-      content_type = parsed_content_type_header.mime_type
+      content_type = parsed_content_type_header.mime_type&.dup
       if false == charset
         set_content_type content_type, nil
       else
@@ -339,7 +339,7 @@ module ActionDispatch # :nodoc:
     # you're giving them, so we need to send that along.
     def charset
       header_info = parsed_content_type_header
-      header_info.charset || self.class.default_charset
+      header_info.charset&.dup || self.class.default_charset
     end
 
     # The response code of the request.
@@ -492,7 +492,11 @@ module ActionDispatch # :nodoc:
     /x # :nodoc:
 
     def parse_content_type(content_type)
-      if content_type && match = CONTENT_TYPE_PARSER.match(content_type)
+      # Without parameters or whitespace, the whole value is the media type, which
+      # is what CONTENT_TYPE_PARSER would return.
+      if String === content_type && !content_type.empty? && !content_type.match?(/[;\s]/)
+        ContentTypeHeader.new(String.new(content_type), nil)
+      elsif content_type && match = CONTENT_TYPE_PARSER.match(content_type)
         ContentTypeHeader.new(match[:mime_type], match[:charset])
       else
         NullContentTypeHeader
@@ -500,15 +504,53 @@ module ActionDispatch # :nodoc:
     end
 
     # Small internal convenience method to get the parsed version of the current
-    # content type header.
+    # content type header. The result is memoized per raw header value, since
+    # the header is read several times per request (content negotiation,
+    # charset, committing the response) and parsing allocates a MatchData and
+    # its captures each time. A missing header is not memoized: it parses to
+    # a shared null object without allocating.
     def parsed_content_type_header
-      parse_content_type(get_header(CONTENT_TYPE))
+      raw = get_header(CONTENT_TYPE)
+      return NullContentTypeHeader unless raw
+
+      # The memo key is a frozen copy, so changing the header in place misses it.
+      # It is stored only once parsing succeeds, and the encoding is compared
+      # because == ignores it for ASCII-only strings.
+      memoized_raw = @parsed_content_type_raw
+      if raw == memoized_raw && raw.encoding == memoized_raw.encoding
+        @parsed_content_type
+      else
+        @parsed_content_type = parse_content_type(raw)
+        @parsed_content_type_raw = -raw
+        @parsed_content_type
+      end
     end
+
+    # Parts of a Content-Type header that the parser could read differently
+    # than they were given: parameters, whitespace, quoting.
+    AMBIGUOUS_CONTENT_TYPE_PART = /[;\s"]/
+    private_constant :AMBIGUOUS_CONTENT_TYPE_PART
 
     def set_content_type(content_type, charset)
       type = content_type || ""
-      type = "#{type}; charset=#{charset.to_s.downcase}" if charset
+      if charset
+        charset = charset.to_s.downcase
+        type = "#{type}; charset=#{charset}"
+      else
+        charset = nil
+      end
       set_header CONTENT_TYPE, type
+
+      # We serialized the parts ourselves, so prime the parsed-header memo
+      # instead of letting the reader regexp-parse our own output back apart.
+      # Parts the parser could read differently, or that aren't in the encoding
+      # of the header it would read them from, go through the parser.
+      mime_type = content_type.presence
+      unless mime_type&.match?(AMBIGUOUS_CONTENT_TYPE_PART) || charset&.match?(AMBIGUOUS_CONTENT_TYPE_PART) || charset == "" ||
+          (mime_type && mime_type.encoding != type.encoding) || (charset && charset.encoding != type.encoding)
+        @parsed_content_type_raw = -type
+        @parsed_content_type = ContentTypeHeader.new(mime_type, charset)
+      end
     end
 
     def before_committed
@@ -534,10 +576,10 @@ module ActionDispatch # :nodoc:
     end
 
     def assign_default_content_type_and_charset!
-      return if media_type
-
       ct = parsed_content_type_header
-      set_content_type(ct.mime_type || Mime[:html].to_s,
+      return if ct.mime_type
+
+      set_content_type(Mime[:html].to_s,
                        ct.charset || self.class.default_charset)
     end
 

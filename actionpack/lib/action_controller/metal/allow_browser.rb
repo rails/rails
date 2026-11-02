@@ -1,7 +1,5 @@
 # frozen_string_literal: true
 
-# :markup: markdown
-
 require "active_support/ractors"
 
 module ActionController # :nodoc:
@@ -62,7 +60,7 @@ module ActionController # :nodoc:
       #       allow_browser versions: { opera: 104, chrome: 119 }, only: :show
       #     end
       def allow_browser(versions:, block: nil, **options)
-        require "useragent"
+        require "useragent" unless defined?(::UserAgent)
 
         before_action -> { allow_browser(versions: versions, block: block || DEFAULT_UNSUPPORTED_BROWSER_RESPONSE) }, **options
       end
@@ -97,8 +95,14 @@ module ActionController # :nodoc:
             @parsed_user_agent ||= UserAgent.parse(request.user_agent)
           end
 
+          # UserAgent works out the version and the browser again each time they're
+          # read, so they're read once.
+          def user_agent_version
+            @user_agent_version ||= parsed_user_agent.version
+          end
+
           def user_agent_version_reported?
-            request.user_agent.present? && parsed_user_agent.version.to_s.present?
+            request.user_agent.present? && user_agent_version.to_s.present?
           end
 
           def unsupported_browser?
@@ -115,14 +119,15 @@ module ActionController # :nodoc:
 
           def version_below_minimum_required?
             if minimum_browser_version_for_browser
-              parsed_user_agent.version < UserAgent::Version.new(minimum_browser_version_for_browser.to_s)
+              user_agent_version < UserAgent::Version.new(minimum_browser_version_for_browser.to_s)
             else
               true
             end
           end
 
           def minimum_browser_version_for_browser
-            expanded_versions[normalized_browser_name]
+            return @minimum_browser_version_for_browser if defined?(@minimum_browser_version_for_browser)
+            @minimum_browser_version_for_browser = expanded_versions[normalized_browser_name]
           end
 
           def expanded_versions

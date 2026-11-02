@@ -181,7 +181,7 @@ module ActiveSupport
       end
 
       def read_time_with_zone(unpacker)
-        ActiveSupport::TimeWithZone.new(read_time(unpacker), read_time_zone(unpacker))
+        ActiveSupport::TimeWithZone.new(read_time(unpacker).utc, read_time_zone(unpacker))
       end
 
       def dump_time_zone(time_zone)

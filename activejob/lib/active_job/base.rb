@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 
+# :markup: markdown
 require "active_job/core"
 require "active_job/queue_adapter"
 require "active_job/queue_name"
@@ -15,12 +16,15 @@ require "active_job/instrumentation"
 require "active_job/execution_state"
 
 module ActiveJob # :nodoc:
-  # = Active Job \Base
+  # Active Job \Base
+  # ================
   #
   # Active Job objects can be configured to work with different backend
   # queuing frameworks. To specify a queue adapter to use:
   #
-  #   ActiveJob::Base.queue_adapter = :inline
+  # ```
+  # ActiveJob::Base.queue_adapter = :inline
+  # ```
   #
   # A list of supported adapters can be found in QueueAdapters.
   #
@@ -30,33 +34,42 @@ module ActiveJob # :nodoc:
   #
   # To define an Active Job object:
   #
-  #   class ProcessPhotoJob < ActiveJob::Base
-  #     def perform(photo)
-  #       photo.watermark!('Rails')
-  #       photo.rotate!(90.degrees)
-  #       photo.resize_to_fit!(300, 300)
-  #       photo.upload!
-  #     end
+  # ```
+  # class ProcessPhotoJob < ActiveJob::Base
+  #   def perform(photo)
+  #     photo.watermark!('Rails')
+  #     photo.rotate!(90.degrees)
+  #     photo.resize_to_fit!(300, 300)
+  #     photo.upload!
   #   end
+  # end
+  # ```
   #
   # Records that are passed in are serialized/deserialized using Global
   # ID. More information can be found in ActiveJob::Arguments.
   #
   # To enqueue a job to be performed as soon as the queuing system is free:
   #
-  #   ProcessPhotoJob.perform_later(photo)
+  # ```
+  # ProcessPhotoJob.perform_later(photo)
+  # ```
   #
   # To enqueue a job to be processed at some point in the future:
   #
-  #   ProcessPhotoJob.set(wait_until: Date.tomorrow.noon).perform_later(photo)
+  # ```
+  # ProcessPhotoJob.set(wait_until: Date.tomorrow.noon).perform_later(photo)
+  # ```
   #
   # More information can be found in ActiveJob::Core::ClassMethods#set.
   #
   # A job can also be processed immediately without sending to the queue:
   #
-  #  ProcessPhotoJob.perform_now(photo)
+  # ```
+  # ProcessPhotoJob.perform_now(photo)
+  # ```
   #
-  # == Exceptions
+  # Exceptions
+  # ----------
   #
   # * DeserializationError - Error class for deserialization errors.
   # * SerializationError - Error class for serialization errors.

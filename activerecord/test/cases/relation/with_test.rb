@@ -5,10 +5,11 @@ require "active_support/core_ext/object/with"
 require "models/comment"
 require "models/post"
 require "models/company"
+require "models/author"
 
 module ActiveRecord
   class WithTest < ActiveRecord::TestCase
-    fixtures :comments, :posts, :companies
+    fixtures :comments, :posts, :companies, :authors, :author_addresses
 
     SPECIAL_POSTS = [2].freeze
     POSTS_WITH_TAGS = [1, 2, 7, 8, 9, 10, 11].freeze
@@ -122,6 +123,20 @@ module ActiveRecord
           .joins(:commented_posts)
 
         assert_equal POSTS_WITH_COMMENTS, relation.order(:id).pluck(:id)
+      end
+
+      def test_with_joins_and_eager_load_with_limit
+        relation = Post
+          .with(commented_posts: Comment.select(:post_id))
+          .joins(:commented_posts)
+          .eager_load(:author)
+          .order(:id)
+          .limit(2)
+
+        records = relation.to_a
+
+        assert_equal POSTS_WITH_COMMENTS.first(2), records.map(&:id)
+        assert_predicate records.first.association(:author), :loaded?
       end
 
       def test_with_left_joins

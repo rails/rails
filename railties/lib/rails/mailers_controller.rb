@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 
+# :markup: markdown
 require "rails/application_controller"
 require "active_support/core_ext/enumerable"
 

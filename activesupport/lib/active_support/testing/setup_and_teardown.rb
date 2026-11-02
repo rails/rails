@@ -37,6 +37,7 @@ module ActiveSupport
         #   end
         # end
         # ```
+        #: (*untyped) ?{ (?untyped) [self: untyped] -> void } -> void
         def setup(*args, &block)
           set_callback(:setup, :before, *args, &block)
         end
@@ -50,6 +51,7 @@ module ActiveSupport
         #   end
         # end
         # ```
+        #: (*untyped) ?{ (?untyped) [self: untyped] -> void } -> void
         def teardown(*args, &block)
           set_callback(:teardown, :after, *args, &block)
         end

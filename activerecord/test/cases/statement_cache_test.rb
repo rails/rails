@@ -42,6 +42,92 @@ module ActiveRecord
       assert_equal b2.name, b[0].name
     end
 
+    def test_positional_parameters_follow_declaration_order
+      first = Book.create!(name: "First", author_id: 1)
+      second = Book.create!(name: "Second", author_id: 2)
+
+      each_statement_mode do
+        cache = StatementCache.create(@connection) do |params|
+          name = params.bind
+          author_id = params.bind
+          Book.where(author_id: author_id, name: name).where.not(id: -1)
+        end
+
+        assert_equal [first], cache.execute([first.name, first.author_id], @connection)
+        assert_equal [second], cache.execute([second.name, second.author_id], @connection)
+      end
+    end
+
+    def test_repeated_parameters_share_one_input
+      first = Book.create!(name: "Matched", isbn: "Other")
+      second = Book.create!(name: "Other", isbn: "Matched")
+
+      each_statement_mode do
+        cache = StatementCache.create(@connection) do |params|
+          value = params.bind
+          Book.where(name: value).or(Book.where(isbn: value)).order(:id)
+        end
+
+        assert_equal [first, second].sort_by(&:id), cache.execute(["Matched"], @connection)
+        assert_empty cache.execute(["Absent"], @connection)
+      end
+    end
+
+    def test_removed_parameters_do_not_shift_later_inputs
+      book = Book.create!(name: nil, author_id: 3)
+
+      each_statement_mode do
+        cache = StatementCache.create(@connection) do |params|
+          Book.where(name: params.bind, author_id: params.bind).rewhere(name: nil)
+        end
+
+        assert_equal [book], cache.execute(["Unused", book.author_id], @connection)
+      end
+    end
+
+    def test_named_parameters_can_be_supplied_by_a_hash
+      enabled = Book.create!(name: "Enabled", author_id: 4, boolean_status: true)
+      disabled = Book.create!(name: "Disabled", author_id: 4, boolean_status: false)
+
+      each_statement_mode do
+        cache = StatementCache.create(@connection) do |params|
+          Book.where(author_id: params.bind(:owner_id), boolean_status: params.bind(:enabled))
+        end
+
+        assert_equal [enabled], cache.execute({ enabled: true, owner_id: 4 }, @connection)
+        assert_equal [disabled], cache.execute({ enabled: false, owner_id: 4 }, @connection)
+      end
+    end
+
+    def test_nil_and_false_parameter_keys_with_fixed_binds
+      book = Book.create!(name: "Named keys", isbn: "fixed-bind-isbn", author_id: 4, boolean_status: true)
+
+      each_statement_mode do
+        cache = StatementCache.create(@connection) do |params|
+          Book.where(isbn: book.isbn, name: params.bind(nil), boolean_status: true, author_id: params.bind(false))
+        end
+
+        assert_equal [book], cache.execute({ nil => book.name, false => book.author_id }, @connection)
+        assert_empty cache.execute({ nil => "Other name", false => book.author_id }, @connection)
+      end
+    end
+
+    def test_named_parameters_can_be_supplied_by_a_reader
+      first = Book.create!(name: "First", author_id: 5)
+      second = Book.create!(name: "Second", author_id: 6)
+
+      each_statement_mode do
+        cache = StatementCache.create(@connection) do |params|
+          Book.where(author_id: params.bind("id"), name: params.bind("title"))
+        end
+
+        first_owner = Book.new(id: first.author_id, title: first.name)
+        second_owner = Book.new(id: second.author_id, title: second.name)
+        assert_equal [first], cache.execute(first_owner.method(:read_attribute), @connection)
+        assert_equal [second], cache.execute(second_owner.method(:read_attribute), @connection)
+      end
+    end
+
     def test_find_or_create_by
       Book.create(name: "my book")
 
@@ -173,5 +259,11 @@ module ActiveRecord
     ensure
       Liquid.table_name = :liquid
     end
+
+    private
+      def each_statement_mode(&)
+        yield
+        @connection.unprepared_statement(&)
+      end
   end
 end

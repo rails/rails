@@ -35,13 +35,15 @@ module Rails
   # Gemfile, README, or JavaScript files, without needing to know exactly
   # what those operations do so you can create another template action.
   #
-  #  class CustomAppBuilder < Rails::AppBuilder
-  #    def test
-  #      @generator.gem "rspec-rails", group: [:development, :test]
-  #      run "bundle install"
-  #      generate "rspec:install"
-  #    end
-  #  end
+  # ```
+  # class CustomAppBuilder < Rails::AppBuilder
+  #   def test
+  #     @generator.gem "rspec-rails", group: [:development, :test]
+  #     run "bundle install"
+  #     generate "rspec:install"
+  #   end
+  # end
+  # ```
   class AppBuilder
     def rakefile
       template "Rakefile"
@@ -626,9 +628,11 @@ module Rails
       # Registers a callback to be executed after bundle binstubs
       # have run.
       #
-      #   after_bundle do
-      #     git add: '.'
-      #   end
+      # ```
+      # after_bundle do
+      #   git add: '.'
+      # end
+      # ```
       def after_bundle(&block) # :doc:
         @after_bundle_callbacks << block
       end

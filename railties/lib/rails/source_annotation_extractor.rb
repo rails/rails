@@ -1,11 +1,10 @@
 # frozen_string_literal: true
 
-require "prism"
-
+# :markup: markdown
 module Rails
-  # Implements the logic behind +Rails::Command::NotesCommand+. See <tt>rails notes --help</tt> for usage information.
+  # Implements the logic behind `Rails::Command::NotesCommand`. See `rails notes --help` for usage information.
   #
-  # Annotation objects are triplets <tt>:line</tt>, <tt>:tag</tt>, <tt>:text</tt> that
+  # Annotation objects are triplets `:line`, `:tag`, `:text` that
   # represent the line where the annotation lives, its tag, and its text. Note
   # the filename is not stored.
   #
@@ -17,6 +16,8 @@ module Rails
     # file's comments.
     class ParserExtractor < Struct.new(:pattern)
       def annotations(file)
+        require "prism"
+
         result = Prism.parse_file(file)
         return [] unless result.success?
 
@@ -46,7 +47,10 @@ module Rails
       end
 
       # Registers additional directories to be included
-      #   Rails::SourceAnnotationExtractor::Annotation.register_directories("spec", "another")
+      #
+      # ```
+      # Rails::SourceAnnotationExtractor::Annotation.register_directories("spec", "another")
+      # ```
       def self.register_directories(*dirs)
         directories.push(*dirs)
       end
@@ -56,7 +60,10 @@ module Rails
       end
 
       # Registers additional tags
-      #   Rails::SourceAnnotationExtractor::Annotation.register_tags("TESTME", "DEPRECATEME")
+      #
+      # ```
+      # Rails::SourceAnnotationExtractor::Annotation.register_tags("TESTME", "DEPRECATEME")
+      # ```
       def self.register_tags(*additional_tags)
         tags.push(*additional_tags)
       end
@@ -66,7 +73,10 @@ module Rails
       end
 
       # Registers new Annotations File Extensions
-      #   Rails::SourceAnnotationExtractor::Annotation.register_extensions("css", "scss", "sass", "less", "js") { |tag| /\/\/\s*(#{tag}):?\s*(.*)$/ }
+      #
+      # ```
+      # Rails::SourceAnnotationExtractor::Annotation.register_extensions("css", "scss", "sass", "less", "js") { |tag| /\/\/\s*(#{tag}):?\s*(.*)$/ }
+      # ```
       def self.register_extensions(*exts, &block)
         extensions[/\.(#{exts.join("|")})$/] = block
       end
@@ -93,9 +103,11 @@ module Rails
 
       # Returns a representation of the annotation that looks like this:
       #
-      #   [126] [TODO] This algorithm is simple and clearly correct, make it faster.
+      # ```
+      # [126] [TODO] This algorithm is simple and clearly correct, make it faster.
+      # ```
       #
-      # If +options+ has a flag <tt>:tag</tt> the tag is shown as in the example above.
+      # If `options` has a flag `:tag` the tag is shown as in the example above.
       # Otherwise the string contains just line and text.
       def to_s(options = {})
         s = +"[#{line.to_s.rjust(options[:indent])}] "
@@ -104,20 +116,22 @@ module Rails
       end
     end
 
-    # Prints all annotations with tag +tag+ under the root directories +app+,
-    # +config+, +db+, +lib+, and +test+ (recursively).
+    # Prints all annotations with tag `tag` under the root directories `app`,
+    # `config`, `db`, `lib`, and `test` (recursively).
     #
-    # If +tag+ is <tt>nil</tt>, annotations with either default or registered tags are printed.
+    # If `tag` is `nil`, annotations with either default or registered tags are printed.
     #
-    # Specific directories can be explicitly set using the <tt>:dirs</tt> key in +options+.
+    # Specific directories can be explicitly set using the `:dirs` key in `options`.
     #
-    #   Rails::SourceAnnotationExtractor.enumerate 'TODO|FIXME', dirs: %w(app lib), tag: true
+    # ```
+    # Rails::SourceAnnotationExtractor.enumerate 'TODO|FIXME', dirs: %w(app lib), tag: true
+    # ```
     #
-    # If +options+ has a <tt>:tag</tt> flag, it will be passed to each annotation's +to_s+.
+    # If `options` has a `:tag` flag, it will be passed to each annotation's `to_s`.
     #
     # See SourceAnnotationExtractor#find_in for a list of file extensions that will be taken into account.
     #
-    # This class method is the single entry point for the <tt>rails notes</tt> command.
+    # This class method is the single entry point for the `rails notes` command.
     def self.enumerate(tag = nil, options = {})
       tag ||= Annotation.tags.join("|")
       extractor = new(tag)
@@ -131,15 +145,15 @@ module Rails
       @tag = tag
     end
 
-    # Returns a hash that maps filenames under +dirs+ (recursively) to arrays
+    # Returns a hash that maps filenames under `dirs` (recursively) to arrays
     # with their annotations.
     def find(dirs)
       dirs.inject({}) { |h, dir| h.update(find_in(dir)) }
     end
 
-    # Returns a hash that maps filenames under +dir+ (recursively) to arrays
+    # Returns a hash that maps filenames under `dir` (recursively) to arrays
     # with their annotations. Files with extensions registered in
-    # <tt>Rails::SourceAnnotationExtractor::Annotation.extensions</tt> are
+    # `Rails::SourceAnnotationExtractor::Annotation.extensions` are
     # taken into account. Only files with annotations are included.
     def find_in(dir)
       results = {}
@@ -174,8 +188,8 @@ module Rails
       results
     end
 
-    # Prints the mapping from filenames to annotations in +results+ ordered by filename.
-    # The +options+ hash is passed to each annotation's +to_s+.
+    # Prints the mapping from filenames to annotations in `results` ordered by filename.
+    # The `options` hash is passed to each annotation's `to_s`.
     def display(results, options = {})
       options[:indent] = results.flat_map { |f, a| a.map(&:line) }.max.to_s.size
       results.keys.sort.each do |file|

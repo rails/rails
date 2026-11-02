@@ -1,6 +1,5 @@
 # frozen_string_literal: true
 
-# :markup: markdown
 require "action_dispatch/routing/polymorphic_routes"
 
 module ActionView

@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 
+# :markup: markdown
 require "rails/generators/resource_helpers"
 require "rails/generators/rails/model/model_generator"
 

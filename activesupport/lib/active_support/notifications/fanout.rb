@@ -245,7 +245,7 @@ module ActiveSupport
 
       class EventObjectGroup < BaseGroup # :nodoc:
         def start(name, id, payload)
-          @event = build_event(name, id, payload)
+          @event = build_event(name, id)
           @event.start!
         end
 
@@ -259,8 +259,8 @@ module ActiveSupport
         end
 
         private
-          def build_event(name, id, payload)
-            ActiveSupport::Notifications::Event.new name, nil, nil, id, payload
+          def build_event(name, id)
+            ActiveSupport::Notifications::Event.new name, nil, nil, id, nil
           end
       end
 
@@ -278,8 +278,15 @@ module ActiveSupport
 
         unless silenceable_groups.empty?
           silenceable_groups.each do |group_class, subscriptions|
-            active_subscriptions = subscriptions.reject { |s| s.silenced?(name) }
-            unless active_subscriptions.empty?
+            # Built in a single pass so that events whose silenceable
+            # subscribers are all silenced (debug-level subscribers in
+            # production, on every SQL and render event) allocate nothing.
+            active_subscriptions = nil
+            subscriptions.each do |s|
+              (active_subscriptions ||= []) << s unless s.silenced?(name)
+            end
+
+            if active_subscriptions
               groups = groups.dup if groups.frozen?
               base_groups = groups[group_class]
               groups[group_class] = base_groups ? base_groups + active_subscriptions : active_subscriptions
@@ -363,14 +370,15 @@ module ActiveSupport
       include FanoutIteration
 
       def build_handle(name, id, payload)
-        groups = groups_for(name).map do |group_klass, grouped_listeners|
-          group_klass.new(grouped_listeners, name, id, payload)
-        end
+        groups = groups_for(name)
 
         if groups.empty?
           NullHandle
         else
-          Handle.new(name, id, groups, payload)
+          instances = groups.map do |group_klass, grouped_listeners|
+            group_klass.new(grouped_listeners, name, id, payload)
+          end
+          Handle.new(name, id, instances, payload)
         end
       end
 

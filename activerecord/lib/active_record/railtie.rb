@@ -12,7 +12,8 @@ require "active_model/railtie"
 require "action_controller/railtie"
 
 module ActiveRecord
-  # = Active Record Railtie
+  # Active Record Railtie
+  # =====================
   class Railtie < Rails::Railtie # :nodoc:
     config.active_record = ActiveSupport::OrderedOptions.new
     config.active_record.encryption = ActiveSupport::OrderedOptions.new
@@ -455,6 +456,12 @@ To keep using the current cache store, you can turn off cache versioning entirel
           require "active_record/message_pack"
           ActiveRecord::MessagePack::Extensions.install(ActiveSupport::MessagePack::CacheSerializer)
         end
+      end
+    end
+
+    initializer "active_record.ractorize" do
+      ActiveSupport.on_load(:before_ractorize) do
+        ActiveRecord::Base.descendants.each(&:make_reflections_shareable!)
       end
     end
 

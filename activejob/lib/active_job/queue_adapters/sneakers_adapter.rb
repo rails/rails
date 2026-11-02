@@ -1,22 +1,26 @@
 # frozen_string_literal: true
 
+# :markup: markdown
 require "sneakers"
 require "monitor"
 
 module ActiveJob
   module QueueAdapters
-    # = Sneakers adapter for Active Job
+    # Sneakers adapter for Active Job
+    # ===============================
     #
     # A high-performance RabbitMQ background processing framework for Ruby.
     # Sneakers is being used in production for both I/O and CPU intensive
     # workloads, and have achieved the goals of high-performance and
     # 0-maintenance, as designed.
     #
-    # Read more about Sneakers {here}[https://github.com/jondot/sneakers].
+    # Read more about Sneakers [here](https://github.com/jondot/sneakers).
     #
-    # To use Sneakers set the queue_adapter config to +:sneakers+.
+    # To use Sneakers set the queue_adapter config to `:sneakers`.
     #
-    #   Rails.application.config.active_job.queue_adapter = :sneakers
+    # ```
+    # Rails.application.config.active_job.queue_adapter = :sneakers
+    # ```
     class SneakersAdapter < AbstractAdapter
       def check_adapter
         ActiveJob.deprecator.warn <<~MSG.squish

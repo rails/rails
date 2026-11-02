@@ -186,6 +186,19 @@ class LoggerTest < ActiveSupport::TestCase
     assert_includes @output.string, "THIS IS HERE"
   end
 
+  def test_silencer_can_be_disabled_from_an_instance
+    @logger.silencer = false
+
+    assert_equal false, ActiveSupport::Logger.silencer
+    @logger.silence do
+      @logger.debug "NOT SILENCED"
+    end
+
+    assert_includes @output.string, "NOT SILENCED"
+  ensure
+    ActiveSupport::Logger.silencer = true
+  end
+
   def test_unsilencing
     @logger.level = Logger::INFO
 

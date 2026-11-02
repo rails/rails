@@ -324,6 +324,44 @@ class RequestIP < BaseRequestTest
     assert_equal "2001:0db8:85a3:0000:0000:8a2e:0370:7334", request.remote_ip
   end
 
+  test "remote ip ignores addresses with a netmask" do
+    # Client-Ip and REMOTE_ADDR, as X-Forwarded-For is parsed by Rack, which drops
+    # addresses with a netmask in some versions.
+    {
+      "1.2.3.0/24" => "10.0.0.1",
+      "1.2.3.4/32" => "1.2.3.4/32",
+      "3.4.5.6/31" => "10.0.0.1",
+      "10.0.0.0/8" => "10.0.0.1",
+      "3.4.5.6, 1.2.3.0/24" => "3.4.5.6",
+      "1.2.3.0/24, 3.4.5.6" => "3.4.5.6",
+      "3.4.5.6/32, 10.0.0.2" => "3.4.5.6/32",
+      "2001:db8::/32" => "10.0.0.1",
+      "2001:db8::1/128" => "2001:db8::1/128",
+      "fe80::1%eth0, 2001:db8::/32" => "fe80::1%eth0",
+    }.each do |client_ip, remote_ip|
+      request = stub_request "REMOTE_ADDR" => "10.0.0.1", "HTTP_CLIENT_IP" => client_ip
+      assert_equal remote_ip, request.remote_ip, client_ip
+    end
+
+    {
+      "2001:db8::1/128" => "2001:db8::1/128",
+      "3.4.5.6, 2001:db8::/32" => "3.4.5.6",
+      "2001:db8::2, 2001:db8::1/127" => "2001:db8::2",
+    }.each do |remote_addr, remote_ip|
+      request = stub_request "REMOTE_ADDR" => remote_addr
+      assert_equal remote_ip, request.remote_ip, remote_addr
+    end
+    assert_nil stub_request("REMOTE_ADDR" => "2001:db8::/32").remote_ip
+  end
+
+  test "remote ip is the same when calculated again" do
+    request = stub_request "REMOTE_ADDR" => "10.0.0.1", "HTTP_X_FORWARDED_FOR" => "3.4.5.6, 10.0.0.2"
+    get_ip = ActionDispatch::RemoteIp::GetIp.new(request, true, ActionDispatch::RemoteIp::TRUSTED_PROXIES)
+
+    assert_equal "3.4.5.6", get_ip.calculate_ip
+    assert_equal "3.4.5.6", get_ip.calculate_ip
+  end
+
   test "remote ip middleware not present still returns an IP" do
     request = stub_request("REMOTE_ADDR" => "127.0.0.1")
     assert_equal "127.0.0.1", request.remote_ip
@@ -531,6 +569,7 @@ end
 
 class RequestControllerClass < BaseRequestTest
   class WidgetsController < ActionController::Base; end
+  class GadgetsController < ActionController::Base; end
 
   test "controller_class returns the controller named in the path parameters" do
     request = stub_request
@@ -538,10 +577,44 @@ class RequestControllerClass < BaseRequestTest
     assert_equal WidgetsController, request.controller_class
   end
 
+  test "controller_class follows changes to the path parameters" do
+    request = stub_request
+    request.path_parameters = { controller: "request_controller_class/widgets", action: "index" }
+    assert_equal WidgetsController, request.controller_class
+
+    request.path_parameters = { controller: "request_controller_class/gadgets", action: "index" }
+    assert_equal GadgetsController, request.controller_class
+  end
+
   test "controller_class raises MissingController when there is no controller in the path parameters" do
     request = stub_request
     error = assert_raises(ActionDispatch::MissingController) { request.controller_class }
     assert_match(/No :controller in path parameters/, error.message)
+  end
+
+  test "controller_class_for resolves a controller defined after a failed lookup" do
+    request = stub_request
+    assert_raises(ActionDispatch::MissingController) { request.controller_class_for("defined_later") }
+
+    Object.const_set(:DefinedLaterController, Class.new(ActionController::Base))
+    assert_equal DefinedLaterController, request.controller_class_for("defined_later")
+    assert_equal DefinedLaterController, request.controller_class_for("defined_later")
+  ensure
+    Object.send(:remove_const, :DefinedLaterController) if Object.const_defined?(:DefinedLaterController)
+  end
+
+  test "controller_class_for resolves a redefined controller afresh" do
+    request = stub_request
+    Object.const_set(:RedefinedController, Class.new(ActionController::Base))
+    first = request.controller_class_for("redefined")
+    assert_equal RedefinedController, first
+
+    Object.send(:remove_const, :RedefinedController)
+    Object.const_set(:RedefinedController, Class.new(ActionController::Base))
+    assert_equal RedefinedController, request.controller_class_for("redefined")
+    assert_not_same first, request.controller_class_for("redefined")
+  ensure
+    Object.send(:remove_const, :RedefinedController) if Object.const_defined?(:RedefinedController)
   end
 
   test "controller_class raises MissingController when the controller does not exist" do
@@ -587,6 +660,20 @@ class RequestHost < BaseRequestTest
     assert_equal "glu.ttono.us", request.host_with_port
   end
 
+  test "host strips a trailing port and nothing else" do
+    assert_equal "example.com", stub_request("HTTP_HOST" => "example.com").host
+    assert_equal "example.com", stub_request("HTTP_HOST" => "example.com:8080").host
+    assert_equal "[::1]", stub_request("HTTP_HOST" => "[::1]").host
+    assert_equal "[::1]", stub_request("HTTP_HOST" => "[::1]:3000").host
+    assert_equal "example.com", stub_request("HTTP_X_FORWARDED_HOST" => "example.com:8080", "HTTP_HOST" => "internal:3000").host
+  end
+
+  test "host is memoized per request" do
+    request = stub_request("HTTP_HOST" => "example.com:8080")
+    assert_same request.host, request.host
+    assert_same request.raw_host_with_port, request.raw_host_with_port
+  end
+
   test "http host" do
     request = stub_request "HTTP_HOST" => "rubyonrails.org:8080"
     assert_equal "rubyonrails.org", request.host
@@ -602,6 +689,16 @@ class RequestHost < BaseRequestTest
   test "http host with default port overrides server port" do
     request = stub_request "HTTP_HOST" => "rubyonrails.org"
     assert_equal "rubyonrails.org", request.host_with_port
+  end
+
+  test "ignores blank forwarded hosts" do
+    [",", ",,", ", ,", " , , ", "\t,\t", "forwarded.example,  "].each do |forwarded_host|
+      request = stub_request "HTTP_X_FORWARDED_HOST" => forwarded_host, "HTTP_HOST" => "rubyonrails.org:8080"
+
+      assert_equal "rubyonrails.org:8080", request.raw_host_with_port
+      assert_equal "rubyonrails.org", request.host
+      assert_equal 8080, request.port
+    end
   end
 
   test "host with port if http standard port is specified" do
@@ -687,6 +784,16 @@ class RequestCGI < BaseRequestTest
     assert_equal 8007, request.server_port
     assert_equal "HTTP/1.1", request.server_protocol
     assert_equal "lighttpd", request.server_software
+  end
+
+  test "each ENV_METHODS entry has a matching reader" do
+    headers = ActionDispatch::Request::ENV_METHODS.index_with { |name| "value for #{name}" }
+    request = ActionDispatch::Request.new(headers)
+
+    headers.each do |name, value|
+      reader = name.delete_prefix("HTTP_").downcase
+      assert_equal value, request.public_send(reader), "#{reader} should read #{name}"
+    end
   end
 end
 
@@ -1200,6 +1307,30 @@ class RequestMimeType < BaseRequestTest
     assert_equal("application/xml; charset=UTF-8", request.content_type)
   end
 
+  test "uppercase content type" do
+    request = stub_request("CONTENT_TYPE" => "APPLICATION/JSON; charset=utf-8")
+
+    assert_equal(Mime[:json], request.content_mime_type)
+  end
+
+  test "bare uppercase content type" do
+    request = stub_request("CONTENT_TYPE" => "APPLICATION/JSON")
+
+    assert_equal(Mime[:json], request.content_mime_type)
+  end
+
+  test "content type with surrounding whitespace" do
+    request = stub_request("CONTENT_TYPE" => " application/json ; charset=utf-8")
+
+    assert_equal(Mime[:json], request.content_mime_type)
+  end
+
+  test "content type with a comma" do
+    request = stub_request("CONTENT_TYPE" => "text/html, application/json")
+
+    assert_equal(Mime[:html], request.content_mime_type)
+  end
+
   test "user agent" do
     assert_equal "TestAgent", stub_request("HTTP_USER_AGENT" => "TestAgent").user_agent
   end
@@ -1403,6 +1534,70 @@ class RequestParameterFilter < BaseRequestTest
       path = request.filtered_path
       assert_equal %w(/authenticate?username=sikachu secret=[FILTERED] api_key=[FILTERED]).join(sep), path
     end
+  end
+
+  test "filtered_path passes the parameter to a proc filter as the original params" do
+    request = stub_request(
+      "QUERY_STRING" => "username=sikachu&secret=bd4f21f",
+      "PATH_INFO" => "/authenticate",
+      "action_dispatch.parameter_filter" => [
+        ->(key, value, original_params) { value.replace("[FILTERED]") if original_params[key] == "bd4f21f" }
+      ]
+    )
+
+    path = request.filtered_path
+    assert_equal request.script_name + "/authenticate?username=sikachu&secret=[FILTERED]", path
+  end
+
+  test "filtered_path matches decoded query parameter names" do
+    [
+      ["%70assword", :password],
+      ["%70%61%73%73%77%6f%72%64", /\Apassword\z/],
+      ["user%5B%70assword%5D", :password],
+      ["access+token", "access token"],
+      ["access%20token", "access token"],
+      ["p%C3%A4ssword", "pässword"]
+    ].each do |key, filter|
+      request = stub_request(
+        "QUERY_STRING" => "#{key}=secret&visible=hello%20world&#{key}=another-secret",
+        "PATH_INFO" => "/authenticate",
+        "action_dispatch.parameter_filter" => [filter]
+      )
+
+      assert_equal "/authenticate?#{key}=[FILTERED]&visible=hello%20world&#{key}=[FILTERED]", request.filtered_path
+    end
+  end
+
+  test "filtered_path passes decoded query parameter names to proc filters" do
+    request = stub_request(
+      "QUERY_STRING" => "%70assword=secret&visible=hello%20world",
+      "PATH_INFO" => "/authenticate",
+      "action_dispatch.parameter_filter" => [
+        ->(key, value, original_params) { value.replace("[FILTERED]") if key == "password" && original_params[key] == "secret" }
+      ]
+    )
+
+    assert_equal "/authenticate?%70assword=[FILTERED]&visible=hello%20world", request.filtered_path
+  end
+
+  test "filtered_path decodes query parameter names only once" do
+    request = stub_request(
+      "QUERY_STRING" => "%2570assword=visible&password=secret",
+      "PATH_INFO" => "/authenticate",
+      "action_dispatch.parameter_filter" => [:password]
+    )
+
+    assert_equal "/authenticate?%2570assword=visible&password=[FILTERED]", request.filtered_path
+  end
+
+  test "filtered_path masks values of query parameter names that cannot be decoded" do
+    request = stub_request(
+      "QUERY_STRING" => "%=secret&%GG=secret&%FF=secret&password%=secret&%FFpassword=secret&visible=hello%20world",
+      "PATH_INFO" => "/authenticate",
+      "action_dispatch.parameter_filter" => [:password]
+    )
+
+    assert_equal "/authenticate?%=[FILTERED]&%GG=[FILTERED]&%FF=[FILTERED]&password%=[FILTERED]&%FFpassword=[FILTERED]&visible=hello%20world", request.filtered_path
   end
 
   test "filtered_path should not unescape a genuine '[FILTERED]' value" do

@@ -1,6 +1,5 @@
 # frozen_string_literal: true
 
-# :markup: markdown
 require "strscan"
 require "active_support/core_ext/erb/util"
 
@@ -99,7 +98,9 @@ module ActionView
         def implementation_for(template)
           implementation = self.class.erb_implementation
 
-          if implementation == Herb && template.format != :html
+          # Referencing Herb triggers its autoload, which requires the herb gem.
+          # If it hasn't been loaded yet, the implementation can't be Herb.
+          if !ERB.autoload?(:Herb) && implementation == Herb && template.format != :html
             Erubi
           else
             implementation

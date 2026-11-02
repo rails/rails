@@ -22,7 +22,7 @@ module Rails
         @file_watcher = file_watcher
       end
 
-      # Returns +true+ if the routes are loaded.
+      # Returns `true` if the routes are loaded.
       def loaded
         @load_state == :loaded
       end

@@ -1,20 +1,24 @@
 # frozen_string_literal: true
 
+# :markup: markdown
 require "delayed_job"
 require "active_support/core_ext/string/inflections"
 
 module ActiveJob
   module QueueAdapters
-    # = Delayed Job adapter for Active Job
+    # Delayed Job adapter for Active Job
+    # ==================================
     #
     # Delayed::Job (or DJ) encapsulates the common pattern of asynchronously
     # executing longer tasks in the background. Although DJ can have many
     # storage backends, one of the most used is based on Active Record.
-    # Read more about Delayed Job {here}[https://github.com/collectiveidea/delayed_job].
+    # Read more about Delayed Job [here](https://github.com/collectiveidea/delayed_job).
     #
-    # To use Delayed Job, set the queue_adapter config to +:delayed_job+.
+    # To use Delayed Job, set the queue_adapter config to `:delayed_job`.
     #
-    #   Rails.application.config.active_job.queue_adapter = :delayed_job
+    # ```
+    # Rails.application.config.active_job.queue_adapter = :delayed_job
+    # ```
     class DelayedJobAdapter < AbstractAdapter
       def check_adapter
         ActiveJob.deprecator.warn <<~MSG.squish

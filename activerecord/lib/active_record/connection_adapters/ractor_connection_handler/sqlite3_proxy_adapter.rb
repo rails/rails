@@ -1,7 +1,5 @@
 # frozen_string_literal: true
 
-# :markup: markdown
-
 require "active_record/connection_adapters/ractor_connection_handler/abstract_proxy_adapter"
 
 module ActiveRecord
@@ -157,10 +155,6 @@ module ActiveRecord
 
         def high_precision_current_timestamp
           remote_dispatch(:high_precision_current_timestamp)
-        end
-
-        def reset_isolation_level
-          remote_dispatch(:reset_isolation_level)
         end
 
         def write_query?(...)

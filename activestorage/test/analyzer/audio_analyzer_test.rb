@@ -6,6 +6,12 @@ require "database/setup"
 require "active_storage/analyzer/audio_analyzer"
 
 class ActiveStorage::Analyzer::AudioAnalyzerTest < ActiveSupport::TestCase
+  setup do
+    if !ENV["BUILDKITE"] && !system("command", "-v", ActiveStorage.paths[:ffprobe] || "ffprobe", out: File::NULL)
+      skip("ffprobe isn't available")
+    end
+  end
+
   test "analyzing an audio" do
     blob = create_file_blob(filename: "audio.mp3", content_type: "audio/mp3")
     metadata = extract_metadata_from(blob)
@@ -27,6 +33,12 @@ class ActiveStorage::Analyzer::AudioAnalyzerTest < ActiveSupport::TestCase
       assert_not metadata[:duration]
       assert_not metadata[:bit_rate]
     end
+  end
+
+  test "analyzing an audio file with duplicate tags from ffprobe" do
+    blob = create_file_blob(filename: "audio_with_duplicate_tags.wav", content_type: "audio/x-wav")
+    metadata = assert_nothing_raised { extract_metadata_from(blob) }
+    assert_equal 128000, metadata[:bit_rate]
   end
 
   test "instrumenting analysis" do

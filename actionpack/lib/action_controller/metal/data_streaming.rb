@@ -1,7 +1,5 @@
 # frozen_string_literal: true
 
-# :markup: markdown
-
 require "action_controller/metal/exceptions"
 require "action_dispatch/http/content_disposition"
 

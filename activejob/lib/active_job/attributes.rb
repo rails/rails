@@ -1,12 +1,14 @@
 # frozen_string_literal: true
 
+# :markup: markdown
 require "active_model"
 
 module ActiveJob
-  # = Active Job \Attributes
+  # Active Job \Attributes
+  # ======================
   #
   # The Attributes module provides typed attributes for jobs using the
-  # {Active Model Attributes API}[rdoc-ref:ActiveModel::Attributes]. Declared
+  # [Active Model Attributes API](rdoc-ref:ActiveModel::Attributes). Declared
   # attributes are automatically serialized with the job data and restored when
   # the job is deserialized.
   #
@@ -14,33 +16,35 @@ module ActiveJob
   # interrupted and resumed multiple times and you need to persist attributes
   # across steps until the job finishes.
   #
-  #   class SubmitEnrollmentJob < ApplicationJob
-  #     include ActiveJob::Continuable
+  # ```
+  # class SubmitEnrollmentJob < ApplicationJob
+  #   include ActiveJob::Continuable
   #
-  #     attribute :payment_token, :string
-  #     attribute :billing_profile_id, :integer
+  #   attribute :payment_token, :string
+  #   attribute :billing_profile_id, :integer
   #
-  #     def perform(enrollment)
-  #       step :tokenize_payment_instrument do
-  #         self.payment_token = PaymentGateway.tokenize(enrollment.user.payment_instrument)
-  #       end
+  #   def perform(enrollment)
+  #     step :tokenize_payment_instrument do
+  #       self.payment_token = PaymentGateway.tokenize(enrollment.user.payment_instrument)
+  #     end
   #
-  #       step :create_billing_profile do
-  #         self.billing_profile_id = BillingProfileApi.create(customer_id: enrollment.user_id)
-  #       end
+  #     step :create_billing_profile do
+  #       self.billing_profile_id = BillingProfileApi.create(customer_id: enrollment.user_id)
+  #     end
   #
-  #       step :submit_enrollment do
-  #         submission_id = EnrollmentApi.submit(enrollment, payment_token, billing_profile_id)
-  #         enrollment.update!(status: 'processing', submission_id: submission_id)
-  #       end
+  #     step :submit_enrollment do
+  #       submission_id = EnrollmentApi.submit(enrollment, payment_token, billing_profile_id)
+  #       enrollment.update!(status: 'processing', submission_id: submission_id)
   #     end
   #   end
+  # end
+  # ```
   #
   # Attributes also work without Continuation, persisting across retries.
   #
-  # Attributes support all built-in Active Model types, see +ActiveModel::Attributes+
+  # Attributes support all built-in Active Model types, see `ActiveModel::Attributes`
   # for details. For custom types attribute values must be serializable
-  # as Active Job arguments. See +ActiveJob::Arguments+ for the full list of
+  # as Active Job arguments. See `ActiveJob::Arguments` for the full list of
   # supported types.
   module Attributes
     extend ActiveSupport::Concern
