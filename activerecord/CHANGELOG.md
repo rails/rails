@@ -61,6 +61,12 @@
     Fixes #47555.
 
     *Masaki Ozawa*
+*   Enqueue `dependent: :destroy_async` jobs when records are removed from a
+    `has_many` association by replacing the collection.
+
+    Fixes #42430. Follow-up to #42452.
+
+    *Maciej Małecki*
 
 *   Fix preloading an ordered `has_many :through` association reusing the
     source records already loaded by an unordered one, ignoring its order.
