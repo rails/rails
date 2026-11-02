@@ -405,6 +405,7 @@ module Rails
 
           if respond_to?(:active_job)
             active_job.enqueue_after_transaction_commit = true
+            active_job.immutable_arguments = true
           end
 
           if respond_to?(:active_support)

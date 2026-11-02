@@ -218,6 +218,12 @@ Please refer to the [Changelog][active-job] for detailed changes.
     after transaction commit by default, fixing jobs that would previously run
     against uncommitted or rolled-back records.
 
+*   Add `config.active_job.immutable_arguments` and default it to `true` for new
+    applications. When enabled, Active Job copies string, array, and hash
+    arguments before `perform` so mutations no longer leak into retries.
+    GlobalID records are passed through unchanged. Existing applications keep
+    the previous behavior until they opt in.
+
 Action Text
 ----------
 
