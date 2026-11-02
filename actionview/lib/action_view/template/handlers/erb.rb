@@ -98,7 +98,7 @@ module ActionView
         def implementation_for(template)
           implementation = self.class.erb_implementation
 
-          if implementation == Herb && template.format != :html
+          if !ERB.autoload?(:Herb) && implementation == Herb && template.format != :html
             Erubi
           else
             implementation
