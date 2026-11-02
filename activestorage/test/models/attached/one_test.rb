@@ -456,6 +456,21 @@ class ActiveStorage::OneAttachedTest < ActiveSupport::TestCase
     assert_predicate @user.avatar, :attached?
   end
 
+  test "reload preserves pending attachment changes" do
+    @user.avatar = fixture_file_upload("racecar.jpg")
+    assert_includes @user.attachment_changes, "avatar"
+    @user.reload
+    assert_includes @user.attachment_changes, "avatar",
+      "reload must not discard unsaved attachment changes"
+  end
+
+  test "attachment assignment survives a reload before save" do
+    @user.avatar = fixture_file_upload("racecar.jpg")
+    @user.reload
+    @user.save!
+    assert_nothing_raised { @user.avatar.download }
+  end
+
   test "attaching an existing blob to a new record" do
     User.new(name: "Jason").tap do |user|
       user.avatar.attach create_blob(filename: "funky.jpg")
