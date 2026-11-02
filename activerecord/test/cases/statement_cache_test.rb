@@ -267,6 +267,16 @@ module ActiveRecord
       Liquid.table_name = :liquid
     end
 
+    def test_find_does_not_use_statement_cache_if_ignored_columns_are_changed
+      liquid = Liquid.create(name: "salty")
+      model = Class.new(ActiveRecord::Base) { self.table_name = "liquid" }
+
+      model.find(liquid.id) # warm the statement cache
+
+      model.ignored_columns = ["name"]
+      assert_not_includes model.find(liquid.id).attributes, "name"
+    end
+
     private
       def each_statement_mode(&)
         yield

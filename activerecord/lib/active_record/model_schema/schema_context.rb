@@ -111,12 +111,9 @@ module ActiveRecord
         cache.compute_if_absent(key) { StatementCache.create(connection, &block) }
       end
 
-      def initialize_find_by_cache # :nodoc:
-        ActiveSupport::Ractors[model_class.find_by_statement_cache_key] = { true => Concurrent::Map.new, false => Concurrent::Map.new }
-      end
-
       def find_by_statement_cache # :nodoc:
-        ActiveSupport::Ractors[model_class.find_by_statement_cache_key] || initialize_find_by_cache
+        statements = ActiveSupport::Ractors[model_class.find_by_statement_cache_key] || model_class.initialize_find_by_cache
+        statements.fetch_or_store(self) { { true => Concurrent::Map.new, false => Concurrent::Map.new } }
       end
 
       def loaded_mapped_table # :nodoc:
