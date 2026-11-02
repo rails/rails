@@ -269,6 +269,18 @@ module ActionDispatch
 
           assert_equal(["/posts", "/posts/7", "/posts/7?page=2"], results)
         end
+
+        test "route paths can be formatted inside a ractor" do
+          ActiveSupport::Ractors.with(unshareable_proc_action: :raise) do
+            draw { resources :posts }
+          end
+
+          paths = on_ractor(@set.routes.to_a) do |routes|
+            routes.map { |route| route.path.spec.to_s }
+          end
+
+          assert_includes paths, "/posts/:id(.:format)"
+        end
       end
 
       private
