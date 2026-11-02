@@ -1,3 +1,12 @@
+*   Don't leak an orphaned `raw_email` blob when a duplicate inbound email is delivered.
+
+    `InboundEmail.create_and_extract_message_id!` uploaded the raw email blob before
+    the `create!` that could raise `RecordNotUnique` for a re-delivered message, leaving
+    the blob orphaned in storage. Duplicate deliveries now short-circuit before uploading,
+    and the just-created blob is purged on the race-safe `RecordNotUnique` backstop.
+
+    *Ayush Billore*
+
 *   Return `422 Unprocessable Content` for malformed Mailgun, Postmark, and SendGrid raw email parameters.
 
     *Andrii Furmanets*
