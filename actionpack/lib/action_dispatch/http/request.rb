@@ -552,6 +552,7 @@ module ActionDispatch
         self.request_parameters = pr
       end
     rescue ActionDispatch::ParamError, EOFError => e
+      set_header "action_dispatch.request.request_parameters_error", true
       raise ActionController::BadRequest.new("Invalid request parameters: #{e.message}")
     end
     alias :request_parameters :POST
