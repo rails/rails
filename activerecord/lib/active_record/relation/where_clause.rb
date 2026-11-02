@@ -27,7 +27,7 @@ module ActiveRecord
       end
 
       def merge(other)
-        predicates = except_predicates(other.extract_attributes)
+        predicates = empty? ? self.predicates : except_predicates(other.extract_attributes)
 
         WhereClause.new(predicates | other.predicates)
       end
@@ -176,13 +176,13 @@ module ActiveRecord
         end
 
         def except_predicates(columns)
-          return predicates if columns.empty?
+          return predicates if columns.empty? || predicates.empty?
 
           attrs = columns.extract! { |node| node.is_a?(Arel::Attribute) }
-          non_attrs = columns.extract! { |node| node.is_a?(Arel::Predications) }
+          non_attrs = columns.extract! { |node| node.is_a?(Arel::Predications) } unless columns.empty?
 
           predicates.reject do |node|
-            if !non_attrs.empty? && equality_node?(node) && node.left.is_a?(Arel::Predications)
+            if non_attrs && !non_attrs.empty? && equality_node?(node) && node.left.is_a?(Arel::Predications)
               non_attrs.include?(node.left)
             end || Arel.fetch_attribute(node) do |attr|
               attrs.include?(attr) || columns.include?(attr.name.to_s)
