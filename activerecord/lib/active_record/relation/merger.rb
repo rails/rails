@@ -54,16 +54,17 @@ module ActiveRecord
                         :select, :includes, :preload, :joins, :left_outer_joins,
                         :order, :reverse_order, :lock, :create_with, :reordering
                       ]).freeze
+      NORMAL_VALUE_BANG_METHODS = NORMAL_VALUES.index_with { |name| :"#{name}!" }.freeze
 
       def merge
-        NORMAL_VALUES.each do |name|
+        NORMAL_VALUE_BANG_METHODS.each do |name, bang_method|
           value = values[name]
           # The unless clause is here mostly for performance reasons (since the `send` call might be moderately
           # expensive), most of the time the value is going to be `nil` or `.blank?`, the only catch is that
           # `false.blank?` returns `true`, so there needs to be an extra check so that explicit `false` values
           # don't fall through the cracks.
           unless value.nil? || (value.blank? && false != value)
-            relation.public_send(:"#{name}!", *value)
+            relation.public_send(bang_method, *value)
           end
         end
 
