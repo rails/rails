@@ -5632,6 +5632,35 @@ module ApplicationTests
       assert_equal "[:active_record_connected_to_stack, :custom_key]", last_response.body
     end
 
+    test "ActiveRecord configuration lists can be appended to after boot" do
+      app_file "config/initializers/append_to_active_record_config.rb", <<~RUBY
+        module AppendedQueryTransformer
+          def self.call(sql, _connection) = sql
+        end
+
+        ActiveSupport.on_load(:active_record) do
+          ActiveRecord.schema_ignored_tables << "from_initializer"
+          ActiveRecord.query_transformers << AppendedQueryTransformer
+        end
+
+        Rails.application.config.after_initialize do
+          ActiveSupport.on_load(:active_record) do
+            ActiveRecord.schema_ignored_tables << "from_after_initialize"
+          end
+        end
+      RUBY
+
+      app "development"
+
+      assert ActiveRecord.autoload?(:Base), "expected Active Record to load after boot"
+
+      require "active_record/base"
+      ActiveRecord.schema_ignored_tables << "after_boot"
+
+      assert_equal %w[ from_initializer from_after_initialize after_boot ], ActiveRecord.schema_ignored_tables
+      assert_includes ActiveRecord.query_transformers, AppendedQueryTransformer
+    end
+
     if RUBY_VERSION >= "4.0"
       test "ActionDispatch configuration is frozen after boot" do
         app "development"
@@ -5649,7 +5678,6 @@ module ApplicationTests
       test "ActiveRecord configuration is frozen after boot" do
         app "development"
 
-        assert_ractor_shareable(ActiveRecord.query_transformers)
         assert_ractor_shareable(ActiveRecord::Base.time_zone_aware_types)
         assert_ractor_shareable(ActiveRecord::Base.skip_time_zone_conversion_for_attributes)
       end
