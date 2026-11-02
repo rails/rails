@@ -7,6 +7,7 @@ module ActiveSupport
   # unconditionally regardless of the Ruby version.
   module Ractors # :nodoc:
     extend ActiveSupport::Autoload
+    autoload :Cell
     autoload :Logger
 
     class << self

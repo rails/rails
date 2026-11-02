@@ -301,6 +301,7 @@ class PrimaryKeysTest < ActiveRecord::TestCase
     klass = Class.new(ActiveRecord::Base) do
       self.table_name = "topics"
     end
+    assert_equal ["id"], klass.composite_query_constraints_list
     context = klass.schema_context
 
     klass.primary_key = ["title", "id"]
@@ -350,6 +351,7 @@ class PrimaryKeysTest < ActiveRecord::TestCase
       self.primary_key = "id"
     end
     child = Class.new(klass)
+    assert_equal ["id"], child.composite_query_constraints_list
     context = child.schema_context
 
     klass.primary_key = ["title", "id"]
