@@ -156,6 +156,31 @@ class InheritanceTest < ActiveRecord::TestCase
     assert_not_predicate SubAbstractStiPost, :descends_from_active_record?
   end
 
+  def test_finder_needs_type_condition_below_abstract_classes
+    application = Class.new(ActiveRecord::Base) { self.abstract_class = true }
+    base = Class.new(application) do
+      def self.name = "TypeConditionTopic"
+      self.table_name = "topics"
+    end
+    child = Class.new(base) { def self.name = "TypeConditionReply" }
+
+    assert_not_predicate base, :finder_needs_type_condition?
+    assert_predicate child, :finder_needs_type_condition?
+    assert_match(/TypeConditionReply/, child.all.to_sql)
+  end
+
+  def test_top_level_model_overriding_descends_from_active_record_gets_a_type_condition
+    application = Class.new(ActiveRecord::Base) { self.abstract_class = true }
+    model = Class.new(application) do
+      self.table_name = "topics"
+      def self.name = "TypeConditionTopic"
+      def self.descends_from_active_record? = false
+    end
+
+    assert_predicate model, :finder_needs_type_condition?
+    assert_match(/TypeConditionTopic/, model.all.to_sql)
+  end
+
   def test_company_descends_from_active_record
     assert_not_predicate ActiveRecord::Base, :descends_from_active_record?
     assert_predicate AbstractCompany, :descends_from_active_record?, "AbstractCompany should descend from ActiveRecord::Base"

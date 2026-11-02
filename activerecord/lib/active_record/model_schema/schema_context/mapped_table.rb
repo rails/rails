@@ -55,10 +55,15 @@ module ActiveRecord
               column.name == inheritance_column ||
               column.name.end_with?("_id", "_count")
           end.freeze
+          @has_inheritance_column = @columns_hash.key?(inheritance_column)
 
           @timestamp_attributes_for_create_in_model = (model_class.timestamp_attributes_for_create & @column_names).freeze
           @timestamp_attributes_for_update_in_model = (model_class.timestamp_attributes_for_update & @column_names).freeze
           @all_timestamp_attributes_in_model = (@timestamp_attributes_for_create_in_model + @timestamp_attributes_for_update_in_model).freeze
+        end
+
+        def has_inheritance_column?
+          @has_inheritance_column
         end
       end
     end
