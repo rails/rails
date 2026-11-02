@@ -330,6 +330,24 @@ module ActiveModel
       end
     end
 
+    # Same keys, in the same order, as #keys. Values the row has are read
+    # like the generated readers do, without building an Attribute for each.
+    #: () -> Hash[String, untyped]
+    def to_hash
+      hash = {}
+      indexes.each_key do |name|
+        index = index_for_name(name)
+        if !lookup(index) && IndexedRow.key_at?(@row, index)
+          hash[name] = value_at(index, name)
+        else
+          attribute = attribute_at(name, index)
+          hash[name] = attribute.value if attribute.initialized?
+        end
+      end
+      hash
+    end
+    alias :to_h :to_hash
+
     #: (String) ?{ (String) -> untyped } -> untyped
     def fetch_value(name, &block)
       index = index_for_name(name)
