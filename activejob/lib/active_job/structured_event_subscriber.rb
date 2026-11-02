@@ -27,6 +27,7 @@ module ActiveJob
 
       emit_event("active_job.enqueued", payload)
     end
+    emits :enqueue, "active_job.enqueued"
 
     def enqueue_at(event)
       job = event.payload[:job]
@@ -52,6 +53,7 @@ module ActiveJob
 
       emit_event("active_job.enqueued_at", payload)
     end
+    emits :enqueue_at, "active_job.enqueued_at"
 
     def enqueue_all(event)
       jobs = event.payload[:jobs]
@@ -69,6 +71,7 @@ module ActiveJob
         end.tally
       )
     end
+    emits :enqueue_all, "active_job.bulk_enqueued"
 
     def perform_start(event)
       job = event.payload[:job]
@@ -85,6 +88,7 @@ module ActiveJob
       end
       emit_event("active_job.started", payload)
     end
+    emits :perform_start, "active_job.started"
 
     def perform(event)
       job = event.payload[:job]
@@ -107,6 +111,7 @@ module ActiveJob
 
       emit_event("active_job.completed", payload)
     end
+    emits :perform, "active_job.completed"
 
     def enqueue_retry(event)
       job = event.payload[:job]
@@ -122,6 +127,7 @@ module ActiveJob
         exception_message: exception&.message
       )
     end
+    emits :enqueue_retry, "active_job.retry_scheduled"
 
     def retry_stopped(event)
       job = event.payload[:job]
@@ -135,6 +141,7 @@ module ActiveJob
         exception_message: exception.message
       )
     end
+    emits :retry_stopped, "active_job.retry_stopped"
 
     def discard(event)
       job = event.payload[:job]
@@ -147,6 +154,7 @@ module ActiveJob
         exception_message: exception.message
       )
     end
+    emits :discard, "active_job.discarded"
 
     def interrupt(event)
       job = event.payload[:job]
@@ -160,6 +168,7 @@ module ActiveJob
         reason: reason,
       )
     end
+    emits :interrupt, "active_job.interrupt"
 
     def resume(event)
       job = event.payload[:job]
@@ -171,6 +180,7 @@ module ActiveJob
         description: description,
       )
     end
+    emits :resume, "active_job.resume"
 
     def step_skipped(event)
       job = event.payload[:job]
@@ -182,6 +192,7 @@ module ActiveJob
         step: step.name,
       )
     end
+    emits :step_skipped, "active_job.step_skipped"
 
     def step_started(event)
       job = event.payload[:job]
@@ -195,6 +206,7 @@ module ActiveJob
         resumed: step.resumed?,
       )
     end
+    emits :step_started, "active_job.step_started"
 
     def step(event)
       job = event.payload[:job]
@@ -216,6 +228,7 @@ module ActiveJob
 
       emit_event("active_job.step", payload)
     end
+    emits :step, "active_job.step"
   end
 end
 

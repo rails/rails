@@ -53,5 +53,9 @@ module ActionMailer
     ensure
       BaseMailer.delivery_method = previous_delivery_method
     end
+
+    def test_every_handler_declares_its_event
+      assert_empty ActionMailer::StructuredEventSubscriber.undeclared_handlers
+    end
   end
 end

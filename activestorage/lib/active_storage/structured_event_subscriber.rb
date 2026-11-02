@@ -11,6 +11,7 @@ module ActiveStorage
         duration_ms: event.duration.round(2),
       )
     end
+    emits :service_upload, "active_storage.service_upload"
 
     def service_download(event)
       emit_event("active_storage.service_download",
@@ -18,6 +19,7 @@ module ActiveStorage
         duration_ms: event.duration.round(2),
       )
     end
+    emits :service_download, "active_storage.service_download"
 
     def service_streaming_download(event)
       emit_event("active_storage.service_streaming_download",
@@ -25,6 +27,7 @@ module ActiveStorage
         duration_ms: event.duration.round(2),
       )
     end
+    emits :service_streaming_download, "active_storage.service_streaming_download"
 
     def preview(event)
       emit_event("active_storage.preview",
@@ -32,6 +35,7 @@ module ActiveStorage
         duration_ms: event.duration.round(2),
       )
     end
+    emits :preview, "active_storage.preview"
 
     def service_delete(event)
       emit_event("active_storage.service_delete",
@@ -39,6 +43,7 @@ module ActiveStorage
         duration_ms: event.duration.round(2),
       )
     end
+    emits :service_delete, "active_storage.service_delete"
 
     def service_delete_prefixed(event)
       emit_event("active_storage.service_delete_prefixed",
@@ -46,6 +51,7 @@ module ActiveStorage
         duration_ms: event.duration.round(2),
       )
     end
+    emits :service_delete_prefixed, "active_storage.service_delete_prefixed"
 
     def service_exist(event)
       emit_debug_event("active_storage.service_exist",

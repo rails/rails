@@ -122,5 +122,9 @@ module ActiveStorage
 
       assert(event[:payload][:duration_ms] > 0)
     end
+
+    def test_every_handler_declares_its_event
+      assert_empty ActiveStorage::StructuredEventSubscriber.undeclared_handlers
+    end
   end
 end

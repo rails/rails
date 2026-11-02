@@ -14,6 +14,7 @@ module ActionDispatch
         source_location: payload[:source_location]
       })
     end
+    emits :redirect, "action_dispatch.redirect"
   end
 end
 
