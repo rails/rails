@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+require "concurrent/atomic/atomic_boolean"
+
 module ActionCable
   module Channel
     module PeriodicTimers
@@ -67,8 +69,19 @@ module ActionCable
           # A callback must be executed within the channel context
           callback = -> { instance_exec(&timer_callback) }
 
+          # A connection runs its work one job at a time, so a tick that takes longer
+          # than the interval would queue ticks without limit, and the connection's
+          # commands and close would wait behind them. Skip a tick while the previous
+          # one is still waiting or running.
+          pending = Concurrent::AtomicBoolean.new(false)
+          tick = -> do
+            callback.call
+          ensure
+            pending.make_false
+          end
+
           connection.executor.timer(every) do
-            connection.perform_work callback, :call
+            connection.perform_work tick, :call if pending.make_true
           end
         end
 
