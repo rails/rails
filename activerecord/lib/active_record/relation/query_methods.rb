@@ -839,7 +839,7 @@ module ActiveRecord
       if column.is_a?(Arel::Nodes::SqlLiteral)
         arel_column = column
       else
-        arel_column = order_column(column.to_s)
+        arel_column = order_column(column.is_a?(Symbol) ? column.name : column.to_s)
 
         type_caster =
           if arel_column.is_a?(Arel::Nodes::SqlLiteral)
@@ -2407,19 +2407,19 @@ module ActiveRecord
         order_args.map! do |arg|
           case arg
           when Symbol
-            order_column(arg.to_s).asc
+            order_column(arg.name).asc
           when Hash
             arg.map do |key, value|
               if value.is_a?(Hash)
                 value.map do |field, dir|
-                  order_column([key.to_s, field.to_s].join(".")).public_send(dir.downcase)
+                  order_column("#{key}.#{field}").public_send(dir.downcase)
                 end
               else
                 case key
                 when Arel::Nodes::SqlLiteral, Arel::Nodes::Node, Arel::Attribute
                   key.public_send(value.downcase)
                 else
-                  order_column(key.to_s).public_send(value.downcase)
+                  order_column(key.is_a?(Symbol) ? key.name : key.to_s).public_send(value.downcase)
                 end
               end
             end
@@ -2445,7 +2445,7 @@ module ActiveRecord
               .map do |key, value|
                 case value
                 when Hash
-                  key.to_s
+                  key.is_a?(Symbol) ? key.name : key.to_s
                 else
                   extract_table_name_from(key) if key.is_a?(String) || key.is_a?(Symbol)
                 end
@@ -2505,13 +2505,13 @@ module ActiveRecord
             attr
           when Hash
             attr.flat_map do |table, columns|
-              table = table.to_s
+              table = table.is_a?(Symbol) ? table.name : table.to_s
               Array(columns).map do |column|
                 predicate_builder.resolve_arel_attribute(table, column)
               end
             end
           else
-            attr = attr.to_s
+            attr = attr.is_a?(Symbol) ? attr.name : attr.to_s
             if attr.include?(".")
               table, column = attr.split(".", 2)
               predicate_builder.resolve_arel_attribute(table, column)
@@ -2523,7 +2523,7 @@ module ActiveRecord
       end
 
       def qualify_attribute_with_table_name(attr)
-        attr.to_s.include?(".") ? attr : predicate_builder.resolve_arel_attribute(table_name, attr)
+        (attr.is_a?(Symbol) ? attr.name : attr.to_s).include?(".") ? attr : predicate_builder.resolve_arel_attribute(table_name, attr)
       end
 
       # Checks to make sure that the arguments are not blank. Note that if some
@@ -2610,7 +2610,7 @@ module ActiveRecord
           when Hash
             columns_aliases.map do |column, column_alias|
               arel_column_with_table(table_name, column)
-                .as(model.adapter_class.quote_column_name(column_alias.to_s))
+                .as(model.adapter_class.quote_column_name(column_alias.is_a?(Symbol) ? column_alias.name : column_alias.to_s))
             end
           when Array
             columns_aliases.map do |column|
@@ -2618,7 +2618,7 @@ module ActiveRecord
             end
           when String, Symbol
             arel_column(key)
-              .as(model.adapter_class.quote_column_name(columns_aliases.to_s))
+              .as(model.adapter_class.quote_column_name(columns_aliases.is_a?(Symbol) ? columns_aliases.name : columns_aliases.to_s))
           end
         end
       end
