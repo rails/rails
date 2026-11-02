@@ -701,9 +701,13 @@ module ActionView
           end
         end
 
+        PRELOAD_LINK_HREF_UNSAFE = /[<>\x00-\x20\x7f]/ # :nodoc:
+
         # Percent-encodes characters that are not allowed inside <> in a Link header.
         def preload_link_href(href)
-          href.gsub(/[<>\x00-\x20\x7f]/) { |char| "%%%02X" % char.ord }
+          return href unless href.match?(PRELOAD_LINK_HREF_UNSAFE)
+
+          href.gsub(PRELOAD_LINK_HREF_UNSAFE) { |char| "%%%02X" % char.ord }
         end
 
         # Some HTTP client and proxies have a 4kiB header limit, but more importantly
