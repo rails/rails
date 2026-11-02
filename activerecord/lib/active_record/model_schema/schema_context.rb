@@ -6,14 +6,22 @@ require "active_record/model_schema/schema_context/attributes"
 module ActiveRecord
   module ModelSchema
     class SchemaContext # :nodoc:
-      attr_reader :model_class, :table_name, :only_columns, :ignored_columns, :query_constraints_definition
+      attr_reader :model_class, :table_name, :only_columns, :ignored_columns, :base_context,
+        :query_constraints_definition, :configured_primary_key_definition
 
       def initialize(model_class)
         @model_class = model_class
+        unless model_class.base_class?
+          base_class = model_class.base_class
+          @base_primary_key_definition = base_class.configured_primary_key_definition
+          @base_query_constraints_definition = base_class.query_constraints_definition
+          @base_context = base_class.schema_context unless @base_primary_key_definition
+        end
         @table_name = model_class.table_name
         @only_columns = model_class.only_columns
         @ignored_columns = model_class.ignored_columns
         @query_constraints_definition = model_class.query_constraints_definition
+        @configured_primary_key_definition = model_class.configured_primary_key_definition
         @mapped_table_cell = ActiveSupport::Ractors::Cell.new
         @attributes_key = :"active_record_schema_attributes_#{model_class.object_id}"
       end
@@ -34,15 +42,48 @@ module ActiveRecord
       end
 
       def derive_query_constraints_list(primary_key)
-        if model_class.base_class? || primary_key != model_class.base_class.primary_key
+        if model_class.base_class? || primary_key != base_primary_key
           primary_key if primary_key.is_a?(Array)
         else
-          model_class.base_class.query_constraints_definition || (primary_key if primary_key.is_a?(Array))
+          @base_query_constraints_definition || (primary_key if primary_key.is_a?(Array))
         end
       end
 
       def primary_key
-        model_class.primary_key
+        primary_key_definition.name
+      end
+
+      def primary_key_definition
+        if definition = configured_primary_key_definition
+          definition
+        elsif table = loaded_mapped_table
+          table._primary_key_definition
+        else
+          ActiveSupport::Ractors.on_main(self) do
+            if table_exists?
+              mapped_table._primary_key_definition
+            else
+              resolve_primary_key_definition
+            end
+          end
+        end
+      end
+
+      def resolve_primary_key_definition # :nodoc:
+        configured_primary_key_definition || base_context&.primary_key_definition ||
+          ActiveRecord::Key.for(inferred_primary_key)
+      end
+
+      def apply_primary_key_override(definition) # :nodoc:
+        if current? && overridden_primary_key?(model_class)
+          ActiveRecord::Key.for(model_class.primary_key)
+        else
+          definition
+        end
+      end
+
+      def current?
+        model_class.current_schema_context.equal?(self)
       end
 
       def schema_cache
@@ -51,6 +92,14 @@ module ActiveRecord
 
       def table_exists?
         table_name && schema_cache.data_source_exists?(table_name)
+      end
+
+      def inferred_primary_key
+        if table_exists?
+          schema_cache.primary_keys(table_name)
+        else
+          "id"
+        end
       end
 
       def has_query_constraints?
@@ -111,12 +160,27 @@ module ActiveRecord
         else
           ActiveSupport::Ractors[@attributes_key] = [self, attributes].freeze
         end
+        model_class.include(AttributeMethods::CompositePrimaryKey) if mapped_table.primary_key_definition.composite?
         @mapped_table_cell.value = ActiveSupport::Ractors.make_shareable(mapped_table.freeze)
       end
 
       def mapped_table # :nodoc:
         loaded_mapped_table || ActiveSupport::Ractors.on_main(self) { model_class.load_schema_context(self) }
       end
+
+      private
+        def base_primary_key
+          base_class = model_class.base_class
+          if current? && overridden_primary_key?(base_class)
+            base_class.primary_key
+          else
+            (@base_primary_key_definition || base_context.primary_key_definition).name
+          end
+        end
+
+        def overridden_primary_key?(model)
+          model.method(:primary_key).owner != AttributeMethods::PrimaryKey::ClassMethods
+        end
     end
   end
 end

@@ -101,8 +101,24 @@ class SchemaLoadingTest < ActiveRecord::TestCase
     context = klass.schema_context
     klass.table_name = "movies"
 
+    assert_equal "id", context.primary_key
     assert_includes context.mapped_table.column_names, "title"
+    assert_equal "movieid", klass.primary_key
     assert_includes klass.column_names, "name"
+  end
+
+  def test_retained_context_resolves_its_own_primary_key
+    klass = define_model { |model| model.table_name = "topics" }
+    context = klass.schema_context
+    klass.reset_column_information
+
+    klass.schema_cache.stub(:primary_keys, "title") do
+      assert_equal "title", context.primary_key
+    end
+
+    assert_equal "id", klass.primary_key
+    assert_not_includes context.mapped_table.content_columns.map(&:name), "title"
+    assert_includes klass.content_columns.map(&:name), "title"
   end
 
   def test_failed_schema_load_does_not_publish_the_context
@@ -150,6 +166,16 @@ class SchemaLoadingMissingTableTest < ActiveRecord::TestCase
     assert_equal ["id", "name"], model.column_names
     record = model.create!(name: "late")
     assert_equal "late", model.find(record.id).name
+  end
+
+  def test_missing_table_primary_key_is_inferred_again_after_create_table
+    model = define_model
+    assert_equal "id", model.primary_key
+
+    create_late_table(primary_key: "code")
+
+    assert_equal "code", model.primary_key
+    assert_equal ["code", "name"], model.column_names
   end
 
   def test_schema_loads_from_a_temporary_table

@@ -297,6 +297,77 @@ class PrimaryKeysTest < ActiveRecord::TestCase
     assert_equal "title", subclass.primary_key
   end
 
+  def test_abstract_class_descendant_infers_primary_key_from_its_own_table
+    parent = Class.new(ActiveRecord::Base) do
+      self.abstract_class = true
+      self.table_name = "topics"
+    end
+    assert_equal "id", parent.primary_key
+
+    child = Class.new(parent) do
+      self.table_name = "movies"
+    end
+    assert_equal "movieid", child.primary_key
+  end
+
+  def test_schema_metadata_honors_primary_key_reader_override
+    model = Class.new(ActiveRecord::Base) do
+      self.table_name = "topics"
+
+      def self.primary_key
+        "title"
+      end
+    end
+
+    assert_not_includes model.content_columns.map(&:name), "title"
+    assert_includes model.content_columns.map(&:name), "id"
+    assert_equal ["title"], model.composite_query_constraints_list
+    assert_nil model.instantiate("id" => 1).title
+  end
+
+  def test_primary_key_reader_override_takes_precedence_over_a_declared_key
+    model = Class.new(ActiveRecord::Base) do
+      self.table_name = "topics"
+      self.primary_key = "id"
+
+      def self.primary_key
+        "title"
+      end
+    end
+
+    assert_equal "title", model.primary_key_definition.name
+    assert_not_includes model.content_columns.map(&:name), "title"
+  end
+
+  def test_primary_key_reader_override_can_extend_the_default_key
+    model = Class.new(ActiveRecord::Base) do
+      self.table_name = "topics"
+
+      def self.primary_key
+        [super, "title"]
+      end
+    end
+
+    assert_equal ["id", "title"], model.primary_key
+    assert_equal ["id", "title"], model.query_constraints_list
+    assert_predicate model, :composite_primary_key?
+    assert_equal [1, "Title"], model.instantiate("id" => 1, "title" => "Title").id
+  end
+
+  def test_find_through_a_subclass_honors_its_parents_primary_key_reader_override
+    parent = Class.new(ActiveRecord::Base) do
+      self.table_name = "movies"
+
+      def self.primary_key
+        "name"
+      end
+    end
+    child = Class.new(parent)
+    movie = movies(:first)
+
+    assert_equal movie.name, child.all.find(movie.name).id
+  end
+
   def test_primary_key_assignment_reloads_schema
     klass = Class.new(ActiveRecord::Base) do
       self.table_name = "topics"

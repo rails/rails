@@ -4,8 +4,9 @@ module ActiveRecord
   module ModelSchema
     class SchemaContext # :nodoc:
       class MappedTable # :nodoc:
-        attr_reader :primary_key_definition, :columns_hash, :columns, :column_names,
-          :content_columns, :query_constraints_list, :composite_query_constraints_list,
+        attr_reader :primary_key_definition, :_primary_key, :_primary_key_definition,
+          :columns_hash, :columns, :column_names, :content_columns,
+          :query_constraints_list, :composite_query_constraints_list,
           :composite_query_constraints_definition, :timestamp_attributes_for_create_in_model,
           :timestamp_attributes_for_update_in_model, :all_timestamp_attributes_in_model
 
@@ -39,16 +40,18 @@ module ActiveRecord
 
         def resolve_model_hooks(context)
           model_class = context.model_class
-          @primary_key_definition = model_class.primary_key_definition
+          @_primary_key_definition = context.resolve_primary_key_definition
+          @_primary_key = @_primary_key_definition.name
+          @primary_key_definition = context.apply_primary_key_override(@_primary_key_definition)
 
-          primary_key = model_class.primary_key
+          primary_key = @primary_key_definition.name
           @query_constraints_list = context.query_constraints_definition ||
             context.derive_query_constraints_list(primary_key)
-          @composite_query_constraints_list = (@query_constraints_list || Array(primary_key)).freeze
+          @composite_query_constraints_list = (@query_constraints_list || @primary_key_definition.columns).freeze
           @composite_query_constraints_definition = ActiveRecord::Key.for(@composite_query_constraints_list)
           inheritance_column = model_class.inheritance_column
           @content_columns = @columns.reject do |column|
-            Array(primary_key).include?(column.name) ||
+            @primary_key_definition.include?(column.name) ||
               column.name == inheritance_column ||
               column.name.end_with?("_id", "_count")
           end.freeze

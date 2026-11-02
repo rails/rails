@@ -1980,6 +1980,17 @@ class QueryConstraintsTest < ActiveRecord::TestCase
     assert_equal(["author_id", "id"], Cpk::BestSeller.query_constraints_list)
   end
 
+  def test_child_with_its_own_primary_key_does_not_inherit_parents_query_constraints
+    klass = Class.new(ActiveRecord::Base) do
+      self.table_name = "topics"
+      query_constraints :title, :id
+    end
+    child = Class.new(klass) { self.primary_key = "author_name" }
+
+    assert_nil child.query_constraints_list
+    assert_equal ["author_name"], child.composite_query_constraints_list
+  end
+
   def assert_uses_query_constraints_on_reload(object, columns)
     flunk("columns argument must not be empty") if columns.blank?
 
