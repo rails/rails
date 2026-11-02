@@ -2073,6 +2073,37 @@ class RelationTest < ActiveRecord::TestCase
     assert_match(/ORDER BY title DESC/, relation.to_sql)
   end
 
+  def test_unscope_default_order
+    relation = Post.default_order("title ASC").unscope(:default_order)
+    assert_empty relation.default_order_values
+    assert_no_match(/ORDER BY/, relation.to_sql)
+
+    relation_with_both = Post.order("id DESC").default_order("title ASC").unscope(:default_order)
+    assert_empty relation_with_both.default_order_values
+    assert_equal ["id DESC"], relation_with_both.order_values
+    assert_match(/ORDER BY id DESC/, relation_with_both.to_sql)
+  end
+
+  def test_unscope_order_preserves_default_order
+    relation = Post.order("id DESC").default_order("title ASC").unscope(:order)
+    assert_empty relation.order_values
+    assert_equal ["title ASC"], relation.default_order_values
+    assert_match(/ORDER BY title ASC/, relation.to_sql)
+  end
+
+  def test_unscope_order_and_default_order
+    relation = Post.order("id DESC").default_order("title ASC").unscope(:order, :default_order)
+    assert_empty relation.order_values
+    assert_empty relation.default_order_values
+    assert_no_match(/ORDER BY/, relation.to_sql)
+  end
+
+  def test_merge_with_unscope_default_order
+    merged = Post.default_order("title ASC").merge(Post.unscope(:default_order))
+    assert_empty merged.default_order_values
+    assert_no_match(/ORDER BY/, merged.to_sql)
+  end
+
   def test_reorder_with_first
     post = nil
 
