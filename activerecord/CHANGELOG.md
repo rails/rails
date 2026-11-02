@@ -1,3 +1,10 @@
+*   Fix `in_batches(use_ranges: true)` yielding relations that keep an ignored `default_order`.
+
+    Batching ignores `default_order` like an explicit order, but the ranged
+    relations still carried it, adding a needless `ORDER BY` to each batch.
+
+    *Clément Joubert*
+
 *   Support `unscope(:default_order)`.
 
     Previously, `unscope(:default_order)` raised an `ArgumentError`. It now
