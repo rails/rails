@@ -39,6 +39,7 @@ module ActiveSupport
   autoload :CodeGenerator
   autoload :ActionableError
   autoload :Configurable
+  autoload :ConnectionPool
   autoload :ConfigurationFile
   autoload :ContinuousIntegration
   autoload :CurrentAttributes
