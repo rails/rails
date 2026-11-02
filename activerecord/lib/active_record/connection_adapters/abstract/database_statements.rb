@@ -867,6 +867,8 @@ module ActiveRecord
       end
 
       def finalize_remaining_intents # :nodoc:
+        return if @unfinalized_intents.empty?
+
         intents = @unfinalized_intents
         @unfinalized_intents = []
 
