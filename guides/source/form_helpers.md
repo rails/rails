@@ -292,6 +292,71 @@ Some important things to notice when using `form_with` with a model object:
 * The form field names are scoped with `book[...]`. This means that `params[:book]` will be a hash containing all these field's values. You can read more about the significance of input names in chapter [Form Input Naming Conventions and Params Hash](#form-input-naming-conventions-and-params-hash) of this guide.
 * The submit button is automatically given an appropriate text value, "Create Book" in this case.
 
+You're not limited to Active Record backed models either. We can improve our
+[generic search form](#a-generic-search-form) from earlier by extracting it into
+an [Active Model](active_model_basics.html).
+
+For example, if we have a `@search` model object:
+
+```ruby
+class Search
+  include ActiveModel::Attributes
+
+  attribute :query, :string
+end
+```
+
+```ruby
+@search = Search.new(params.fetch(:search, {}).permit(:query))
+```
+
+Then, we can pass it to the `model` option.
+
+```erb
+<%= form_with model: @search, url: "/search", method: :get do |form| %>
+  <%= form.label :query, "Search for:" %>
+  <%= form.search_field :query %>
+  <%= form.submit "Search" %>
+<% end %>
+```
+
+It will generate this HTML:
+
+```html
+<form action="/search" accept-charset="UTF-8" method="get">
+  <label for="search_query">Search for:</label>
+  <input type="search" name="search[query]" id="search_query">
+  <input type="submit" name="commit" value="Search" data-disable-with="Search">
+</form>
+```
+
+This has the added benefit of automatically setting the `value` if it's set on
+the model object.
+
+```ruby
+@search = Search.new(query: "Ruby on Rails")
+```
+
+```erb
+<%= form_with model: @search, url: "/search", method: :get do |form| %>
+  <%= form.label :query, "Search for:" %>
+  <%= form.search_field :query %>
+  <%= form.submit "Search" %>
+<% end %>
+```
+
+It will generate this HTML:
+
+```html
+<form action="/search" accept-charset="UTF-8" method="get">
+  <label for="search_query">Search for:</label>
+  <input type="search" name="search[query]" id="search_query" value="Ruby on Rails">
+  <input type="submit" name="commit" value="Search" data-disable-with="Search">
+</form>
+```
+
+Notice how the `value` is automatically set from the model object.
+
 TIP: Typically your form inputs will mirror model attributes. However, they don't have to. If there is other information you need you can include a field in your form and access it via `params[:book][:my_non_attribute_input]`.
 
 #### Composite Primary Key Forms
