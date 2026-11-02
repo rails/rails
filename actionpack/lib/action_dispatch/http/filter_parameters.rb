@@ -50,7 +50,7 @@ module ActionDispatch
         private
           def filter_query_value(key, value, parameter_filter)
             if (decoded_key = decoded_query_key(key))
-              parameter_filter.filter_param(decoded_key, value)
+              parameter_filter.filter_param(dotted_query_key(decoded_key), value)
             else
               ActiveSupport::ParameterFilter::FILTERED
             end
@@ -61,6 +61,14 @@ module ActionDispatch
             decoded_key if decoded_key.valid_encoding?
           rescue ArgumentError
             nil
+          end
+
+          # Match nested names such as user[name] or user[tags][] against dotted
+          # filters like "user.name", the full key used when filtering params.
+          def dotted_query_key(key)
+            return key unless key.include?("[")
+
+            key.gsub("[]", "").gsub(/\[([^\[\]]*)\]/, '.\1')
           end
       end
       # :startdoc:

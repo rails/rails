@@ -1,3 +1,14 @@
+*   Apply dotted `filter_parameters` to nested query string keys when filtering
+    request and redirect logs.
+
+    A filter such as `"user.phone_number"`, which Active Record encryption
+    adds for `encrypts :phone_number`, now also filters `user[phone_number]`
+    in the query string. Previously the value was written unfiltered to the
+    `Started GET` and `Redirected to` log lines, while the `Parameters` line
+    showed `[FILTERED]`.
+
+    *Dhruv Patel*
+
 *   Compute `action_methods` without converting every public instance method to a String.
 
     Speeds up eager loading for applications whose controllers include the url helpers.
