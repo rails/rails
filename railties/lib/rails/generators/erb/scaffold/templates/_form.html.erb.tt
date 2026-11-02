@@ -32,6 +32,6 @@
 
 <% end -%>
   <div>
-    <%%= form.submit %>
+    <%%= form.button %>
   </div>
 <%% end %>
