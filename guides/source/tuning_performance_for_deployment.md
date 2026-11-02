@@ -13,14 +13,14 @@ After reading this guide, you will know:
 * How YJIT and memory allocators affect performance and memory usage.
 * How to measure performance and tune your configuration for your application's workload.
 
-This guide focuses on web application servers. For background job configuration, see
+This guide focuses on web application server configuration. For background job configuration, see
 [Active Job Basics](active_job_basics.html). For WebSocket configuration and deployment, see
 [Action Cable Overview](action_cable_overview.html). Database query optimization and caching
 are outside this guide's scope; related guidance is available in
 [Active Record Query Interface](active_record_querying.html) and
 [Caching with Rails](caching_with_rails.html).
 
-For general application configuration, see [Configuring Rails Applications](https://guides.rubyonrails.org/configuring.html). For more information about concurrency, see [Threading and Code Execution in Rails](https://guides.rubyonrails.org/threading_and_code_execution.html).
+For general application configuration, see [Configuring Rails Applications](configuring.html). For more information about concurrency, see [Threading and Code Execution in Rails](threading_and_code_execution.html).
 
 --------------------------------------------------------------------------------
 
@@ -28,23 +28,6 @@ NOTE: This guide covers standard Ruby, also known as CRuby or MRI. Run `ruby -v`
 
 Getting Started
 ---------------
-
-Use this checklist to work through the guide with your application:
-
-1. [Set performance goals](#setting-performance-goals) for expected traffic, latency, and errors.
-2. [Review the configuration](#configuring-the-application), including CPU and memory limits, Puma workers and threads, and the database connection budget.
-3. [Measure a baseline](#measuring-performance) with a representative workload, allowing for warmup before recording results.
-4. [Compare configuration changes](#tuning-the-configuration) and keep those that meet your goals within your resource limits.
-
-Choosing an Application Server
------------------------------
-
-An application server receives HTTP requests, runs your Rails application, and returns responses. Servers differ in how they handle concurrent requests.
-
-Puma is Rails' default application server and is suitable for many applications. It uses a thread pool and can run multiple worker processes. Other servers use different concurrency models; for example, Falcon uses fibers. This guide focuses on tuning Puma.
-
-Setting Performance Goals
--------------------------
 
 Performance tuning involves balancing throughput, latency, and resource usage:
 
@@ -54,20 +37,24 @@ Performance tuning involves balancing throughput, latency, and resource usage:
 
 Higher throughput can reduce the infrastructure needed to serve a workload. Lower latency makes the application more responsive. These goals can conflict: increasing concurrency may improve throughput while making individual requests wait longer for CPU time or other resources.
 
-Define acceptable performance before comparing configurations. For example, a goal might be to sustain an expected peak of 100 requests per second for a representative workload, with P95 latency below 300 milliseconds (meaning 95% of requests complete in less than 300 milliseconds) and fewer than 0.1% failed requests, including timeouts. These values are an example; choose targets that reflect your application's users and requirements. Specify the workload, measurement period, and whether the target applies to the whole application or particular endpoints.
+Use this checklist to work through the guide with your application:
 
-Start with your application's existing configuration and a workload representative of production:
+1. [Set performance goals](#setting-performance-goals) for expected traffic, latency, and errors.
+2. [Review the configuration](#configuring-the-application), including CPU and memory limits, Puma workers and threads, and the database connection budget.
+3. [Measure a baseline](#measuring-performance) with a representative workload, allowing for warmup before recording results.
+4. [Compare configuration changes](#tuning-the-configuration) and keep those that meet your goals within your resource limits.
 
-1. Establish a baseline for throughput, latency, errors, and resource usage.
-2. Investigate which resources constrain performance.
-3. Change one setting at a time.
-4. Repeat the same measurements and compare the results.
-5. Keep changes that meet your performance goals within your resource limits.
+Default Application Server: Puma
+--------------------------------
+
+An application server receives HTTP requests, runs your Rails application, and returns responses. Servers differ in how they handle concurrent requests.
+
+Puma is Rails' default application server and is suitable for many applications. It uses a thread pool and can run multiple worker processes. Other servers use different concurrency models; for example, Falcon uses fibers. This guide focuses on tuning Puma.
 
 Understanding Ruby's Concurrency Model
 -------------------------------------
 
-A process is a running program managed by the operating system, with its own memory space. Puma handles requests using threads within a process. In cluster mode, it starts separate worker processes, each with its own thread pool and instance of the application. In Puma, a "worker" refers to one of these processes.
+A process is a running program managed by the operating system, with its own memory space. Puma handles requests using threads within a process. In cluster mode, Puma starts separate worker processes, each with its own thread pool and instance of the application. In Puma, a "worker" refers to one of these processes.
 
 Two workers with a maximum of three request threads each provide up to six request-processing slots. This is a limit on concurrent request handling, not a guarantee that six requests can execute Ruby code simultaneously.
 
@@ -75,13 +62,13 @@ Two workers with a maximum of three request threads each provide up to six reque
 
 When all request threads are occupied, additional requests must wait for capacity or be rejected or time out, depending on the deployment. Waiting can occur at several points, including a reverse proxy, the operating system's connection backlog, or the application server. This queuing time contributes to the latency users experience even before Rails begins processing a request.
 
-If requests keep arriving faster than the deployment can complete them, queues grow until a limit is reached. As the deployment approaches saturation, it may be unable to complete more requests per second, even as more requests arrive. The slowest requests take longer, and more requests may time out. A deployment can also reach unacceptable latency before its maximum throughput is reached.
+If requests keep arriving faster than Puma can complete them, queues grow until a limit is reached. Once Puma reaches its maximum throughput, additional requests spend longer waiting in queues and may time out. Latency can become unacceptable before Puma reaches its maximum throughput.
 
 Adding request threads can help if there is capacity available to do useful work. If the database is already saturated, however, allowing more requests to query it concurrently may increase contention and make each request slower. More workers or a larger connection pool can have the same effect. Tune concurrency against the capacity of the whole request path, including shared dependencies.
 
 ### Threads and the Global VM Lock
 
-[CRuby](https://www.ruby-lang.org/en/) has a [Global Interpreter Lock](https://en.wikipedia.org/wiki/Global_interpreter_lock), often called the GVL or GIL. The GVL prevents multiple threads from executing Ruby code under the lock simultaneously within the same process.
+[CRuby](https://www.ruby-lang.org/en/) has a [Global Interpreter Lock](https://en.wikipedia.org/wiki/Global_interpreter_lock) (GIL), often called the Global VM Lock (GVL) in Ruby. The GVL prevents multiple threads from executing Ruby code under the lock simultaneously within the same process.
 
 Consider one request waiting for a database query and another performing a calculation in Ruby. When the database operation releases the GVL while waiting, another thread can execute the calculation. Both requests make progress concurrently. If both requests are executing Ruby calculations under the GVL, they must take turns.
 
@@ -99,7 +86,7 @@ On systems that support forking, workers can share memory pages through [copy-on
 
 Puma supports application preloading in cluster mode. Its defaults and lifecycle hooks depend on the Puma version and configuration. Review [Puma's cluster and preload documentation](https://puma.io/puma/file.README.html#label-Cluster+mode) before changing preloading, particularly if application initialization creates connections or background threads.
 
-Grouping more workers on fewer hosts may reduce memory overhead per worker through copy-on-write sharing of preloaded application memory. The savings depend on how much memory remains shared under load. Compare the measured footprint with the capacity, availability, and deployment requirements of each arrangement.
+Grouping more workers on fewer but larger hosts may reduce memory overhead per worker through copy-on-write sharing of preloaded application memory. The savings depend on how much memory remains shared under load. Compare the measured footprint with the capacity, availability, and deployment requirements of each arrangement.
 
 Measure memory after warmup and under sustained load. A process's resident memory is the memory it currently occupies in physical RAM, including pages shared with other processes. Adding up the resident memory of all Puma processes can therefore count the same shared pages more than once.
 
@@ -111,7 +98,14 @@ Each request has its own controller instance, but threads in a process share cla
 
 Avoid mutating shared objects during requests unless a thread-safe API or synchronization mechanism protects the operation. Store request-specific data in method-local variables, objects created for the request, or appropriately scoped attributes in `ActiveSupport::CurrentAttributes`.
 
-When creating threads or managing custom thread pools, wrap application code in the Rails Executor so Rails can manage execution state and clean up resources. See [Threading and Code Execution in Rails](https://guides.rubyonrails.org/threading_and_code_execution.html) for details.
+When creating threads or managing custom thread pools, wrap application code in the Rails Executor so Rails can manage execution state and clean up resources. See [Threading and Code Execution in Rails](threading_and_code_execution.html) for details.
+
+Setting Performance Goals
+-------------------------
+
+Define acceptable performance goals before comparing configurations. For example, a goal might be to sustain an expected peak of 100 requests per second for a representative workload, with P95 latency below 300 milliseconds (meaning 95% of requests complete in less than 300 milliseconds) and fewer than 0.1% failed requests, including timeouts. These values are an example; choose targets that reflect your application's users and requirements. Specify the workload, measurement period, and whether the target applies to the whole application or particular endpoints.
+
+TIP: A [percentile](https://en.wikipedia.org/wiki/Percentile_rank) describes the distribution of request times. P95 is a latency at or below which approximately 95% of measured requests complete; approximately 5% take longer. P50 is the median, while P95 and P99 describe the slower tail. Average latency alone can hide these slow requests.
 
 Configuring the Application
 ---------------------------
@@ -183,15 +177,15 @@ For example, two application instances with two workers each and a pool size of 
 
 Budget separately for background jobs, consoles, additional pools, and overlapping processes during deployments. Compare the combined capacity with the database's connection limit.
 
-Asynchronous queries also need pool capacity. With Active Record's global async query executor, the documented minimum is the maximum foreground thread count plus `global_executor_concurrency` plus one. Three request threads and an executor concurrency of four therefore require a pool of at least eight, before accounting for other users of that pool. See [`config.active_record.global_executor_concurrency`](https://guides.rubyonrails.org/configuring.html#config-active-record-global-executor-concurrency).
+Asynchronous queries also need pool capacity. With Active Record's global async query executor, the documented minimum is the maximum foreground thread count plus `global_executor_concurrency` plus one. Three request threads and an executor concurrency of four therefore require a pool of at least eight, before accounting for other users of that pool. See [`config.active_record.global_executor_concurrency`](configuring.html#config-active-record-global-executor-concurrency).
 
-PostgreSQL prepared statements can improve query performance but use server memory per connection. If this contributes to memory pressure, review `statement_limit` and prepared statement settings in [Configuring a PostgreSQL Database](https://guides.rubyonrails.org/configuring.html#configuring-a-postgresql-database).
+PostgreSQL prepared statements can improve query performance but use server memory per connection. If this contributes to memory pressure, review `statement_limit` and prepared statement settings in [Configuring a PostgreSQL Database](configuring.html#configuring-a-postgresql-database).
 
 ### YJIT
 
-[YJIT](https://github.com/ruby/ruby/blob/master/doc/yjit/yjit.md) is CRuby's [just-in-time compiler](https://en.wikipedia.org/wiki/Just-in-time_compilation). It compiles frequently executed Ruby code into machine code and can improve performance at the cost of additional memory. When your Ruby build supports YJIT and the deployment has memory to spare, start by evaluating the application with YJIT enabled. Compare throughput, latency, and memory usage with it disabled after warming up both configurations under the same workload.
+[YJIT](https://github.com/ruby/ruby/blob/master/doc/yjit/yjit.md) is CRuby's [just-in-time compiler](https://en.wikipedia.org/wiki/Just-in-time_compilation). It compiles frequently executed Ruby code into machine code and can improve performance at the cost of additional memory. When your Ruby build supports YJIT, enabling it is highly recommended unless you cannot spare the additional memory.
 
-Rails can enable YJIT through `config.yjit` on supported Ruby builds beginning with Ruby 3.3. The default depends on `config.load_defaults`: Rails 7.2 defaults enable it, while Rails 8.1 defaults enable it outside local environments. Upgrading Rails does not necessarily adopt newer configuration defaults. See [`config.yjit`](https://guides.rubyonrails.org/configuring.html#config-yjit).
+Rails can enable YJIT through `config.yjit` on supported Ruby builds beginning with Ruby 3.3. The default depends on `config.load_defaults`: Rails 7.2 defaults enable it, while Rails 8.1 defaults enable it outside local environments. Upgrading Rails does not necessarily adopt newer configuration defaults. See [`config.yjit`](configuring.html#config-yjit).
 
 Check its status in the running application:
 
@@ -231,8 +225,6 @@ Record the application version, configuration, workload, and infrastructure for 
 * CPU utilization and any CPU throttling.
 * Memory usage during warmup and sustained load.
 * Database connection usage and pool wait times.
-
-A [percentile](https://en.wikipedia.org/wiki/Percentile_rank) describes the distribution of request times. P95 is a latency at or below which approximately 95% of measured requests complete; approximately 5% take longer. P50 is the median, while P95 and P99 describe the slower tail. Average latency alone can hide these slow requests.
 
 Measure latency at the load generator or another appropriate client boundary. Rails' request log timing does not include every source of delay, such as queuing before Rails begins processing a request or network transit.
 
@@ -283,14 +275,14 @@ Compare successful throughput, median and tail latency, errors, and resource usa
 
 Suppose an application needs to handle at least 100 successful requests per second, with P95 latency below 300 milliseconds and fewer than 0.1% failed requests. The following results are illustrative, not benchmarks or recommended settings.
 
-Compare two workers with three threads each against two workers with five threads each. Keep the request mix, load-generator concurrency, test duration, and infrastructure the same. For this comparison, both configurations use a pool size of five per worker, within the database's connection budget. Warm up each configuration and repeat the measurements.
+Compare 1 worker with 3 threads against 1 worker with 5 threads. Keep the request mix, load-generator concurrency, test duration, and infrastructure the same. For this comparison, both configurations use a pool size of 5 per worker, within the database's connection budget. Warm up each configuration and repeat the measurements.
 
-| Configuration      | Successful requests per second | P95 latency | Failed requests |
+| Threads per worker | Successful requests per second | P95 latency | Failed requests |
 | ------------------ | -----------------------------: | ----------: | --------------: |
-| Three threads      |                            110 |      280 ms |           0.02% |
-| Five threads       |                            130 |      360 ms |           0.02% |
+| 3                  |                            110 |      280 ms |           0.02% |
+| 5                  |                            130 |      360 ms |           0.02% |
 
-Assume these differences persist across repeated runs and both configurations fit within CPU and memory limits. Five threads increase throughput, but exceed the latency target. Retain three threads for this workload and investigate the source of the additional latency before increasing concurrency again.
+Assume these differences persist across repeated runs and both configurations fit within CPU and memory limits. 5 threads increase throughput, but exceed the latency target. Retain 3 threads for this workload and investigate the source of the additional latency before increasing concurrency again.
 
 This comparison does not establish how either configuration behaves at a specified arrival rate. Before deploying, test the expected peak traffic and the additional load needed to verify headroom, using the same performance targets.
 
