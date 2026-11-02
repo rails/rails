@@ -1,3 +1,17 @@
+*   Render `popover: true` as `popover=""` and omit the attribute for `false`
+    in the tag helpers.
+
+    `tag.div(popover: true)` used to render `popover="true"`, an invalid value
+    that browsers read as a manual popover instead of an auto one, and
+    `popover: false` rendered `popover="false"`, which still made the element a
+    popover. Strings and symbols such as `"manual"` or `:hint` render as is.
+
+    Elements rendered with `popover: true` now get light dismiss, and those
+    rendered with `popover: false` are no longer hidden popovers. Pass
+    `popover: "manual"` to keep the previous behaviour.
+
+    *Clément Joubert*
+
 *   Treat `alpha`, `headingreset`, `shadowrootclonable`,
     `shadowrootcustomelementregistry`, `shadowrootdelegatesfocus` and
     `shadowrootserializable` as boolean attributes in the tag helpers.

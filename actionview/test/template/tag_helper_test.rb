@@ -168,6 +168,18 @@ class TagHelperTest < ActionView::TestCase
     assert_equal '<div hidden="until-found"></div>', content_tag(:div, nil, "hidden" => "until-found")
   end
 
+  def test_tag_builder_options_popover
+    assert_equal '<div popover=""></div>', tag.div(popover: true)
+    assert_equal "<div></div>", tag.div(popover: false)
+    assert_equal "<div></div>", tag.div(popover: nil)
+    assert_equal '<div popover="manual"></div>', tag.div(popover: "manual")
+    assert_equal '<div popover="hint"></div>', tag.div(popover: :hint)
+    assert_equal '<div popover=""></div>', content_tag(:div, nil, "popover" => true)
+    assert_equal '<div popover="" />', tag(:div, popover: true)
+    assert_equal 'popover=""', tag.attributes(popover: true)
+    assert_equal "", tag.attributes(popover: false).to_s
+  end
+
   def test_tag_builder_with_options_builds_p_elements
     html = tag.with_options(id: "with-options") { |t| t.p("content") }
 
