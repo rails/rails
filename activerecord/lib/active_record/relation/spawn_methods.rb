@@ -63,7 +63,7 @@ module ActiveRecord
     # Post.where('id > 10').order('id asc').except(:where) # removes the where condition but keeps the order
     # ```
     def except(*skips)
-      relation_with values.except(*skips)
+      relation_with @values.except(*skips)
     end
 
     # Keeps only the condition(s) specified in `onlies` in the query, removing all others.
@@ -73,7 +73,7 @@ module ActiveRecord
     # Post.order('id asc').only(:where, :order) # keeps only the where and order conditions
     # ```
     def only(*onlies)
-      relation_with values.slice(*onlies)
+      relation_with @values.slice(*onlies)
     end
 
     private
