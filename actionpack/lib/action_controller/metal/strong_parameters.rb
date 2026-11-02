@@ -818,7 +818,7 @@ module ActionController
     # when #permit is called.
     #: [V] (String | Symbol, V) -> V
     def []=(key, value)
-      @parameters[key] = value
+      @parameters[key] = convert_value_to_parameters(value)
     end
 
     # Returns a parameter for the given `key`. If the `key` can't be found, there
