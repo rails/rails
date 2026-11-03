@@ -277,6 +277,23 @@ class RelationMergingTest < ActiveRecord::TestCase
     assert_equal 1, relation.limit_value
   end
 
+  def test_relation_merging_into_itself_keeps_order_select_and_where_set_after_unscope
+    relation = Post.unscope(:order, :select, :where).order(:id).select(:id).where(title: "Welcome to the weblog")
+    order_values = relation.order_values
+    relation.merge!(relation)
+    assert_equal order_values, relation.order_values
+    assert_equal [:id], relation.select_values
+    assert_equal [posts(:welcome).id], relation.map(&:id)
+  end
+
+  def test_relation_merging_itself_returns_a_new_relation
+    relation = Post.unscope(:limit).limit(1)
+    merged = relation.merge(relation)
+    assert_not_same relation, merged
+    assert_equal 1, merged.limit_value
+    assert_equal relation.to_sql, merged.to_sql
+  end
+
   def test_relation_merging_its_own_collection_proxy_keeps_values_set_after_unscope
     proxy = authors(:david).posts
     relation = proxy.scope
