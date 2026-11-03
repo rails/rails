@@ -312,13 +312,39 @@ class Array # :nodoc:
   # Array#to_h sizes the hash for the array up front, so it stays embedded up
   # to 8 entries, where Enumerable#index_with's growing hash would move to the
   # C heap.
-  def index_with(default = (no_default = true))
-    if block_given?
-      to_h { |elem| [elem, yield(elem)] } # rubocop:disable Rails/IndexWith
-    elsif no_default
-      to_enum(:index_with) { size }
-    else
-      to_h { |elem| [elem, default] } # rubocop:disable Rails/IndexWith
+  #
+  # Since Ruby 4.1 (ruby/ruby#19537), Hash.new(capacity:) sizes the hash the
+  # same way, without Array#to_h's pair array per element. An empty hash already
+  # has room for two entries. Subclasses keep Array#to_h, which reads the
+  # elements directly rather than through an overridden #each or #size.
+  # Compared as integers, without RubyGems, when this file loads.
+  if (RUBY_VERSION.split(".").map(&:to_i) <=> [4, 1]) >= 0
+    def index_with(default = (no_default = true))
+      if no_default && !block_given?
+        to_enum(:index_with) { size }
+      elsif instance_of?(Array)
+        result = size > 2 ? Hash.new(capacity: size) : {}
+        if block_given?
+          each { |elem| result[elem] = yield(elem) }
+        else
+          each { |elem| result[elem] = default }
+        end
+        result
+      elsif block_given?
+        to_h { |elem| [elem, yield(elem)] } # rubocop:disable Rails/IndexWith
+      else
+        to_h { |elem| [elem, default] } # rubocop:disable Rails/IndexWith
+      end
+    end
+  else
+    def index_with(default = (no_default = true))
+      if block_given?
+        to_h { |elem| [elem, yield(elem)] } # rubocop:disable Rails/IndexWith
+      elsif no_default
+        to_enum(:index_with) { size }
+      else
+        to_h { |elem| [elem, default] } # rubocop:disable Rails/IndexWith
+      end
     end
   end
 end

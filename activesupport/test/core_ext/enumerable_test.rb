@@ -288,6 +288,45 @@ class EnumerableTests < ActiveSupport::TestCase
     assert_equal({ [:x, 3] => 0, [:y, 4] => 0 }, point.each_pair.index_with(0))
   end
 
+  def test_index_with_array
+    values = (1..12).to_a
+    assert_equal values.zip(values.map(&:to_s)).to_h, values.index_with(&:to_s)
+    assert_equal values.zip([0] * values.size).to_h, values.index_with(0)
+    assert_nil values.index_with(&:to_s)[0]
+    assert_nil values.index_with(0)[0]
+    assert_equal({}, [].index_with(0))
+    default = []
+    assert_same default, %i( a b ).index_with(default)[:b]
+
+    calls = 0
+    assert_equal [[:b, 3], [:a, 2], [:c, 4]], %i( b a b c ).index_with { calls += 1 }.to_a
+    assert_equal [[:b, nil], [:a, nil], [:c, nil]], %i( b a b c ).index_with(nil).to_a
+
+    assert_equal 3, %w( a b c ).index_with.size
+    assert_equal({ "a" => "A", "b" => "B" }, %w( a b ).index_with.each(&:upcase))
+  end
+
+  class ReversedArray < Array
+    def each(&block) = reverse_each(&block)
+    def size = raise("size is not used")
+  end
+
+  def test_index_with_array_subclass_overriding_each_and_size
+    values = ReversedArray[1, 2, 3, 4]
+    assert_equal [[1, "1"], [2, "2"], [3, "3"], [4, "4"]], values.index_with(&:to_s).to_a
+    assert_equal [[1, 0], [2, 0], [3, 0], [4, 0]], values.index_with(0).to_a
+  end
+
+  def test_index_with_array_with_singleton_each
+    values = [1, 2, 3]
+    def values.each(&block) = reverse_each(&block)
+
+    # Plain arrays fill the hash through #each on Ruby 4.1, as Enumerable#index_with does.
+    expected = (RUBY_VERSION.split(".").map(&:to_i) <=> [4, 1]) >= 0 ? [3, 2, 1] : [1, 2, 3]
+    assert_equal expected, values.index_with { 0 }.keys
+    assert_equal expected, values.index_with(0).keys
+  end
+
   def test_many
     assert_equal false, GenericEnumerable.new([]).many?
     assert_equal false, GenericEnumerable.new([ 1 ]).many?
