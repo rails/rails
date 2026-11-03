@@ -1547,17 +1547,26 @@ module ActionView
           options.each_pair do |key, value|
             next if key.blank?
 
+            name = Symbol === key ? key.name : key.to_s
+            next if name.blank?
+
             type = TAG_TYPES[key]
             if type != :aria && type != :class && value.is_a?(Hash)
               value.each_pair do |k, v|
                 next if k.blank? || v.nil?
 
+                nested_name = Symbol === k ? k.name : k.to_s
+                next if nested_name.blank?
+
                 output << sep
-                append_prefix_tag_option(output, key, k, v, escape)
+                append_prefix_tag_option(output, name, nested_name, v, escape)
               end
             elsif type == :aria && value.is_a?(Hash)
               value.each_pair do |k, v|
                 next if k.blank? || v.nil?
+
+                nested_name = Symbol === k ? k.name : k.to_s
+                next if nested_name.blank?
 
                 case v
                 when Array, Hash
@@ -1570,21 +1579,21 @@ module ActionView
                 end
 
                 output << sep
-                append_prefix_tag_option(output, key, k, v, escape)
+                append_prefix_tag_option(output, name, nested_name, v, escape)
               end
             elsif type == :boolean
               if value
                 output << sep
                 if (String === value || Symbol === value) && (key == :hidden || key == "hidden")
                   # hidden also takes a keyword, such as "until-found"
-                  append_tag_option(output, key, value, escape)
+                  append_tag_option(output, name, value, escape)
                 else
-                  append_boolean_tag_option(output, key)
+                  append_boolean_tag_option(output, name)
                 end
               end
             elsif !value.nil?
               output << sep
-              append_tag_option(output, key, value, escape)
+              append_tag_option(output, name, value, escape)
             end
           end
           output unless output.empty?
