@@ -26,7 +26,7 @@ module ActiveRecord
             records = add_constraints(reflection, key, join_ids, owner, ordered)
             origin_key = next_reflection.association_route.origin_key.name
             record_ids = records.pluck(origin_key)
-            records_ordered = records && records.order_values.any?
+            records_ordered = records && records.effective_order_values.any?
 
             [next_reflection, records_ordered, record_ids]
           end
@@ -47,6 +47,7 @@ module ActiveRecord
             scope.unscope!(*item.unscope_values)
             scope.where_clause += item.where_clause
             scope.order_values = item.order_values | scope.order_values
+            scope.default_order_values = item.default_order_values | scope.default_order_values
             scope
           end
 
