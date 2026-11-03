@@ -1240,7 +1240,7 @@ module ActiveRecord
         SpawnMethods,
       ].flat_map { |klass|
         klass.public_instance_methods(false)
-      } - self.public_instance_methods(false) - [ :select ] + [ :scoping, :values, :load_async ]
+      } - self.public_instance_methods(false) - [ :select ] + [ :scoping, :values, :values_for_merge, :load_async ]
 
       delegate(*delegate_methods, to: :scope)
 

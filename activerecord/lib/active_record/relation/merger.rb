@@ -45,7 +45,9 @@ module ActiveRecord
 
       def initialize(relation, other)
         @relation = relation
-        @values   = other.values
+        @values   = other.values_for_merge
+        # Merging a relation's values into themselves changes them while they are read.
+        @values   = @values.dup if @values.equal?(relation.values_for_merge)
         @other    = other
       end
 

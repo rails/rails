@@ -1345,6 +1345,11 @@ module ActiveRecord
       @values.dup
     end
 
+    # Like #values, but without the copy. The caller must not mutate it.
+    def values_for_merge # :nodoc:
+      @values
+    end
+
     def values_for_queries # :nodoc:
       @values.except(:extending, :skip_query_cache, :strict_loading)
     end
