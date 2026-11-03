@@ -1,3 +1,13 @@
+*   Sign GCS direct uploads with V2 when `cache_control` is set.
+
+    V4 signatures did not bind the Content-Type or Content-MD5 headers, so the uploader could
+    choose the stored Content-Type. Direct-upload URLs with `cache_control` are no longer limited
+    to 7 days, and the client sends `Cache-Control` unsigned.
+
+    [GHSA-3w93-6hmw-whh4]
+
+    *Mike Dalessio*
+
 *   Stop an uploaded filename choosing the extension of the tempfile Active
     Storage hands to an external tool.
 

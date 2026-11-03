@@ -87,6 +87,32 @@ if SERVICE_CONFIGURATIONS[:gcs]
       service.delete(key)
     end
 
+    test "direct upload with cache control rejects a Content-Type the URL does not sign" do
+      config_with_cache_control = { gcs: SERVICE_CONFIGURATIONS[:gcs].merge({ cache_control: "public, max-age=1800" }) }
+      service = ActiveStorage::Service.configure(:gcs, config_with_cache_control)
+
+      key      = SecureRandom.base58(24)
+      data     = "<html></html>"
+      checksum = Digest::MD5.base64digest(data)
+      url      = service.url_for_direct_upload(key, expires_in: 5.minutes, content_type: "image/png", content_length: data.size, checksum: checksum)
+
+      uri = URI.parse url
+      request = Net::HTTP::Put.new uri.request_uri
+      request.body = data
+      service.headers_for_direct_upload(key, checksum: checksum, filename: ActiveStorage::Filename.new("test.png"), content_type: "image/png").each do |k, v|
+        request.add_field k, v
+      end
+      request.add_field "Content-Type", "text/html"
+      response = Net::HTTP.start(uri.host, uri.port, use_ssl: true) do |http|
+        http.request request
+      end
+
+      assert_equal "403", response.code
+      assert_not service.exist?(key)
+    ensure
+      service.delete(key)
+    end
+
     test "upload with content_type and content_disposition" do
       key      = SecureRandom.base58(24)
       data     = "Something else entirely!"
@@ -233,4 +259,52 @@ if SERVICE_CONFIGURATIONS[:gcs]
   end
 else
   puts "Skipping GCS Service tests because no GCS configuration was supplied"
+end
+
+class ActiveStorage::Service::GCSServiceDirectUploadSignatureTest < ActiveSupport::TestCase
+  setup do
+    @signing_key = OpenSSL::PKey::RSA.new(2048)
+    @service = ActiveStorage::Service.configure(:gcs, gcs: {
+      service: "GCS",
+      bucket: "bucket",
+      cache_control: "public, max-age=1800",
+      project_id: "project",
+      credentials: {
+        type: "service_account",
+        project_id: "project",
+        client_email: "uploader@project.iam.gserviceaccount.com",
+        private_key: @signing_key.to_pem
+      }
+    })
+    @checksum = OpenSSL::Digest::MD5.base64digest("Some text")
+  end
+
+  test "direct upload with cache control authorizes only an empty Content-Type" do
+    url = @service.url_for_direct_upload("key", expires_in: 5.minutes, content_type: "text/plain", content_length: 9, checksum: @checksum)
+
+    assert authorizes?(url, content_type: "", checksum: @checksum)
+    assert_not authorizes?(url, content_type: "text/html", checksum: @checksum)
+  end
+
+  test "direct upload with cache control authorizes only the declared checksum" do
+    url = @service.url_for_direct_upload("key", expires_in: 5.minutes, content_type: "text/plain", content_length: 9, checksum: @checksum)
+
+    assert authorizes?(url, content_type: "", checksum: @checksum)
+    assert_not authorizes?(url, content_type: "", checksum: OpenSSL::Digest::MD5.base64digest("Other text"))
+  end
+
+  test "direct upload headers with cache control include Cache-Control" do
+    headers = @service.headers_for_direct_upload("key", checksum: @checksum, filename: ActiveStorage::Filename.new("test.txt"), content_type: "text/plain")
+
+    assert_equal "public, max-age=1800", headers["Cache-Control"]
+  end
+
+  private
+    # Rebuilds the string that GCS verifies a V2 signed PUT URL against.
+    def authorizes?(url, content_type:, checksum:)
+      query = Rack::Utils.parse_query(URI(url).query)
+      string_to_sign = ["PUT", checksum, content_type, query["Expires"], "/bucket/key"].join("\n")
+
+      @signing_key.public_key.verify(OpenSSL::Digest::SHA256.new, Base64.strict_decode64(query["Signature"].to_s), string_to_sign)
+    end
 end
