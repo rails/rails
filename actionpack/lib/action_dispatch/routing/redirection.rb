@@ -22,9 +22,10 @@ module ActionDispatch
         ActiveSupport::Notifications.instrument("redirect.action_dispatch") do |payload|
           request = Request.new(env)
           response = build_response(request)
+          response.request = request
 
           payload[:status] = @status
-          payload[:location] = response.headers["Location"]
+          payload[:location] = response.filtered_location
           payload[:request] = request
           payload[:source_location] = @source_location if @source_location
 

@@ -1,3 +1,12 @@
+*   Filter routing redirect destinations in logs and the `action_dispatch.redirect` event.
+
+    Redirects declared with `redirect(...)` in `config/routes.rb` now apply
+    `config.filter_redirect` and `config.filter_parameters` to the logged
+    location, as controller redirects already do. The `Location` header is
+    unchanged.
+
+    *Christian Tamakloe*
+
 *   Compute `action_methods` without converting every public instance method to a String.
 
     Speeds up eager loading for applications whose controllers include the url helpers.
