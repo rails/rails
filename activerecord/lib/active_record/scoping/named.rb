@@ -74,12 +74,12 @@ module ActiveRecord
         end
 
         def default_extensions # :nodoc:
-          return [] unless has_default_scope?
+          return Relation::FROZEN_EMPTY_ARRAY unless has_default_scope?
 
           if scope = scope_for_association || build_default_scope
             scope.extensions
           else
-            []
+            Relation::FROZEN_EMPTY_ARRAY
           end
         end
 
