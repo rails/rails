@@ -770,17 +770,14 @@ module ActiveRecord
       check_if_method_has_arguments!(__callee__, args) do
         sanitize_order_arguments(args)
       end
-      spawn._order!(args)
+      spawn._order!(preprocess_order_args(args))
     end
 
     # Same as #order but operates on relation in-place instead of copying.
-    def order!(*args) = _order!(args) # :nodoc:
+    def order!(*args) = _order!(preprocess_order_args(args)) # :nodoc:
 
     def _order!(args) # :nodoc:
-      unless args.empty?
-        preprocess_order_args(args)
-        _references!(column_references(args))
-      end
+      _references!(column_references(args))
       self.order_values |= args
       self
     end
@@ -881,7 +878,7 @@ module ActiveRecord
       end
 
       _references!(column_references([arel_column]))
-      order!(build_case_for_value_position(arel_column, values, filter: filter))
+      _order!([build_case_for_value_position(arel_column, values, filter: filter)])
 
       if filter
         values = values.flatten(1)
@@ -916,14 +913,13 @@ module ActiveRecord
       check_if_method_has_arguments!(__callee__, args) do
         sanitize_order_arguments(args)
       end
-      spawn._reorder!(args)
+      spawn._reorder!(preprocess_order_args(args))
     end
 
     # Same as #reorder but operates on relation in-place instead of copying.
-    def reorder!(*args) = _reorder!(args) # :nodoc:
+    def reorder!(*args) = _reorder!(preprocess_order_args(args)) # :nodoc:
 
     def _reorder!(args) # :nodoc:
-      preprocess_order_args(args)
       _references!(column_references(args))
       args.uniq!
       self.reordering_value = true
@@ -949,14 +945,13 @@ module ActiveRecord
       check_if_method_has_arguments!(__callee__, args) do
         sanitize_order_arguments(args)
       end
-      spawn._default_order!(args)
+      spawn._default_order!(preprocess_order_args(args))
     end
 
     # Same as #default_order but operates on relation in-place instead of copying.
-    def default_order!(*args) = _default_order!(args) # :nodoc:
+    def default_order!(*args) = _default_order!(preprocess_order_args(args)) # :nodoc:
 
     def _default_order!(args) # :nodoc:
-      preprocess_order_args(args)
       _references!(column_references(args))
       args.uniq!
       self.default_order_values = args
@@ -2468,6 +2463,8 @@ module ActiveRecord
             arg
           end
         end.flatten!
+
+        order_args
       end
 
       def sanitize_order_arguments(order_args)
