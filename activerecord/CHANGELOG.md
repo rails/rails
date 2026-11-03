@@ -1,3 +1,16 @@
+*   Clear `default_order` when calling `reorder`.
+
+    Previously, `reorder(nil)` removed only explicit ordering, so a relation
+    with a `default_order` was still ordered by it. `reorder` now replaces
+    both explicit and default ordering.
+
+    ```ruby
+    Post.default_order(:title).reorder(nil)
+    # SELECT "posts".* FROM "posts"
+    ```
+
+    *Kengo Johira*
+
 *   Fix `in_batches(use_ranges: true)` yielding relations that keep an ignored `default_order`.
 
     Batching ignores `default_order` like an explicit order, but the ranged

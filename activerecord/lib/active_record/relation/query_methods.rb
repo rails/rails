@@ -898,8 +898,13 @@ module ActiveRecord
     def reorder!(*args) # :nodoc:
       preprocess_order_args(args)
       args.uniq!
+      replace_order_values!(args, [])
+    end
+
+    def replace_order_values!(order_values, default_order_values) # :nodoc:
       self.reordering_value = true
-      self.order_values = args
+      self.order_values = order_values
+      self.default_order_values = default_order_values
       self
     end
 
