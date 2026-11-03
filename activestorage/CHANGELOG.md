@@ -1,3 +1,9 @@
+*   Keep the `Content-Length` header on responses streamed by `ActiveStorage::Blobs::ProxyController`.
+
+    `ActionController::Live` dropped the header before the first write, so proxied blobs were sent chunked with no length.
+
+    *Andrew Fader*
+
 *   Detect axis-swapping orientations in the Vips image analyzer from libvips' normalized
     `orientation` field instead of parsing the `exif-ifd0-Orientation` label.
 
