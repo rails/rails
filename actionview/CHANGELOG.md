@@ -1,3 +1,15 @@
+*   Require rails-html-sanitizer 1.7.2 or later.
+
+    With the HTML5 sanitizer, Nokogiri before 1.19.5 left `<` and `>`
+    unescaped in attribute values. `highlight` and `simple_format`, which
+    edit the sanitized HTML as a string, could then turn markup inside an
+    attribute value into live elements. rails-html-sanitizer 1.7.2 requires
+    Loofah 2.25.3, which requires Nokogiri 1.19.5.
+
+    [GHSA-2p2f-4rq4-gjwc]
+
+    *Mike Dalessio*
+
 ## Rails 8.0.5.1 (July 29, 2026) ##
 
 *   No changes.
