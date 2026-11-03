@@ -3,6 +3,8 @@
 require "test_helper"
 
 class ActionText::AttachmentTest < ActiveSupport::TestCase
+  include Rails::Dom::Testing::Assertions::DomAssertions
+
   test "from_attachable" do
     attachment = ActionText::Attachment.from_attachable(attachable, caption: "Captioned")
     assert_equal attachable, attachment.attachable
@@ -82,7 +84,7 @@ class ActionText::AttachmentTest < ActiveSupport::TestCase
   test "to_trix_html sanitizes action-text HTML content attachment" do
     attachment = ActionText::Content.new("<action-text-attachment content-type=\"text/html\" content=\"<img src=. onerror='alert(location)' />\"></action-text-attachment>")
 
-    assert_equal "<figure data-trix-attachment=\"{&quot;contentType&quot;:&quot;text/html&quot;,&quot;content&quot;:&quot;<img src=\\&quot;.\\&quot;>&quot;}\"></figure>", attachment.to_trix_html
+    assert_dom_equal "<figure data-trix-attachment=\"{&quot;contentType&quot;:&quot;text/html&quot;,&quot;content&quot;:&quot;<img src=\\&quot;.\\&quot;>&quot;}\"></figure>", attachment.to_trix_html
   end
 
   test "defaults trix partial to model partial" do
