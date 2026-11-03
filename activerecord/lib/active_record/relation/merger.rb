@@ -162,7 +162,7 @@ module ActiveRecord
             relation.order!(*other.order_values)
           end
 
-          relation.extending!(*other.extensions)
+          relation.extending!(*other.extensions) unless other.extensions.empty?
         end
 
         def merge_single_values
