@@ -52,11 +52,13 @@ class Module
       raise NameError.new("invalid attribute name: #{sym}") unless /^[_A-Za-z]\w*$/.match?(sym)
 
       # The following generated method concatenates `object_id` because we want
-      # subclasses to maintain independent values.
+      # subclasses to maintain independent values. The key for this module is
+      # a frozen literal, so reading or writing it doesn't build a String.
+      key = "attr_#{sym}_#{object_id}"
       if default.nil?
         class_eval(<<~RUBY, __FILE__, __LINE__ + 1)
           def self.#{sym}
-            key = "attr_#{sym}_\#{object_id}"
+            key = object_id == #{object_id} ? "#{key}".freeze : "attr_#{sym}_\#{object_id}"
             ::ActiveSupport::IsolatedExecutionState[key]
           end
         RUBY
@@ -66,7 +68,7 @@ class Module
 
         class_eval(<<~RUBY, __FILE__, __LINE__ + 1)
           def self.#{sym}
-            key = "attr_#{sym}_\#{object_id}"
+            key = object_id == #{object_id} ? "#{key}".freeze : "attr_#{sym}_\#{object_id}"
             value = ::ActiveSupport::IsolatedExecutionState[key]
 
             if value.nil? && !::ActiveSupport::IsolatedExecutionState.key?(key)
@@ -117,10 +119,12 @@ class Module
       raise NameError.new("invalid attribute name: #{sym}") unless /^[_A-Za-z]\w*$/.match?(sym)
 
       # The following generated method concatenates `object_id` because we want
-      # subclasses to maintain independent values.
+      # subclasses to maintain independent values. The key for this module is
+      # a frozen literal, so reading or writing it doesn't build a String.
+      key = "attr_#{sym}_#{object_id}"
       class_eval(<<~RUBY, __FILE__, __LINE__ + 1)
         def self.#{sym}=(obj)
-          key = "attr_#{sym}_\#{object_id}"
+          key = object_id == #{object_id} ? "#{key}".freeze : "attr_#{sym}_\#{object_id}"
           ::ActiveSupport::IsolatedExecutionState[key] = obj
         end
       RUBY
