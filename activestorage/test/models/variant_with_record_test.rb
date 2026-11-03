@@ -300,13 +300,13 @@ class ActiveStorage::VariantWithRecordTest < ActiveSupport::TestCase
       # More queries here because we are creating a different variant.
       # The second time we load this variant, we are back down to just 3 queries.
 
-      assert_queries_match(/SELECT/i, count: 10) do
-        # 10 queries:
+      assert_queries_match(/SELECT/i, count: 6) do
+        # 6 queries:
         # attachments (vlogs) initial load x 1
         # blob x 1 (gets both records)
         # variant record x 1 (gets both records)
         # preview_image_attachments for non-images
-        # 2x get blob, attachment, variant records again, this happens when loading the new blob inside `VariantWithRecord#key`
+        # attachments and blobs of the new variant records x 1 each, loaded inside `VariantWithRecord#key`
         user.vlogs.with_all_variant_records.each do |vlog|
           rep = vlog.representation(resize_to_limit: [200, 200])
           rep.processed
