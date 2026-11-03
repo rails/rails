@@ -33,6 +33,16 @@ class FieldOrderedValuesTest < ActiveRecord::TestCase
     assert_empty(posts)
   end
 
+  def test_in_order_of_does_not_modify_receiver
+    relation = Post.all.load
+    order = [3, 4, 1]
+    posts = relation.in_order_of("posts.id", order)
+
+    assert_empty relation.references_values
+    assert_equal ["posts"], posts.references_values
+    assert_equal order, posts.map(&:id)
+  end
+
   def test_in_order_of_with_enums_values
     Book.destroy_all
     Book.create!(status: :proposed)

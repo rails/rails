@@ -1,3 +1,17 @@
+*   Fix `in_order_of` modifying the receiver relation.
+
+    `in_order_of` added the referenced table to the receiver's
+    `references_values` instead of only the returned relation's, so it
+    raised `ActiveRecord::UnmodifiableRelation` on a loaded relation.
+
+    ```ruby
+    posts = Post.all.load
+    posts.in_order_of("posts.id", [3, 4, 1])
+    # => ActiveRecord::UnmodifiableRelation before, now the ordered relation
+    ```
+
+    *Ryuta Kamizono*
+
 *   Fix `merge` dropping `RECURSIVE` from a relation built with `with_recursive`.
 
     The recursive flag is now kept with the relation's other values, so

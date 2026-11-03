@@ -853,6 +853,10 @@ module ActiveRecord
       model.disallow_raw_sql!([column], permit: model.adapter_class.column_name_with_order_matcher)
       return spawn.none! if values.empty?
 
+      spawn._in_order_of!(column, values, filter)
+    end
+
+    def _in_order_of!(column, values, filter) # :nodoc:
       references = column_references([column])
       self.references_values |= references unless references.empty?
 
@@ -873,10 +877,10 @@ module ActiveRecord
         if arel_column.is_a?(PredicateBuilder::ComparisonAttribute)
           values = comparison_values_for_in_order_of(values, arel_column)
         end
-        return spawn.none! if values.empty?
+        return none! if values.empty?
       end
 
-      scope = spawn.order!(build_case_for_value_position(arel_column, values, filter: filter))
+      order!(build_case_for_value_position(arel_column, values, filter: filter))
 
       if filter
         values = values.flatten(1)
@@ -888,10 +892,10 @@ module ActiveRecord
             arel_column.in(values)
           end
 
-        scope = scope.where!(where_clause)
+        where!(where_clause)
       end
 
-      scope
+      self
     end
 
     # Replaces any existing order defined on the relation with the specified order.
