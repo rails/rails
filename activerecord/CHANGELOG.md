@@ -1,3 +1,16 @@
+*   Deprecate passing the table name to `Arel::Table.new` positionally.
+
+    `Arel::Table.new` now takes the table name as the `name:` keyword. The
+    positional form that Rails 8.1 and earlier accept, and that many gems and
+    apps use, keeps working with a deprecation warning.
+
+    ```ruby
+    Arel::Table.new(:users)        # deprecated
+    Arel::Table.new(name: :users)
+    ```
+
+    *Thomas Klemm*
+
 *   Return all records from `in_order_of` with `filter: false` when no values are left.
 
     An empty `values` list, or one where every value is dropped because the column
