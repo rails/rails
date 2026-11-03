@@ -1,3 +1,10 @@
+*   Fix `bin/rails test -n ClassName#test_name` running no tests.
+
+    This has been broken since Rails 7.1. It also made isolated tests fail on
+    platforms without `fork`, like JRuby and Windows.
+
+    *Sampo Kuokkanen*
+
 *   Add support for comma-separated values in ENV["RAILS_MASTER_KEY"].
 
     When multiple keys are provided as comma-separated values, Rails will
