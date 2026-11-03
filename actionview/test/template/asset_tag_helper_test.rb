@@ -841,6 +841,14 @@ class AssetTagHelperTest < ActionView::TestCase
     assert_equal({ size: "16x10" }, options)
   end
 
+  def test_image_tag_with_whitespace_attribute_name_generates_valid_markup
+    # https://hackerone.com/reports/3904103
+    html = image_tag("/nonexistent.png", { " " => "/onerror=alert(1)//" })
+    fragment = Nokogiri::HTML5::DocumentFragment.parse(html)
+    attrs = fragment.at_css("img").attribute_nodes.map(&:name)
+    assert_equal [ "src" ], attrs
+  end
+
   def test_image_tag_raises_an_error_for_competing_size_arguments
     exception = assert_raise(ArgumentError) do
       image_tag("gold.png", height: "100", width: "200", size: "45x70")
