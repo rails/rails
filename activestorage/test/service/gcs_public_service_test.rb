@@ -29,6 +29,7 @@ if SERVICE_CONFIGURATIONS[:gcs_public]
       request.body = data
       request.add_field "Content-Type", ""
       request.add_field "Content-MD5", checksum
+      request.add_field "x-goog-content-length-range", "#{data.size},#{data.size}"
       Net::HTTP.start(uri.host, uri.port, use_ssl: true) do |http|
         http.request request
       end
