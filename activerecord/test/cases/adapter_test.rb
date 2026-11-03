@@ -1088,6 +1088,61 @@ module ActiveRecord
       ensure
         connection&.disconnect!
       end
+
+      # A pooler can accept login and then drop the first real query. configure_connection
+      # issues that query through with_raw_connection, which would otherwise reconnect and
+      # hand the nested reconnect! a fresh retry budget until the stack overflows.
+      test "reconnect! gives up when configure_connection loses the connection" do
+        connection = without_ractor_proxy { ActiveRecord::Base.connection_pool }.send(:new_connection)
+        retries = 2
+        attempts = 0
+
+        connection.stub(:connection_retries, retries) do
+          connection.stub(:backoff, ->(_) { }) do
+            connection.singleton_class.define_method(:configure_connection) do
+              attempts += 1
+              with_raw_connection(allow_retry: true, materialize_transactions: false) do
+                raise ActiveRecord::ConnectionFailed.new("connection dropped")
+              end
+            end
+
+            error = assert_raises(ActiveRecord::ConnectionFailed) do
+              connection.reconnect!
+            end
+            assert_equal "connection dropped", error.message
+          end
+        end
+
+        assert_equal retries + 1, attempts
+      ensure
+        connection&.disconnect!
+      end
+
+      test "reconnect! gives up when a configure_connection query loses the connection" do
+        connection = without_ractor_proxy { ActiveRecord::Base.connection_pool }.send(:new_connection)
+        retries = 2
+        attempts = 0
+
+        connection.stub(:connection_retries, retries) do
+          connection.stub(:backoff, ->(_) { }) do
+            connection.stub(:perform_query, ->(*) { raise ActiveRecord::ConnectionFailed.new("connection dropped") }) do
+              connection.singleton_class.define_method(:configure_connection) do
+                attempts += 1
+                query_command("SELECT 1", "SCHEMA", allow_retry: true, materialize_transactions: false)
+              end
+
+              error = assert_raises(ActiveRecord::ConnectionFailed) do
+                connection.reconnect!
+              end
+              assert_equal "connection dropped", error.message
+            end
+          end
+        end
+
+        assert_equal retries + 1, attempts
+      ensure
+        connection&.disconnect!
+      end
     end
 
     unless in_memory_db?

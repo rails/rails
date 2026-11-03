@@ -268,6 +268,7 @@ module ActiveRecord
         @last_activity = nil
         @verified = false
         @needs_reconnect = false
+        @configuring_connection = false
         @proxied = false
         @unfinalized_intents = []
 
@@ -1168,8 +1169,13 @@ module ActiveRecord
       end
 
       private
+        # Queries issued while the connection is being configured must not
+        # reconnect. `reconnect!` is already in progress and owns the retry
+        # budget. Nesting another `reconnect!` gives that call a fresh budget
+        # and overflows the stack when the server accepts login and then drops
+        # the first real query.
         def reconnect_can_restore_state?
-          transaction_manager.restorable? && !@raw_connection_dirty
+          !@configuring_connection && transaction_manager.restorable? && !@raw_connection_dirty
         end
 
         # Lock the monitor, ensure we're properly connected and
@@ -1453,10 +1459,14 @@ module ActiveRecord
         end
 
         def attempt_configure_connection
+          already_configuring = @configuring_connection
+          @configuring_connection = true
           yield
         rescue Exception # Need to handle things such as Timeout::ExitException
           disconnect!
           raise
+        ensure
+          @configuring_connection = already_configuring
         end
 
         def default_prepared_statements
