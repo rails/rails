@@ -573,3 +573,21 @@ class TextHelperTest < ActionView::TestCase
     assert_equal(%w{Specialized Fuji Giant}, @cycles)
   end
 end
+
+class TextHelperHTML5SanitizerTest < ActionView::TestCase
+  tests ActionView::Helpers::TextHelper
+
+  self.safe_list_sanitizer = Rails::HTML5::SafeListSanitizer.new
+
+  def test_highlight_keeps_markup_inside_attribute_values_inert
+    html = highlight(%(<a title="x > y" class="<img src=x onerror=alert(1)>">z</a>), "class")
+
+    assert_empty Nokogiri::HTML5.fragment(html).css("img")
+  end
+
+  def test_simple_format_keeps_markup_inside_attribute_values_inert
+    html = simple_format(%(<a title="x\n\n<img src=x onerror=alert(1)>">link</a>), class: "post")
+
+    assert_empty Nokogiri::HTML5.fragment(html).css("img")
+  end
+end if Rails::HTML::Sanitizer.html5_support?
