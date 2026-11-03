@@ -2,12 +2,16 @@
 
 require "test_helper"
 
-ENV["MANDRILL_INGRESS_API_KEY"] = "1l9Qf7lutEf7h73VXfBwhw"
-
 class ActionMailbox::Ingresses::Mandrill::InboundEmailsControllerTest < ActionDispatch::IntegrationTest
   setup do
+    @previous_key = ENV["MANDRILL_INGRESS_API_KEY"]
+    ENV["MANDRILL_INGRESS_API_KEY"] = "1l9Qf7lutEf7h73VXfBwhw"
     ActionMailbox.ingress = :mandrill
     @events = JSON.generate([{ event: "inbound", msg: { raw_msg: file_fixture("../files/welcome.eml").read } }])
+  end
+
+  teardown do
+    ENV["MANDRILL_INGRESS_API_KEY"] = @previous_key
   end
 
   test "verifying existence of Mandrill inbound route" do

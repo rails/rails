@@ -36,7 +36,7 @@ class PostgreSQLReferentialIntegrityTest < ActiveRecord::PostgreSQLTestCase
   end
 
   def teardown
-    reset_connection
+    reset_pool
     if ActiveRecord::Base.lease_connection.is_a?(MissingSuperuserPrivileges)
       raise "MissingSuperuserPrivileges patch was not removed"
     end
