@@ -95,6 +95,15 @@ module LocalCacheBehavior
     end
   end
 
+  def test_local_cache_of_delete_multi
+    key = SecureRandom.uuid
+    @cache.with_local_cache do
+      @cache.write(key, SecureRandom.alphanumeric)
+      @cache.delete_multi([key])
+      assert_nil @cache.read(key)
+    end
+  end
+
   def test_local_cache_of_read_returns_a_copy_of_the_entry
     key = SecureRandom.alphanumeric.to_sym
     value = SecureRandom.alphanumeric
