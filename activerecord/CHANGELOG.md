@@ -1,3 +1,16 @@
+*   Deprecate passing the table name to `Arel::Table.new` positionally.
+
+    `Arel::Table.new` now takes the table name as the `name:` keyword. The
+    positional form that Rails 8.1 and earlier accept, and that many gems and
+    apps use, keeps working with a deprecation warning.
+
+    ```ruby
+    Arel::Table.new(:users)        # deprecated
+    Arel::Table.new(name: :users)
+    ```
+
+    *Thomas Klemm*
+
 *   Find the existing check constraint by its name alone in `add_check_constraint`
     with `if_not_exists: true` and in `remove_check_constraint`.
 
