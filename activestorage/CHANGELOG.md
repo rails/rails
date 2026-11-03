@@ -1,3 +1,15 @@
+*   Enforce the declared content length on Google Cloud Storage direct uploads.
+
+    The signed URL now requires an `x-goog-content-length-range` header matching the blob's
+    `byte_size`, so Cloud Storage rejects a body of any other size.
+
+    Browsers send the new header, so a bucket's CORS configuration must list
+    `x-goog-content-length-range` in `responseHeader`, or direct uploads from the browser fail.
+
+    [GHSA-hfr4-8rjc-97m2]
+
+    *Mike Dalessio*
+
 *   Sign GCS direct uploads with V2 when `cache_control` is set.
 
     V4 signatures did not bind the Content-Type or Content-MD5 headers, so the uploader could

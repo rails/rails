@@ -80,14 +80,14 @@ module ActiveStorage
       end
     end
 
-    def url_for_direct_upload(key, expires_in:, checksum:, custom_metadata: {}, **)
+    def url_for_direct_upload(key, expires_in:, checksum:, content_length:, custom_metadata: {}, **)
       instrument :url, key: key do |payload|
         # V2 signatures bind the Content-Type (empty) and Content-MD5 headers. GCS leaves headers
         # other than x-goog-* out of V2 signatures, so the client sends Cache-Control unsigned.
         args = {
           content_md5: checksum,
           expires: expires_in,
-          headers: custom_metadata_headers(custom_metadata),
+          headers: { "x-goog-content-length-range" => content_length_range(content_length), **custom_metadata_headers(custom_metadata) },
           method: "PUT",
           version: :v2,
         }
@@ -105,10 +105,10 @@ module ActiveStorage
       end
     end
 
-    def headers_for_direct_upload(key, checksum:, filename: nil, disposition: nil, custom_metadata: {}, **)
+    def headers_for_direct_upload(key, checksum:, content_length:, filename: nil, disposition: nil, custom_metadata: {}, **)
       content_disposition = content_disposition_with(type: disposition, filename: filename) if filename
 
-      headers = { "Content-MD5" => checksum, "Content-Disposition" => content_disposition, **custom_metadata_headers(custom_metadata) }
+      headers = { "Content-MD5" => checksum, "Content-Disposition" => content_disposition, "x-goog-content-length-range" => content_length_range(content_length), **custom_metadata_headers(custom_metadata) }
       if @config[:cache_control].present?
         headers["Cache-Control"] = @config[:cache_control]
       end
@@ -224,6 +224,10 @@ module ActiveStorage
 
       def custom_metadata_headers(metadata)
         metadata.transform_keys { |key| "x-goog-meta-#{key}" }
+      end
+
+      def content_length_range(content_length)
+        "#{content_length},#{content_length}"
       end
   end
 end

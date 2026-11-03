@@ -1581,6 +1581,7 @@ Take care to allow:
   * `Content-MD5`
   * `Content-Disposition`
   * `Cache-Control` (for GCS, only if `cache_control` is set)
+  * `x-goog-content-length-range` (for GCS)
 
 No CORS configuration is required for the Disk service since it shares your
 app’s origin.
@@ -1613,7 +1614,7 @@ app’s origin.
   {
     "origin": ["https://www.example.com"],
     "method": ["PUT"],
-    "responseHeader": ["Content-Type", "Content-MD5", "Content-Disposition"],
+    "responseHeader": ["Content-Type", "Content-MD5", "Content-Disposition", "x-goog-content-length-range"],
     "maxAgeSeconds": 3600
   }
 ]

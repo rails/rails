@@ -114,7 +114,7 @@ if SERVICE_CONFIGURATIONS[:gcs]
         assert_equal metadata, details["metadata"]
         assert_equal "text/plain", details["content_type"]
         assert_match %r{storage\.googleapis\.com/#{@config[:bucket]}}, details["direct_upload"]["url"]
-        assert_equal({ "Content-MD5" => checksum, "Content-Disposition" => "inline; filename=\"hello.txt\"; filename*=UTF-8''hello.txt", "x-goog-meta-my_key_3" => "my_value_3" }, details["direct_upload"]["headers"])
+        assert_equal({ "Content-MD5" => checksum, "Content-Disposition" => "inline; filename=\"hello.txt\"; filename*=UTF-8''hello.txt", "x-goog-content-length-range" => "6,6", "x-goog-meta-my_key_3" => "my_value_3" }, details["direct_upload"]["headers"])
       end
     end
   end
