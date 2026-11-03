@@ -71,8 +71,12 @@ module ActiveRecord
       end
 
       def ast
-        predicates = predicates_with_wrapped_sql_literals
-        predicates.one? ? predicates.first : Arel::Nodes::And.new(predicates)
+        if predicates.size == 1 && (node = predicates.first) && !node.eql?("")
+          wrap_sql_literal(node)
+        else
+          nodes = predicates_with_wrapped_sql_literals
+          nodes.one? ? nodes.first : Arel::Nodes::And.new(nodes)
+        end
       end
 
       def ==(other)
@@ -195,13 +199,17 @@ module ActiveRecord
           predicates.each do |node|
             next if node.eql?("")
 
-            nodes << case node
-            when Arel::Nodes::SqlLiteral, ::String
-              Arel::Nodes::Grouping.new(node)
-            else node
-            end
+            nodes << wrap_sql_literal(node)
           end
           nodes
+        end
+
+        def wrap_sql_literal(node)
+          case node
+          when Arel::Nodes::SqlLiteral, ::String
+            Arel::Nodes::Grouping.new(node)
+          else node
+          end
         end
 
         EMPTY = new([].freeze).freeze
