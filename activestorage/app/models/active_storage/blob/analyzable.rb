@@ -41,8 +41,9 @@ module ActiveStorage::Blob::Analyzable
 
   # Enqueues an ActiveStorage::AnalyzeJob which calls #analyze, or calls #analyze inline based on analyzer class configuration.
   #
-  # This method is automatically called for a blob when it's attached for the first time. You can call it to analyze a blob
-  # again (e.g. if you add a new analyzer or modify an existing one).
+  # This method is automatically called for a blob when it's attached for the first time. ActiveStorage::AnalyzeJob skips a
+  # blob that is already analyzed, so to analyze a blob again (e.g. if you add a new analyzer or modify an existing one),
+  # call #analyze.
   def analyze_later
     if analyzer_class.analyze_later?
       ActiveStorage::AnalyzeJob.perform_later(self)
