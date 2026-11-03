@@ -279,10 +279,12 @@ module ActiveRecord
     # matching user has other additional posts.
     def includes(*args)
       check_if_method_has_arguments!(__callee__, args)
-      spawn.includes!(*args)
+      spawn._includes!(args)
     end
 
-    def includes!(*args) # :nodoc:
+    def includes!(*args) = _includes!(args) # :nodoc:
+
+    def _includes!(args) # :nodoc:
       self.includes_values |= args
       self
     end
@@ -323,10 +325,12 @@ module ActiveRecord
     # contain redundant data and it performs poorly at scale.
     def eager_load(*args)
       check_if_method_has_arguments!(__callee__, args)
-      spawn.eager_load!(*args)
+      spawn._eager_load!(args)
     end
 
-    def eager_load!(*args) # :nodoc:
+    def eager_load!(*args) = _eager_load!(args) # :nodoc:
+
+    def _eager_load!(args) # :nodoc:
       self.eager_load_values |= args
       self
     end
@@ -359,10 +363,12 @@ module ActiveRecord
     # ```
     def preload(*args)
       check_if_method_has_arguments!(__callee__, args)
-      spawn.preload!(*args)
+      spawn._preload!(args)
     end
 
-    def preload!(*args) # :nodoc:
+    def preload!(*args) = _preload!(args) # :nodoc:
+
+    def _preload!(args) # :nodoc:
       self.preload_values |= args
       self
     end
@@ -398,10 +404,12 @@ module ActiveRecord
     # ```
     def references(*table_names)
       check_if_method_has_arguments!(__callee__, table_names)
-      spawn.references!(*table_names)
+      spawn._references!(table_names)
     end
 
-    def references!(*table_names) # :nodoc:
+    def references!(*table_names) = _references!(table_names) # :nodoc:
+
+    def _references!(table_names) # :nodoc:
       self.references_values |= table_names
       self
     end
@@ -563,11 +571,13 @@ module ActiveRecord
     def with(*args)
       raise ArgumentError, "ActiveRecord::Relation#with does not accept a block" if block_given?
       check_if_method_has_arguments!(__callee__, args)
-      spawn.with!(*args)
+      spawn._with!(args)
     end
 
     # Like #with, but modifies relation in place.
-    def with!(*args) # :nodoc:
+    def with!(*args) = _with!(args) # :nodoc:
+
+    def _with!(args) # :nodoc:
       args = process_with_args(args)
       self.with_values |= args
       self
@@ -589,11 +599,13 @@ module ActiveRecord
     # See #with for more information.
     def with_recursive(*args)
       check_if_method_has_arguments!(__callee__, args)
-      spawn.with_recursive!(*args)
+      spawn._with_recursive!(args)
     end
 
     # Like #with_recursive but modifies the relation in place.
-    def with_recursive!(*args) # :nodoc:
+    def with_recursive!(*args) = _with_recursive!(args) # :nodoc:
+
+    def _with_recursive!(args) # :nodoc:
       args = process_with_args(args)
       self.with_values |= args
       @with_is_recursive = true
@@ -615,11 +627,13 @@ module ActiveRecord
     def reselect(*args)
       check_if_method_has_arguments!(__callee__, args)
       args = process_select_args(args)
-      spawn.reselect!(*args)
+      spawn._reselect!(args)
     end
 
     # Same as #reselect but operates on relation in-place instead of copying.
-    def reselect!(*args) # :nodoc:
+    def reselect!(*args) = _reselect!(args) # :nodoc:
+
+    def _reselect!(args) # :nodoc:
       self.select_values = args
       self
     end
@@ -652,10 +666,12 @@ module ActiveRecord
     # ```
     def group(*args)
       check_if_method_has_arguments!(__callee__, args)
-      spawn.group!(*args)
+      spawn._group!(args)
     end
 
-    def group!(*args) # :nodoc:
+    def group!(*args) = _group!(args) # :nodoc:
+
+    def _group!(args) # :nodoc:
       self.group_values |= args
       self
     end
@@ -674,11 +690,13 @@ module ActiveRecord
     # Note that we're unscoping the entire group statement.
     def regroup(*args)
       check_if_method_has_arguments!(__callee__, args)
-      spawn.regroup!(*args)
+      spawn._regroup!(args)
     end
 
     # Same as #regroup but operates on relation in-place instead of copying.
-    def regroup!(*args) # :nodoc:
+    def regroup!(*args) = _regroup!(args) # :nodoc:
+
+    def _regroup!(args) # :nodoc:
       args.uniq!
       self.group_values = args
       self
@@ -752,11 +770,13 @@ module ActiveRecord
       check_if_method_has_arguments!(__callee__, args) do
         sanitize_order_arguments(args)
       end
-      spawn.order!(*args)
+      spawn._order!(args)
     end
 
     # Same as #order but operates on relation in-place instead of copying.
-    def order!(*args) # :nodoc:
+    def order!(*args) = _order!(args) # :nodoc:
+
+    def _order!(args) # :nodoc:
       preprocess_order_args(args) unless args.empty?
       self.order_values |= args
       self
@@ -891,11 +911,13 @@ module ActiveRecord
       check_if_method_has_arguments!(__callee__, args) do
         sanitize_order_arguments(args)
       end
-      spawn.reorder!(*args)
+      spawn._reorder!(args)
     end
 
     # Same as #reorder but operates on relation in-place instead of copying.
-    def reorder!(*args) # :nodoc:
+    def reorder!(*args) = _reorder!(args) # :nodoc:
+
+    def _reorder!(args) # :nodoc:
       preprocess_order_args(args)
       args.uniq!
       self.reordering_value = true
@@ -921,11 +943,13 @@ module ActiveRecord
       check_if_method_has_arguments!(__callee__, args) do
         sanitize_order_arguments(args)
       end
-      spawn.default_order!(*args)
+      spawn._default_order!(args)
     end
 
     # Same as #default_order but operates on relation in-place instead of copying.
-    def default_order!(*args) # :nodoc:
+    def default_order!(*args) = _default_order!(args) # :nodoc:
+
+    def _default_order!(args) # :nodoc:
       preprocess_order_args(args)
       args.uniq!
       self.default_order_values = args
@@ -992,10 +1016,12 @@ module ActiveRecord
     #
     def unscope(*args)
       check_if_method_has_arguments!(__callee__, args)
-      spawn.unscope!(*args)
+      spawn._unscope!(args)
     end
 
-    def unscope!(*args) # :nodoc:
+    def unscope!(*args) = _unscope!(args) # :nodoc:
+
+    def _unscope!(args) # :nodoc:
       self.unscope_values |= args
 
       args.each do |scope|
@@ -1082,10 +1108,12 @@ module ActiveRecord
     # ```
     def joins(*args)
       check_if_method_has_arguments!(__callee__, args)
-      spawn.joins!(*args)
+      spawn._joins!(args)
     end
 
-    def joins!(*args) # :nodoc:
+    def joins!(*args) = _joins!(args) # :nodoc:
+
+    def _joins!(args) # :nodoc:
       self.joins_values |= args
       self
     end
@@ -1099,11 +1127,13 @@ module ActiveRecord
     #
     def left_outer_joins(*args)
       check_if_method_has_arguments!(__callee__, args)
-      spawn.left_outer_joins!(*args)
+      spawn._left_outer_joins!(args)
     end
     alias :left_joins :left_outer_joins
 
-    def left_outer_joins!(*args) # :nodoc:
+    def left_outer_joins!(*args) = _left_outer_joins!(args) # :nodoc:
+
+    def _left_outer_joins!(args) # :nodoc:
       self.left_outer_joins_values |= args
       self
     end
@@ -1281,11 +1311,11 @@ module ActiveRecord
       elsif args.length == 1 && args.first.blank?
         self
       else
-        spawn.where!(*args)
+        spawn.where!(args.shift, args)
       end
     end
 
-    def where!(opts, *rest) # :nodoc:
+    def where!(opts, rest = FROZEN_EMPTY_ARRAY) # :nodoc:
       self.where_clause += build_where_clause(opts, rest)
       self
     end
@@ -1462,10 +1492,10 @@ module ActiveRecord
     # Order.having('SUM(price) > 30').group('user_id')
     # ```
     def having(opts, *rest)
-      opts.blank? ? self : spawn.having!(opts, *rest)
+      opts.blank? ? self : spawn.having!(opts, rest)
     end
 
-    def having!(opts, *rest) # :nodoc:
+    def having!(opts, rest = FROZEN_EMPTY_ARRAY) # :nodoc:
       self.having_clause += build_having_clause(opts, rest)
       self
     end
@@ -1762,13 +1792,15 @@ module ActiveRecord
     # ```
     def extending(*modules, &block)
       if modules.any? || block
-        spawn.extending!(*modules, &block)
+        spawn._extending!(modules, &block)
       else
         self
       end
     end
 
-    def extending!(*modules, &block) # :nodoc:
+    def extending!(*modules, &block) = _extending!(modules, &block) # :nodoc:
+
+    def _extending!(modules, &block) # :nodoc:
       return self if modules.empty? && !block
 
       modules << Module.new(&block) if block
@@ -1797,10 +1829,12 @@ module ActiveRecord
     # ```
     def optimizer_hints(*args)
       check_if_method_has_arguments!(__callee__, args)
-      spawn.optimizer_hints!(*args)
+      spawn._optimizer_hints!(args)
     end
 
-    def optimizer_hints!(*args) # :nodoc:
+    def optimizer_hints!(*args) = _optimizer_hints!(args) # :nodoc:
+
+    def _optimizer_hints!(args) # :nodoc:
       self.optimizer_hints_values |= args
       self
     end
@@ -1851,11 +1885,13 @@ module ActiveRecord
     # Some escaping is performed, however untrusted user input should not be used.
     def annotate(*args)
       check_if_method_has_arguments!(__callee__, args)
-      spawn.annotate!(*args)
+      spawn._annotate!(args)
     end
 
     # Like #annotate, but modifies relation in place.
-    def annotate!(*args) # :nodoc:
+    def annotate!(*args) = _annotate!(args) # :nodoc:
+
+    def _annotate!(args) # :nodoc:
       self.annotate_values |= args
       self
     end
@@ -1943,7 +1979,7 @@ module ActiveRecord
         end
       end
 
-      def build_where_clause(opts, rest = []) # :nodoc:
+      def build_where_clause(opts, rest = FROZEN_EMPTY_ARRAY) # :nodoc:
         opts = sanitize_forbidden_attributes(opts)
 
         if opts.is_a?(Array)
