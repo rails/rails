@@ -104,9 +104,28 @@ module ActiveRecord
       #
       # See `ActiveRecord::Inheritance#discriminate_class_for_record` to see
       # how this "single-table" inheritance mapping is implemented.
+      #: (Hash[String, untyped] | ActiveModel::IndexedRow, ?Hash[String, ActiveModel::Type::Value]) ?{ (ActiveRecord::Base) -> void } -> ActiveRecord::Base
       def instantiate(attributes, column_types = {}, &block)
         klass = discriminate_class_for_record(attributes)
-        instantiate_instance_of(klass, attributes, column_types, &block)
+        builder = klass.attributes_builder
+        if attributes.is_a?(Hash)
+          attributes = builder.row_from_hash(attributes)
+        elsif !klass.equal?(self)
+          # Rows are laid out for this class, and +klass+ may be an STI
+          # subclass with attributes of its own.
+          attributes = builder.relayout(attributes)
+        end
+
+        # +column_types+ can override the types of the class's attributes,
+        # as well as type the columns it doesn't have.
+        indexes = attributes.indexes
+        unless column_types.empty?
+          builder = builder.with_types(column_types)
+          indexes = builder.typed_indexes(indexes, column_types)
+        end
+
+        attributes = builder.build_from_row(attributes.row, indexes)
+        klass.allocate.init_with_attributes(attributes, &block)
       end
 
       # Updates an object (or multiple objects) and saves it to the database, if validations pass.
@@ -271,10 +290,12 @@ module ActiveRecord
           end
         end
 
-        # Given a class, an attributes hash, `instantiate_instance_of` returns a
-        # new instance of the class. Accepts only keys as strings.
-        def instantiate_instance_of(klass, attributes, column_types = {}, &block)
-          attributes = klass.attributes_builder.build_from_database(attributes, column_types)
+        # Given a class, a row Array and the indexes it's laid out with (see
+        # Result#map_rows), `instantiate_instance_of` returns a new instance
+        # of the class.
+        #: (singleton(ActiveRecord::Base), Array[untyped], Hash[String, Integer] | ActiveModel::IndexedRow::ExtendedIndexes) ?{ (ActiveRecord::Base) -> void } -> ActiveRecord::Base
+        def instantiate_instance_of(klass, row, indexes, &block)
+          attributes = klass.attributes_builder.build_from_row(row, indexes)
           klass.allocate.init_with_attributes(attributes, &block)
         end
 
@@ -477,8 +498,10 @@ module ActiveRecord
       became = klass.allocate
 
       became.send(:initialize) do |becoming|
-        @attributes.reverse_merge!(becoming.instance_variable_get(:@attributes))
-        becoming.instance_variable_set(:@attributes, @attributes)
+        becoming.instance_variable_set(
+          :@attributes,
+          ActiveModel::ReindexedAttributeSet.new(@attributes, becoming.instance_variable_get(:@attributes))
+        )
         becoming.instance_variable_set(:@mutations_from_database, @mutations_from_database ||= nil)
         becoming.instance_variable_set(:@new_record, new_record?)
         becoming.instance_variable_set(:@previously_new_record, previously_new_record?)

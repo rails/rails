@@ -7,70 +7,86 @@ require "json"
 module ActiveModel
   class AttributeSetTest < ActiveModel::TestCase
     test "building a new set from raw attributes" do
-      builder = AttributeSet::Builder.new({ foo: Type::Integer.new, bar: Type::Float.new }, {}, nil)
-      attributes = builder.build_from_database(foo: "1.1", bar: "2.2")
+      builder = AttributeSet::Builder.new({ "foo" => Type::Integer.new, "bar" => Type::Float.new }, AttributeSet.new(IndexedRow::Mutable[{}]), ["foo", "bar"])
+      attributes = builder.build_from_indexed_row(builder.row_from_hash("foo" => "1.1", "bar" => "2.2"))
 
-      assert_equal 1, attributes[:foo].value
-      assert_equal 2.2, attributes[:bar].value
-      assert_equal :foo, attributes[:foo].name
-      assert_equal :bar, attributes[:bar].name
+      assert_equal 1, attributes["foo"].value
+      assert_equal 2.2, attributes["bar"].value
+      assert_equal "foo", attributes["foo"].name
+      assert_equal "bar", attributes["bar"].name
     end
 
     test "building with custom types" do
-      builder = AttributeSet::Builder.new({ foo: Type::Float.new }, {}, nil)
-      attributes = builder.build_from_database({ foo: "3.3", bar: "4.4" }, { bar: Type::Integer.new })
+      builder = AttributeSet::Builder.new({ "foo" => Type::Float.new }, AttributeSet.new(IndexedRow::Mutable[{}]), ["foo"])
+      row = builder.row_from_hash("foo" => "3.3", "bar" => "4.4")
+      attributes = builder.build_from_row(row.row, builder.typed_indexes(row.indexes, { "bar" => Type::Integer.new }))
 
-      assert_equal 3.3, attributes[:foo].value
-      assert_equal 4, attributes[:bar].value
+      assert_equal 3.3, attributes["foo"].value
+      assert_equal 4, attributes["bar"].value
+    end
+
+    test "building with types that override the builder's" do
+      builder = AttributeSet::Builder.new({ "foo" => Type::Float.new }, AttributeSet.new(IndexedRow::Mutable[{}]), ["foo"])
+      row = builder.row_from_hash("foo" => "3.3")
+      attributes = builder.with_types("foo" => Type::Integer.new).build_from_indexed_row(row)
+
+      assert_equal 3, attributes["foo"].value
+      assert_equal 3.3, builder.build_from_indexed_row(row)["foo"].value
+    end
+
+    test "with_types returns the builder if it has none of the attributes" do
+      builder = AttributeSet::Builder.new({ "foo" => Type::Float.new }, AttributeSet.new(IndexedRow::Mutable[{}]), ["foo"])
+
+      assert_same builder, builder.with_types("bar" => Type::Integer.new)
     end
 
     test "[] returns a null object" do
-      builder = AttributeSet::Builder.new({ foo: Type::Float.new }, {}, nil)
-      attributes = builder.build_from_database(foo: "3.3")
+      builder = AttributeSet::Builder.new({ "foo" => Type::Float.new }, AttributeSet.new(IndexedRow::Mutable[{}]), ["foo"])
+      attributes = builder.build_from_indexed_row(builder.row_from_hash("foo" => "3.3"))
 
-      assert_equal "3.3", attributes[:foo].value_before_type_cast
-      assert_nil attributes[:bar].value_before_type_cast
-      assert_equal :bar, attributes[:bar].name
+      assert_equal "3.3", attributes["foo"].value_before_type_cast
+      assert_nil attributes["bar"].value_before_type_cast
+      assert_equal "bar", attributes["bar"].name
     end
 
     test "duping creates a new hash, but does not dup the attributes" do
-      builder = AttributeSet::Builder.new({ foo: Type::Integer.new, bar: Type::String.new }, {}, nil)
-      attributes = builder.build_from_database(foo: 1, bar: "foo")
+      builder = AttributeSet::Builder.new({ "foo" => Type::Integer.new, "bar" => Type::String.new }, AttributeSet.new(IndexedRow::Mutable[{}]), ["foo", "bar"])
+      attributes = builder.build_from_indexed_row(builder.row_from_hash("foo" => 1, "bar" => "foo"))
 
       # Ensure the type cast value is cached
-      attributes[:foo].value
-      attributes[:bar].value
+      attributes["foo"].value
+      attributes["bar"].value
 
       duped = attributes.dup
-      duped.write_from_database(:foo, 2)
-      duped[:bar].value << "bar"
+      duped.write_from_database("foo", 2)
+      duped["bar"].value << "bar"
 
-      assert_equal 1, attributes[:foo].value
-      assert_equal 2, duped[:foo].value
-      assert_equal "foobar", attributes[:bar].value
-      assert_equal "foobar", duped[:bar].value
+      assert_equal 1, attributes["foo"].value
+      assert_equal 2, duped["foo"].value
+      assert_equal "foobar", attributes["bar"].value
+      assert_equal "foobar", duped["bar"].value
     end
 
     test "deep_duping creates a new hash and dups each attribute" do
-      builder = AttributeSet::Builder.new({ foo: Type::Integer.new, bar: Type::String.new }, {}, nil)
-      attributes = builder.build_from_database(foo: 1, bar: "foo")
+      builder = AttributeSet::Builder.new({ "foo" => Type::Integer.new, "bar" => Type::String.new }, AttributeSet.new(IndexedRow::Mutable[{}]), ["foo", "bar"])
+      attributes = builder.build_from_indexed_row(builder.row_from_hash("foo" => 1, "bar" => "foo"))
 
       # Ensure the type cast value is cached
-      attributes[:foo].value
-      attributes[:bar].value
+      attributes["foo"].value
+      attributes["bar"].value
 
       duped = attributes.deep_dup
-      duped.write_from_database(:foo, 2)
-      duped[:bar].value << "bar"
+      duped.write_from_database("foo", 2)
+      duped["bar"].value << "bar"
 
-      assert_equal 1, attributes[:foo].value
-      assert_equal 2, duped[:foo].value
-      assert_equal "foo", attributes[:bar].value
-      assert_equal "foobar", duped[:bar].value
+      assert_equal 1, attributes["foo"].value
+      assert_equal 2, duped["foo"].value
+      assert_equal "foo", attributes["bar"].value
+      assert_equal "foobar", duped["bar"].value
     end
 
     test "freezing cloned set does not freeze original" do
-      attributes = AttributeSet.new({})
+      attributes = AttributeSet.new(IndexedRow::Mutable[{}])
       clone = attributes.clone
 
       clone.freeze
@@ -86,114 +102,114 @@ module ActiveModel
     end
 
     test "to_hash returns a hash of the type cast values" do
-      builder = AttributeSet::Builder.new({ foo: Type::Integer.new, bar: Type::Float.new }, {}, nil)
-      attributes = builder.build_from_database(foo: "1.1", bar: "2.2")
+      builder = AttributeSet::Builder.new({ "foo" => Type::Integer.new, "bar" => Type::Float.new }, AttributeSet.new(IndexedRow::Mutable[{}]), ["foo", "bar"])
+      attributes = builder.build_from_indexed_row(builder.row_from_hash("foo" => "1.1", "bar" => "2.2"))
 
-      assert_equal({ foo: 1, bar: 2.2 }, attributes.to_hash)
-      assert_equal({ foo: 1, bar: 2.2 }, attributes.to_h)
+      assert_equal({ "foo" => 1, "bar" => 2.2 }, attributes.to_hash)
+      assert_equal({ "foo" => 1, "bar" => 2.2 }, attributes.to_h)
     end
 
     test "to_hash maintains order" do
-      builder = AttributeSet::Builder.new({ foo: Type::Integer.new, bar: Type::Float.new }, {}, nil)
-      attributes = builder.build_from_database(foo: "2.2", bar: "3.3")
+      builder = AttributeSet::Builder.new({ "foo" => Type::Integer.new, "bar" => Type::Float.new }, AttributeSet.new(IndexedRow::Mutable[{}]), ["foo", "bar"])
+      attributes = builder.build_from_indexed_row(builder.row_from_hash("foo" => "2.2", "bar" => "3.3"))
 
-      attributes[:bar]
+      attributes["bar"]
       hash = attributes.to_h
 
-      assert_equal [[:foo, 2], [:bar, 3.3]], hash.to_a
+      assert_equal [["foo", 2], ["bar", 3.3]], hash.to_a
     end
 
     test "values_before_type_cast" do
-      builder = AttributeSet::Builder.new({ foo: Type::Integer.new, bar: Type::Integer.new }, {}, nil)
-      attributes = builder.build_from_database(foo: "1.1", bar: "2.2")
+      builder = AttributeSet::Builder.new({ "foo" => Type::Integer.new, "bar" => Type::Integer.new }, AttributeSet.new(IndexedRow::Mutable[{}]), ["foo", "bar"])
+      attributes = builder.build_from_indexed_row(builder.row_from_hash("foo" => "1.1", "bar" => "2.2"))
 
-      assert_equal({ foo: "1.1", bar: "2.2" }, attributes.values_before_type_cast)
+      assert_equal({ "foo" => "1.1", "bar" => "2.2" }, attributes.values_before_type_cast)
     end
 
     test "known columns are built with uninitialized attributes" do
       attributes = attributes_with_uninitialized_key
-      assert_predicate attributes[:foo], :initialized?
-      assert_not_predicate attributes[:bar], :initialized?
+      assert_predicate attributes["foo"], :initialized?
+      assert_not_predicate attributes["bar"], :initialized?
     end
 
     test "uninitialized attributes are not included in the attributes hash" do
       attributes = attributes_with_uninitialized_key
-      assert_equal({ foo: 1 }, attributes.to_hash)
+      assert_equal({ "foo" => 1 }, attributes.to_hash)
     end
 
     test "uninitialized attributes are not included in keys" do
       attributes = attributes_with_uninitialized_key
-      assert_equal [:foo], attributes.keys
+      assert_equal ["foo"], attributes.keys
     end
 
     test "uninitialized attributes return false for key?" do
       attributes = attributes_with_uninitialized_key
-      assert attributes.key?(:foo)
-      assert_not attributes.key?(:bar)
+      assert attributes.key?("foo")
+      assert_not attributes.key?("bar")
     end
 
     test "unknown attributes return false for key?" do
       attributes = attributes_with_uninitialized_key
-      assert_not attributes.key?(:wibble)
+      assert_not attributes.key?("wibble")
     end
 
     test "fetch_value returns the value for the given initialized attribute" do
-      builder = AttributeSet::Builder.new({ foo: Type::Integer.new, bar: Type::Float.new }, {}, nil)
-      attributes = builder.build_from_database(foo: "1.1", bar: "2.2")
+      builder = AttributeSet::Builder.new({ "foo" => Type::Integer.new, "bar" => Type::Float.new }, AttributeSet.new(IndexedRow::Mutable[{}]), ["foo", "bar"])
+      attributes = builder.build_from_indexed_row(builder.row_from_hash("foo" => "1.1", "bar" => "2.2"))
 
-      assert_equal 1, attributes.fetch_value(:foo)
-      assert_equal 2.2, attributes.fetch_value(:bar)
+      assert_equal 1, attributes.fetch_value("foo")
+      assert_equal 2.2, attributes.fetch_value("bar")
     end
 
     test "fetch_value returns nil for unknown attributes" do
       attributes = attributes_with_uninitialized_key
-      assert_nil attributes.fetch_value(:wibble) { "hello" }
+      assert_nil attributes.fetch_value("wibble") { "hello" }
     end
 
     test "fetch_value returns nil for unknown attributes when types has a default" do
       types = Hash.new(Type::Value.new)
-      builder = AttributeSet::Builder.new(types, {}, nil)
-      attributes = builder.build_from_database
+      builder = AttributeSet::Builder.new(types, AttributeSet.new(IndexedRow::Mutable[{}]), types.keys)
+      attributes = builder.build_from_indexed_row(builder.row_from_hash({}))
 
-      assert_nil attributes.fetch_value(:wibble) { "hello" }
+      assert_nil attributes.fetch_value("wibble") { "hello" }
     end
 
     test "fetch_value uses the given block for uninitialized attributes" do
       attributes = attributes_with_uninitialized_key
-      value = attributes.fetch_value(:bar) { |n| n.to_s + "!" }
+      value = attributes.fetch_value("bar") { |n| n.to_s + "!" }
       assert_equal "bar!", value
     end
 
     test "fetch_value returns nil for uninitialized attributes if no block is given" do
       attributes = attributes_with_uninitialized_key
-      assert_nil attributes.fetch_value(:bar)
+      assert_nil attributes.fetch_value("bar")
     end
 
     test "fetch_value! returns the value for initialized and unknown attributes" do
       attributes = attributes_with_uninitialized_key
 
-      assert_equal 1, attributes.fetch_value!(:foo)
-      assert_nil attributes.fetch_value!(:wibble)
+      assert_equal 1, attributes.fetch_value!("foo")
+      assert_nil attributes.fetch_value!("wibble")
     end
 
     test "fetch_value! raises for uninitialized attributes" do
       attributes = attributes_with_uninitialized_key
 
       error = assert_raises(ActiveModel::MissingAttributeError) do
-        attributes.fetch_value!(:bar)
+        attributes.fetch_value!("bar")
       end
       assert_equal "uninitialized attribute", error.message
       assert_empty error.backtrace
     end
 
     test "the primary_key is always initialized" do
-      defaults = { foo: Attribute.from_user(:foo, nil, nil) }
-      builder = AttributeSet::Builder.new({ foo: Type::Integer.new }, defaults, nil)
-      attributes = builder.build_from_database
+      defaults = { "foo" => Attribute.from_user("foo", nil, nil) }
+      builder = AttributeSet::Builder.new({ "foo" => Type::Integer.new }, AttributeSet.new(IndexedRow::Mutable[defaults]), ["foo"])
+      attributes = builder.build_from_indexed_row(builder.row_from_hash({}))
 
-      assert attributes.key?(:foo)
-      assert_equal [:foo], attributes.keys
-      assert_predicate attributes[:foo], :initialized?
+      assert attributes.key?("foo")
+      assert_equal ["foo"], attributes.keys
+      assert_predicate attributes["foo"], :initialized?
     end
 
     class MyType
@@ -212,25 +228,25 @@ module ActiveModel
     end
 
     test "write_from_database sets the attribute with database typecasting" do
-      builder = AttributeSet::Builder.new({ foo: MyType.new }, {}, nil)
-      attributes = builder.build_from_database
+      builder = AttributeSet::Builder.new({ "foo" => MyType.new }, AttributeSet.new(IndexedRow::Mutable[{}]), ["foo"])
+      attributes = builder.build_from_indexed_row(builder.row_from_hash({}))
 
-      assert_nil attributes.fetch_value(:foo)
+      assert_nil attributes.fetch_value("foo")
 
-      attributes.write_from_database(:foo, "value")
+      attributes.write_from_database("foo", "value")
 
-      assert_equal "value from database", attributes.fetch_value(:foo)
+      assert_equal "value from database", attributes.fetch_value("foo")
     end
 
     test "write_from_user sets the attribute with user typecasting" do
-      builder = AttributeSet::Builder.new({ foo: MyType.new }, {}, nil)
-      attributes = builder.build_from_database
+      builder = AttributeSet::Builder.new({ "foo" => MyType.new }, AttributeSet.new(IndexedRow::Mutable[{}]), ["foo"])
+      attributes = builder.build_from_indexed_row(builder.row_from_hash({}))
 
-      assert_nil attributes.fetch_value(:foo)
+      assert_nil attributes.fetch_value("foo")
 
-      attributes.write_from_user(:foo, "value")
+      attributes.write_from_user("foo", "value")
 
-      assert_equal "value from user", attributes.fetch_value(:foo)
+      assert_equal "value from user", attributes.fetch_value("foo")
     end
 
     class MySerializedType < ::ActiveModel::Type::Value
@@ -240,64 +256,58 @@ module ActiveModel
     end
 
     test "values_for_database" do
-      builder = AttributeSet::Builder.new({ foo: MySerializedType.new }, {}, nil)
-      attributes = builder.build_from_database
+      builder = AttributeSet::Builder.new({ "foo" => MySerializedType.new }, AttributeSet.new(IndexedRow::Mutable[{}]), ["foo"])
+      attributes = builder.build_from_indexed_row(builder.row_from_hash({}))
 
-      attributes.write_from_user(:foo, "value")
+      attributes.write_from_user("foo", "value")
 
-      assert_equal({ foo: "value serialized" }, attributes.values_for_database)
+      assert_equal({ "foo" => "value serialized" }, attributes.values_for_database)
     end
 
     test "freezing doesn't prevent the set from materializing" do
-      builder = AttributeSet::Builder.new({ foo: Type::String.new }, {}, nil)
-      attributes = builder.build_from_database(foo: "1")
+      builder = AttributeSet::Builder.new({ "foo" => Type::String.new }, AttributeSet.new(IndexedRow::Mutable[{}]), ["foo"])
+      attributes = builder.build_from_indexed_row(builder.row_from_hash("foo" => "1"))
 
       attributes.freeze
-      assert_equal({ foo: "1" }, attributes.to_hash)
+      assert_equal({ "foo" => "1" }, attributes.to_hash)
     end
 
     test "marshalling dump/load materialized attribute hash" do
-      builder = AttributeSet::Builder.new({ foo: Type::String.new }, {}, nil)
-
-      def builder.build_from_database(values = {}, additional_types = {})
-        attributes = LazyAttributeHash.new(types, values, additional_types, default_attributes)
-        AttributeSet.new(attributes)
-      end
-
-      attributes = builder.build_from_database(foo: "1")
+      attributes = LazyAttributeHash.new({ "foo" => Type::String.new }, { "foo" => "1" }, {}, AttributeSet.new(IndexedRow::Mutable[{}]))
+      attributes = AttributeSet.new(attributes)
 
       data = Marshal.dump(attributes)
       attributes = Marshal.load(data)
-      assert_equal({ foo: "1" }, attributes.to_hash)
+      assert_equal({ "foo" => "1" }, attributes.to_hash)
     end
 
     test "#accessed_attributes returns only attributes which have been read" do
-      builder = AttributeSet::Builder.new({ foo: Type::Value.new, bar: Type::Value.new }, {}, nil)
-      attributes = builder.build_from_database(foo: "1", bar: "2")
+      builder = AttributeSet::Builder.new({ "foo" => Type::Value.new, "bar" => Type::Value.new }, AttributeSet.new(IndexedRow::Mutable[{}]), ["foo", "bar"])
+      attributes = builder.build_from_indexed_row(builder.row_from_hash("foo" => "1", "bar" => "2"))
 
       assert_equal [], attributes.accessed
 
-      attributes.fetch_value(:foo)
+      attributes.fetch_value("foo")
 
-      assert_equal [:foo], attributes.accessed
+      assert_equal ["foo"], attributes.accessed
     end
 
     test "#map returns a new attribute set with the changes applied" do
-      builder = AttributeSet::Builder.new({ foo: Type::Integer.new, bar: Type::Integer.new }, {}, nil)
-      attributes = builder.build_from_database(foo: "1", bar: "2")
+      builder = AttributeSet::Builder.new({ "foo" => Type::Integer.new, "bar" => Type::Integer.new }, AttributeSet.new(IndexedRow::Mutable[{}]), ["foo", "bar"])
+      attributes = builder.build_from_indexed_row(builder.row_from_hash("foo" => "1", "bar" => "2"))
       new_attributes = attributes.map do |attr|
         attr.with_cast_value(attr.value + 1)
       end
 
-      assert_equal 2, new_attributes.fetch_value(:foo)
-      assert_equal 3, new_attributes.fetch_value(:bar)
+      assert_equal 2, new_attributes.fetch_value("foo")
+      assert_equal 3, new_attributes.fetch_value("bar")
     end
 
     test "comparison for equality is correctly implemented" do
-      builder = AttributeSet::Builder.new({ foo: Type::Integer.new, bar: Type::Integer.new }, {}, nil)
-      attributes = builder.build_from_database(foo: "1", bar: "2")
-      attributes2 = builder.build_from_database(foo: "1", bar: "2")
-      attributes3 = builder.build_from_database(foo: "2", bar: "2")
+      builder = AttributeSet::Builder.new({ "foo" => Type::Integer.new, "bar" => Type::Integer.new }, AttributeSet.new(IndexedRow::Mutable[{}]), ["foo", "bar"])
+      attributes = builder.build_from_indexed_row(builder.row_from_hash("foo" => "1", "bar" => "2"))
+      attributes2 = builder.build_from_indexed_row(builder.row_from_hash("foo" => "1", "bar" => "2"))
+      attributes3 = builder.build_from_indexed_row(builder.row_from_hash("foo" => "2", "bar" => "2"))
       attributes4 = attributes.deep_dup
 
       assert_equal attributes, attributes2
@@ -307,7 +317,7 @@ module ActiveModel
     end
 
     test "==(other) is safe to use with any instance" do
-      attribute_set = AttributeSet.new({})
+      attribute_set = AttributeSet.new(IndexedRow::Mutable[{}])
 
       assert_equal false, attribute_set == nil
       assert_equal false, attribute_set == 1
@@ -332,50 +342,51 @@ module ActiveModel
 
     test "custom type is mutable" do
       type = CustomMutableType.new()
-      attribute_set = AttributeSet::Builder.new({ foo: type }, {}, nil).build_from_database(foo: "[]")
+      builder = AttributeSet::Builder.new({ "foo" => type }, AttributeSet.new(IndexedRow::Mutable[{}]), ["foo"])
+      attribute_set = builder.build_from_indexed_row(builder.row_from_hash("foo" => "[]"))
 
       # Ensure the type cast value is cached
-      attribute_set[:foo].value
+      attribute_set["foo"].value
 
       dup = attribute_set.deep_dup
-      dup[:foo].value << "2"
-      assert_not_equal attribute_set[:foo].value, dup[:foo].value
+      dup["foo"].value << "2"
+      assert_not_equal attribute_set["foo"].value, dup["foo"].value
     end
 
     test "read_only returns a frozen set with frozen attributes" do
-      attributes = AttributeSet.new(
-        foo: Attribute.from_database(:foo, "bar", Type::String.new),
-        baz: Attribute.from_database(:baz, "1", Type::Integer.new)
-      )
+      attributes = AttributeSet.new(IndexedRow::Mutable[
+        "foo" => Attribute.from_database("foo", "bar", Type::String.new),
+        "baz" => Attribute.from_database("baz", "1", Type::Integer.new)
+      ])
       read_only = attributes.read_only
 
       assert_predicate read_only, :frozen?
       assert_predicate read_only.attributes, :frozen?
-      assert_predicate read_only[:foo], :frozen?
-      assert_predicate read_only[:foo].value, :frozen?
-      assert_equal({ foo: "bar", baz: 1 }, read_only.to_hash)
-      assert_equal [:foo, :baz], read_only.keys
-      assert_not read_only.key?(:missing)
+      assert_predicate read_only["foo"], :frozen?
+      assert_predicate read_only["foo"].value, :frozen?
+      assert_equal({ "foo" => "bar", "baz" => 1 }, read_only.to_hash)
+      assert_equal ["foo", "baz"], read_only.keys
+      assert_not read_only.key?("missing")
     end
 
     test "read_only rejects uninitialized attributes" do
-      attributes = AttributeSet.new(foo: Attribute.uninitialized(:foo, Type::String.new))
+      attributes = AttributeSet.new(IndexedRow::Mutable["foo" => Attribute.uninitialized("foo", Type::String.new)])
       assert_raises(ArgumentError) { attributes.read_only }
     end
 
     test "read only set can't be mutated but writable returns a mutable copy" do
-      read_only = AttributeSet.new(foo: Attribute.from_database(:foo, "bar", Type::String.new)).read_only
+      read_only = AttributeSet.new(IndexedRow::Mutable["foo" => Attribute.from_database("foo", "bar", Type::String.new)]).read_only
 
       assert_not_respond_to read_only, :[]=
       writable = read_only.writable
-      writable[:foo] = Attribute.from_database(:foo, "changed", Type::String.new)
+      writable["foo"] = Attribute.from_database("foo", "changed", Type::String.new)
 
-      assert_equal "changed", writable[:foo].value
-      assert_equal "bar", read_only[:foo].value
+      assert_equal "changed", writable["foo"].value
+      assert_equal "bar", read_only["foo"].value
     end
 
     test "read only set deep_dup and map stay read only" do
-      read_only = AttributeSet.new(foo: Attribute.from_database(:foo, "bar", Type::String.new)).read_only
+      read_only = AttributeSet.new(IndexedRow::Mutable["foo" => Attribute.from_database("foo", "bar", Type::String.new)]).read_only
 
       assert_predicate read_only.deep_dup, :frozen?
       assert_equal read_only, read_only.deep_dup
@@ -384,8 +395,8 @@ module ActiveModel
 
     private
       def attributes_with_uninitialized_key
-        builder = AttributeSet::Builder.new({ foo: Type::Integer.new, bar: Type::Float.new }, {}, nil)
-        builder.build_from_database(foo: "1.1")
+        builder = AttributeSet::Builder.new({ "foo" => Type::Integer.new, "bar" => Type::Float.new }, AttributeSet.new(IndexedRow::Mutable[{}]), ["foo", "bar"])
+        builder.build_from_indexed_row(builder.row_from_hash("foo" => "1.1"))
       end
   end
 end

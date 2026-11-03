@@ -5,6 +5,7 @@ require "models/topic"
 require "models/reply"
 require "models/post"
 require "models/author"
+require "models/developer"
 
 class YamlSerializationTest < ActiveRecord::TestCase
   fixtures :topics, :authors, :author_addresses, :posts
@@ -23,6 +24,14 @@ class YamlSerializationTest < ActiveRecord::TestCase
     assert topic
     t = YAML.unsafe_load(YAML.dump(topic))
     assert_equal topic, t
+  end
+
+  def test_roundtrip_with_ignored_columns
+    developer = Developer.create!(name: "David", salary: 90_000)
+    loaded = YAML.unsafe_load(YAML.dump(developer))
+
+    assert_equal "David", loaded.name
+    assert_equal 90_000, loaded.salary
   end
 
   def test_roundtrip_serialized_column
