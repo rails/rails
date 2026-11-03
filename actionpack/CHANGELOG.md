@@ -1,3 +1,17 @@
+*   `ActionController::Parameters#each_key` returns `self` when given a block.
+
+    It returned the internal `ActiveSupport::HashWithIndifferentAccess`, which
+    does not respond to `permitted?`, so passing that return value to mass
+    assignment skipped the Strong Parameters check. `each`, `each_pair` and
+    `each_value` already return `self`.
+
+    Document that `ActionController::Parameters#as_json` returns every
+    parameter, permitted or not, in a hash that mass assignment does not check.
+
+    [GHSA-wm3x-v3qw-4jh3]
+
+    *Mike Dalessio*
+
 *   Compute `action_methods` without converting every public instance method to a String.
 
     Speeds up eager loading for applications whose controllers include the url helpers.
