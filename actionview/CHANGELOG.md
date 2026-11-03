@@ -1,3 +1,12 @@
+*   Escape matched text substituted into the `highlight` `:highlighter`.
+
+    `highlight` sanitizes the text, but sanitizing leaves quotes alone, so a
+    match containing `"` could close an attribute in a custom highlighter such
+    as the documented `<a href="search?q=\1">\1</a>`. Quotes and other special
+    characters in the match are now escaped, without double escaping entities.
+
+    *Richard Desmarais*
+
 *   Percent-encode `<`, `>`, whitespace and control characters in the `href`
     of `Link` header entries built by `preload_link_tag`, `stylesheet_link_tag`
     and `javascript_include_tag`.

@@ -293,6 +293,31 @@ class TextHelperTest < ActionView::TestCase
     )
   end
 
+  def test_highlight_escapes_quotes_in_highlighter_attributes
+    phrase = 'x"onmouseover="alert(1)"x'
+
+    assert_equal(
+      %(nice <a href="search?q=x&quot;onmouseover=&quot;alert(1)&quot;x">x&quot;onmouseover=&quot;alert(1)&quot;x</a> post),
+      highlight("nice #{phrase} post", phrase, highlighter: '<a href="search?q=\1">\1</a>')
+    )
+    assert_equal(
+      %(<b title='it&#39;s'>it&#39;s</b>),
+      highlight("it's", "it's", highlighter: %q(<b title='\1'>\1</b>))
+    )
+  end
+
+  def test_highlight_does_not_double_escape_matched_text
+    assert_equal "<mark>Tom &amp; Jerry</mark>", highlight("Tom & Jerry", /Tom &amp; Jerry/)
+  end
+
+  def test_highlight_with_other_highlighter_backreferences
+    assert_equal(
+      %(<b title="beau">beautiful</b> morning),
+      highlight("beautiful morning", /(?<prefix>beau)tiful/, highlighter: '<b title="\k<prefix>">\0</b>')
+    )
+    assert_equal %(<b>rails\\</b>), highlight("rails", "rails", highlighter: '<b>\&\\\\</b>')
+  end
+
   def test_excerpt
     assert_equal("...is a beautiful morn...", excerpt("This is a beautiful morning", "beautiful", radius: 5))
     assert_equal("This is a...", excerpt("This is a beautiful morning", "this", radius: 5))

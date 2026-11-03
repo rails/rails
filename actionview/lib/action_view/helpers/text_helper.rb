@@ -197,7 +197,7 @@ module ActionView
               if block
                 segment.gsub!(pattern, &block)
               else
-                segment.gsub!(pattern, highlighter)
+                segment.gsub!(pattern) { expand_highlighter(highlighter, $~) }
               end
             end
           end.join
@@ -562,6 +562,16 @@ module ActionView
         def set_cycle(name, cycle_object)
           @_cycles = Hash.new unless defined?(@_cycles)
           @_cycles[name] = cycle_object
+        end
+
+        # Expands \1, \0, \& and \k<name> like String#sub, but escapes the matched
+        # text so the highlighter can also use it inside an attribute value.
+        def expand_highlighter(highlighter, match)
+          highlighter.gsub(/\\(?:(\d)|k<(\w+)>|(&)|(\\))/) do
+            next "\\" if $4
+
+            ERB::Util.html_escape_once(match[$1&.to_i || $2 || 0].to_s)
+          end
         end
 
         def split_paragraphs(text)
