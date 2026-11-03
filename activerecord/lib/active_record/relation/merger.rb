@@ -52,7 +52,7 @@ module ActiveRecord
       NORMAL_VALUES = (Relation::VALUE_METHODS - Relation::CLAUSE_METHODS -
                       [
                         :select, :includes, :preload, :joins, :left_outer_joins,
-                        :order, :reverse_order, :lock, :create_with, :reordering, :with_recursive
+                        :order, :reverse_order, :lock, :create_with, :reordering, :with, :with_recursive
                       ]).freeze
       NORMAL_VALUE_BANG_METHODS = NORMAL_VALUES.index_with { |name| :"#{name}!" }.freeze
 
@@ -167,6 +167,7 @@ module ActiveRecord
             relation.order_values |= other.order_values
           end
 
+          relation.with_values |= other.with_values unless other.with_values.empty?
           relation.extending!(*other.extensions) unless other.extensions.empty?
         end
 
