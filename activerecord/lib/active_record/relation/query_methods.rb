@@ -608,7 +608,7 @@ module ActiveRecord
     def _with_recursive!(args) # :nodoc:
       args = process_with_args(args)
       self.with_values |= args
-      @with_is_recursive = true
+      self.with_recursive_value = true
       self
     end
 
@@ -1033,6 +1033,7 @@ module ActiveRecord
           end
           assert_modifiable!
           @values.delete(scope)
+          @values.delete(:with_recursive) if scope == :with
         when Hash
           scope.each do |key, target_value|
             if key != :where
@@ -2257,7 +2258,7 @@ module ActiveRecord
           build_with_value_from_hash(with_value)
         end
 
-        @with_is_recursive ? arel.with(:recursive, with_statements) : arel.with(with_statements)
+        with_recursive_value ? arel.with(:recursive, with_statements) : arel.with(with_statements)
       end
 
       def build_with_value_from_hash(hash)
@@ -2697,7 +2698,8 @@ module ActiveRecord
 
         # `and`/`or` are focused to combine where-like clauses, so it relaxes
         # the difference when other's multi values are uninitialized.
-        return false if v1.is_a?(Array) && v2.nil?
+        # Likewise, `with_recursive` is relaxed when other's CTEs are not recursive.
+        return false if (v1.is_a?(Array) || method == :with_recursive) && v2.nil?
 
         !(v1 == v2)
       end

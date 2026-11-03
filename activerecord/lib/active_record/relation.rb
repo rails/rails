@@ -60,7 +60,8 @@ module ActiveRecord
                             :with].freeze
 
     SINGLE_VALUE_METHODS = [:limit, :offset, :lock, :readonly, :reordering, :strict_loading,
-                            :reverse_order, :distinct, :create_with, :skip_query_cache].freeze
+                            :reverse_order, :distinct, :create_with, :skip_query_cache,
+                            :with_recursive].freeze
 
     CLAUSE_METHODS = [:where, :having, :from].freeze
     INVALID_METHODS_FOR_UPDATE_AND_DELETE_ALL = [:distinct, :with, :with_recursive].freeze
@@ -609,7 +610,7 @@ module ActiveRecord
 
       invalid_methods = INVALID_METHODS_FOR_UPDATE_AND_DELETE_ALL.select do |method|
         value = @values[method]
-        method == :distinct ? value : value&.any?
+        Array === value ? value.any? : value
       end
       if invalid_methods.any?
         ActiveRecord.deprecator.warn <<~MESSAGE
@@ -1082,7 +1083,7 @@ module ActiveRecord
 
       invalid_methods = INVALID_METHODS_FOR_UPDATE_AND_DELETE_ALL.select do |method|
         value = @values[method]
-        method == :distinct ? value : value&.any?
+        Array === value ? value.any? : value
       end
       if invalid_methods.any?
         raise ActiveRecordError.new("delete_all doesn't support #{invalid_methods.join(', ')}")

@@ -52,7 +52,7 @@ module ActiveRecord
       NORMAL_VALUES = (Relation::VALUE_METHODS - Relation::CLAUSE_METHODS -
                       [
                         :select, :includes, :preload, :joins, :left_outer_joins,
-                        :order, :reverse_order, :lock, :create_with, :reordering
+                        :order, :reverse_order, :lock, :create_with, :reordering, :with_recursive
                       ]).freeze
       NORMAL_VALUE_BANG_METHODS = NORMAL_VALUES.index_with { |name| :"#{name}!" }.freeze
 
@@ -171,6 +171,7 @@ module ActiveRecord
 
         def merge_single_values
           relation.lock_value ||= other.lock_value if other.lock_value
+          relation.with_recursive_value = true if other.with_recursive_value
 
           unless other.create_with_value.blank?
             relation.create_with_value = (relation.create_with_value || {}).merge(other.create_with_value)
