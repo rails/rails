@@ -8,7 +8,7 @@ module ActiveRecord
         owner = association.owner
         unscoped = association.klass.unscoped
         routes ||= source_reflection.association_route_chain(origin_class: owner.class, destination_class: association.klass)
-        reverse_chain = get_chain(source_reflection, association, unscoped.alias_tracker, routes).reverse
+        reverse_chain = get_chain(source_reflection, association, unscoped, routes).reverse
 
         last_reflection, last_ordered, last_join_ids = last_scope_chain(reverse_chain, owner)
 
