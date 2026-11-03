@@ -123,6 +123,10 @@ class AllowBrowserRactorTest < ActiveSupport::TestCase
     assert_ractor_shareable ActionController::AllowBrowser::ClassMethods.const_get(:DEFAULT_UNSUPPORTED_BROWSER_RESPONSE)
   end
 
+  test "the expanded named version sets are shareable" do
+    assert_ractor_shareable ActionController::AllowBrowser::BrowserBlocker::EXPANDED_SETS
+  end
+
   test "allow_browser registers a shareable callback when the application opts in" do
     old_action = ActiveSupport::Ractors.unshareable_proc_action
     ActiveSupport::Ractors.unshareable_proc_action = :raise
