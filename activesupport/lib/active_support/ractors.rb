@@ -115,7 +115,7 @@ module ActiveSupport
           if Ractor.main?
             obj.instance_eval(&block)
           else
-            require "ractor/dispatch"
+            require "ractor/dispatch" unless defined?(Ractor::Dispatch)
             shareable_block = Ractor.shareable_proc(&block)
             Ractor::Dispatch.main.run { obj.instance_eval(&shareable_block) }
           end
