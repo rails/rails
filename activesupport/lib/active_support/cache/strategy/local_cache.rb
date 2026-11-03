@@ -210,8 +210,24 @@ module ActiveSupport
             return_value
           end
 
+          # Batch writes may bypass +write_serialized_entry+.
+          def write_multi_entries(entries, **)
+            if cache = local_cache
+              entries.each_key { |key| cache.delete_entry(key) }
+            end
+            super
+          end
+
           def delete_entry(key, **)
             local_cache.delete_entry(key) if local_cache
+            super
+          end
+
+          # Batch deletes may bypass +delete_entry+.
+          def delete_multi_entries(entries, **)
+            if cache = local_cache
+              entries.each { |key| cache.delete_entry(key) }
+            end
             super
           end
 
