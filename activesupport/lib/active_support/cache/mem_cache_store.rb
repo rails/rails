@@ -246,6 +246,11 @@ module ActiveSupport
               expires_in += 5.minutes
             end
 
+            # set_multi doesn't report whether each key was stored, so always drop them from the local cache.
+            if cache = local_cache
+              entries.each_key { |key| cache.delete_entry(key) }
+            end
+
             rescue_error_with(nil) do
               # Don't pass compress option to Dalli since we are already dealing with compression.
               options.delete(:compress)

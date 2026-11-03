@@ -85,6 +85,16 @@ module LocalCacheBehavior
     end
   end
 
+  def test_local_cache_of_write_multi
+    key = SecureRandom.uuid
+    value = SecureRandom.alphanumeric
+    @cache.with_local_cache do
+      @cache.write(key, SecureRandom.alphanumeric)
+      @cache.write_multi(key => value)
+      assert_equal value, @cache.read(key)
+    end
+  end
+
   def test_local_cache_of_read_returns_a_copy_of_the_entry
     key = SecureRandom.alphanumeric.to_sym
     value = SecureRandom.alphanumeric
