@@ -752,6 +752,32 @@ module ApplicationTests
       end
     end
 
+    def test_class_and_method_name_filter
+      app_file "test/models/post_test.rb", <<~RUBY
+        require "test_helper"
+
+        class PostTest < ActiveSupport::TestCase
+          test "foo" do
+            puts "hello post"
+            assert true
+          end
+        end
+
+        class CommentTest < ActiveSupport::TestCase
+          test "foo" do
+            puts "hello comment"
+            assert true
+          end
+        end
+      RUBY
+
+      run_test_command("test/models/post_test.rb -n PostTest#test_foo").tap do |output|
+        assert_match "hello post", output
+        assert_no_match "hello comment", output
+        assert_match "1 runs, 1 assertions, 0 failures", output
+      end
+    end
+
     def test_declarative_style_regexp_filter
       app_file "test/models/post_test.rb", <<~RUBY
         require "test_helper"
