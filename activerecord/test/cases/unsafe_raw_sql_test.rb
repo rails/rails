@@ -157,6 +157,79 @@ class UnsafeRawSqlTest < ActiveRecord::TestCase
     end
   end
 
+  test "order: disallows invalid nested Array and Hash arguments" do
+    assert_raises(ActiveRecord::UnknownAttributeReference) do
+      Post.order(:id, [["author_id", "REPLACE(title, 'misc', 'zzzz')"]]).pluck(:id)
+    end
+
+    assert_raises(ActiveRecord::UnknownAttributeReference) do
+      Post.order(:id, [{ "REPLACE(title, 'misc', 'zzzz')" => :asc }]).pluck(:id)
+    end
+  end
+
+  test "pluck: disallows invalid arguments converted with a private to_ary" do
+    arg = Class.new do
+      def to_s
+        "id"
+      end
+
+      private
+        def to_ary
+          ["REPLACE(title, 'misc', 'zzzz')"]
+        end
+    end.new
+
+    assert_raises(ActiveRecord::UnknownAttributeReference) do
+      Post.pluck(:id, arg)
+    end
+  end
+
+  test "order and pluck: disallow invalid arguments converted with a singleton to_ary" do
+    [+"title", Arel.sql("title")].each do |arg|
+      def arg.to_ary
+        ["REPLACE(title, 'misc', 'zzzz')"]
+      end
+
+      assert_raises(ActiveRecord::UnknownAttributeReference) do
+        Post.all.order!(arg).pluck(:id)
+      end
+
+      assert_raises(ActiveRecord::UnknownAttributeReference) do
+        Post.pluck(:id, arg)
+      end
+    end
+  end
+
+  test "order: disallows invalid Hash arguments converted with a singleton to_a" do
+    arg = { title: :asc }
+    def arg.to_a
+      [["REPLACE(title, 'misc', 'zzzz')", :asc]]
+    end
+
+    assert_raises(ActiveRecord::UnknownAttributeReference) do
+      Post.order(arg).pluck(:id)
+    end
+  end
+
+  test "order: disallows invalid Hash arguments converted to an Array subclass" do
+    pairs = Class.new(Array) do
+      def flat_map
+        self
+      end
+
+      def each
+        self
+      end
+    end["REPLACE(title, 'misc', 'zzzz')", :asc]
+
+    arg = { title: :asc }
+    arg.define_singleton_method(:to_a) { pairs }
+
+    assert_raises(ActiveRecord::UnknownAttributeReference) do
+      Post.all.order!(arg).pluck(:id)
+    end
+  end
+
   test "order: allows valid Array arguments" do
     ids_expected = Post.order(Arel.sql("author_id, length(title)")).pluck(:id)
 

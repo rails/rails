@@ -2388,8 +2388,29 @@ module ActiveRecord
         end
       end
 
+      # Same result as args.flat_map { |e| ... }, with the same calls on each
+      # argument, but returns args itself when no argument is flattened.
+      # args is always a new rest-args array, so it is safe to return.
       def flattened_args(args)
-        args.flat_map { |e| (e.is_a?(Hash) || e.is_a?(Array)) ? flattened_args(e.to_a) : e }
+        flat = nil
+        index = 0
+
+        args.each do |arg|
+          arg = flatten_arg(arg) if arg.is_a?(Hash) || arg.is_a?(Array)
+
+          if (converted = Array.try_convert(arg))
+            (flat ||= args.first(index)).concat(converted)
+          elsif flat
+            flat << arg
+          end
+          index += 1
+        end
+
+        flat || args
+      end
+
+      def flatten_arg(arg)
+        arg.to_a.flat_map { |e| (e.is_a?(Hash) || e.is_a?(Array)) ? flatten_arg(e) : e }
       end
 
       def preprocess_order_args(order_args)
@@ -2435,9 +2456,13 @@ module ActiveRecord
         end
       end
 
+      # Same result as order_args.flat_map { ... }.filter_map { ... }, without
+      # the intermediate arrays.
       def column_references(order_args)
-        order_args.flat_map do |arg|
-          case arg
+        references = nil
+
+        order_args.each do |arg|
+          ref = case arg
           when String, Symbol
             extract_table_name_from(arg)
           when Hash
@@ -2457,7 +2482,18 @@ module ActiveRecord
               arg.expr.relation.name
             end
           end
-        end.filter_map { |ref| Arel.sql(ref, retryable: true) if ref }
+
+          if (converted = Array.try_convert(ref))
+            (references ||= []).concat(converted)
+          elsif ref
+            (references ||= []) << ref
+          end
+        end
+
+        return FROZEN_EMPTY_ARRAY unless references
+
+        references.select! { |ref| ref }
+        references.map! { |ref| Arel.sql(ref, retryable: true) }
       end
 
       def extract_table_name_from(string)
