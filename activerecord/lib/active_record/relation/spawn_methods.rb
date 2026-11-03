@@ -63,6 +63,7 @@ module ActiveRecord
     # Post.where('id > 10').order('id asc').except(:where) # removes the where condition but keeps the order
     # ```
     def except(*skips)
+      skips |= [:with_recursive] if skips.include?(:with)
       relation_with @values.except(*skips)
     end
 
@@ -73,6 +74,7 @@ module ActiveRecord
     # Post.order('id asc').only(:where, :order) # keeps only the where and order conditions
     # ```
     def only(*onlies)
+      onlies |= [:with_recursive] if onlies.include?(:with)
       relation_with @values.slice(*onlies)
     end
 
