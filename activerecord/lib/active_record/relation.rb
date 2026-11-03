@@ -1567,7 +1567,10 @@ module ActiveRecord
       end
 
       def limited_count
-        limit_value ? count : limit(2).count
+        result = limit_value ? count : limit(2).count
+        # A grouped count returns a hash with one entry per group, and each
+        # group is one record of the relation.
+        result.is_a?(Hash) ? result.size : result
       end
   end
 end
