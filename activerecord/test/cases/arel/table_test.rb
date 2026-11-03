@@ -111,6 +111,42 @@ module Arel
       assert_nil rel.table_alias
     end
 
+    test "new with a positional name is deprecated and behaves like name:" do
+      rel = assert_deprecated("Arel::Table.new(name: table_name)", ActiveRecord.deprecator) do
+        Table.new :users, as: "foo"
+      end
+
+      assert_equal "users", rel.name
+      assert_equal "foo", rel.table_alias
+      assert_equal Table.new(name: :users, as: "foo"), rel
+      assert_like %{ SELECT * FROM "users" "foo" }, rel.project(Arel.star).to_sql
+    end
+
+    test "new with a positional nil name and a klass is deprecated" do
+      rel = assert_deprecated(ActiveRecord.deprecator) { Table.new nil, klass: User }
+
+      assert_equal User, rel.klass
+      assert_equal "users", rel.name
+    end
+
+    test "new raises with both a positional name and name:" do
+      [:posts, nil, false].each do |keyword_name|
+        error = assert_raises(ArgumentError) { Table.new :users, name: keyword_name }
+        assert_match "not both", error.message
+      end
+
+      assert_raises(ArgumentError) { Table.new nil, name: nil, klass: User }
+    end
+
+    test "new with name: nil and a klass is not deprecated" do
+      rel = assert_not_deprecated(ActiveRecord.deprecator) { Table.new(name: nil, klass: User) }
+      assert_equal "users", rel.name
+    end
+
+    test "new with name: is not deprecated" do
+      assert_not_deprecated(ActiveRecord.deprecator) { Table.new(name: :users) }
+    end
+
     test "new should accept literal SQL" do
       rel = Table.new name: Arel.sql("generate_series(4, 2)")
       assert_equal Arel.sql("generate_series(4, 2)"), rel.name
