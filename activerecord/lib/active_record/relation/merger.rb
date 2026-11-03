@@ -46,8 +46,6 @@ module ActiveRecord
       def initialize(relation, other)
         @relation = relation
         @values   = other.values_for_merge
-        # Merging a relation's values into themselves changes them while they are read.
-        @values   = @values.dup if @values.equal?(relation.values_for_merge)
         @other    = other
       end
 
@@ -59,6 +57,10 @@ module ActiveRecord
       NORMAL_VALUE_BANG_METHODS = NORMAL_VALUES.index_with { |name| :"#{name}!" }.freeze
 
       def merge
+        # Merging a relation's values into themselves is a no-op, and `unscope!`
+        # would delete them while they are read.
+        return relation if values.equal?(relation.values_for_merge)
+
         NORMAL_VALUE_BANG_METHODS.each do |name, bang_method|
           value = values[name]
           # The unless clause is here mostly for performance reasons (since the `send` call might be moderately
