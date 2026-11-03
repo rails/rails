@@ -1,3 +1,15 @@
+*   Skip attribute names in tag helpers that are blank once converted to a
+    string.
+
+    A Symbol such as `:" "` is not blank, because `Symbol#blank?` is
+    `Symbol#empty?`, so it reached the escaping step and produced an attribute
+    with no name. The asset helpers symbolize their keys, so an ordinary String
+    key reached the same place.
+
+    [GHSA-68p9-83h6-5wpj]
+
+    *Mike Dalessio*
+
 *   Fix `strip_tags` to encode `"` and `'` in its output.
 
     `strip_tags` returns an `html_safe` string, but was not encoding quotation
