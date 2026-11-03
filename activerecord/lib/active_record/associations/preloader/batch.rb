@@ -19,7 +19,8 @@ module ActiveRecord
             if loaders.any?
               future_tables = branches.flat_map do |branch|
                 branch.future_classes - branch.runnable_loaders.map(&:klass)
-              end.map(&:table_name).uniq
+              end
+              future_tables.map!(&:table_name).uniq!
 
               target_loaders = loaders.reject { |l| future_tables.include?(l.table_name)  }
               target_loaders = loaders if target_loaders.empty?
@@ -30,7 +31,7 @@ module ActiveRecord
 
             finished, in_progress = branches.partition(&:done?)
 
-            branches = in_progress + finished.flat_map(&:children)
+            branches = in_progress.concat(finished.flat_map(&:children))
           end
         end
 
