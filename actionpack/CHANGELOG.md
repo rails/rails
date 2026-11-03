@@ -1,3 +1,17 @@
+*   `ActionController::Parameters#each_key` returns `self` when given a block.
+
+    It returned the internal `ActiveSupport::HashWithIndifferentAccess`, which
+    does not respond to `permitted?`, so passing that return value to mass
+    assignment skipped the Strong Parameters check. `each`, `each_pair` and
+    `each_value` already return `self`.
+
+    Document that `ActionController::Parameters#as_json` returns every
+    parameter, permitted or not, in a hash that mass assignment does not check.
+
+    [GHSA-wm3x-v3qw-4jh3]
+
+    *Mike Dalessio*
+
 ## Rails 8.0.5.1 (July 29, 2026) ##
 
 *   No changes.
