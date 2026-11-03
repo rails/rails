@@ -1,3 +1,11 @@
+*   Fix `eager_load` of associations to models without a primary key.
+
+    Every parent got only the first loaded record: a `has_many` kept one
+    record per parent, and parents after the first got the first parent's
+    record.
+
+    *Kengo Johira*
+
 *   Retry `ActiveRecord::SerializationFailure` on queries that opted into retries.
 
     A serialization failure rolls back whatever the statement was part of, so a
