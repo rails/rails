@@ -1,3 +1,11 @@
+*   Fix `eager_load` of associations to models without a primary key.
+
+    Every parent got only the first loaded record: a `has_many` kept one
+    record per parent, and parents after the first got the first parent's
+    record.
+
+    *Kengo Johira*
+
 *   Cast numeric values to the scale of the PostgreSQL `money` type.
 
     `money` only rounded strings to its scale, so a numeric value was held
