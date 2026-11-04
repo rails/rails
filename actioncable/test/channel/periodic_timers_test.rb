@@ -82,4 +82,60 @@ class ActionCable::Channel::PeriodicTimersTest < ActionCable::TestCase
 
     assert mock.verify
   end
+
+  class QueueingSocket < TestSocket
+    def queued_work
+      @queued_work ||= []
+    end
+
+    def perform_work(receiver, method, *args)
+      queued_work << -> { receiver.send method, *args }
+    end
+  end
+
+  class TickingChannel < ActionCable::Channel::Base
+    periodically every: 1 do
+      ticks << :tick
+    end
+
+    def ticks
+      @ticks ||= []
+    end
+  end
+
+  test "timer skips a tick while the previous tick is still waiting to run" do
+    socket = QueueingSocket.new
+    tick = nil
+
+    socket.server.executor.stub(:timer, ->(_every, &block) { tick = block; Minitest::Mock.new }) do
+      channel = TickingChannel.new socket, "{id: 1}", id: 1
+      channel.subscribe_to_channel
+
+      3.times { tick.call }
+      assert_equal 1, socket.queued_work.size
+
+      socket.queued_work.shift.call
+      assert_equal [ :tick ], channel.ticks
+
+      tick.call
+      assert_equal 1, socket.queued_work.size
+    end
+  end
+
+  test "timer posts the next tick after the previous tick raised" do
+    socket = QueueingSocket.new
+    tick = nil
+
+    socket.server.executor.stub(:timer, ->(_every, &block) { tick = block; Minitest::Mock.new }) do
+      channel = TickingChannel.new socket, "{id: 1}", id: 1
+      channel.subscribe_to_channel
+      channel.define_singleton_method(:ticks) { raise "boom" }
+
+      tick.call
+      assert_raise(RuntimeError) { socket.queued_work.shift.call }
+
+      tick.call
+      assert_equal 1, socket.queued_work.size
+    end
+  end
 end

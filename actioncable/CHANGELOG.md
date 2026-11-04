@@ -1,3 +1,11 @@
+*   Skip a periodic timer tick while the previous tick is still waiting or running.
+
+    A connection runs its work one job at a time, so a timer callback that took
+    longer than its interval queued ticks without limit, and the connection's
+    commands and close waited behind them.
+
+    *Bruno Costanzo*
+
 *   Process each connection's commands in the order the client sent them.
 
     Commands were handed to the worker pool independently, so two commands from
