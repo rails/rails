@@ -37,6 +37,14 @@ module ActiveModel
         assert_equal "Provided hash #{{ a: 1 }} doesn't contain necessary keys: [1, 2, 3]", error.message
       end
 
+      test "casting with precision keeps the offset of a time with a zone object in a repeated hour" do
+        type = Type::DateTime.new(precision: 3)
+        zone = TZInfo::Timezone.get("Europe/Berlin")
+        time = ::Time.utc(2026, 10, 25, 1, 30, 0, 123456.789r).getlocal(zone) # 2026-10-25 02:30:00.123456789 +0100
+
+        assert_equal ::Time.utc(2026, 10, 25, 1, 30, 0, 123000), type.cast(time)
+      end
+
       test "serialize_cast_value is equivalent to serialize after cast" do
         type = Type::DateTime.new(precision: 1)
         value = type.cast("1999-12-31 12:34:56.789 -1000")
