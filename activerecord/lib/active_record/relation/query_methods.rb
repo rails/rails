@@ -2247,7 +2247,7 @@ module ActiveRecord
         elsif model.ignored_columns.any? || model.enumerate_columns_in_select_statements || model.only_columns.any?
           arel.project(*model.column_names.map { |field| table[field] })
         else
-          arel.project(table[Arel.star])
+          arel.projections << table[Arel.star]
         end
       end
 
