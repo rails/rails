@@ -1,3 +1,5 @@
+## Rails 8.0.5.2 (November 03, 2026) ##
+
 *   Reject Mailgun inbound emails whose timestamp is more than 2 minutes ahead
     of local time.
 

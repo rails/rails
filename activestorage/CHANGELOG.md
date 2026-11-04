@@ -1,3 +1,5 @@
+## Rails 8.0.5.2 (November 03, 2026) ##
+
 *   Preserve committed proxy responses when a storage error interrupts a
     streamed download.
 

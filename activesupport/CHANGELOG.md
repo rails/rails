@@ -1,3 +1,5 @@
+## Rails 8.0.5.2 (November 03, 2026) ##
+
 *   `ActiveSupport::Inflector#safe_constantize` matches the constant name in a
     `LoadError` message as a literal string instead of building a `Regexp`
     from it.
