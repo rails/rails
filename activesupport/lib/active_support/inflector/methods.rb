@@ -416,7 +416,14 @@ module ActiveSupport
         if word.empty? || inflections(locale).uncountables.uncountable?(result)
           result
         else
-          rules.each { |(rule, replacement)| break if result.sub!(rule, replacement) }
+          # Most rules don't match, and a failed match? is much cheaper than a
+          # failed sub!, so only call sub! for the rule that applies.
+          rules.each do |(rule, replacement)|
+            if rule.is_a?(Regexp) ? rule.match?(result) : result.include?(rule)
+              result.sub!(rule, replacement)
+              break
+            end
+          end
           result
         end
       end
