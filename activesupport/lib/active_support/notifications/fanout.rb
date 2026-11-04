@@ -374,8 +374,9 @@ module ActiveSupport
         if groups.empty?
           NullHandle
         else
-          instances = groups.map do |group_klass, grouped_listeners|
-            group_klass.new(grouped_listeners, name, id, payload)
+          instances = []
+          groups.each do |group_klass, grouped_listeners|
+            instances << group_klass.new(grouped_listeners, name, id, payload)
           end
           Handle.new(name, id, instances, payload)
         end
