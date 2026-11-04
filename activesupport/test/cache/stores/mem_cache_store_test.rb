@@ -314,7 +314,7 @@ class MemCacheStoreTest < ActiveSupport::TestCase
   end
 
   def test_write_multi_extends_expiry_for_race_condition_ttl
-    skip "Dalli's set_multi is not available" unless Dalli::Client.method_defined?(:set_multi)
+    skip "MemCacheStore uses individual writes before Dalli 4.3.6" if Gem::Version.new(Dalli::VERSION) < Gem::Version.new("4.3.6")
     cache = lookup_store(namespace: nil)
 
     assert_called_with client(cache), :set_multi, [Hash, 1 + 5.minutes, Hash] do

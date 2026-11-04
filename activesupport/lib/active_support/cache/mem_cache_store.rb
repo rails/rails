@@ -227,7 +227,8 @@ module ActiveSupport
           end
         end
 
-        if Dalli::Client.method_defined?(:set_multi)
+        # Dalli's set_multi times out on successful binary-protocol writes before 4.3.6.
+        if Gem::Version.new(Dalli::VERSION) >= Gem::Version.new("4.3.6")
           def write_multi_entries(entries, **options)
             return if entries.empty?
             # Dalli has no multi counterpart to add.
