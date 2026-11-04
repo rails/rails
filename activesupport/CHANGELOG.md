@@ -1,3 +1,12 @@
+*   Restore `ActiveSupport::LogSubscriber.colorize_logging` and
+    `colorize_logging=` as deprecated delegators to
+    `ActiveSupport.colorize_logging`.
+
+    The class-level accessor was removed without a deprecation when color
+    logging moved to `ActiveSupport::ColorizeLogging`.
+
+    *Thomas Klemm*
+
 *   `ActiveSupport::MessagePack` no longer deserializes an unsafe
     `ActiveSupport::SafeBuffer` as `html_safe`.
 

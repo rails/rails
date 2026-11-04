@@ -95,6 +95,22 @@ class SyncLogSubscriberTest < ActiveSupport::TestCase
     assert_equal "cool, isn't it?", @logger.logged(:info).last
   end
 
+  def test_deprecated_class_level_colorize_logging_delegates_to_active_support
+    original = ActiveSupport.colorize_logging
+
+    assert_deprecated("ActiveSupport::LogSubscriber.colorize_logging=", ActiveSupport.deprecator) do
+      ActiveSupport::LogSubscriber.colorize_logging = true
+    end
+    assert_equal true, ActiveSupport.colorize_logging
+
+    ActiveSupport.colorize_logging = false
+    assert_deprecated("ActiveSupport::LogSubscriber.colorize_logging", ActiveSupport.deprecator) do
+      assert_equal false, ActiveSupport::LogSubscriber.colorize_logging
+    end
+  ensure
+    ActiveSupport.colorize_logging = original
+  end
+
   def test_event_is_sent_to_the_registered_class
     ActiveSupport::LogSubscriber.attach_to :my_log_subscriber, @log_subscriber
     instrument "some_event.my_log_subscriber"
