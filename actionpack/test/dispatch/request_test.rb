@@ -500,6 +500,21 @@ class RequestIP < BaseRequestTest
     assert_equal "3.4.5.6", get_ip.calculate_ip
   end
 
+  test "filter_proxies is deprecated and still returns every IP that isn't a proxy" do
+    request = stub_request "REMOTE_ADDR" => "127.0.0.1"
+    proxies = ActionDispatch::RemoteIp::TRUSTED_PROXIES + [/\A1\.2\.3\./]
+    get_ip = ActionDispatch::RemoteIp::GetIp.new(request, true, proxies)
+
+    {
+      ["3.4.5.6", "10.0.0.1", "1.2.3.4", "127.0.0.1", "8.8.8.8"] => ["3.4.5.6", "8.8.8.8"],
+      ["::1", "2001:db8::1", "fd00::1"] => ["2001:db8::1"],
+      ["10.0.0.1", "192.168.1.1"] => [],
+    }.each do |ips, expected|
+      result = assert_deprecated(/filter_proxies/, ActionDispatch.deprecator) { get_ip.send(:filter_proxies, ips) }
+      assert_equal expected, result, ips.inspect
+    end
+  end
+
   test "remote ip middleware not present still returns an IP" do
     request = stub_request("REMOTE_ADDR" => "127.0.0.1")
     assert_equal "127.0.0.1", request.remote_ip

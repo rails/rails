@@ -246,6 +246,18 @@ module ActionDispatch
           end
         end
       end
+
+      def filter_proxies(ips) # :doc:
+        ActionDispatch.deprecator.warn(<<~MSG.squish)
+          `ActionDispatch::RemoteIp::GetIp#filter_proxies` is deprecated and will be
+          removed in Rails 9.0. Replace `filter_proxies(ips).first` with
+          `first_non_proxy(ips)`.
+        MSG
+
+        ips.reject do |ip|
+          @proxies.any? { |proxy| proxy === ip }
+        end
+      end
     end
   end
 end

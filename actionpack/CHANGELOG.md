@@ -1,3 +1,8 @@
+*   Restore `ActionDispatch::RemoteIp::GetIp#filter_proxies` as deprecated for
+    extensions that override `calculate_ip`. It will be removed in Rails 9.0.
+
+    *Thomas Klemm*
+
 *   Apply `config.action_dispatch.cookies_same_site_protection` to every session
     store.
 
