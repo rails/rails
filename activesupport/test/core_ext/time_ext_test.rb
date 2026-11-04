@@ -519,6 +519,76 @@ class TimeExtCalculationsTest < ActiveSupport::TestCase
     end
   end
 
+  def test_change_preserves_offset_for_zoned_times_around_end_of_negative_dst
+    with_tz_default "Europe/Dublin" do
+      # Irish Standard Time (+0100) ended just before 2026-10-25 2:00:00 AM,
+      # and clocks were rolled back 1 hour. In tzdata, Ireland's winter time
+      # (GMT, +0000) counts as DST and Irish Standard Time as standard time.
+      one_am_1 = Time.utc(2026, 10, 25, 00, 00, 00).getlocal(Time.zone) # 2026-10-25 01:00:00 +0100
+      one_am_2 = Time.utc(2026, 10, 25, 01, 00, 00).getlocal(Time.zone) # 2026-10-25 01:00:00 +0000
+
+      assert_equal one_am_1, one_am_1.change(min: 0)
+      assert_equal one_am_1 + 1, one_am_1.change(sec: 1)
+      assert_equal one_am_2, one_am_2.change(min: 0)
+      assert_equal one_am_2 + 1, one_am_2.change(sec: 1)
+    end
+  end
+
+  def test_change_preserves_offset_for_times_with_a_tzinfo_zone_around_end_of_dst
+    zone = TZInfo::Timezone.get("Europe/Berlin")
+    # DST ended just before 2026-10-25 3:00:00 AM in Europe/Berlin, and clocks
+    # were rolled back 1 hour.
+    midnight   = Time.utc(2026, 10, 24, 22, 00, 00).getlocal(zone) # 2026-10-25 00:00:00 +0200
+    two_am_1   = Time.utc(2026, 10, 25, 00, 00, 00).getlocal(zone) # 2026-10-25 02:00:00 +0200
+    two_am_2   = Time.utc(2026, 10, 25, 01, 00, 00).getlocal(zone) # 2026-10-25 02:00:00 +0100
+    three_am   = Time.utc(2026, 10, 25, 02, 00, 00).getlocal(zone) # 2026-10-25 03:00:00 +0100
+
+    assert_equal two_am_1, midnight.change(hour: 2)
+    assert_equal two_am_1 + 1, two_am_1.change(sec: 1)
+    assert_equal two_am_2 + 1, two_am_2.change(sec: 1)
+    assert_equal two_am_2, three_am.change(hour: 2)
+  end
+
+  def test_change_uses_the_zones_offset_around_start_of_dst_for_times_with_a_zone_object
+    [TZInfo::Timezone.get("Europe/Berlin"), ActiveSupport::TimeZone["Europe/Berlin"]].each do |zone|
+      # DST started at 2026-03-29 2:00:00 AM in Europe/Berlin, and clocks
+      # were set forward 1 hour, so 2:00 AM to 3:00 AM was skipped.
+      before_gap = Time.utc(2026, 3, 29, 00, 30, 00).getlocal(zone) # 2026-03-29 01:30:00 +0100
+      after_gap  = Time.utc(2026, 3, 29, 01, 30, 00).getlocal(zone) # 2026-03-29 03:30:00 +0200
+      january    = Time.utc(2026, 1, 15, 11, 00, 00).getlocal(zone) # 2026-01-15 12:00:00 +0100
+      july       = Time.utc(2026, 7, 15, 10, 00, 00).getlocal(zone) # 2026-07-15 12:00:00 +0200
+
+      assert_raise(TZInfo::PeriodNotFound) { before_gap.change(hour: 2, min: 30) }
+      assert_equal Time.utc(2026, 3, 29, 00, 00, 00), before_gap.change(min: 0)
+      assert_equal Time.utc(2026, 3, 29, 01, 00, 00), after_gap.change(min: 0)
+      assert_equal Time.utc(2026, 7, 15, 10, 00, 00), january.change(month: 7)
+      assert_equal Time.utc(2026, 1, 15, 11, 00, 00), july.change(month: 1)
+    end
+  end
+
+  def test_change_preserves_offset_for_zoned_times_in_an_hour_repeated_without_a_dst_change
+    with_tz_default "Moscow" do
+      # On 2014-10-26 Moscow moved from +0400 to +0300, both standard time, so
+      # 1:00 AM to 2:00 AM occurred twice.
+      one_thirty_1 = Time.utc(2014, 10, 25, 21, 30, 00).getlocal(Time.zone) # 2014-10-26 01:30:00 +0400
+      one_thirty_2 = Time.utc(2014, 10, 25, 22, 30, 00).getlocal(Time.zone) # 2014-10-26 01:30:00 +0300
+
+      assert_equal one_thirty_1, one_thirty_1.change(sec: 0)
+      assert_equal one_thirty_2, one_thirty_2.change(sec: 0)
+    end
+  end
+
+  def test_change_nsec_preserves_offset_and_fraction_for_times_with_a_tzinfo_zone_around_end_of_dst
+    zone = TZInfo::Timezone.get("Europe/Berlin")
+    time = Time.utc(2026, 10, 25, 01, 30, 00, 123456.789r).getlocal(zone) # 2026-10-25 02:30:00.123456789 +0100
+
+    changed = time.change(nsec: 123456000)
+
+    assert_equal 123456000, changed.nsec
+    assert_equal Time.utc(2026, 10, 25, 01, 30, 00, 123456), changed
+    assert_same zone, changed.zone
+  end
+
   def test_change_preserves_fractional_seconds_on_zoned_time
     with_tz_default "US/Eastern" do
       time = Time.new(2005, 10, 30, 00, 00, 0.99r, Time.zone) + 0

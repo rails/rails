@@ -1,3 +1,17 @@
+*   Fix `Time#change` in the hour repeated when clocks are set back, for times
+    with a zone object.
+
+    With a `TZInfo::Timezone` zone and TZInfo's default ambiguity settings, or
+    with an `ActiveSupport::TimeZone` when both occurrences have the same DST
+    flag, it raised `TZInfo::AmbiguousTime`, also from Active Model's datetime
+    cast when precision truncation is needed. Where the zone picks the other
+    occurrence of the hour, as `ActiveSupport::TimeZone` does for Europe/Dublin,
+    whose winter time counts as DST, it moved the time by an hour. It now keeps
+    the time's UTC offset when the new local time can have it. When neither
+    occurrence has the original offset, the zone picks as before.
+
+    *Thomas Klemm*
+
 *   Shift a local time in a DST spring-forward gap forward by the gap's length
     instead of one hour.
 
