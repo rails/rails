@@ -111,6 +111,11 @@ class LookupContextTest < ActiveSupport::TestCase
     assert_equal :pt, I18n.locale
   end
 
+  test "find_template returns the template, or raises when there is none" do
+    assert_equal "Hello world!", @lookup_context.find_template("hello_world", %w(test)).source
+    assert_raise(ActionView::MissingTemplate) { @lookup_context.find_template("missing", %w(test)) }
+  end
+
   test "find templates using the given view paths and configured details" do
     template = @lookup_context.find("hello_world", %w(test))
     assert_equal "Hello world!", template.source
