@@ -1,3 +1,8 @@
+## Rails 8.1.4.1 (November 03, 2026) ##
+
+*   No changes.
+
+
 ## Rails 8.1.4 (September 24, 2026) ##
 
 *   Fix `retry_job` to preserve `wait_until`, `queue`, and `priority` options when

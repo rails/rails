@@ -1,3 +1,8 @@
+## Rails 8.1.4.1 (November 03, 2026) ##
+
+*   No changes.
+
+
 ## Rails 8.1.4 (September 24, 2026) ##
 
 *   Avoid deadlocks when concurrent `find_or_create_by` calls read back the same

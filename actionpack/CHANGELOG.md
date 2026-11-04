@@ -1,3 +1,5 @@
+## Rails 8.1.4.1 (November 03, 2026) ##
+
 *   Apply `config.action_dispatch.cookies_same_site_protection` to every session
     store.
 

@@ -1,3 +1,5 @@
+## Rails 8.1.4.1 (November 03, 2026) ##
+
 *   `ActiveSupport::MessagePack` no longer deserializes an unsafe
     `ActiveSupport::SafeBuffer` as `html_safe`.
 
