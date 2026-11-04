@@ -1437,7 +1437,7 @@ class SkipProtectionWhenUnprotectedControllerTest < ActionController::TestCase
   test "does not add Sec-Fetch-Site to Vary header when forgery protection is skipped" do
     get :index
     assert_response :success
-    assert_nil response.headers["Vary"]
+    assert_not_includes response.headers["Vary"], "Sec-Fetch-Site"
   end
 
   test "response does not vary by Sec-Fetch-Site when forgery protection is skipped" do
@@ -1455,7 +1455,7 @@ class SkipsInheritedProtectionControllerTest < ActionController::TestCase
   test "does not add Sec-Fetch-Site to Vary header when inherited forgery protection is skipped" do
     get :index
     assert_response :success
-    assert_nil response.headers["Vary"]
+    assert_not_includes response.headers["Vary"], "Sec-Fetch-Site"
   end
 
   test "response does not vary by Sec-Fetch-Site when inherited forgery protection is skipped" do

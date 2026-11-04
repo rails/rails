@@ -693,7 +693,13 @@ WARNING: _ffmpeg and ffprobe decode untrusted media in memory-unsafe code. Restr
 
 Active Storage shells out to ffmpeg to generate video previews, and to ffprobe to extract video and audio metadata. Neither tool is shipped by Rails, and a stock ffmpeg build registers several hundred decoders and demuxers where an application needs a handful. Attachments are analyzed on upload by default, so ffprobe reads attacker-supplied bytes without any further interaction.
 
-Narrow that attack surface by naming the codecs these tools may decode. An application that accepts only H.264 video with AAC audio would configure:
+By default, Active Storage limits the demuxers both tools may use to common audio and video container formats. Narrow the list further with `config.active_storage.ffmpeg_allowed_formats`:
+
+```ruby
+config.active_storage.ffmpeg_allowed_formats = %w[ mov ]
+```
+
+Narrow the attack surface further by naming the codecs these tools may decode. An application that accepts only H.264 video with AAC audio would configure:
 
 ```ruby
 config.active_storage.video_preview_input_arguments = "-codec_whitelist h264,aac"

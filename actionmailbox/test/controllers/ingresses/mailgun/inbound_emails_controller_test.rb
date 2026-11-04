@@ -111,6 +111,42 @@ class ActionMailbox::Ingresses::Mailgun::InboundEmailsControllerTest < ActionDis
     assert_response :unauthorized
   end
 
+  test "receiving an inbound email from Mailgun with a timestamp slightly ahead of local time" do
+    assert_difference -> { ActionMailbox::InboundEmail.count }, +1 do
+      travel_to "2018-10-09 15:14:00 EDT"
+      post rails_mailgun_inbound_emails_url, params: {
+        timestamp: 1539112500,
+        token: "7VwW7k6Ak7zcTwoSoNm7aTtbk1g67MKAnsYLfUB7PdszbgR5Xi",
+        signature: "ef24c5225322217bb065b80bb54eb4f9206d764e3e16abab07f0a64d1cf477cc",
+        "body-mime" => file_fixture("../files/welcome.eml").read
+      }
+    end
+
+    assert_response :no_content
+  end
+
+  test "rejecting an inbound email from Mailgun with a timestamp from the future" do
+    original_timestamp = "1539112500"
+    original_token = "7VwW7k6Ak7zcTwoSoNm7aTtbk1g67MKAnsYLfUB7PdszbgR5Xi"
+    future_timestamp = original_timestamp + original_token[0]
+    shortened_token = original_token[1..]
+
+    # The signature covers the timestamp and token joined into one string, so it holds for any split of that string.
+    assert_equal original_timestamp + original_token, future_timestamp + shortened_token
+
+    assert_no_difference -> { ActionMailbox::InboundEmail.count } do
+      travel_to "2018-10-09 15:26:00 EDT"
+      post rails_mailgun_inbound_emails_url, params: {
+        timestamp: future_timestamp,
+        token: shortened_token,
+        signature: "ef24c5225322217bb065b80bb54eb4f9206d764e3e16abab07f0a64d1cf477cc",
+        "body-mime" => file_fixture("../files/welcome.eml").read
+      }
+    end
+
+    assert_response :unauthorized
+  end
+
   test "rejecting an inbound email from Mailgun with a malformed timestamp" do
     timestamp = "not-a-number"
     token = "7VwW7k6Ak7zcTwoSoNm7aTtbk1g67MKAnsYLfUB7PdszbgR5Xi"

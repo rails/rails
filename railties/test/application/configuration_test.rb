@@ -4583,6 +4583,37 @@ module ApplicationTests
       assert_equal "-codec_whitelist h264", ActiveStorage.ffprobe_arguments
     end
 
+    test "ActiveStorage.ffmpeg_allowed_formats restricts ffmpeg to common media formats by default" do
+      app "development"
+
+      assert_equal %w[ mov matroska avi mpeg mpegts flv asf ogg mp3 wav flac aac aiff caf ], ActiveStorage.ffmpeg_allowed_formats
+    end
+
+    test "ActiveStorage.ffmpeg_allowed_formats can be configured" do
+      add_to_config "config.active_storage.ffmpeg_allowed_formats = %w[ mov ]"
+
+      app "development"
+
+      assert_equal %w[ mov ], ActiveStorage.ffmpeg_allowed_formats
+    end
+
+    test "ActiveStorage.ffmpeg_allowed_formats can be extended" do
+      add_to_config "config.active_storage.ffmpeg_allowed_formats += %w[ mxf ]"
+
+      app "development"
+
+      assert_includes ActiveStorage.ffmpeg_allowed_formats, "mov"
+      assert_includes ActiveStorage.ffmpeg_allowed_formats, "mxf"
+    end
+
+    test "ActiveStorage.ffmpeg_allowed_formats can be disabled" do
+      add_to_config "config.active_storage.ffmpeg_allowed_formats = nil"
+
+      app "development"
+
+      assert_nil ActiveStorage.ffmpeg_allowed_formats
+    end
+
     test "ActiveStorage.variant_processor uses mini_magick without Rails 7 defaults" do
       remove_from_config '.*config\.load_defaults.*\n'
 

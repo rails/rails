@@ -236,13 +236,9 @@ class IntegrationProcessTest < ActionDispatch::IntegrationTest
       end
     end
 
-    def get_with_vary_set_x_requested_with
-      respond_to do |format|
-        format.json do
-          response.headers["Vary"] = "X-Requested-With"
-          render json: "JSON OK", status: 200
-        end
-      end
+    def get_with_vary
+      response.headers["Vary"] = params[:vary]
+      get
     end
 
     def get_with_params
@@ -702,7 +698,37 @@ class IntegrationProcessTest < ActionDispatch::IntegrationTest
   def test_setting_vary_header_when_request_is_xhr_with_accept_header
     with_test_route_set do
       get "/get", headers: { "Accept" => "application/json" }, xhr: true
-      assert_equal "Accept", response.headers["Vary"]
+      assert_equal "Accept, X-Requested-With", response.headers["Vary"]
+    end
+  end
+
+  def test_setting_vary_header_when_request_has_no_accept_header
+    with_test_route_set do
+      get "/get", headers: { "Accept" => nil }
+      assert_equal "text/html", response.media_type
+      assert_equal "Accept, X-Requested-With", response.headers["Vary"]
+
+      get "/get", headers: { "Accept" => nil, "X-Requested-With" => "XMLHttpRequest" }
+      assert_equal "text/javascript", response.media_type
+      assert_equal "Accept, Content-Type, X-Requested-With", response.headers["Vary"]
+    end
+  end
+
+  def test_setting_vary_header_when_xhr_format_depends_on_content_type
+    with_test_route_set do
+      get "/get", headers: { "Accept" => nil, "Content-Type" => "application/xml", "X-Requested-With" => "XMLHttpRequest" }
+      assert_equal "application/xml", response.media_type
+      assert_equal "Accept, Content-Type, X-Requested-With", response.headers["Vary"]
+    end
+  end
+
+  def test_setting_vary_header_when_request_has_a_browser_like_accept_header
+    ActionDispatch::Request.with(strict_accept_header: false) do
+      with_test_route_set do
+        get "/get", headers: { "Accept" => "application/json, */*" }
+        assert_equal "text/html", response.media_type
+        assert_equal "Accept, X-Requested-With", response.headers["Vary"]
+      end
     end
   end
 
@@ -713,23 +739,42 @@ class IntegrationProcessTest < ActionDispatch::IntegrationTest
     end
   end
 
-  def test_not_setting_vary_header_when_it_has_already_been_set
+  def test_appending_to_vary_header_when_it_has_already_been_set
     with_test_route_set do
-      get "/get_with_vary_set_x_requested_with", headers: { "Accept" => "application/json" }, xhr: true
-      assert_equal "X-Requested-With", response.headers["Vary"]
+      get "/get_with_vary", params: { vary: "Accept-Language" }, headers: { "Accept" => "application/json" }
+      assert_equal "Accept-Language, Accept, X-Requested-With", response.headers["Vary"]
     end
   end
 
-  def test_not_setting_vary_header_when_ignore_accept_header_is_set
-    original_ignore_accept_header = ActionDispatch::Request.ignore_accept_header
-    ActionDispatch::Request.ignore_accept_header = true
-
+  def test_not_appending_fields_already_in_vary_header_case_insensitively
     with_test_route_set do
-      get "/get", headers: { "Accept" => "application/json" }, xhr: true
-      assert_nil response.headers["Vary"]
+      existing = "accept, CONTENT-type, x-requested-with"
+      get "/get_with_vary", params: { vary: existing }, headers: { "Accept" => nil, "Content-Type" => "application/xml", "X-Requested-With" => "XMLHttpRequest" }
+      assert_equal "application/xml", response.media_type
+      assert_equal existing, response.headers["Vary"]
     end
-  ensure
-    ActionDispatch::Request.ignore_accept_header = original_ignore_accept_header
+  end
+
+  def test_not_appending_to_wildcard_vary_header
+    with_test_route_set do
+      get "/get_with_vary", params: { vary: "*" }, headers: { "Accept" => nil, "Content-Type" => "application/xml", "X-Requested-With" => "XMLHttpRequest" }
+      assert_equal "application/xml", response.media_type
+      assert_equal "*", response.headers["Vary"]
+    end
+  end
+
+  def test_not_setting_accept_in_vary_header_when_ignore_accept_header_is_set
+    ActionDispatch::Request.with(ignore_accept_header: true) do
+      with_test_route_set do
+        get "/get", headers: { "Accept" => "application/json" }
+        assert_equal "text/html", response.media_type
+        assert_equal "X-Requested-With", response.headers["Vary"]
+
+        get "/get", headers: { "Accept" => "application/json" }, xhr: true
+        assert_equal "text/javascript", response.media_type
+        assert_equal "X-Requested-With", response.headers["Vary"]
+      end
+    end
   end
 
   private
