@@ -1312,11 +1312,11 @@ module ActiveRecord
       elsif args.length == 1 && args.first.blank?
         self
       else
-        spawn.where!(args.shift, args)
+        spawn.where!(*args)
       end
     end
 
-    def where!(opts, rest = FROZEN_EMPTY_ARRAY) # :nodoc:
+    def where!(opts, *rest) # :nodoc:
       self.where_clause += build_where_clause(opts, rest)
       self
     end
@@ -1493,10 +1493,10 @@ module ActiveRecord
     # Order.having('SUM(price) > 30').group('user_id')
     # ```
     def having(opts, *rest)
-      opts.blank? ? self : spawn.having!(opts, rest)
+      opts.blank? ? self : spawn.having!(opts, *rest)
     end
 
-    def having!(opts, rest = FROZEN_EMPTY_ARRAY) # :nodoc:
+    def having!(opts, *rest) # :nodoc:
       self.having_clause += build_having_clause(opts, rest)
       self
     end

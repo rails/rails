@@ -2275,6 +2275,32 @@ class RelationTest < ActiveRecord::TestCase
     assert_raises(ArgumentError) { Post.all.find_by! }
   end
 
+  test "where! takes bind values" do
+    assert_equal [1], Post.all.where!("id = ?", 1).pluck(:id)
+    assert_equal [1, 2], Post.all.where!("id = ? OR id = ?", 1, 2).order(:id).pluck(:id)
+    assert_equal [1, 2], Post.all.where!("id IN (?)", [1, 2]).order(:id).pluck(:id)
+    assert_equal [1], Post.all.where!("id = :id", id: 1).pluck(:id)
+  end
+
+  test "having! takes bind values" do
+    assert_equal [1], Post.group(:id).having!("id = ?", 1).pluck(:id)
+    assert_equal [1, 2], Post.group(:id).having!("id IN (?)", [1, 2]).order(:id).pluck(:id)
+    assert_equal [1], Post.group(:id).having!("id = :id", id: 1).pluck(:id)
+  end
+
+  test "where passes bind values to an overridden where!" do
+    binds = nil
+    override = Module.new do
+      define_method(:where!) do |opts, *rest|
+        binds = rest
+        super(opts, *rest)
+      end
+    end
+
+    assert_equal [1], Post.all.extending(override).where("id = ?", 1).pluck(:id)
+    assert_equal [1], binds
+  end
+
   test "loaded relations cannot be mutated by multi value methods" do
     relation = Post.all
     relation.to_a

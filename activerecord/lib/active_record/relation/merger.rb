@@ -30,7 +30,7 @@ module ActiveRecord
         )
         hash.each do |k, v|
           k = :_select if k == :select
-          if Array === v && k != :where && k != :having
+          if Array === v
             other.public_send("#{k}!", *v)
           else
             other.public_send("#{k}!", v)
