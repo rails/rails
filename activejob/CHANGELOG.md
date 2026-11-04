@@ -1,3 +1,10 @@
+*   Fix `ActiveJob::Core#serialize` converting the given `scheduled_at` to UTC in place.
+
+    `MyJob.set(wait_until: time).perform_later` used `Time#utc`, which changes
+    the receiver. The caller's `time` was converted to UTC after enqueue.
+
+    *Bruno Costanzo*
+
 *   Don't modify the job data a job was deserialized from when it's retried.
 
     ```ruby
