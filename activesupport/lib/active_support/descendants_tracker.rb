@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+require "active_support/weak_set"
+
 module ActiveSupport
   # Active Support Descendants Tracker
   # ==================================
