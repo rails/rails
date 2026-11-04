@@ -1215,4 +1215,14 @@ class EnumTest < ActiveRecord::TestCase
     assert_raises(NoMethodError) { instance.proposed? }
     assert_raises(NoMethodError) { instance.proposed! }
   end
+
+  test "default attributes of a model with enums are shareable" do
+    klass = Class.new(ActiveRecord::Base) do
+      self.table_name = "books"
+      enum :status, [:proposed, :written, :published]
+    end
+
+    assert_instance_of ActiveRecord::Enum::EnumType, klass.type_for_attribute(:status)
+    assert Ractor.shareable?(klass._default_attributes)
+  end
 end
