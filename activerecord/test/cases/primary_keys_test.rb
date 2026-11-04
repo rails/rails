@@ -297,6 +297,14 @@ class PrimaryKeysTest < ActiveRecord::TestCase
     assert_equal "title", subclass.primary_key
   end
 
+  def test_primary_key_not_inherited_when_parent_does_not_set_it
+    parent = Class.new(ActiveRecord::Base) { self.abstract_class = true }
+    subclass = Class.new(parent) { self.table_name = "cpk_books" }
+
+    assert_equal "id", parent.primary_key
+    assert_equal ["author_id", "id"], subclass.primary_key
+  end
+
   def test_primary_key_assignment_reloads_schema
     klass = Class.new(ActiveRecord::Base) do
       self.table_name = "topics"

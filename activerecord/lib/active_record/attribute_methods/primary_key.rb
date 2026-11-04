@@ -101,6 +101,8 @@ module ActiveRecord
               else
                 self.primary_key = base_class.primary_key
               end
+              @explicit_primary_key = false
+              primary_key
             end
           end
 
@@ -126,6 +128,7 @@ module ActiveRecord
           def primary_key=(value)
             @primary_key_definition = ActiveRecord::Key.for(value)
             @primary_key_inherited = false
+            @explicit_primary_key = true
 
             include CompositePrimaryKey if primary_key_definition.composite?
 
@@ -145,7 +148,7 @@ module ActiveRecord
 
           private
             # Subclasses inherit the primary key of the closest ancestor that
-            # has one, otherwise it is resolved from the schema.
+            # explicitly set it, otherwise it is resolved from the schema.
             def load_primary_key_definition
               ActiveSupport::Ractors.on_main(self) do
                 definition = inherited_primary_key_definition
@@ -166,8 +169,9 @@ module ActiveRecord
               klass = self
               while klass != Base
                 klass = klass.superclass
-                definition = klass.instance_variable_get(:@primary_key_definition)
-                return definition if definition
+                if klass.instance_variable_get(:@explicit_primary_key)
+                  return klass.instance_variable_get(:@primary_key_definition)
+                end
               end
               nil
             end
