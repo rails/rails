@@ -1,6 +1,5 @@
 # frozen_string_literal: true
 
-# :markup: markdown
 require "securerandom"
 require "concurrent/scheduled_task"
 require "concurrent/executor/thread_pool_executor"
