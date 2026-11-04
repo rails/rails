@@ -1,3 +1,8 @@
+## Rails 8.1.4.1 (November 03, 2026) ##
+
+*   No changes.
+
+
 ## Rails 8.1.4 (September 24, 2026) ##
 
 *   Include the offending value in the `secret_key_base=` error message.

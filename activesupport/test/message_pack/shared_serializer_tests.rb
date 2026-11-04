@@ -157,6 +157,24 @@ module MessagePackSharedSerializerTests
       assert_equal "prefix Mäßig", "prefix " + deserialized
     end
 
+    test "roundtrips ActiveSupport::SafeBuffer preserving html_safe?" do
+      deserialized = load(dump(["other", "Mäßig".html_safe, "other"]))[1]
+
+      assert_instance_of ActiveSupport::SafeBuffer, deserialized
+      assert_predicate deserialized, :html_safe?
+      assert_equal Encoding::UTF_8, deserialized.encoding
+      assert_equal "prefix Mäßig", "prefix " + deserialized
+
+      str = "Mäßig".html_safe
+      str.sub!(/Z/, "Z") # Mark unsafe
+      deserialized = load(dump(["other", str, "other"]))[1]
+
+      assert_instance_of String, deserialized
+      assert_not_predicate deserialized, :html_safe?
+      assert_equal Encoding::UTF_8, deserialized.encoding
+      assert_equal "prefix Mäßig", "prefix " + deserialized
+    end
+
     test "works with ENV['RAILS_MAX_THREADS']" do
       original_env = ENV.to_h
       ENV["RAILS_MAX_THREADS"] = "1"

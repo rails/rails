@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+require "active_storage/image_magick"
+ActiveStorage.require_securable_mini_magick!
 module ActiveStorage
   module Transformers
     class ImageMagick < ImageProcessingTransformer

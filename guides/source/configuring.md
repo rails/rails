@@ -829,6 +829,8 @@ Makes a unique X-Request-Id header available to the response and enables the `Ac
 
 Checks for IP spoofing attacks and gets valid `client_ip` from request headers. Configurable with the `config.action_dispatch.ip_spoofing_check`, and `config.action_dispatch.trusted_proxies` options.
 
+The client address is read from the RFC 7239 `Forwarded` header, the `X-Forwarded-For` header, or the `Client-Ip` header. Make sure your proxies strip or overwrite any of these headers they do not manage themselves. When `ip_spoofing_check` is enabled (the default), requests carrying conflicting client addresses in these headers raise `ActionDispatch::RemoteIp::IpSpoofAttackError`.
+
 #### `Rack::Sendfile`
 
 Intercepts responses whose body is being served from a file and replaces it with a server specific X-Sendfile header. Configurable with `config.action_dispatch.x_sendfile_header`.
@@ -3427,6 +3429,23 @@ The default value depends on the `config.load_defaults` target version:
 | --------------------- | -------------------- |
 | (original)            | `"-y -vframes 1 -f image2"` |
 | 7.0                   | `"-vf 'select=eq(n\\,0)+eq(key\\,1)+gt(scene\\,0.015)"`<sup><mark><strong><em>1</em></strong></mark></sup> <br> `+ ",loop=loop=-1:size=2,trim=start_frame=1'"`<sup><mark><strong><em>2</em></strong></mark></sup><br> `+ " -frames:v 1 -f image2"` <br><br> <ol><li>Select the first video frame, plus keyframes, plus frames that meet the scene change threshold.</li> <li>Use the first video frame as a fallback when no other frames meet the criteria by looping the first (one or) two selected frames, then dropping the first looped frame.</li></ol> |
+
+#### `config.active_storage.ffmpeg_allowed_formats`
+
+The ffmpeg demuxers that ffmpeg and ffprobe may use to open a file when
+generating video previews and analyzing videos and audio. Active Storage passes
+them as `-format_whitelist` before the input, so a file in any other
+format fails to preview and yields no metadata. Names match `ffmpeg -demuxers`, and
+any one name admits a demuxer that registers several, so `mov` also admits
+MP4, M4A and 3GP files.
+
+Set this to `nil` to let ffmpeg choose any demuxer it was built with.
+Setting it to `nil`, or adding `hls`, lets ffprobe follow the segments of a
+playlist an upload names, such as an `.m3u` file declared `audio/x-mpegurl`,
+whose extension `ActiveStorage::Blob#open` keeps.
+
+The default value is
+`%w[ mov matroska avi mpeg mpegts flv asf ogg mp3 wav flac aac aiff caf ]`.
 
 #### `config.active_storage.multiple_file_field_include_hidden`
 

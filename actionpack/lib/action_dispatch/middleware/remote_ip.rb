@@ -26,10 +26,10 @@ module ActionDispatch
   # middleware assumes that there is at least one proxy sitting around and setting
   # headers with the client's remote IP address. If you don't use a proxy, because
   # you are hosted on e.g. Heroku without SSL, any client can claim to have any IP
-  # address by setting the `X-Forwarded-For` header. If you care about that, then
-  # you need to explicitly drop or ignore those headers sometime before this
-  # middleware runs. Alternatively, remove this middleware to avoid inadvertently
-  # relying on it.
+  # address by setting the `Forwarded` or `X-Forwarded-For` header. If you care
+  # about that, then you need to explicitly drop or ignore those headers sometime
+  # before this middleware runs. Alternatively, remove this middleware to avoid
+  # inadvertently relying on it.
   class RemoteIp
     class IpSpoofAttackError < StandardError; end
 
@@ -53,10 +53,11 @@ module ActionDispatch
     # Create a new `RemoteIp` middleware instance.
     #
     # The `ip_spoofing_check` option is on by default. When on, an exception is
-    # raised if it looks like the client is trying to lie about its own IP address.
-    # It makes sense to turn off this check on sites aimed at non-IP clients (like
-    # WAP devices), or behind proxies that set headers in an incorrect or confusing
-    # way (like AWS ELB).
+    # raised if it looks like the client is trying to lie about its own IP address,
+    # such as when the request carries conflicting `Forwarded`, `X-Forwarded-For`,
+    # or `Client-Ip` headers. It makes sense to turn off this check on sites aimed
+    # at non-IP clients (like WAP devices), or behind proxies that set headers in
+    # an incorrect or confusing way (like AWS ELB).
     #
     # The `custom_proxies` argument can take an enumerable which will be used
     # instead of `TRUSTED_PROXIES`. Any proxy setup will put the value you want in
@@ -102,6 +103,14 @@ module ActionDispatch
     # an actual IP address. If the ActionDispatch::Request#remote_ip method is
     # called, this class will calculate the value and then memoize it.
     class GetIp
+      # Parses X-Forwarded-For as Rack does, whatever `Rack::Request.forwarded_priority` says.
+      class XForwardedForParser < Rack::Request # :nodoc:
+        private
+          def forwarded_priority
+            [:x_forwarded]
+          end
+      end
+
       def initialize(req, check_ip, proxies)
         @req      = req
         @check_ip = check_ip
@@ -134,27 +143,20 @@ module ActionDispatch
         client_ips    = sanitize_ips(ips_from(@req.client_ip)).reverse!
         forwarded_ips = sanitize_ips(@req.forwarded_for || []).reverse!
 
-        # `Client-Ip` and `X-Forwarded-For` should not, generally, both be set. If they
-        # are both set, it means that either:
+        # `Client-Ip`, `Forwarded`, and `X-Forwarded-For` should not, generally, all
+        # be set. If several of them are set, it means that either:
         #
-        # 1) This request passed through two proxies with incompatible IP header
+        # 1) This request passed through proxies with incompatible IP header
         #     conventions.
         #
-        # 2) The client passed one of `Client-Ip` or `X-Forwarded-For`
-        #     (whichever the proxy servers weren't using) themselves.
+        # 2) The client passed the headers the proxy servers weren't using
+        #     themselves.
         #
         # Either way, there is no way for us to determine which header is the right one
         # after the fact. Since we have no idea, if we are concerned about IP spoofing
         # we need to give up and explode. (If you're not concerned about IP spoofing you
         # can turn the `ip_spoofing_check` option off.)
-        should_check_ip = @check_ip && client_ips.last && forwarded_ips.last
-        if should_check_ip && !forwarded_ips.include?(client_ips.last)
-          # We don't know which came from the proxy, and which from the user
-          raise IpSpoofAttackError, "IP spoofing attack?! " \
-            "HTTP_CLIENT_IP=#{@req.client_ip.inspect} " \
-            "HTTP_X_FORWARDED_FOR=#{@req.x_forwarded_for.inspect}" \
-            " HTTP_FORWARDED=" + @req.forwarded_for.map { "for=#{_1}" }.join(", ").inspect if @req.forwarded_for.any?
-        end
+        check_ip(client_ips, forwarded_ips) if @check_ip
 
         # We assume these things about the IP headers:
         #
@@ -180,6 +182,35 @@ module ActionDispatch
         return [] unless header
         # Split the comma-separated list into an array of strings.
         header.strip.split(/[,\s]+/)
+      end
+
+      def raise_spoofing_error
+        message = +"IP spoofing attack?! " \
+          "HTTP_CLIENT_IP=#{@req.client_ip.inspect} " \
+          "HTTP_X_FORWARDED_FOR=#{@req.x_forwarded_for.inspect}"
+        if forwarded = @req.get_header("HTTP_FORWARDED")
+          message << " HTTP_FORWARDED=#{forwarded.inspect}"
+        end
+        raise IpSpoofAttackError, message
+      end
+
+      def check_ip(client_ips, forwarded_ips)
+        if client_ips.last && forwarded_ips.last && !forwarded_ips.include?(client_ips.last)
+          # We don't know which came from the proxy, and which from the user
+          raise_spoofing_error
+        end
+
+        if @req.get_header("HTTP_FORWARDED") && @req.x_forwarded_for
+          x_forwarded_ips = XForwardedForParser.new("HTTP_X_FORWARDED_FOR" => @req.x_forwarded_for).forwarded_for || []
+          x_forwarded_client = filter_proxies(sanitize_ips(x_forwarded_ips).reverse!).first
+          forwarded_client = filter_proxies(forwarded_ips).first
+
+          # Compare strings, not parsed addresses, so the client cannot choose how its
+          # own address is spelled.
+          if x_forwarded_client && x_forwarded_client != forwarded_client
+            raise_spoofing_error
+          end
+        end
       end
 
       def sanitize_ips(ips) # :doc:

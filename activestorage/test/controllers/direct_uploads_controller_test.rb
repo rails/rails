@@ -84,7 +84,7 @@ if SERVICE_CONFIGURATIONS[:gcs]
         assert_equal metadata, details["metadata"]
         assert_equal "text/plain", details["content_type"]
         assert_match %r{storage\.googleapis\.com/#{@config[:bucket]}}, details["direct_upload"]["url"]
-        assert_equal({ "Content-MD5" => checksum, "Content-Disposition" => "inline; filename=\"hello.txt\"; filename*=UTF-8''hello.txt", "x-goog-meta-my_key_3" => "my_value_3" }, details["direct_upload"]["headers"])
+        assert_equal({ "Content-MD5" => checksum, "Content-Disposition" => "inline; filename=\"hello.txt\"; filename*=UTF-8''hello.txt", "x-goog-content-length-range" => "6,6", "x-goog-meta-my_key_3" => "my_value_3" }, details["direct_upload"]["headers"])
       end
     end
   end
@@ -124,6 +124,23 @@ class ActiveStorage::DiskDirectUploadsControllerTest < ActionDispatch::Integrati
       assert_match(/rails\/active_storage\/disk/, details["direct_upload"]["url"])
       assert_equal({ "Content-Type" => "text/plain" }, details["direct_upload"]["headers"])
     end
+  end
+
+  test "creating a direct upload with a null byte in its filename" do
+    checksum = OpenSSL::Digest::MD5.base64digest("Hello")
+
+    post rails_direct_uploads_url, params: { blob: {
+      filename: "holiday\0.jpg", byte_size: 5, checksum: checksum, content_type: "image/jpeg" } }, as: :json
+
+    assert_response :success
+
+    details = response.parsed_body
+    blob = ActiveStorage::Blob.find(details["id"])
+
+    assert_equal "holiday\0.jpg", blob[:filename]
+    assert_equal "holiday-.jpg", details["filename"]
+    assert_equal "jpg", blob.filename.extension
+    assert_nothing_raised { blob.variant(resize_to_limit: [100, 100]) }
   end
 
   test "creating new direct upload does not include root in json" do

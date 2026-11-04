@@ -86,6 +86,25 @@ class ActiveStorage::Analyzer::VideoAnalyzerTest < ActiveSupport::TestCase
     assert_not metadata[:audio]
   end
 
+  test "analyzing a playlist declared as a video" do
+    blob = create_playlist_blob(referencing: "video.mp4", filename: "video.m3u8", content_type: "video/mp4")
+    metadata = extract_metadata_from(blob)
+
+    assert_nil metadata[:width]
+    assert_nil metadata[:duration]
+  end
+
+  test "analyzing a video whose format is not allowed" do
+    blob = create_file_blob(filename: "video.mp4", content_type: "video/mp4")
+
+    ActiveStorage.with(ffmpeg_allowed_formats: %w[ matroska ], logger: ActiveSupport::Logger.new(log = StringIO.new)) do
+      metadata = extract_metadata_from(blob)
+
+      assert_nil metadata[:width]
+      assert_match "Video analysis failed because ffprobe exited with status 1", log.string
+    end
+  end
+
   test "instrumenting analysis" do
     blob = create_file_blob(filename: "video.mp4", content_type: "video/mp4")
 

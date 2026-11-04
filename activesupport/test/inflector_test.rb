@@ -467,6 +467,29 @@ class InflectorTest < ActiveSupport::TestCase
     end
   end
 
+  def test_safe_constantize_treats_load_error_constant_name_as_literal
+    mismatches = {
+      "Example.Channel" => "ExampleXChannel",
+      "Example.Channel::Nested" => "ExampleXChannel",
+    }
+
+    mismatches.each do |requested_name, reported_name|
+      error = LoadError.new("Unable to autoload constant #{reported_name}")
+
+      ActiveSupport::Inflector.stub(:constantize, ->(_) { raise error }) do
+        assert_raises(LoadError) do
+          ActiveSupport::Inflector.safe_constantize(requested_name)
+        end
+      end
+    end
+
+    matching_error = LoadError.new("Unable to autoload constant Example.Channel")
+
+    ActiveSupport::Inflector.stub(:constantize, ->(_) { raise matching_error }) do
+      assert_nil ActiveSupport::Inflector.safe_constantize("Example.Channel::Nested")
+    end
+  end
+
   def test_ordinal
     OrdinalNumbers.each do |number, ordinalized|
       assert_equal(ordinalized, number + ActiveSupport::Inflector.ordinal(number))

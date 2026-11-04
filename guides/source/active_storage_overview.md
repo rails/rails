@@ -982,6 +982,54 @@ WARNING: It is also recommended to implement a strict [ImageMagick security
 policy](https://imagemagick.org/script/security-policy.php) when MiniMagick is the variant processor
 of choice, or when libvips is delegating to ImageMagick (run `vips -l` on your platform).
 
+#### ImageMagick Security Policy
+
+Active Storage ships an ImageMagick security policy, in
+`ActiveStorage::ImageMagick::POLICY_DIRECTORY`, that denies coders untrusted uploads must not reach.
+It prepends that directory to `MAGICK_CONFIGURE_PATH` through `MiniMagick.cli_env`, so every
+ImageMagick process MiniMagick spawns applies it. ImageMagick applies every `policy.xml` on its
+search path, so the shipped policy adds to your system policy rather than replacing it, and a
+`MAGICK_CONFIGURE_PATH` you set, in the environment or in `MiniMagick.cli_env`, stays on the
+search path after it. Active Storage applies the policy again after your application initializes,
+so a value an initializer or dotenv sets is kept too. ImageMagick policies are
+blocklists, so expect Active Storage to maintain and expand the shipped file over time.
+
+Because `MAGICK_CONFIGURE_PATH` is set in `MiniMagick.cli_env` rather than the shell, list the
+policy through MiniMagick to see what your application actually loads:
+
+```bash
+bin/rails runner 'puts MiniMagick.identify { |i| i.list "policy" }'
+```
+
+Applying the policy requires mini_magick 5.1 or later. With an older mini_magick, an application
+whose variant processor is `:mini_magick` raises at boot.
+
+The shipped policy reaches only ImageMagick processes started through MiniMagick with its default
+shell. If your application replaces `MiniMagick.cli_env` after it boots, clears the environment with
+`MiniMagick.cli_prefix`, or installs its own `MiniMagick::Shell`, it does not receive the shipped
+policy: copy its rules into a policy in ImageMagick's system location, such as
+`/etc/ImageMagick-7/policy.xml`. That is also where any stricter rules of your own belong.
+GraphicsMagick does not read ImageMagick policies, so an application that uses it gets no
+protection from the shipped policy.
+
+The policy denies the coders that reach a file or a script through ImageMagick rather than
+through the image itself, the coders backed by Ghostscript, and the `gs` delegate. It applies to
+every ImageMagick command MiniMagick runs, not only Active Storage's. An application that renders
+PostScript or PDF through ImageMagick must re-allow the `gs` delegate and the coders it uses in
+its own `policy.xml`:
+
+```xml
+<policy domain="delegate" rights="execute" pattern="gs"/>
+<policy domain="coder" rights="read|write" pattern="PDF"/>
+```
+
+A rule in your policy that allows a coder, including a wildcard such as `pattern="*"`, overrides
+the shipped deny, so allow only what you use.
+
+The shipped policy sets no resource limits. ImageMagick takes each limit from the first policy on
+its search path that sets it, so a limit shipped by Active Storage could not be changed by yours.
+Set limits such as `width`, `height` and `area` in your system policy.
+
 If a variant is requested, Active Storage will automatically apply
 transformations depending on the image's format:
 
@@ -1138,6 +1186,7 @@ Take care to allow:
   * `Content-MD5`
   * `Content-Disposition`
   * `Cache-Control` (for GCS, only if `cache_control` is set)
+  * `x-goog-content-length-range` (for GCS)
 
 No CORS configuration is required for the Disk service since it shares your appâ€™s origin.
 
@@ -1169,7 +1218,7 @@ No CORS configuration is required for the Disk service since it shares your appâ
   {
     "origin": ["https://www.example.com"],
     "method": ["PUT"],
-    "responseHeader": ["Content-Type", "Content-MD5", "Content-Disposition"],
+    "responseHeader": ["Content-Type", "Content-MD5", "Content-Disposition", "x-goog-content-length-range"],
     "maxAgeSeconds": 3600
   }
 ]
