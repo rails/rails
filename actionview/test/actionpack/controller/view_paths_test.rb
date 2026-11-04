@@ -47,6 +47,14 @@ class ViewLoadPathsTest < ActionController::TestCase
     array.map { |x| File.expand_path(x.to_s) }
   end
 
+  def assert_renders_through_custom_resolver(resolver, body)
+    TestController.view_paths = ActionView::PathSet.new([resolver])
+
+    get :hello_world
+    assert_equal body, @response.body
+    assert_equal [body], TestController.view_paths.find_all("hello_world", ["test"], false, {}, nil, []).map(&:source)
+  end
+
   def assert_paths(*paths)
     controller = paths.first.is_a?(Class) ? paths.shift : @controller
     assert_equal expand(paths), controller.view_paths.map(&:to_s)
@@ -184,6 +192,73 @@ class ViewLoadPathsTest < ActionController::TestCase
     get :hello_world
     assert_response :success
     assert_equal "Decorated body", @response.body
+  end
+
+  def test_custom_resolver_overriding_find_all_hook
+    resolver_class = Class.new(ActionView::Resolver) do
+      private
+        def _find_all(name, prefix, partial, details, key, locals)
+          [::ActionView::Template.new("From _find_all", "custom", ::ActionView::Template::Handlers::Raw.new,
+            virtual_path: "#{prefix}/#{name}", format: :html, locals: locals)]
+        end
+    end
+
+    assert_renders_through_custom_resolver resolver_class.new, "From _find_all"
+  end
+
+  def test_custom_resolver_implementing_find_templates
+    resolver_class = Class.new(ActionView::Resolver) do
+      private
+        def find_templates(name, prefix, partial, details, locals = [])
+          [::ActionView::Template.new("From find_templates", "custom", ::ActionView::Template::Handlers::Raw.new,
+            virtual_path: "#{prefix}/#{name}", format: :html, locals: locals)]
+        end
+    end
+
+    assert_renders_through_custom_resolver resolver_class.new, "From find_templates"
+  end
+
+  def test_custom_resolver_calling_inherited_find_all_hook
+    resolver_class = Class.new(ActionView::Resolver) do
+      def find_all(name, prefix = nil, partial = false, details = {}, key = nil, locals = [])
+        _find_all(name, prefix, partial, details, key, locals)
+      end
+
+      private
+        def find_templates(name, prefix, partial, details, locals = [])
+          [::ActionView::Template.new("From inherited _find_all", "custom", ::ActionView::Template::Handlers::Raw.new,
+            virtual_path: "#{prefix}/#{name}", format: :html, locals: locals)]
+        end
+    end
+
+    assert_renders_through_custom_resolver resolver_class.new, "From inherited _find_all"
+  end
+
+  def test_find_all_hook_receives_arguments_unchanged
+    resolver_class = Class.new(ActionView::Resolver) do
+      attr_reader :calls
+
+      private
+        def _find_all(*args)
+          (@calls ||= []) << args
+          []
+        end
+    end
+    resolver = resolver_class.new
+    details = { formats: [:html] }
+    key = Object.new
+    locals = [:title]
+
+    resolver.find("hello_world", "test", true, details, key, locals)
+    resolver.find_all("hello_world", "test", true, details, key, locals)
+
+    resolver.calls.each do |name, prefix, partial, received_details, received_key, received_locals|
+      assert_equal ["hello_world", "test", true], [name, prefix, partial]
+      assert_same details, received_details
+      assert_same key, received_key
+      assert_same locals, received_locals
+    end
+    assert_equal 2, resolver.calls.size
   end
 
   def test_inheritance

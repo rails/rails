@@ -66,7 +66,7 @@ module ActionView
     end
 
     def find_all(name, prefix = nil, partial = false, details = {}, key = nil, locals = [])
-      find_templates(name, prefix, partial, details, locals)
+      _find_all(name, prefix, partial, details, key, locals)
     end
 
     def find(name, prefix = nil, partial = false, details = {}, key = nil, locals = [])
@@ -84,6 +84,10 @@ module ActionView
     end
 
   private
+    def _find_all(name, prefix, partial, details, key, locals)
+      find_templates(name, prefix, partial, details, locals)
+    end
+
     delegate :caching?, to: :class
 
     # Extension point for custom resolvers: implement this method, or
