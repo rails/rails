@@ -667,6 +667,18 @@ class EagerAssociationTest < ActiveRecord::TestCase
     end
   end
 
+  def test_preload_has_many_through_with_conditions_and_preload_or_eager_load_in_scope
+    expected = authors(:david).comments_with_include.map { |comment| [comment.id, comment.ratings.map(&:id).sort] }.sort
+    assert expected.any? { |_, ratings| ratings.any? }
+
+    [:comments_with_preload, :comments_with_eager_load].each do |association|
+      comments = Author.preload(association).find(authors(:david).id).public_send(association).to_a
+      assert_no_queries do
+        assert_equal expected, comments.map { |comment| [comment.id, comment.ratings.map(&:id).sort] }.sort
+      end
+    end
+  end
+
   def test_eager_with_has_many_through_with_conditions_join_model_with_include
     post_tags = Post.find(posts(:welcome).id).misc_tags
     eager_post_tags = Post.all.merge!(includes: :misc_tags).find(1).misc_tags
@@ -1331,6 +1343,18 @@ class EagerAssociationTest < ActiveRecord::TestCase
     tags_with_preloads = Tag.where(id: tags.map(&:id)).order(:id)
     assert_queries_count(2) do
       assert_equal [[], [posts(:misc_by_bob)]], tags_with_preloads.preload(:second_tagged_posts).map { |tag| tag.second_tagged_posts.to_a }
+    end
+  end
+
+  def test_preload_has_many_through_with_source_type_and_conditions_and_preload_in_scope
+    post = posts(:misc_by_bob)
+    expected = post.taggings.map { |tagging| [tagging.id, tagging.taggable] }.sort_by(&:first)
+    assert_not_empty expected
+
+    posts = Tag.preload(:second_tagged_posts_with_taggings).find(tags(:blue).id).second_tagged_posts_with_taggings.to_a
+    assert_equal [post], posts
+    assert_no_queries do
+      assert_equal expected, posts.first.taggings.map { |tagging| [tagging.id, tagging.taggable] }.sort_by(&:first)
     end
   end
 
