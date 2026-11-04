@@ -129,6 +129,26 @@ config.active_storage.service = :amazon
 You can find detailed information about [configuring cloud
 services](#configuring-cloud-services) in a later section.
 
+A service can also be configured with the `STORAGE_URL` environment variable,
+which is useful when one application has several deployments:
+
+```
+STORAGE_URL=disk:///path/to/storage
+STORAGE_URL=s3://access_key_id:secret_access_key@us-east-1/your-bucket
+STORAGE_URL=gcs://path/to/gcs.keyfile@your_project/your-bucket
+```
+
+The URL replaces the service chosen by `config.active_storage.service`, and any
+other services in `config/storage.yml` are kept. If no service is chosen, the URL
+configures one named `default`, and `config/storage.yml` isn't required.
+
+Percent-encode reserved characters in credentials. Other options, such as
+`endpoint` for S3-compatible services, aren't supported in the URL and need
+`config/storage.yml`.
+
+WARNING: `STORAGE_URL` applies in every environment, including `test`. Don't leave
+one that points at production storage set when running your tests.
+
 ### Configuring Active Storage Routes
 
 Active Storage automatically adds routes to your application for serving files.
