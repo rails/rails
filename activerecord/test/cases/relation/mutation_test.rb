@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require "cases/helper"
+require "models/comment"
 require "models/post"
 
 module ActiveRecord
@@ -31,10 +32,17 @@ module ActiveRecord
     end
 
     test "#order! with Arel::Attribute extracts table reference" do
+      attr = Comment.arel_table[:body]
+      assert relation.order!(attr).equal?(relation)
+      assert_equal [attr], relation.order_values
+      assert_equal ["comments"], relation.references_values
+    end
+
+    test "#order! with Arel::Attribute of its own table does not add a reference" do
       attr = Post.arel_table[:name]
       assert relation.order!(attr).equal?(relation)
       assert_equal [attr], relation.order_values
-      assert_equal ["posts"], relation.references_values
+      assert_empty relation.references_values
     end
 
     test "#default_order!" do

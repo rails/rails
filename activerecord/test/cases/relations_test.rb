@@ -490,6 +490,15 @@ class RelationTest < ActiveRecord::TestCase
     assert_equal ["id desc"], topics.default_order_values
   end
 
+  def test_order_with_table_name_does_not_modify_receiver
+    topics = Topic.all.load
+
+    assert_equal ["replies"], topics.order(:"replies.id").references_values
+    assert_equal ["replies"], topics.reorder("replies.id" => :desc).references_values
+    assert_equal ["replies"], topics.default_order(replies: { id: :desc }).references_values
+    assert_empty topics.references_values
+  end
+
   def test_finding_with_reorder_by_aliased_attributes
     topics = Topic.order("author_name").reorder(:heading)
     assert_equal 5, topics.to_a.size

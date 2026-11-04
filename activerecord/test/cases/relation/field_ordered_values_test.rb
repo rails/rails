@@ -2,11 +2,12 @@
 
 require "cases/helper"
 require "models/author"
+require "models/categorization"
 require "models/post"
 require "models/book"
 
 class FieldOrderedValuesTest < ActiveRecord::TestCase
-  fixtures :posts
+  fixtures :posts, :authors
 
   FormatValue = Struct.new(:value)
 
@@ -34,13 +35,13 @@ class FieldOrderedValuesTest < ActiveRecord::TestCase
   end
 
   def test_in_order_of_does_not_modify_receiver
-    relation = Post.all.load
-    order = [3, 4, 1]
-    posts = relation.in_order_of("posts.id", order)
+    relation = Post.joins(:author).load
+    order = [2, 1]
+    posts = relation.in_order_of("authors.id", order)
 
     assert_empty relation.references_values
-    assert_equal ["posts"], posts.references_values
-    assert_equal order, posts.map(&:id)
+    assert_equal ["authors"], posts.references_values
+    assert_equal order, posts.map(&:author_id).uniq
   end
 
   def test_in_order_of_with_enums_values

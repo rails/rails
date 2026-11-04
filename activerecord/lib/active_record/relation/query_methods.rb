@@ -410,7 +410,7 @@ module ActiveRecord
     def references!(*table_names) = _references!(table_names) # :nodoc:
 
     def _references!(table_names) # :nodoc:
-      self.references_values |= table_names
+      self.references_values |= table_names unless table_names.empty?
       self
     end
 
@@ -770,14 +770,14 @@ module ActiveRecord
       check_if_method_has_arguments!(__callee__, args) do
         sanitize_order_arguments(args)
       end
-      spawn._order!(args)
+      spawn._order!(preprocess_order_args(args))
     end
 
     # Same as #order but operates on relation in-place instead of copying.
-    def order!(*args) = _order!(args) # :nodoc:
+    def order!(*args) = _order!(preprocess_order_args(args)) # :nodoc:
 
     def _order!(args) # :nodoc:
-      preprocess_order_args(args) unless args.empty?
+      _references!(column_references(args))
       self.order_values |= args
       self
     end
@@ -857,9 +857,6 @@ module ActiveRecord
     end
 
     def _in_order_of!(column, values, filter) # :nodoc:
-      references = column_references([column])
-      self.references_values |= references unless references.empty?
-
       if column.is_a?(Arel::Nodes::SqlLiteral)
         arel_column = column
       else
@@ -880,7 +877,8 @@ module ActiveRecord
         return none! if values.empty?
       end
 
-      order!(build_case_for_value_position(arel_column, values, filter: filter))
+      _references!(column_references([arel_column]))
+      _order!([build_case_for_value_position(arel_column, values, filter: filter)])
 
       if filter
         values = values.flatten(1)
@@ -915,14 +913,14 @@ module ActiveRecord
       check_if_method_has_arguments!(__callee__, args) do
         sanitize_order_arguments(args)
       end
-      spawn._reorder!(args)
+      spawn._reorder!(preprocess_order_args(args))
     end
 
     # Same as #reorder but operates on relation in-place instead of copying.
-    def reorder!(*args) = _reorder!(args) # :nodoc:
+    def reorder!(*args) = _reorder!(preprocess_order_args(args)) # :nodoc:
 
     def _reorder!(args) # :nodoc:
-      preprocess_order_args(args)
+      _references!(column_references(args))
       args.uniq!
       self.reordering_value = true
       self.order_values = args
@@ -947,14 +945,14 @@ module ActiveRecord
       check_if_method_has_arguments!(__callee__, args) do
         sanitize_order_arguments(args)
       end
-      spawn._default_order!(args)
+      spawn._default_order!(preprocess_order_args(args))
     end
 
     # Same as #default_order but operates on relation in-place instead of copying.
-    def default_order!(*args) = _default_order!(args) # :nodoc:
+    def default_order!(*args) = _default_order!(preprocess_order_args(args)) # :nodoc:
 
     def _default_order!(args) # :nodoc:
-      preprocess_order_args(args)
+      _references!(column_references(args))
       args.uniq!
       self.default_order_values = args
       self
@@ -2321,8 +2319,8 @@ module ActiveRecord
         end
       end
 
-      def arel_column_with_table(table_name, column_name)
-        self.references_values |= [Arel.sql(table_name, retryable: true)]
+      def arel_column_with_table(table_name, column_name, references: true)
+        self.references_values |= [Arel.sql(table_name, retryable: true)] if references
 
         if column_name.is_a?(Symbol) || !column_name.match?(/\W/)
           predicate_builder.resolve_arel_attribute(table_name, column_name) do
@@ -2333,7 +2331,7 @@ module ActiveRecord
         end
       end
 
-      def arel_column(field)
+      def arel_column(field, references: true)
         field = field.name if is_symbol = field.is_a?(Symbol)
 
         field = model.attribute_aliases[field] || field
@@ -2342,7 +2340,7 @@ module ActiveRecord
         if model.columns_hash.key?(field) && (!from || table_name_matches?(from))
           table[field]
         elsif /\A(?<table>(?:\w+\.)?\w+)\.(?<column>\w+)\z/ =~ field
-          arel_column_with_table(table, column)
+          arel_column_with_table(table, column, references: references)
         elsif block_given?
           yield field
         elsif Arel.arel_node?(field)
@@ -2441,9 +2439,6 @@ module ActiveRecord
 
         validate_order_args(order_args)
 
-        references = column_references(order_args)
-        self.references_values |= references unless references.empty?
-
         # if a symbol is given we prepend the quoted table name
         order_args.map! do |arg|
           case arg
@@ -2468,6 +2463,8 @@ module ActiveRecord
             arg
           end
         end.flatten!
+
+        order_args
       end
 
       def sanitize_order_arguments(order_args)
@@ -2476,29 +2473,26 @@ module ActiveRecord
         end
       end
 
-      def column_references(order_args)
-        order_args.flat_map do |arg|
-          case arg
-          when String, Symbol
-            extract_table_name_from(arg)
-          when Hash
-            arg
-              .map do |key, value|
-                case value
-                when Hash
-                  key.to_s
-                else
-                  extract_table_name_from(key) if key.is_a?(String) || key.is_a?(Symbol)
-                end
-              end
-          when Arel::Attribute
-            arg.relation.name
-          when Arel::Nodes::Ordering
-            if arg.expr.is_a?(Arel::Attribute)
-              arg.expr.relation.name
+      def column_references(columns)
+        references = nil
+
+        columns.each do |column|
+          column = column.expr if column.is_a?(Arel::Nodes::Ordering)
+
+          table_name =
+            case column
+            when Arel::Attribute
+              column.relation.name unless column.relation == table
+            when String
+              extract_table_name_from(column)
             end
+
+          if table_name
+            (references ||= []) << Arel.sql(table_name, retryable: true)
           end
-        end.filter_map { |ref| Arel.sql(ref, retryable: true) if ref }
+        end
+
+        references || FROZEN_EMPTY_ARRAY
       end
 
       def extract_table_name_from(string)
@@ -2506,7 +2500,7 @@ module ActiveRecord
       end
 
       def order_column(field)
-        column = arel_column(field) do |attr_name|
+        column = arel_column(field, references: false) do |attr_name|
           if attr_name == "count" && !group_values.empty?
             table[attr_name]
           else
