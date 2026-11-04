@@ -71,7 +71,8 @@ class Array
     else
       filter_map { |value|
         next if (value.is_a?(Hash) || value.is_a?(Array)) && value.empty?
-        value.to_query(prefix)
+        query = value.to_query(prefix)
+        query unless query.empty?
       }.join "&"
     end
   end
@@ -98,7 +99,8 @@ class Hash
   def to_query(namespace = nil)
     query = filter_map do |key, value|
       next if (value.is_a?(Hash) || value.is_a?(Array)) && value.empty?
-      value.to_query(namespace ? "#{namespace}[#{key}]" : key)
+      pair = value.to_query(namespace ? "#{namespace}[#{key}]" : key)
+      pair unless pair.empty?
     end
 
     query.sort! unless namespace.to_s.include?("[]")
