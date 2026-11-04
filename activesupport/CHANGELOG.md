@@ -1,3 +1,12 @@
+*   Restore `ActiveSupport::LogSubscriber.colorize_logging` and
+    `colorize_logging=` as deprecated delegators to
+    `ActiveSupport.colorize_logging`.
+
+    The class-level accessor was removed without a deprecation when color
+    logging moved to `ActiveSupport::ColorizeLogging`.
+
+    *Thomas Klemm*
+
 *   Shift a local time in a DST spring-forward gap forward by the gap's length
     instead of one hour.
 
