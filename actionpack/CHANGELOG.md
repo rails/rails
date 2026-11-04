@@ -63,6 +63,89 @@
     *Gabriel Quaresma*
 
 
+## Rails 8.0.5.2 (November 03, 2026) ##
+
+*   Apply `config.action_dispatch.cookies_same_site_protection` to every session
+    store.
+
+    `ActionDispatch::Session::CacheStore`, `MemCacheStore` and third-party
+    stores built on `AbstractStore` or the session mixins sent session cookies
+    with no `SameSite` attribute. Only `CookieStore` applied the configured
+    default.
+
+    [GHSA-gmj8-hvj3-49mw]
+
+    *Jean Boussier*
+
+*   Prevent `ActionController::Live` streams from blocking when a full buffer is
+    closed or aborted.
+
+    [GHSA-rwvh-fw6r-pwvp]
+
+    *Jeremy Daer*
+
+*   Set and extend the `Vary` header for rendered responses according to the
+    request headers used in format negotiation.
+
+    `Vary: Accept` was only added when the request carried a usable `Accept`
+    header. A response to a request without one, negotiated to HTML or
+    JavaScript, could be stored by a shared cache and served to later clients
+    that requested a different representation.
+
+    Responses now vary on `Accept` and `X-Requested-With` whenever the format is
+    not given by the URL. XHR requests without `Accept` also vary on
+    `Content-Type`, which Rails uses as a legacy format fallback. When
+    `config.action_dispatch.ignore_accept_header` is enabled, responses vary
+    only on `X-Requested-With`.
+
+    These fields are appended to an existing `Vary` value without duplicating
+    fields case-insensitively. `Vary: *` remains unchanged.
+
+    [GHSA-r9jg-fmfx-2gv6]
+
+    *Jeremy Daer*
+
+*   Skip writing a `CacheStore` session that another request deleted while this
+    one ran.
+
+    A request that loaded a session from `ActionDispatch::Session::CacheStore`
+    wrote it back when it finished, even after a concurrent `reset_session` or a
+    server-side delete had removed it, so the old session ID worked again.
+
+    [GHSA-2586-8ghr-69fj]
+
+    *Mike Dalessio*
+
+*   Don't write upgraded cookies to a response that skips the session.
+
+    Reading a signed or encrypted cookie written under a rotated secret, or in
+    the format a `:hybrid` serializer migrates from, writes it back in the
+    current format. That write ignored `request.session_options[:skip]`, so a
+    response that skips the session, such as the Active Storage proxy's
+    public, cacheable response, could still carry the session cookie in
+    `Set-Cookie`. Such a response now leaves the cookie unchanged, and a later
+    request that does not skip the session upgrades it. An application that
+    skips the session on every request no longer upgrades its signed or
+    encrypted cookies. Cookies the application sets are still written.
+
+    [GHSA-x6mj-8jx9-qhqv]
+
+    *Mike Dalessio*
+
+*   `ActionController::Parameters#each_key` returns `self` when given a block.
+
+    It returned the internal `ActiveSupport::HashWithIndifferentAccess`, which
+    does not respond to `permitted?`, so passing that return value to mass
+    assignment skipped the Strong Parameters check. `each`, `each_pair` and
+    `each_value` already return `self`.
+
+    Document that `ActionController::Parameters#as_json` returns every
+    parameter, permitted or not, in a hash that mass assignment does not check.
+
+    [GHSA-wm3x-v3qw-4jh3]
+
+    *Mike Dalessio*
+
 ## Rails 8.0.5.1 (July 29, 2026) ##
 
 *   No changes.

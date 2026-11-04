@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 
+require "active_support/core_ext/string/output_safety"
 require "rails-html-sanitizer"
 
 module ActionView
@@ -32,6 +33,9 @@ module ActionView
       #
       # Please note that sanitizing user-provided text does not guarantee that the
       # resulting markup is valid or even well-formed.
+      #
+      # The output is markup, which is safe only as element content. Do not use it in an attribute
+      # value; use +strip_tags+ or a tag helper such as <tt>tag.a(title: ...)</tt> instead.
       #
       # ==== Options
       #
@@ -137,7 +141,8 @@ module ActionView
       #   strip_tags("> A quote from Smith & Wesson")
       #   # => &gt; A quote from Smith &amp; Wesson
       def strip_tags(html)
-        self.class.full_sanitizer.sanitize(html)&.html_safe
+        stripped = self.class.full_sanitizer.sanitize(html)
+        ERB::Util.html_escape_once(stripped) if stripped
       end
 
       # Strips all link tags from +html+ leaving just the link text.

@@ -324,6 +324,7 @@ module ActionDispatch
       def initialize(request)
         @set_cookies = {}
         @delete_cookies = {}
+        @upgraded_cookies = Set.new
         @request = request
         @cookies = {}
         @committed = false
@@ -386,6 +387,7 @@ module ActionDispatch
         end
 
         handle_options(options)
+        @upgraded_cookies.delete(name.to_s)
 
         if @cookies[name.to_s] != value || options[:expires]
           @cookies[name.to_s] = value
@@ -426,8 +428,14 @@ module ActionDispatch
         @cookies.each_key { |k| delete(k, options) }
       end
 
+      def upgraded(name)
+        @upgraded_cookies << name.to_s
+      end
+
       def write(response)
         @set_cookies.each do |name, value|
+          next if @upgraded_cookies.include?(name) && request.session_options[:skip]
+
           if write_cookie?(value)
             response.set_cookie(name, value)
           end
@@ -533,6 +541,10 @@ module ActionDispatch
         @parent_jar[name] = options
       end
 
+      def upgraded(name)
+        @parent_jar.upgraded(name)
+      end
+
       protected
         def request; @parent_jar.request; end
 
@@ -599,7 +611,10 @@ module ActionDispatch
               return
             end
 
-            self[name] = { value: value } if force_reserialize || reserialize?(dumped)
+            if force_reserialize || reserialize?(dumped)
+              self[name] = { value: value }
+              upgraded(name)
+            end
 
             value
           end

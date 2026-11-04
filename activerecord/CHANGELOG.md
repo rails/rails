@@ -152,6 +152,11 @@
     *Clay Harmon*
 
 
+## Rails 8.0.5.2 (November 03, 2026) ##
+
+*   No changes.
+
+
 ## Rails 8.0.5.1 (July 29, 2026) ##
 
 *   No changes.

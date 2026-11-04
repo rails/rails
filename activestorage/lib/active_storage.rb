@@ -377,6 +377,12 @@ module ActiveStorage
 
   mattr_accessor :video_preview_arguments, default: "-y -vframes 1 -f image2"
 
+  mattr_accessor :ffmpeg_allowed_formats, default: %w[ mov matroska avi mpeg mpegts flv asf ogg mp3 wav flac aac aiff caf ].freeze
+
+  def self.ffmpeg_format_whitelist_arguments # :nodoc:
+    [ "-format_whitelist", Array(ffmpeg_allowed_formats).join(",") ] unless ffmpeg_allowed_formats.nil?
+  end
+
   module Transformers
     extend ActiveSupport::Autoload
 

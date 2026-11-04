@@ -55,6 +55,20 @@
     *Eldin Guzin*
 
 
+## Rails 8.0.5.2 (November 03, 2026) ##
+
+*   `ActiveSupport::Inflector#safe_constantize` matches the constant name in a
+    `LoadError` message as a literal string instead of building a `Regexp`
+    from it.
+
+    The name's segments were interpolated unescaped into the pattern, so input
+    that reaches `safe_constantize`, such as the channel identifier in an Action
+    Cable subscribe command, chose the source passed to the regexp compiler.
+
+    [GHSA-8474-xrp6-wh69]
+
+    *Jeremy Daer*
+
 ## Rails 8.0.5.1 (July 29, 2026) ##
 
 *   No changes.

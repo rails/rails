@@ -20,6 +20,54 @@ class ActiveStorage::Previewer::VideoPreviewerTest < ActiveSupport::TestCase
     end
   end
 
+  test "previewing videos in other common formats" do
+    { "video.webm" => "video/webm", "rotated_hdr_video.mov" => "video/quicktime" }.each do |fixture, content_type|
+      blob = create_file_blob(filename: fixture, content_type: content_type)
+
+      ActiveStorage::Previewer::VideoPreviewer.new(blob).preview do |attachable|
+        assert_equal "image/jpeg", Marcel::Magic.by_extension(MiniMagick::Image.read(attachable[:io]).type).type, fixture
+      end
+    end
+  end
+
+  test "previewing a playlist declared as a video" do
+    blob = create_playlist_blob(referencing: "video.mp4", filename: "video.m3u8", content_type: "video/mp4")
+
+    assert_raises ActiveStorage::PreviewError do
+      ActiveStorage::Previewer::VideoPreviewer.new(blob).preview
+    end
+  end
+
+  test "previewing a video whose format is not allowed" do
+    blob = create_file_blob(filename: "video.mp4", content_type: "video/mp4")
+
+    ActiveStorage.with(ffmpeg_allowed_formats: %w[ matroska ]) do
+      assert_raises ActiveStorage::PreviewError do
+        ActiveStorage::Previewer::VideoPreviewer.new(blob).preview
+      end
+    end
+  end
+
+  test "previewing a video whose format is not allowed by a comma-separated list" do
+    blob = create_file_blob(filename: "video.mp4", content_type: "video/mp4")
+
+    ActiveStorage.with(ffmpeg_allowed_formats: "matroska,avi") do
+      assert_raises ActiveStorage::PreviewError do
+        ActiveStorage::Previewer::VideoPreviewer.new(blob).preview
+      end
+    end
+  end
+
+  test "previewing a video when no formats are allowed" do
+    blob = create_file_blob(filename: "video.mp4", content_type: "video/mp4")
+
+    ActiveStorage.with(ffmpeg_allowed_formats: []) do
+      assert_raises ActiveStorage::PreviewError do
+        ActiveStorage::Previewer::VideoPreviewer.new(blob).preview
+      end
+    end
+  end
+
   test "previewing a video that can't be previewed" do
     blob = create_file_blob(filename: "report.pdf", content_type: "video/mp4")
 

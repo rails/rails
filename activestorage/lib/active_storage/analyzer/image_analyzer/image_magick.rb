@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+require "active_storage/image_magick"
+
 module ActiveStorage
   # This analyzer relies on the third-party {MiniMagick}[https://github.com/minimagick/minimagick] gem. MiniMagick requires
   # the {ImageMagick}[http://www.imagemagick.org] system library.
@@ -16,6 +18,8 @@ module ActiveStorage
           logger.info "Skipping image analysis because the mini_magick gem isn't installed"
           return {}
         end
+
+        ActiveStorage.require_securable_mini_magick!
 
         download_blob_to_tempfile do |file|
           image = instrument("mini_magick") do
