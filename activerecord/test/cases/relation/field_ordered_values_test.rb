@@ -7,7 +7,7 @@ require "models/post"
 require "models/book"
 
 class FieldOrderedValuesTest < ActiveRecord::TestCase
-  fixtures :posts, :authors
+  fixtures :posts, :authors, :author_addresses
 
   FormatValue = Struct.new(:value)
 
