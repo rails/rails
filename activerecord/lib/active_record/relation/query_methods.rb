@@ -571,14 +571,13 @@ module ActiveRecord
     def with(*args)
       raise ArgumentError, "ActiveRecord::Relation#with does not accept a block" if block_given?
       check_if_method_has_arguments!(__callee__, args)
-      spawn._with!(args)
+      spawn._with!(process_with_args(args))
     end
 
     # Like #with, but modifies relation in place.
-    def with!(*args) = _with!(args) # :nodoc:
+    def with!(*args) = _with!(process_with_args(args)) # :nodoc:
 
     def _with!(args) # :nodoc:
-      args = process_with_args(args)
       self.with_values |= args
       self
     end
@@ -599,14 +598,13 @@ module ActiveRecord
     # See #with for more information.
     def with_recursive(*args)
       check_if_method_has_arguments!(__callee__, args)
-      spawn._with_recursive!(args)
+      spawn._with_recursive!(process_with_args(args))
     end
 
     # Like #with_recursive but modifies the relation in place.
-    def with_recursive!(*args) = _with_recursive!(args) # :nodoc:
+    def with_recursive!(*args) = _with_recursive!(process_with_args(args)) # :nodoc:
 
     def _with_recursive!(args) # :nodoc:
-      args = process_with_args(args)
       self.with_values |= args
       self.with_recursive_value = true
       self
