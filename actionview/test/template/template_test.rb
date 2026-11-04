@@ -553,6 +553,21 @@ class TestERBTemplate < ActiveSupport::TestCase
     ActionView::Base.erb_implementation = previous
   end
 
+  def test_herb_syntax_error_is_located_in_the_template
+    previous = ActionView::Template::Handlers::ERB.erb_implementation
+    ActionView::Base.erb_implementation = :herb
+    @template = new_template("<p>one</p>\n<% end %>\n<p>three</p>\n", format: :html)
+
+    exception = assert_raises(ActionView::SyntaxErrorInTemplate) { render }
+    location = exception.backtrace_locations.first
+
+    assert_equal "2", exception.line_number
+    assert_equal "hello template", location.path
+    assert_equal 2, location.lineno
+  ensure
+    ActionView::Base.erb_implementation = previous
+  end
+
   def test_herb_compiles_other_formats_through_erubi
     previous = ActionView::Template::Handlers::ERB.erb_implementation
     ActionView::Base.erb_implementation = :herb
