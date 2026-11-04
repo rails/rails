@@ -183,15 +183,16 @@ class ParameterFilterTest < ActiveSupport::TestCase
 
     precompiled = ActiveSupport::ParameterFilter.precompile_filters([*patterns, *deep_patterns, *procs])
 
-    assert_equal 1, precompiled.grep(Regexp).length
-    assert_equal 1 + procs.length, precompiled.length
+    assert_equal 2, precompiled.grep(Regexp).length
+    assert_equal 2 + procs.length, precompiled.length
 
     regexp = precompiled.grep(Regexp).first
     keys.each { |key| assert_match regexp, key }
     assert_no_match regexp, keys.first.swapcase
 
-    deep_keys.each { |deep_key| assert_match regexp, deep_key }
-    assert_no_match regexp, deep_keys.first.swapcase
+    deep_regexp = precompiled.grep(Regexp).last
+    deep_keys.each { |deep_key| assert_match deep_regexp, deep_key }
+    assert_no_match deep_regexp, deep_keys.first.swapcase
 
     assert_equal procs, precompiled & procs
   end
@@ -199,5 +200,63 @@ class ParameterFilterTest < ActiveSupport::TestCase
   test "precompile_filters eliminate dead patterns" do
     assert_equal [/token/i], ActiveSupport::ParameterFilter.precompile_filters(["user.token", "token"])
     assert_equal [/password/i], ActiveSupport::ParameterFilter.precompile_filters(["user_password", "password"])
+  end
+
+  test "precompile_filters preserves nested key matching alongside deep filters" do
+    filters = [/\Atoken\z/, "credit_card.number"]
+    params = {
+      "account" => { "token" => "secret", "name" => "visible" },
+      "accounts" => [{ "token" => "secret" }],
+      "credit_card" => { "number" => "secret", "name" => "visible" }
+    }
+    expected = {
+      "account" => { "token" => "[FILTERED]", "name" => "visible" },
+      "accounts" => [{ "token" => "[FILTERED]" }],
+      "credit_card" => { "number" => "[FILTERED]", "name" => "visible" }
+    }
+
+    assert_equal expected, ActiveSupport::ParameterFilter.new(filters).filter(params)
+    precompiled = ActiveSupport::ParameterFilter.precompile_filters(filters)
+    assert_equal expected, ActiveSupport::ParameterFilter.new(precompiled).filter(params)
+  end
+
+  test "precompile_filters preserves case insensitive string filters alongside regexps" do
+    filters = [/token/, :token]
+    params = { "TOKEN" => "secret", "access_TOKEN" => "secret", "name" => "visible" }
+    expected = { "TOKEN" => "[FILTERED]", "access_TOKEN" => "[FILTERED]", "name" => "visible" }
+
+    assert_equal expected, ActiveSupport::ParameterFilter.new(filters).filter(params)
+    precompiled = ActiveSupport::ParameterFilter.precompile_filters(filters)
+    assert_equal expected, ActiveSupport::ParameterFilter.new(precompiled).filter(params)
+  end
+
+  test "precompile_filters preserves partial string filters alongside anchored regexps" do
+    filters = [/\Atoken\z/i, :token]
+    params = { "access_token" => "secret", "token_confirmation" => "secret", "name" => "visible" }
+    expected = { "access_token" => "[FILTERED]", "token_confirmation" => "[FILTERED]", "name" => "visible" }
+
+    assert_equal expected, ActiveSupport::ParameterFilter.new(filters).filter(params)
+    precompiled = ActiveSupport::ParameterFilter.precompile_filters(filters)
+    assert_equal expected, ActiveSupport::ParameterFilter.new(precompiled).filter(params)
+  end
+
+  test "precompile_filters preserves string filters alongside end anchored regexps" do
+    filters = [/token\z/, :token]
+    params = { "token_x" => "secret", "name" => "visible" }
+    expected = { "token_x" => "[FILTERED]", "name" => "visible" }
+
+    assert_equal expected, ActiveSupport::ParameterFilter.new(filters).filter(params)
+    precompiled = ActiveSupport::ParameterFilter.precompile_filters(filters)
+    assert_equal expected, ActiveSupport::ParameterFilter.new(precompiled).filter(params)
+  end
+
+  test "precompile_filters preserves deep string filters alongside regexps" do
+    filters = [/\Auser\.token\z/, "user.token"]
+    params = { "USER" => { "TOKEN" => "secret" }, "user" => { "token_confirmation" => "secret" } }
+    expected = { "USER" => { "TOKEN" => "[FILTERED]" }, "user" => { "token_confirmation" => "[FILTERED]" } }
+
+    assert_equal expected, ActiveSupport::ParameterFilter.new(filters).filter(params)
+    precompiled = ActiveSupport::ParameterFilter.precompile_filters(filters)
+    assert_equal expected, ActiveSupport::ParameterFilter.new(precompiled).filter(params)
   end
 end

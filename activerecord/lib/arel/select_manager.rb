@@ -145,7 +145,7 @@ module Arel # :nodoc: all
     def project(*projections)
       # FIXME: converting these to SQLLiterals is probably not good, but
       # rails tests require it.
-      @ctx.projections.concat projections.map { |x|
+      @ctx.projections.concat projections.map! { |x|
         STRING_OR_SYMBOL_CLASS.include?(x.class) ? Nodes::SqlLiteral.new(x.to_s) : x
       }
       self
@@ -186,7 +186,7 @@ module Arel # :nodoc: all
 
     def order(*expr)
       # FIXME: We SHOULD NOT be converting these to SqlLiteral automatically
-      @ast.orders.concat expr.map { |x|
+      @ast.orders.concat expr.map! { |x|
         STRING_OR_SYMBOL_CLASS.include?(x.class) ? Nodes::SqlLiteral.new(x.to_s) : x
       }
       self
@@ -212,7 +212,10 @@ module Arel # :nodoc: all
 
     def union(operation, other = nil)
       if other
-        node_class = Nodes.const_get("Union#{operation.to_s.capitalize}")
+        unless operation.to_s.casecmp?("all")
+          raise ArgumentError, "Unknown union operation: #{operation.inspect}"
+        end
+        node_class = Nodes::UnionAll
       else
         other = operation
         node_class = Nodes::Union
@@ -237,7 +240,11 @@ module Arel # :nodoc: all
 
     def with(*subqueries)
       if subqueries.first.is_a? Symbol
-        node_class = Nodes.const_get("With#{subqueries.shift.to_s.capitalize}")
+        operation = subqueries.shift
+        unless operation.to_s.casecmp?("recursive")
+          raise ArgumentError, "Unknown with operation: #{operation.inspect}"
+        end
+        node_class = Nodes::WithRecursive
       else
         node_class = Nodes::With
       end

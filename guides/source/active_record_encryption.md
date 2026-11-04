@@ -527,7 +527,7 @@ When enabled:
   errors.
 
 * Queries on deterministically encrypted attributes can match both encrypted and
-  cleartext values, if you also enable `extended_queries`:
+  cleartext values, if you also enable `extend_queries`:
 
 ```ruby
 config.active_record.encryption.extend_queries = true
@@ -557,7 +557,7 @@ Once you configure the previous scheme, the following will be supported:
   schemes so that queries work seamlessly with data encrypted with different
   schemes.
 
-You need to enable `extended_queries` configuration for this to work:
+You need to enable `extend_queries` configuration for this to work:
 
 ```ruby
 config.active_record.encryption.extend_queries = true

@@ -183,6 +183,13 @@ module Arel
         }, compile(query)
       end
 
+      test "Nodes::BindParam numbers bind params past the precomputed placeholders" do
+        query = @table[:id].in(Array.new(300) { |i| Arel::Nodes::BindParam.new(i) })
+        expected = (1..300).map { |i| "$#{i}" }.join(", ")
+
+        assert_equal %{"users"."id" IN (#{expected})}, compile(query)
+      end
+
       test "insert statements render RETURNING" do
         manager = InsertManager.new
         manager.into @table

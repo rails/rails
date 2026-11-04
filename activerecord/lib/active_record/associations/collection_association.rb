@@ -1,6 +1,5 @@
 # frozen_string_literal: true
 
-# :markup: markdown
 require "active_support/core_ext/enumerable"
 
 module ActiveRecord
@@ -338,7 +337,7 @@ module ActiveRecord
             if mem_record = memory.delete(record)
 
               ((record.attribute_names & mem_record.attribute_names) - mem_record.changed_attribute_names_to_save - mem_record.class._attr_readonly).each do |name|
-                mem_record._write_attribute(name, record._read_attr(name))
+                mem_record._write_attribute(name, record._read_attribute(name))
               end
 
               mem_record

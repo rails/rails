@@ -1,6 +1,5 @@
 # frozen_string_literal: true
 
-# :markup: markdown
 module ActiveRecord
   module Associations
     # Active Record Collection Proxy
@@ -717,7 +716,7 @@ module ActiveRecord
       # #    ]
       #
       # person.pets.destroy("4")
-      # # => #<Pet id: 4, name: "Benny", person_id: 1>
+      # # => [#<Pet id: 4, name: "Benny", person_id: 1>]
       #
       # person.pets.size # => 2
       # person.pets
@@ -1212,24 +1211,28 @@ module ActiveRecord
         super
       end
 
-      %w(insert insert_all insert! insert_all! upsert upsert_all).each do |method|
-        class_eval <<~RUBY, __FILE__, __LINE__ + 1
-          def #{method}(...)
-            if @association&.target&.any? { |r| r.new_record? }
-              association_name = @association.reflection.name
-              ActiveRecord.deprecator.warn(<<~MSG)
-                Using #{method} on association \#{association_name} with unpersisted records
-                is deprecated and will be removed in Rails 8.2.
-                The unpersisted records will be lost after this operation.
-                Please either persist your records first or store them separately before
-                calling #{method}.
-              MSG
-              scope.#{method}(...)
-            else
-              scope.#{method}(...).tap { reset }
-            end
-          end
-        RUBY
+      def insert(...) # :nodoc:
+        bulk_write(:insert) { scope.insert(...) }
+      end
+
+      def insert_all(...) # :nodoc:
+        bulk_write(:insert_all) { scope.insert_all(...) }
+      end
+
+      def insert!(...) # :nodoc:
+        bulk_write(:insert!) { scope.insert!(...) }
+      end
+
+      def insert_all!(...) # :nodoc:
+        bulk_write(:insert_all!) { scope.insert_all!(...) }
+      end
+
+      def upsert(...) # :nodoc:
+        bulk_write(:upsert) { scope.upsert(...) }
+      end
+
+      def upsert_all(...) # :nodoc:
+        bulk_write(:upsert_all) { scope.upsert_all(...) }
       end
 
       delegate_methods = [
@@ -1237,7 +1240,7 @@ module ActiveRecord
         SpawnMethods,
       ].flat_map { |klass|
         klass.public_instance_methods(false)
-      } - self.public_instance_methods(false) - [ :select ] + [ :scoping, :values, :load_async ]
+      } - self.public_instance_methods(false) - [ :select ] + [ :scoping, :values, :values_for_merge, :load_async ]
 
       delegate(*delegate_methods, to: :scope)
 
@@ -1262,6 +1265,22 @@ module ActiveRecord
 
         def exec_queries
           load_target
+        end
+
+        def bulk_write(method)
+          if @association&.target&.any? { |r| r.new_record? }
+            association_name = @association.reflection.name
+            ActiveRecord.deprecator.warn(<<~MSG)
+              Using #{method} on association #{association_name} with unpersisted records
+              is deprecated and will be removed in Rails 8.2.
+              The unpersisted records will be lost after this operation.
+              Please either persist your records first or store them separately before
+              calling #{method}.
+            MSG
+            yield
+          else
+            yield.tap { reset }
+          end
         end
     end
   end

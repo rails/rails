@@ -1,6 +1,5 @@
 # frozen_string_literal: true
 
-# :markup: markdown
 # :enddoc:
 
 module ActiveRecord
@@ -113,6 +112,7 @@ module ActiveRecord
           @reflection_scope = reflection_scope
           @associate     = associate_by_default || !preload_scope || preload_scope.empty_scope?
           @model         = owners.first && owners.first.class
+          @reuse_loaded_target = true
           @run = false
         end
 
@@ -181,8 +181,14 @@ module ActiveRecord
           end
         end
 
+        # Owners' already loaded targets don't reflect the preload scope, so
+        # they must not be reused when the scope filters the records.
+        def ignore_loaded_target!
+          @reuse_loaded_target = false
+        end
+
         def loaded?(owner)
-          owner.association(reflection.name).loaded?
+          @reuse_loaded_target && owner.association(reflection.name).loaded?
         end
 
         def target_for(owner)
@@ -294,6 +300,7 @@ module ActiveRecord
             scope.where!(fixed_values) unless fixed_values.empty?
 
             scope.merge!(reflection_scope) unless reflection_scope.empty_scope?
+            scope.default_order!(reflection.options[:default_order]) if reflection.options[:default_order].present?
 
             if preload_scope && !preload_scope.empty_scope?
               scope.merge!(preload_scope)

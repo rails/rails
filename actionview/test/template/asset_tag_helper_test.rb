@@ -816,6 +816,27 @@ class AssetTagHelperTest < ActionView::TestCase
     end
   end
 
+  def test_should_percent_encode_href_in_preload_links
+    source = "http://example.com/a b>; rel=stylesheet, <http://example.com/x"
+    href = "http://example.com/a%20b%3E;%20rel=stylesheet,%20%3Chttp://example.com/x"
+
+    with_preload_links_header do
+      preload_link_tag(source, as: "image")
+      stylesheet_link_tag(source)
+      javascript_include_tag(source)
+      expected = "<#{href}>; rel=preload; as=image,<#{href}>; rel=preload; as=style; nopush,<#{href}>; rel=preload; as=script; nopush"
+      assert_equal expected, @response.headers["link"]
+    end
+  end
+
+  def test_should_not_percent_encode_valid_href_in_preload_links
+    with_preload_links_header do
+      preload_link_tag("http://example.com/w_100,h_100;v=1/a%2Bb.png")
+      expected = "<http://example.com/w_100,h_100;v=1/a%2Bb.png>; rel=preload; as=image; type=image/png"
+      assert_equal expected, @response.headers["link"]
+    end
+  end
+
   def test_image_path
     ImagePathToTag.each { |method, tag| assert_dom_equal(tag, eval(method)) }
   end
@@ -840,6 +861,14 @@ class AssetTagHelperTest < ActionView::TestCase
     options = { size: "16x10" }
     image_tag("icon", options)
     assert_equal({ size: "16x10" }, options)
+  end
+
+  def test_image_tag_with_whitespace_attribute_name_generates_valid_markup
+    # https://hackerone.com/reports/3904103
+    html = image_tag("/nonexistent.png", { " " => "/onerror=alert(1)//" })
+    fragment = Nokogiri::HTML5::DocumentFragment.parse(html)
+    attrs = fragment.at_css("img").attribute_nodes.map(&:name)
+    assert_equal [ "src" ], attrs
   end
 
   def test_image_tag_raises_an_error_for_competing_size_arguments

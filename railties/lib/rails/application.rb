@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+# :markup: rdoc
+
 require "yaml"
 require "active_support/core_ext/hash/keys"
 require "active_support/key_generator"
@@ -580,7 +582,7 @@ module Rails
     #   Rails.app.dotenvs.option(:cache_host, default: "cache-host-1") # CACHE_HOST from .env or "cache-host-1"
     #   Rails.app.dotenvs.option(:cache_host, default: -> { HostProvider.cache }) # CACHE_HOST from .env or HostProvider.cache
     #
-    # In development mode, this configuration backend is automatically part of `Rails.app.creds`.
+    # In development mode, this configuration backend is automatically part of +Rails.app.creds+.
     def dotenvs(path = Rails.root.join(".env"))
       @dotenvs ||= {}
       @dotenvs[path] ||= ActiveSupport::DotEnvConfiguration.new(path)

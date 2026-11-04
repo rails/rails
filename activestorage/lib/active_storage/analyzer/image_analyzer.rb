@@ -1,6 +1,5 @@
 # frozen_string_literal: true
 
-# :markup: markdown
 module ActiveStorage
   # Active Storage Image \Analyzer
   # ==============================

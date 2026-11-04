@@ -83,7 +83,6 @@ module AdapterHelper
     supports_insert_conflict_target?
     supports_optimizer_hints?
     supports_nulls_not_distinct?
-    supports_identity_columns?
     supports_virtual_columns?
   ].each do |method_name|
     define_method method_name do

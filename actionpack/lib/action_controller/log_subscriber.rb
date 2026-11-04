@@ -1,6 +1,5 @@
 # frozen_string_literal: true
 
-# :markup: markdown
 module ActionController
   class LogSubscriber < ActiveSupport::EventReporter::LogSubscriber # :nodoc:
     class_attribute :backtrace_cleaner, default: ActiveSupport::BacktraceCleaner.new
@@ -11,7 +10,7 @@ module ActionController
       payload = event[:payload]
       params  = payload[:params]
       format  = payload[:format]
-      format  = format.to_s.upcase if format.is_a?(Symbol)
+      format  = format.name.upcase if format.is_a?(Symbol)
       format  = "*/*" if format.nil?
 
       info "Processing by #{payload[:controller]}##{payload[:action]} as #{format}"

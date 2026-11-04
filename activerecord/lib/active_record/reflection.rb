@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+# :markup: rdoc
+
 require "active_support/core_ext/string/filters"
 
 module ActiveRecord
@@ -24,10 +26,35 @@ module ActiveRecord
         ar.clear_reflections_cache
         name = name.to_sym
         ar._reflections = ar._reflections.except(name).merge!(name => reflection).freeze
+
+        # Subclasses that defined an association of their own hold a copy of
+        # the reflections, and every subclass may have cached them, so pass
+        # the new one down unless a subclass defines that name itself.
+        ar.descendants.each do |subclass|
+          subclass.clear_reflections_cache
+          next if subclass._reflections.equal?(subclass.superclass._reflections)
+
+          existing = subclass._reflections[name]
+          next if existing && existing.active_record < ar
+
+          subclass._reflections = subclass._reflections.except(name).merge!(name => reflection).freeze
+        end
       end
 
       def add_aggregate_reflection(ar, name, reflection)
-        ar.aggregate_reflections = ar.aggregate_reflections.merge(name.to_sym => reflection).freeze
+        name = name.to_sym
+        ar.aggregate_reflections = ar.aggregate_reflections.merge(name => reflection).freeze
+
+        # Like associations, pass the new aggregation down to subclasses that
+        # hold their own copy, unless a subclass defines that name itself.
+        ar.descendants.each do |subclass|
+          next if subclass.aggregate_reflections.equal?(subclass.superclass.aggregate_reflections)
+
+          existing = subclass.aggregate_reflections[name]
+          next if existing && existing.active_record < ar
+
+          subclass.aggregate_reflections = subclass.aggregate_reflections.merge(name => reflection).freeze
+        end
       end
 
       private
@@ -594,6 +621,8 @@ module ActiveRecord
       def freeze
         return self if frozen?
 
+        check_validity!
+
         unless polymorphic?
           klass
           association_primary_key_definition if belongs_to?
@@ -605,7 +634,6 @@ module ActiveRecord
         association_foreign_key_definition
         counter_cache_column
         foreign_key_definition
-        check_validity!
         @scope = ActiveSupport::Ractors.try_shareable_proc(@scope) if @scope
 
         super
@@ -735,6 +763,11 @@ module ActiveRecord
       # ThroughReflection.
       def collect_join_chain
         [self]
+      end
+
+      # The scopes of the chain, which is only this reflection.
+      def constraints
+        scopes
       end
 
       # Pass the concrete target class for polymorphic associations.
@@ -1190,6 +1223,7 @@ module ActiveRecord
       def freeze
         return self if frozen?
 
+        check_validity!
         klass
         source_reflection_name
         association_primary_key
@@ -1198,7 +1232,7 @@ module ActiveRecord
         association_foreign_key
         inverse_which_updates_counter_cache
         deprecated_nested_reflections
-        check_validity!
+        source_type_reflection
 
         super
       end
@@ -1224,6 +1258,18 @@ module ActiveRecord
         return unless source_reflection_name
 
         through_reflection.klass._reflect_on_association(source_reflection_name)
+      end
+
+      # The polymorphic source reflection fixed to +source_type+ for eager loading.
+      def source_type_reflection # :nodoc:
+        return unless source_type = options[:source_type]
+
+        @source_type_reflection ||= begin
+          source = source_reflection
+          source_options = source.options.except(:polymorphic, :foreign_type)
+          source_options = source_options.merge(class_name: source_type.to_s, foreign_key: source.foreign_key)
+          Reflection.create(:belongs_to, source.name, source.scope, source_options, source.active_record)
+        end
       end
 
       # Returns the AssociationReflection object specified in the <tt>:through</tt> option

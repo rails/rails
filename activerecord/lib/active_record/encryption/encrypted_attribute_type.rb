@@ -1,6 +1,5 @@
 # frozen_string_literal: true
 
-# :markup: markdown
 module ActiveRecord
   module Encryption
     # An ActiveModel::Type::Value that encrypts/decrypts strings of text.

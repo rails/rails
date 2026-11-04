@@ -616,6 +616,17 @@ class CounterCacheTest < ActiveRecord::TestCase
     assert_not Car.counter_cache_column?("cars_count")
   end
 
+  test "partial inserts false preserves explicitly assigned counter cache value" do
+    original_partial_inserts = ActiveRecord::Base.partial_inserts
+    ActiveRecord::Base.partial_inserts = false
+
+    category = Category.create!(name: "Explicit counter", categorizations_count: 5)
+
+    assert_equal 5, category.reload.categorizations_count
+  ensure
+    ActiveRecord::Base.partial_inserts = original_partial_inserts
+  end
+
   test "inactive counter cache" do
     car = Car.new
     car.bulbs = [Bulb.new, Bulb.new]

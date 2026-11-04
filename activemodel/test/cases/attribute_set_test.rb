@@ -79,6 +79,12 @@ module ActiveModel
       assert_not_predicate attributes, :frozen?
     end
 
+    test "cloning accepts freeze option" do
+      attributes = AttributeSet.new({})
+
+      assert_not_predicate attributes.clone(freeze: false), :frozen?
+    end
+
     test "to_hash returns a hash of the type cast values" do
       builder = AttributeSet::Builder.new({ foo: Type::Integer.new, bar: Type::Float.new }, {}, nil)
       attributes = builder.build_from_database(foo: "1.1", bar: "2.2")
@@ -173,9 +179,11 @@ module ActiveModel
     test "fetch_value! raises for uninitialized attributes" do
       attributes = attributes_with_uninitialized_key
 
-      assert_raises(ActiveModel::MissingAttributeError, match: /missing attribute 'bar'/) do
+      error = assert_raises(ActiveModel::MissingAttributeError) do
         attributes.fetch_value!(:bar)
       end
+      assert_equal "uninitialized attribute", error.message
+      assert_empty error.backtrace
     end
 
     test "the primary_key is always initialized" do

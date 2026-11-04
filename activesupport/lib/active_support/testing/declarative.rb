@@ -1,4 +1,3 @@
-# :markup: markdown
 # frozen_string_literal: true
 
 module ActiveSupport
@@ -13,6 +12,7 @@ module ActiveSupport
         #   ...
         # end
         # ```
+        #: (String) ?{ () [self: untyped] -> void } -> void
         def test(name, &block)
           test_name = "test_#{name.gsub(/\s+/, '_')}".to_sym
           defined = method_defined? test_name

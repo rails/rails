@@ -341,11 +341,18 @@ class ApplicationMailbox < ActionMailbox::Base
 end
 ```
 
-The regular expression matches the incoming email's `to`, `cc`, or `bcc` fields.
-For example, the above will match any email sent to `save@` to a "forwards"
-mailbox. There are other ways to route an email, see
+The regular expression matches the addresses in the incoming email's `To`,
+`Cc`, `Bcc`, `X-Original-To`, and `X-Forwarded-To` headers. For example, the
+above will match any email sent to `save@` to a "forwards" mailbox. There are
+other ways to route an email, see
 [`ActionMailbox::Base`](https://api.rubyonrails.org/classes/ActionMailbox/Base.html)
 for more.
+
+WARNING: Routing is not authentication. The sender of an email can set every
+header that string and regular expression routes match, so a route does not
+establish who sent an email or where it was delivered. A mailbox that acts on
+behalf of a user or an account must check that the email is allowed to do so
+before processing it.
 
 We need to create that "forwards" mailbox next.
 

@@ -1,6 +1,5 @@
 # frozen_string_literal: true
 
-# :markup: markdown
 module ActiveRecord
   module Associations
     class JoinDependency # :nodoc:
@@ -55,6 +54,8 @@ module ActiveRecord
         case associations
         when Symbol, String
           hash[associations.to_sym] ||= {}
+        when Reflection::AbstractReflection
+          hash[associations] ||= {}
         when Array
           associations.each do |assoc|
             walk_tree assoc, hash
@@ -200,11 +201,12 @@ module ActiveRecord
           foreign_table = parent.table
           foreign_klass = parent.base_klass
           child.join_constraints(foreign_table, foreign_klass, join_type, alias_tracker) do |reflection, remaining_reflection_chain|
-            table, terminated = @joined_tables[remaining_reflection_chain]
+            joined_table_key = [foreign_table, remaining_reflection_chain]
+            table, terminated = @joined_tables[joined_table_key]
             root = reflection == child.reflection
 
             if table && (!root || !terminated)
-              @joined_tables[remaining_reflection_chain] = [table, root] if root
+              @joined_tables[joined_table_key] = [table, root] if root
               next table, true
             end
 
@@ -215,7 +217,7 @@ module ActiveRecord
               root ? name : "#{name}_join"
             end
 
-            @joined_tables[remaining_reflection_chain] ||= [table, root] if join_type == Arel::Nodes::OuterJoin
+            @joined_tables[joined_table_key] ||= [table, root] if join_type == Arel::Nodes::OuterJoin
             table
           end.concat child.children.flat_map { |c| make_constraints(child, c, join_type) }
         end
@@ -236,7 +238,7 @@ module ActiveRecord
 
         def build(associations, base_klass)
           associations.map do |name, right|
-            reflection = find_reflection base_klass, name
+            reflection = name.is_a?(Reflection::AbstractReflection) ? name : find_reflection(base_klass, name)
             reflection.check_validity!
             reflection.check_eager_loadable!
 

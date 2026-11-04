@@ -1,7 +1,5 @@
 # frozen_string_literal: true
 
-# :markup: markdown
-
 module ActionDispatch
   module Http
     module Parameters
@@ -49,6 +47,7 @@ module ActionDispatch
       end
 
       # Returns both GET and POST parameters in a single hash.
+      #: () -> ActiveSupport::HashWithIndifferentAccess
       def parameters
         params = get_header("action_dispatch.request.parameters")
         return params if params

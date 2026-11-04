@@ -1,8 +1,8 @@
-# :markup: markdown
 # frozen_string_literal: true
 
 require "active_support/inspect_backport"
 require "action_dispatch"
+require "concurrent/executor/serialized_execution_delegator"
 
 module ActionCable
   module Server
@@ -20,6 +20,9 @@ module ActionCable
         @server, @env, @coder = server, env, coder
 
         @worker_pool = server.worker_pool
+        # Runs this socket's work on the worker pool's threads, one job at a time,
+        # in the order it was posted.
+        @serial_executor = Concurrent::SerializedExecutionDelegator.new(worker_pool.executor)
         @logger = server.new_tagged_logger { request }
 
         @websocket      = WebSocket.new(env, self, event_loop)
@@ -55,12 +58,17 @@ module ActionCable
       end
 
       # Invoke a method on the connection asynchronously through the pool of thread workers.
+      # Like the connection's commands, these calls run one at a time, in the order they
+      # were made.
       def perform_work(receiver, method, *args)
-        worker_pool.async_invoke(receiver, method, *args, connection: self)
+        worker_pool.async_invoke(receiver, method, *args, connection: self, executor: @serial_executor)
       end
 
+      # Invoke a method on this socket through the pool of thread workers. These calls
+      # run one at a time, in the order they were made, so a client's commands are
+      # handled in the order it sent them.
       def send_async(method, *arguments)
-        worker_pool.async_invoke(self, method, *arguments)
+        worker_pool.async_invoke(self, method, *arguments, executor: @serial_executor)
       end
 
       # The request that initiated the WebSocket connection is available here. This gives access to the environment, cookies, etc.

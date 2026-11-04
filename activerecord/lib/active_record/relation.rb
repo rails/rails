@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+# :markup: rdoc
+
 module ActiveRecord
   # = Active Record \Relation
   class Relation
@@ -58,7 +60,8 @@ module ActiveRecord
                             :with].freeze
 
     SINGLE_VALUE_METHODS = [:limit, :offset, :lock, :readonly, :reordering, :strict_loading,
-                            :reverse_order, :distinct, :create_with, :skip_query_cache].freeze
+                            :reverse_order, :distinct, :create_with, :skip_query_cache,
+                            :with_recursive].freeze
 
     CLAUSE_METHODS = [:where, :having, :from].freeze
     INVALID_METHODS_FOR_UPDATE_AND_DELETE_ALL = [:distinct, :with, :with_recursive].freeze
@@ -506,7 +509,7 @@ module ActiveRecord
             subquery_column = "#{subquery_alias}.collection_cache_key_timestamp"
             arel = query.build_subquery(subquery_alias, select_values % subquery_column)
           else
-            query = collection.unscope(:order)
+            query = collection.except(:order, :default_order)
             query.select_values = [select_values % column]
             arel = query.arel
           end
@@ -607,7 +610,7 @@ module ActiveRecord
 
       invalid_methods = INVALID_METHODS_FOR_UPDATE_AND_DELETE_ALL.select do |method|
         value = @values[method]
-        method == :distinct ? value : value&.any?
+        Array === value ? value.any? : value
       end
       if invalid_methods.any?
         ActiveRecord.deprecator.warn <<~MESSAGE
@@ -639,7 +642,7 @@ module ActiveRecord
     end
 
     def update(id = :all, attributes) # :nodoc:
-      if update_multiple_ids?(id)
+      if model.primary_key_definition.expects_multiple_ids?(id)
         if id.any?(ActiveRecord::Base)
           raise ArgumentError,
             "You are passing an array of ActiveRecord::Base instances to `update`. " \
@@ -663,7 +666,7 @@ module ActiveRecord
     end
 
     def update!(id = :all, attributes) # :nodoc:
-      if update_multiple_ids?(id)
+      if model.primary_key_definition.expects_multiple_ids?(id)
         if id.any?(ActiveRecord::Base)
           raise ArgumentError,
             "You are passing an array of ActiveRecord::Base instances to `update!`. " \
@@ -913,9 +916,9 @@ module ActiveRecord
     # Active Record's schema_cache.
     #
     # [:on_duplicate]
-    #   Configure the behavior that will be used in case of conflict. Use `:skip`
+    #   Configure the behavior that will be used in case of conflict. Use +:skip+
     #   to ignore any conflicts or provide a safe SQL fragment wrapped with
-    #   `Arel.sql`.
+    #   +Arel.sql+.
     #
     #   NOTE: If you use this option you must provide all the columns you want to update
     #   by yourself.
@@ -1080,7 +1083,7 @@ module ActiveRecord
 
       invalid_methods = INVALID_METHODS_FOR_UPDATE_AND_DELETE_ALL.select do |method|
         value = @values[method]
-        method == :distinct ? value : value&.any?
+        Array === value ? value.any? : value
       end
       if invalid_methods.any?
         raise ActiveRecordError.new("delete_all doesn't support #{invalid_methods.join(', ')}")
@@ -1330,6 +1333,7 @@ module ActiveRecord
     end
 
     # Returns true if relation is blank.
+    #: () -> bool
     def blank?
       records.blank?
     end
@@ -1340,6 +1344,11 @@ module ActiveRecord
 
     def values # :nodoc:
       @values.dup
+    end
+
+    # Like #values, but without the copy. The caller must not mutate it.
+    def values_for_merge # :nodoc:
+      @values
     end
 
     def values_for_queries # :nodoc:
@@ -1363,7 +1372,7 @@ module ActiveRecord
       limit_value || offset_value
     end
 
-    def alias_tracker(joins = [], aliases = nil) # :nodoc:
+    def alias_tracker(joins = FROZEN_EMPTY_ARRAY, aliases = nil) # :nodoc:
       ActiveRecord::Associations::AliasTracker.create(model.connection_pool, table.name, joins, aliases)
     end
 
@@ -1379,7 +1388,7 @@ module ActiveRecord
 
     def preload_associations(records) # :nodoc:
       preload = preload_values
-      preload += includes_values unless eager_loading?
+      preload += includes_values unless includes_values.empty? || eager_loading?
       scope = strict_loading_value ? StrictLoadingScope : nil
       preload.each do |associations|
         ActiveRecord::Associations::Preloader.new(records: records, associations: associations, scope: scope).call
@@ -1393,17 +1402,6 @@ module ActiveRecord
       end
 
     private
-      # +update+/+update!+ accept either a single id or an array of ids. For a
-      # composite primary key a single id is itself an array, so an array of
-      # ids is an array of arrays, mirroring how +#destroy+ tells the two apart.
-      def update_multiple_ids?(id)
-        if model.composite_primary_key?
-          id.is_a?(Array) && (id.empty? || id.first.is_a?(Array))
-        else
-          id.is_a?(Array)
-        end
-      end
-
       def already_in_scope?(registry)
         @delegate_to_model && registry.current_scope(model, true)
       end
@@ -1520,7 +1518,7 @@ module ActiveRecord
             end
           else
             model.with_connection do |c|
-              model._query_by_sql(c, arel, async: async)
+              model._query_by_sql(c, arel, FROZEN_EMPTY_ARRAY, async: async)
             end
           end
         end
@@ -1570,7 +1568,10 @@ module ActiveRecord
       end
 
       def limited_count
-        limit_value ? count : limit(2).count
+        result = limit_value ? count(:all) : limit(2).count(:all)
+        # A grouped count returns a hash with one entry per group, and each
+        # group is one record of the relation.
+        result.is_a?(Hash) ? result.size : result
       end
   end
 end

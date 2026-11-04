@@ -1100,6 +1100,61 @@ class InversePolymorphicBelongsToTests < ActiveRecord::TestCase
     assert_raise(ActiveRecord::InverseOfAssociationNotFoundError) { Face.first.puzzled_polymorphic_human = Human.first }
   end
 
+  def test_loading_an_inverse_without_selecting_the_polymorphic_type
+    human = humans(:gordon)
+
+    face = human.polymorphic_face_with_partial_select
+
+    assert_not face.has_attribute?(:polymorphic_human_type)
+    assert_no_queries { assert_same human, face.polymorphic_human }
+  end
+
+  def test_preloading_an_inverse_without_selecting_the_polymorphic_type
+    human = Human.where(id: humans(:gordon).id).preload(:polymorphic_face_with_partial_select).first
+    face = human.polymorphic_face_with_partial_select
+
+    assert_not face.has_attribute?(:description)
+    assert_equal Human.polymorphic_name, face.polymorphic_human_type
+    assert_no_queries { assert_same human, face.polymorphic_human }
+  end
+
+  def test_replacing_an_inverse_without_selecting_the_polymorphic_type
+    human = humans(:gordon)
+    old_face = human.polymorphic_face_with_partial_select
+
+    human.polymorphic_face_with_partial_select = Face.new
+
+    assert_nil old_face.polymorphic_human
+    face = faces(:confused).reload
+    assert_nil face.polymorphic_human_id
+    assert_nil face.polymorphic_human_type
+  end
+
+  def test_changing_the_type_of_an_inverse_loaded_without_it_to_a_missing_class_raises
+    face = humans(:gordon).polymorphic_face_with_partial_select
+
+    face.polymorphic_human_type = "MissingCachedInverseClass"
+
+    assert_raises(NameError, match: /uninitialized constant MissingCachedInverseClass/) { face.polymorphic_human }
+  end
+
+  def test_changing_the_type_of_a_cached_nil_polymorphic_association_to_a_missing_class_raises
+    face = Face.new
+    assert_nil face.polymorphic_human
+
+    face.polymorphic_human_type = "MissingCachedInverseClass"
+
+    assert_raises(NameError, match: /uninitialized constant MissingCachedInverseClass/) { face.polymorphic_human }
+  end
+
+  def test_changing_the_type_of_a_cached_unsaved_polymorphic_target_to_a_missing_class_raises
+    face = Face.new(polymorphic_human: Human.new)
+
+    face.polymorphic_human_type = "MissingCachedInverseClass"
+
+    assert_raises(NameError, match: /uninitialized constant MissingCachedInverseClass/) { face.polymorphic_human }
+  end
+
   def test_trying_to_set_polymorphic_inverses_that_dont_exist_on_the_instance_being_set_should_raise_an_error
     # passes because Human does have the correct inverse_of
     assert_nothing_raised { Face.first.polymorphic_human = Human.first }

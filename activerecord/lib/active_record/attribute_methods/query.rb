@@ -1,6 +1,5 @@
 # frozen_string_literal: true
 
-# :markup: markdown
 module ActiveRecord
   module AttributeMethods
     # Active Record Attribute Methods \Query
@@ -59,7 +58,7 @@ module ActiveRecord
       end
 
       def _query_attribute(attr_name) # :nodoc:
-        value = self._read_attribute(attr_name.to_s)
+        value = self._read_attribute(attr_name.is_a?(Symbol) ? attr_name.name : attr_name.to_s)
 
         query_cast_attribute(attr_name, value)
       end

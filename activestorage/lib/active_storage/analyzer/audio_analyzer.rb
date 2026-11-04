@@ -1,6 +1,5 @@
 # frozen_string_literal: true
 
-# :markup: markdown
 require "shellwords"
 
 module ActiveStorage
@@ -67,9 +66,12 @@ module ActiveStorage
             "-show_format",
             "-v", "error",
             *Shellwords.split(ActiveStorage.ffprobe_arguments),
+            *ActiveStorage.ffmpeg_format_whitelist_arguments,
             file.path
           ]) do |output|
-            JSON.parse(output.read)
+            JSON.parse(output.read, allow_duplicate_key: true)
+          end.tap do
+            logger.warn "Audio analysis failed because ffprobe exited with status #{$?.exitstatus}. The file may be corrupt, or in a format outside config.active_storage.ffmpeg_allowed_formats." unless $?.success?
           end
         end
       rescue Errno::ENOENT

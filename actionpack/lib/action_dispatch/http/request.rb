@@ -1,7 +1,5 @@
 # frozen_string_literal: true
 
-# :markup: markdown
-
 require "stringio"
 
 require "concurrent/map"
@@ -31,6 +29,7 @@ module ActionDispatch
 
     LOCALHOST = Regexp.union([/^127\.\d{1,3}\.\d{1,3}\.\d{1,3}$/, /^::1$/, /^0:0:0:0:0:0:0:1(%.*)?$/]).freeze
 
+    # Environment keys displayed on exception pages.
     ENV_METHODS = %w[ AUTH_TYPE GATEWAY_INTERFACE
         PATH_TRANSLATED REMOTE_HOST
         REMOTE_IDENT REMOTE_USER REMOTE_ADDR
@@ -44,13 +43,104 @@ module ActionDispatch
         HTTP_X_CSRF_TOKEN HTTP_X_REQUEST_ID HTTP_X_FORWARDED_HOST
         ].freeze
 
-    ENV_METHODS.each do |env|
-      class_eval <<-METHOD, __FILE__, __LINE__ + 1
-        # frozen_string_literal: true
-        def #{env.delete_prefix("HTTP_").downcase}  # def accept_charset
-          get_header "#{env}"                       #   get_header "HTTP_ACCEPT_CHARSET"
-        end                                         # end
-      METHOD
+    def auth_type
+      get_header "AUTH_TYPE"
+    end
+
+    def gateway_interface
+      get_header "GATEWAY_INTERFACE"
+    end
+
+    def path_translated
+      get_header "PATH_TRANSLATED"
+    end
+
+    def remote_host
+      get_header "REMOTE_HOST"
+    end
+
+    def remote_ident
+      get_header "REMOTE_IDENT"
+    end
+
+    def remote_user
+      get_header "REMOTE_USER"
+    end
+
+    def remote_addr
+      get_header "REMOTE_ADDR"
+    end
+
+    def server_name
+      get_header "SERVER_NAME"
+    end
+
+    def server_protocol
+      get_header "SERVER_PROTOCOL"
+    end
+
+    def original_script_name
+      get_header "ORIGINAL_SCRIPT_NAME"
+    end
+
+    def accept
+      get_header "HTTP_ACCEPT"
+    end
+
+    def accept_charset
+      get_header "HTTP_ACCEPT_CHARSET"
+    end
+
+    def accept_encoding
+      get_header "HTTP_ACCEPT_ENCODING"
+    end
+
+    def accept_language
+      get_header "HTTP_ACCEPT_LANGUAGE"
+    end
+
+    def cache_control
+      get_header "HTTP_CACHE_CONTROL"
+    end
+
+    def from
+      get_header "HTTP_FROM"
+    end
+
+    def negotiate
+      get_header "HTTP_NEGOTIATE"
+    end
+
+    def pragma
+      get_header "HTTP_PRAGMA"
+    end
+
+    def client_ip
+      get_header "HTTP_CLIENT_IP"
+    end
+
+    def x_forwarded_for
+      get_header "HTTP_X_FORWARDED_FOR"
+    end
+
+    def origin
+      get_header "HTTP_ORIGIN"
+    end
+
+    def version
+      get_header "HTTP_VERSION"
+    end
+
+    def x_csrf_token
+      get_header "HTTP_X_CSRF_TOKEN"
+    end
+
+    def x_request_id
+      get_header "HTTP_X_REQUEST_ID"
+    end
+
+    def x_forwarded_host
+      get_header "HTTP_X_FORWARDED_HOST"
     end
 
     TRANSFER_ENCODING = "HTTP_TRANSFER_ENCODING" # :nodoc:
@@ -122,6 +212,7 @@ module ActionDispatch
     # Returns true if the request has a header matching the given key parameter.
     #
     #     request.key? :ip_spoofing_check # => true
+    #: (String | Symbol) -> bool
     def key?(key)
       has_header? key
     end
@@ -251,6 +342,7 @@ module ActionDispatch
     # Provides access to the request's HTTP headers, for example:
     #
     #     request.headers["Content-Type"] # => "text/plain"
+    #: () -> ActionDispatch::Http::Headers
     def headers
       @headers ||= Http::Headers.new(self)
     end
@@ -279,6 +371,7 @@ module ActionDispatch
     #
     #     # get '/foo?bar'
     #     request.original_fullpath # => '/foo?bar'
+    #: () -> String
     def original_fullpath
       @original_fullpath ||= (get_header("ORIGINAL_FULLPATH") || fullpath)
     end
@@ -290,6 +383,7 @@ module ActionDispatch
     #
     #     # get "/articles?page=2"
     #     request.fullpath # => "/articles?page=2"
+    #: () -> String
     def fullpath
       @fullpath ||= super
     end
@@ -298,6 +392,7 @@ module ActionDispatch
     #
     #     # get "/articles?page=2"
     #     request.original_url # => "http://www.example.com/articles?page=2"
+    #: () -> String
     def original_url
       base_url + original_fullpath
     end
@@ -306,11 +401,13 @@ module ActionDispatch
     #
     #     # post "/articles", params: { title: "Rails" }
     #     request.media_type # => "application/x-www-form-urlencoded"
+    #: () -> String?
     def media_type
       content_mime_type&.to_s
     end
 
     # Returns the content length of the request as an integer.
+    #: () -> Integer
     def content_length
       return raw_post.bytesize if has_header?(TRANSFER_ENCODING)
       super.to_i
@@ -325,12 +422,14 @@ module ActionDispatch
     alias :xhr? :xml_http_request?
 
     # Returns the IP address of client as a `String`.
+    #: () -> String?
     def ip
       @ip ||= super
     end
 
     # Returns the IP address of client as a `String`, usually set by the RemoteIp
     # middleware.
+    #: () -> String
     def remote_ip
       @remote_ip ||= (get_header("action_dispatch.remote_ip") || ip).to_s
     end
@@ -350,6 +449,7 @@ module ActionDispatch
     # This unique ID is useful for tracing a request from end-to-end as part of
     # logging or debugging. This relies on the Rack variable set by the
     # ActionDispatch::RequestId middleware.
+    #: () -> String?
     def request_id
       get_header ACTION_DISPATCH_REQUEST_ID
     end
@@ -503,6 +603,7 @@ module ActionDispatch
     end
 
     # True if the request came from localhost, 127.0.0.1, or ::1.
+    #: () -> bool
     def local?
       LOCALHOST.match?(remote_addr) && LOCALHOST.match?(remote_ip)
     end

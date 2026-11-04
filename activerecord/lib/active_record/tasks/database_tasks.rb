@@ -6,7 +6,8 @@ module ActiveRecord
   module Tasks # :nodoc:
     class DatabaseNotSupported < StandardError; end # :nodoc:
 
-    # = Active Record \DatabaseTasks
+    # Active Record \DatabaseTasks
+    # ============================
     #
     # ActiveRecord::Tasks::DatabaseTasks is a utility class, which encapsulates
     # logic behind common tasks used to manage database and migrations.
@@ -21,32 +22,37 @@ module ActiveRecord
     #
     # The possible config values are:
     #
-    # * +env+: current environment (like Rails.env).
-    # * +database_configuration+: configuration of your databases (as in +config/database.yml+).
-    # * +db_dir+: your +db+ directory.
-    # * +fixtures_path+: a path to fixtures directory.
-    # * +migrations_paths+: a list of paths to directories with migrations.
-    # * +seed_loader+: an object which will load seeds, it needs to respond to the +load_seed+ method.
-    # * +root+: a path to the root of the application.
+    # * `env`: current environment (like Rails.env).
+    # * `database_configuration`: configuration of your databases (as in `config/database.yml`).
+    # * `db_dir`: your `db` directory.
+    # * `fixtures_path`: a path to fixtures directory.
+    # * `migrations_paths`: a list of paths to directories with migrations.
+    # * `seed_loader`: an object which will load seeds, it needs to respond to the `load_seed` method.
+    # * `root`: a path to the root of the application.
     #
     # Example usage of DatabaseTasks outside \Rails could look as such:
     #
-    #   include ActiveRecord::Tasks
-    #   DatabaseTasks.database_configuration = YAML.load_file('my_database_config.yml')
-    #   DatabaseTasks.db_dir = 'db'
-    #   # other settings...
+    # ```
+    # include ActiveRecord::Tasks
+    # DatabaseTasks.database_configuration = YAML.load_file('my_database_config.yml')
+    # DatabaseTasks.db_dir = 'db'
+    # # other settings...
     #
-    #   DatabaseTasks.create_current('production')
+    # DatabaseTasks.create_current('production')
+    # ```
     module DatabaseTasks
       ##
       # :singleton-method:
       # Extra flags passed to database CLI tool (mysqldump/pg_dump) when calling db:schema:dump
       # It can be used as a string/array (the typical case) or a hash (when you use multiple adapters)
       # Example:
-      #   ActiveRecord::Tasks::DatabaseTasks.structure_dump_flags = {
-      #     mysql2: ['--no-defaults', '--skip-add-drop-table'],
-      #     postgresql: '--no-tablespaces'
-      #   }
+      #
+      # ```
+      # ActiveRecord::Tasks::DatabaseTasks.structure_dump_flags = {
+      #   mysql2: ['--no-defaults', '--skip-add-drop-table'],
+      #   postgresql: '--no-tablespaces'
+      # }
+      # ```
       mattr_accessor :structure_dump_flags, instance_accessor: false
 
       ##
@@ -522,8 +528,11 @@ module ActiveRecord
 
       # Dumps the schema cache in YAML format for the connection into the file
       #
-      # ==== Examples
-      #   ActiveRecord::Tasks::DatabaseTasks.dump_schema_cache(ActiveRecord::Base.lease_connection, "tmp/schema_dump.yaml")
+      # #### Examples
+      #
+      # ```
+      # ActiveRecord::Tasks::DatabaseTasks.dump_schema_cache(ActiveRecord::Base.lease_connection, "tmp/schema_dump.yaml")
+      # ```
       def dump_schema_cache(conn_or_pool, filename)
         conn_or_pool.schema_cache.dump_to(filename)
       end

@@ -42,7 +42,7 @@ Some of these modules are explained below.
 
 [`ActiveModel::API`](https://api.rubyonrails.org/classes/ActiveModel/API.html)
 adds the ability for a class to work with [Action
-Pack](https://api.rubyonrails.org/files/actionpack/README_rdoc.html) and [Action
+Pack](https://api.rubyonrails.org/files/actionpack/README_md.html) and [Action
 View](action_view_overview.html) right out of the box.
 
 When including `ActiveModel::API`, other modules are included by default which
@@ -1437,14 +1437,14 @@ documentation](https://api.rubyonrails.org/classes/ActiveModel/Validations/Class
   with some `:on` option will only run in the specified context. You can pass the
   context when validating via `valid?(:context)`.
 
-- `:if`: Specifies a method, proc or string to call to determine if the
+- `:if`: Specifies a method, proc or lambda to call to determine if the
   validation should occur (e.g. `if: :allow_validation`, or `if: -> {
-  signup_step > 2 }`). The method, proc or string should return or evaluate to a
+  signup_step > 2 }`). The method, proc or lambda should return or evaluate to a
   `true` or `false` value.
 
-- `:unless`: Specifies a method, proc or string to call to determine if the
+- `:unless`: Specifies a method, proc or lambda to call to determine if the
   validation should not occur (e.g. `unless: :skip_validation`, or `unless:
-  Proc.new { |user| user.signup_step <= 2 }`). The method, proc or string should
+  Proc.new { |user| user.signup_step <= 2 }`). The method, proc or lambda should
   return or evaluate to a `true` or `false` value.
 
 - `:allow_nil`: Skip the validation if the attribute is `nil`.

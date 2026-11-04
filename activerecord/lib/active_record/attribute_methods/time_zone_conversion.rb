@@ -1,6 +1,5 @@
 # frozen_string_literal: true
 
-# :markup: markdown
 require "active_support/core_ext/object/try"
 
 module ActiveRecord
@@ -10,7 +9,10 @@ module ActiveRecord
         include Type::QueryPredicates::Decorator
 
         def self.new(subtype)
-          self === subtype ? subtype : super
+          return subtype if self === subtype
+
+          converter = super
+          converter.instance_of?(TimeZoneConverter) && subtype.frozen? ? converter.freeze : converter
         end
 
         def subtype

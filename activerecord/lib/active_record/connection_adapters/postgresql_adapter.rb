@@ -1,6 +1,5 @@
 # frozen_string_literal: true
 
-# :markup: markdown
 gem "pg", "~> 1.1"
 require "pg"
 
@@ -234,7 +233,6 @@ module ActiveRecord
         super.merge(
           supports_close_prepared?: supports_close_prepared?,
           supports_force_drop_database?: supports_force_drop_database?,
-          supports_identity_columns?: supports_identity_columns?,
           supports_insert_on_conflict?: supports_insert_on_conflict?,
         )
       end
@@ -334,18 +332,9 @@ module ActiveRecord
         database_version >= 12_00_00 # >= 12.0
       end
 
-      def supports_identity_columns? # :nodoc:
-        true
-      end
-
       def supports_nulls_not_distinct?
         database_version >= 15_00_00 # >= 15.0
       end
-
-      def supports_native_partitioning? # :nodoc:
-        true
-      end
-      deprecate :supports_native_partitioning?, deprecator: ActiveRecord.deprecator
 
       if PG::Connection.method_defined?(:close_prepared) # pg 1.6.0 & libpq 17
         def supports_close_prepared? # :nodoc:
@@ -983,6 +972,10 @@ module ActiveRecord
         QUERY_CANCELED        = "57014"
 
         def translate_exception(exception, message:, sql:, binds:)
+          if exception.is_a?(ArgumentError) && exception.message.include?("string contains null byte")
+            return NullByteError.new(message, sql: sql, binds: binds, connection_pool: @pool)
+          end
+
           return exception unless exception.respond_to?(:result)
 
           case exception.result.try(:error_field, PG::PG_DIAG_SQLSTATE)
@@ -1051,7 +1044,11 @@ module ActiveRecord
         def get_oid_type(oid, fmod, column_name, sql_type = "")
           load_additional_types([oid]) unless type_map.key?(oid)
 
-          type_map.fetch(oid, fmod, sql_type) { register_unknown_oid_type(oid, column_name) }
+          if sql_type.empty?
+            type_map.fetch_result_type(oid, fmod) { register_unknown_oid_type(oid, column_name) }
+          else
+            type_map.fetch(oid, fmod, sql_type) { register_unknown_oid_type(oid, column_name) }
+          end
         end
 
         def load_additional_types(oids)
@@ -1310,7 +1307,7 @@ module ActiveRecord
               SELECT a.attname, format_type(a.atttypid, a.atttypmod),
                      pg_get_expr(d.adbin, d.adrelid), a.attnotnull, a.atttypid, a.atttypmod,
                      c.collname, col_description(a.attrelid, a.attnum) AS comment,
-                     #{supports_identity_columns? ? 'attidentity' : quote('')} AS identity,
+                     a.attidentity AS identity,
                      #{supports_virtual_columns? ? 'attgenerated' : quote('')} as attgenerated
                 FROM pg_attribute a
                 LEFT JOIN pg_attrdef d ON a.attrelid = d.adrelid AND a.attnum = d.adnum
@@ -1328,7 +1325,7 @@ module ActiveRecord
               SELECT a.attname, format_type(a.atttypid, a.atttypmod),
                      pg_get_expr(d.adbin, d.adrelid), a.attnotnull, a.atttypid, a.atttypmod,
                      c.collname, col_description(a.attrelid, a.attnum) AS comment,
-                     #{supports_identity_columns? ? 'attidentity' : quote('')} AS identity,
+                     a.attidentity AS identity,
                      #{supports_virtual_columns? ? 'attgenerated' : quote('')} as attgenerated,
                      r.relname
               FROM (

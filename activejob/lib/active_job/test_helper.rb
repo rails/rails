@@ -160,6 +160,7 @@ module ActiveJob
     #   end
     # end
     # ```
+    #: (Integer, ?only: untyped, ?except: untyped, ?queue: (String | Symbol)?) ?{ () -> void } -> true
     def assert_enqueued_jobs(number, only: nil, except: nil, queue: nil, &block)
       require_active_job_test_adapter!("assert_enqueued_jobs")
 
@@ -236,6 +237,7 @@ module ActiveJob
     # ```
     # assert_enqueued_jobs 0, &block
     # ```
+    #: (?only: untyped, ?except: untyped, ?queue: (String | Symbol)?) ?{ () -> void } -> true
     def assert_no_enqueued_jobs(only: nil, except: nil, queue: nil, &block)
       require_active_job_test_adapter!("assert_no_enqueued_jobs")
 
@@ -342,6 +344,7 @@ module ActiveJob
     #   end
     # end
     # ```
+    #: (Integer, ?only: untyped, ?except: untyped, ?queue: (String | Symbol)?) ?{ () -> void } -> true
     def assert_performed_jobs(number, only: nil, except: nil, queue: nil, &block)
       require_active_job_test_adapter!("assert_performed_jobs")
 
@@ -424,6 +427,7 @@ module ActiveJob
     # ```
     # assert_performed_jobs 0, &block
     # ```
+    #: (?only: untyped, ?except: untyped, ?queue: (String | Symbol)?) ?{ () -> void } -> true
     def assert_no_performed_jobs(only: nil, except: nil, queue: nil, &block)
       require_active_job_test_adapter!("assert_no_performed_jobs")
 
@@ -690,6 +694,7 @@ module ActiveJob
     #
     # If queue_adapter_for_test is overridden to return a different adapter,
     # `perform_enqueued_jobs` will merely execute the block.
+    #: [Block] (?only: untyped, ?except: untyped, ?queue: (String | Symbol)?, ?at: untyped) ?{ () -> Block } -> (Integer | Block)
     def perform_enqueued_jobs(only: nil, except: nil, queue: nil, at: nil, &block)
       unless block_given?
         require_active_job_test_adapter!("perform_enqueued_jobs (without a block)")

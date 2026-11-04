@@ -1,4 +1,3 @@
-# :markup: markdown
 # frozen_string_literal: true
 
 require "concurrent/map"
@@ -245,7 +244,7 @@ module ActiveSupport
 
       class EventObjectGroup < BaseGroup # :nodoc:
         def start(name, id, payload)
-          @event = build_event(name, id, payload)
+          @event = build_event(name, id)
           @event.start!
         end
 
@@ -259,8 +258,8 @@ module ActiveSupport
         end
 
         private
-          def build_event(name, id, payload)
-            ActiveSupport::Notifications::Event.new name, nil, nil, id, payload
+          def build_event(name, id)
+            ActiveSupport::Notifications::Event.new name, nil, nil, id, nil
           end
       end
 
@@ -370,14 +369,15 @@ module ActiveSupport
       include FanoutIteration
 
       def build_handle(name, id, payload)
-        groups = groups_for(name).map do |group_klass, grouped_listeners|
-          group_klass.new(grouped_listeners, name, id, payload)
-        end
+        groups = groups_for(name)
 
         if groups.empty?
           NullHandle
         else
-          Handle.new(name, id, groups, payload)
+          instances = groups.map do |group_klass, grouped_listeners|
+            group_klass.new(grouped_listeners, name, id, payload)
+          end
+          Handle.new(name, id, instances, payload)
         end
       end
 

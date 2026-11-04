@@ -55,7 +55,7 @@ module Rails
         ActiveSupport.on_load(:before_configuration, yield: true, &block)
       end
 
-      # Third configurable block to run. Does not run if +config.eager_load+
+      # Third configurable block to run. Does not run if `config.eager_load`
       # set to false.
       def before_eager_load(&block)
         ActiveSupport.on_load(:before_eager_load, yield: true, &block)
@@ -83,6 +83,7 @@ module Rails
 
       # Defines generic callbacks to run before #after_initialize. Useful for
       # Rails::Railtie subclasses.
+      #: () ?{ () [self: ActiveSupport::Reloader] -> void } -> void
       def to_prepare(&blk)
         to_prepare_blocks << blk if blk
       end

@@ -24,7 +24,7 @@ module ActiveRecord
       # "Current" is an alias for `ActiveRecord::Migration`, it represents the current Rails version.
       # New migration functionality that will never be backward compatible should be added directly to `ActiveRecord::Migration`.
       #
-      # There are classes for each prior Rails version. Each class descends from the *next* Rails version, so:
+      # There are classes for each prior Rails version. Each class descends from the **next** Rails version, so:
       # 5.2 < 6.0 < 6.1 < 7.0 < 7.1 < 7.2 < 8.0 < 8.1 < 8.2
       #
       # If you are introducing new migration functionality that should only apply from Rails 7 onward, then you should

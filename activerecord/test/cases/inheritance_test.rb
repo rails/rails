@@ -44,6 +44,10 @@ class InheritanceTest < ActiveRecord::TestCase
     end
   end
 
+  def test_class_clone_accepts_freeze_option
+    assert_not_predicate Company.clone(freeze: false), :frozen?
+  end
+
   def test_class_with_blank_sti_name
     company = Company.first
     company = company.dup

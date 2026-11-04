@@ -1,6 +1,5 @@
 # frozen_string_literal: true
 
-# :markup: markdown
 module ActionMailer
   # Returns the currently loaded version of Action Mailer as a `Gem::Version`.
   def self.gem_version

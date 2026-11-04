@@ -1,6 +1,5 @@
 # frozen_string_literal: true
 
-# :markup: markdown
 require "active_record/connection_adapters/abstract_adapter"
 require "active_record/connection_adapters/statement_pool"
 require "active_record/connection_adapters/sqlite3/column"
@@ -434,7 +433,7 @@ module ActiveRecord
         default = extract_new_default_value(default_or_changes)
 
         alter_table(table_name) do |definition|
-          definition[column_name].default = default
+          definition[column_name].options[:default] = default
         end
       end
 
@@ -445,7 +444,7 @@ module ActiveRecord
           query_command("UPDATE #{quote_table_name(table_name)} SET #{quote_column_name(column_name)}=#{quote(default)} WHERE #{quote_column_name(column_name)} IS NULL")
         end
         alter_table(table_name) do |definition|
-          definition[column_name].null = null
+          definition[column_name].options[:null] = null
         end
       end
 

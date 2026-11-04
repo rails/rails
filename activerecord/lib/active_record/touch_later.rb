@@ -1,7 +1,8 @@
 # frozen_string_literal: true
 
 module ActiveRecord
-  # = Active Record Touch Later
+  # Active Record Touch Later
+  # =========================
   module TouchLater # :nodoc:
     def before_committed!
       touch_deferred_attributes if has_defer_touch_attrs? && persisted?

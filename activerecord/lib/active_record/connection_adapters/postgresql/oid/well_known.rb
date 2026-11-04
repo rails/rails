@@ -1,6 +1,5 @@
 # frozen_string_literal: true
 
-# :markup: markdown
 require "active_record/connection_adapters/postgresql/oid/well_known_values"
 
 module ActiveRecord

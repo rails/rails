@@ -1,6 +1,5 @@
 # frozen_string_literal: true
 
-# :markup: markdown
 require "active_support/inflector"
 
 module ActiveRecord
@@ -246,7 +245,7 @@ module ActiveRecord
         other
       end
 
-      def initialize_clone(other) # :nodoc:
+      def initialize_clone(...) # :nodoc:
         super
         set_base_class
       end

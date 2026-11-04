@@ -72,6 +72,7 @@ Below are the default values associated with each target version. In cases of co
 - [`config.active_record.postgresql_adapter_decode_money`](#config-active-record-postgresql-adapter-decode-money): `true`
 - [`config.active_storage.analyze`](#config-active-storage-analyze): `:immediately`
 - [`config.active_storage.s3_public_uploads_via_acl`](#config-active-storage-s3-public-uploads-via-acl): `false`
+- [`config.active_support.message_serializer`](#config-active-support-message-serializer): `:json`
 
 #### Default Values for Target Version 8.1
 
@@ -817,7 +818,7 @@ You can exclude certain requests from Host Authorization checks by setting
 ```ruby
 # Exclude requests for the /healthcheck/ path from host checking
 Rails.application.config.host_authorization = {
-  exclude: ->(request) { request.path.include?("healthcheck") }
+  exclude: ->(request) { request.path.start_with?("/healthcheck") }
 }
 ```
 
@@ -877,6 +878,8 @@ Makes a unique X-Request-Id header available to the response and enables the `Ac
 #### `ActionDispatch::RemoteIp`
 
 Checks for IP spoofing attacks and gets valid `client_ip` from request headers. Configurable with the `config.action_dispatch.ip_spoofing_check`, and `config.action_dispatch.trusted_proxies` options.
+
+The client address is read from the RFC 7239 `Forwarded` header, the `X-Forwarded-For` header, or the `Client-Ip` header. Make sure your proxies strip or overwrite any of these headers they do not manage themselves. When `ip_spoofing_check` is enabled (the default), requests carrying conflicting client addresses in these headers raise `ActionDispatch::RemoteIp::IpSpoofAttackError`.
 
 #### `Rack::Sendfile`
 
@@ -1754,6 +1757,30 @@ Defaults to `false`. Allows applications to opt into using `unsafe_load` on the 
 Defaults to `true`. Determines whether to raise an exception or not when
 the PostgreSQL adapter is provided an integer that is wider than signed
 64bit representation.
+
+#### `config.active_record.immutable_strings_by_default`
+
+Determines whether string columns cast their values to frozen strings. Defaults
+to `false`.
+
+Freezing lets Active Record skip the copy and the comparison that dirty tracking
+otherwise needs in order to detect in-place mutation of a string. In exchange,
+strings read from the database can no longer be mutated in place:
+
+```ruby
+book = Book.create!(title: "Hello")
+book.title.frozen?         # => true
+book.title << " world"     # raises FrozenError
+book.title = "Hello world" # assign a new string instead
+```
+
+It can also be enabled per model:
+
+```ruby
+class Book < ApplicationRecord
+  self.immutable_strings_by_default = true
+end
+```
 
 #### `config.active_record.generate_secure_token_on`
 
@@ -3244,6 +3271,7 @@ The default value depends on the `config.load_defaults` target version:
 | --------------------- | -------------------- |
 | (original)            | `:marshal`           |
 | 7.1                   | `:json_allow_marshal` |
+| 8.2                   | `:json`               |
 
 [`ActiveSupport::MessageEncryptor`]: https://api.rubyonrails.org/classes/ActiveSupport/MessageEncryptor.html
 [`ActiveSupport::MessageVerifier`]: https://api.rubyonrails.org/classes/ActiveSupport/MessageVerifier.html
@@ -3911,6 +3939,27 @@ audio. Applies to both `ActiveStorage::Analyzer::VideoAnalyzer` and
 file will fail that file's analysis.
 
 The default value is `""`.
+
+See [Media Processing of File Uploads](security.html#media-processing-of-file-uploads)
+in the Security Guide.
+
+#### `config.active_storage.ffmpeg_allowed_formats`
+
+The ffmpeg demuxers that ffmpeg and ffprobe may use to open a file when
+generating video previews and analyzing videos and audio. Active Storage passes
+them as `-format_whitelist` before the input, after any
+`video_preview_input_arguments` or `ffprobe_arguments`, so a file in any other
+format fails to preview and yields no metadata. Names match `ffmpeg -demuxers`, and
+any one name admits a demuxer that registers several, so `mov` also admits
+MP4, M4A and 3GP files.
+
+Set this to `nil` to let ffmpeg choose any demuxer it was built with.
+Setting it to `nil`, or adding `hls`, lets ffprobe follow the segments of a
+playlist an upload names, such as an `.m3u` file declared `audio/x-mpegurl`,
+whose extension `ActiveStorage::Blob#open` keeps.
+
+The default value is
+`%w[ mov matroska avi mpeg mpegts flv asf ogg mp3 wav flac aac aiff caf ]`.
 
 See [Media Processing of File Uploads](security.html#media-processing-of-file-uploads)
 in the Security Guide.

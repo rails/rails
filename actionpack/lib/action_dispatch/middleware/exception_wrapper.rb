@@ -1,7 +1,5 @@
 # frozen_string_literal: true
 
-# :markup: markdown
-
 require "active_support/core_ext/module/attribute_accessors"
 require "active_support/syntax_error_proxy"
 require "active_support/core_ext/thread/backtrace/location"

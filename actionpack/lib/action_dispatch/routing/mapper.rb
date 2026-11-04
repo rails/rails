@@ -1,7 +1,5 @@
 # frozen_string_literal: true
 
-# :markup: markdown
-
 require "active_support/core_ext/hash/slice"
 require "active_support/core_ext/enumerable"
 require "active_support/core_ext/array/extract_options"
@@ -266,9 +264,10 @@ module ActionDispatch
             when Regexp
               { requirements: { format: formatted },
                 defaults:     { format: nil } }
-            when String
-              { requirements: { format: Regexp.compile(formatted) },
-                defaults:     { format: formatted } }
+            when String, Symbol
+              format = formatted.to_s
+              { requirements: { format: Regexp.compile(format) },
+                defaults:     { format: format } }
             else
               { requirements: {}, defaults: {} }
             end
@@ -1719,6 +1718,7 @@ module ActionDispatch
         # This will enable Rails to recognize paths such as `/photos/search` with GET,
         # and route to the search action of `PhotosController`. It will also create the
         # `search_photos_url` and `search_photos_path` route helpers.
+        #: [T] () { () -> T } -> T
         def collection(&block)
           unless resource_scope?
             raise ArgumentError, "can't use collection outside resource(s) scope"
@@ -1740,6 +1740,7 @@ module ActionDispatch
         # This will recognize `/photos/1/preview` with GET, and route to the preview
         # action of `PhotosController`. It will also create the `preview_photo_url` and
         # `preview_photo_path` helpers.
+        #: [T] () { () -> T } -> T
         def member(&block)
           unless resource_scope?
             raise ArgumentError, "can't use member outside resource(s) scope"
@@ -1802,6 +1803,7 @@ module ActionDispatch
           @scope = @scope.parent
         end
 
+        #: () -> bool?
         def shallow?
           !parent_resource.singleton? && @scope[:shallow]
         end

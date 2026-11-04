@@ -1,6 +1,5 @@
 # frozen_string_literal: true
 
-# :markup: markdown
 module ActionDispatch
   module TestHelpers
     module PageDumpHelper

@@ -1,6 +1,5 @@
 # frozen_string_literal: true
 
-# :markup: markdown
 require "action_view/view_paths"
 require "active_support/core_ext/module/attr_internal"
 
@@ -182,7 +181,7 @@ module ActionView
           options[:partial] = action_name
         end
 
-        if !options.keys.intersect?([:partial, :file, :template])
+        if !(options.key?(:partial) || options.key?(:file) || options.key?(:template))
           options[:prefixes] ||= _prefixes
         end
 

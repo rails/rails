@@ -9,6 +9,150 @@
 
     *Pim Vermeyden*
 
+*   Apply `config.action_dispatch.cookies_same_site_protection` to every session
+    store.
+
+    `ActionDispatch::Session::CacheStore`, `MemCacheStore` and third-party
+    stores built on `AbstractStore` or the session mixins sent session cookies
+    with no `SameSite` attribute. Only `CookieStore` applied the configured
+    default.
+
+    [GHSA-gmj8-hvj3-49mw]
+
+    *Jean Boussier*
+
+*   Prevent `ActionController::Live` streams from blocking when a full buffer is
+    closed or aborted.
+
+    [GHSA-rwvh-fw6r-pwvp]
+
+    *Jeremy Daer*
+
+*   Set and extend the `Vary` header for rendered responses according to the
+    request headers used in format negotiation.
+
+    `Vary: Accept` was only added when the request carried a usable `Accept`
+    header. A response to a request without one, negotiated to HTML or
+    JavaScript, could be stored by a shared cache and served to later clients
+    that requested a different representation.
+
+    Responses now vary on `Accept` and `X-Requested-With` whenever the format is
+    not given by the URL. XHR requests without `Accept` also vary on
+    `Content-Type`, which Rails uses as a legacy format fallback. When
+    `config.action_dispatch.ignore_accept_header` is enabled, responses vary
+    only on `X-Requested-With`.
+
+    These fields are appended to an existing `Vary` value without duplicating
+    fields case-insensitively. `Vary: *` remains unchanged.
+
+    [GHSA-r9jg-fmfx-2gv6]
+
+    *Jeremy Daer*
+
+*   Skip writing a `CacheStore` session that another request deleted while this
+    one ran.
+
+    A request that loaded a session from `ActionDispatch::Session::CacheStore`
+    wrote it back when it finished, even after a concurrent `reset_session` or a
+    server-side delete had removed it, so the old session ID worked again.
+
+    [GHSA-2586-8ghr-69fj]
+
+    *Mike Dalessio*
+
+*   Don't write upgraded cookies to a response that skips the session.
+
+    Reading a signed or encrypted cookie written under a rotated secret, or in
+    the format a `:hybrid` serializer migrates from, writes it back in the
+    current format. That write ignored `request.session_options[:skip]`, so a
+    response that skips the session, such as the Active Storage proxy's
+    public, cacheable response, could still carry the session cookie in
+    `Set-Cookie`. Such a response now leaves the cookie unchanged, and a later
+    request that does not skip the session upgrades it. An application that
+    skips the session on every request no longer upgrades its signed or
+    encrypted cookies. Cookies the application sets are still written.
+
+    [GHSA-x6mj-8jx9-qhqv]
+
+    *Mike Dalessio*
+
+*   Detect conflicts between the `Forwarded` and `X-Forwarded-For` headers in
+    `ActionDispatch::RemoteIp`.
+
+    When `ip_spoofing_check` is enabled (the default), requests carrying both
+    headers with conflicting client addresses now raise
+    `ActionDispatch::RemoteIp::IpSpoofAttackError`.
+
+    [GHSA-2gff-2mmg-m73p]
+
+    *Gannon McGibbon*, *Mike Dalessio*
+
+*   `ActionController::Parameters#each_key` returns `self` when given a block.
+
+    It returned the internal `ActiveSupport::HashWithIndifferentAccess`, which
+    does not respond to `permitted?`, so passing that return value to mass
+    assignment skipped the Strong Parameters check. `each`, `each_pair` and
+    `each_value` already return `self`.
+
+    Document that `ActionController::Parameters#as_json` returns every
+    parameter, permitted or not, in a hash that mass assignment does not check.
+
+    [GHSA-wm3x-v3qw-4jh3]
+
+    *Mike Dalessio*
+
+*   Compute `action_methods` without converting every public instance method to a String.
+
+    Speeds up eager loading for applications whose controllers include the url helpers.
+
+    *Igor Wiedler*
+
+*   Accept a Symbol for the routing `format:` option.
+
+    `format: :json` now sets the same format requirement and `"json"` default as
+    `format: "json"`. `scope format: :json` and `resources ..., format: :json`
+    use the same path.
+
+    *Cestercian*
+
+*   Reset the parsed HTML document after `options` in integration tests.
+
+    `options` was the only request helper that the integration test runner
+    did not define, so it reached the session through `method_missing` and left
+    `html_document` (and so `assert_select`) reading the previous response.
+
+    *Tagami Daiki*
+
+*   Don't render authenticity tokens under the `:header_only` CSRF strategy.
+
+    `:header_only` verifies requests by their `Sec-Fetch-Site` header and never
+    reads a token, yet forms, `button_to` and `csrf_meta_tags` still minted a
+    masked one on every render, and the session stored the token behind it.
+    Under `:header_only` they now render none, so a page's bytes no longer
+    change from one request to the next. A form that posts to a controller still
+    checking tokens can ask for one with `authenticity_token: true`.
+
+    *Sam Ruby*
+
+*   Match URL-decoded query parameter names when filtering request and redirect logs.
+
+    A parameter such as `%70assword` is now matched by a `:password` filter.
+    Preserve the original URL encoding, parameter order, and duplicate keys in
+    the filtered URL. Actual redirect locations are unchanged.
+
+    *Basti*
+
+*   Keep route redirects from a string template on the request host.
+
+    For `redirect("/%{path}")`, the request `GET /old/%2Finjected.example` made
+    the target `//injected.example`, which browsers follow to another host. So did
+    a scheme in a param at the start of the template, as in `redirect("%{path}")`.
+    When interpolation would give the target a scheme or host that the template
+    lacks, the delimiter is now percent-encoded. Templates that name a scheme or
+    host, such as `redirect("//cdn.example.com/%{path}")`, are unchanged.
+
+    *Mike Dalessio*
+
 *   Deprecate the `ssl_default_redirect_status:` argument of `ActionDispatch::SSL`.
 
     As of Rails 6.1, the default status is 308. This deprecates overriding it.

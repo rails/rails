@@ -177,12 +177,150 @@ class RequestIP < BaseRequestTest
     }
     assert_match(/IP spoofing attack/, e.message)
     assert_match(/HTTP_X_FORWARDED_FOR="1\.1\.1\.1"/, e.message)
-    if Rack.release < "3"
-      assert_match(/HTTP_FORWARDED="for=1\.1\.1\.1"/, e.message)
-    else
-      assert_match(/HTTP_FORWARDED="for=2\.2\.2\.2, for=3\.3\.3\.3"/, e.message)
-    end
+    assert_match(/HTTP_FORWARDED="for=2\.2\.2\.2, for=3\.3\.3\.3"/, e.message)
     assert_match(/HTTP_CLIENT_IP="127\.0\.0\.1"/, e.message)
+  end
+
+  test "remote ip spoof detection with conflicting Forwarded and X-Forwarded-For" do
+    request = stub_request "HTTP_FORWARDED"       => "for=9.9.9.9",
+                           "HTTP_X_FORWARDED_FOR" => "3.4.5.6"
+    if Rack.release < "3"
+      # Rack 2 does not read the `Forwarded` header.
+      assert_equal "3.4.5.6", request.remote_ip
+    else
+      e = assert_raise(ActionDispatch::RemoteIp::IpSpoofAttackError) {
+        request.remote_ip
+      }
+      assert_match(/IP spoofing attack/, e.message)
+      assert_match(/HTTP_X_FORWARDED_FOR="3\.4\.5\.6"/, e.message)
+      assert_match(/HTTP_FORWARDED="for=9\.9\.9\.9"/, e.message)
+    end
+  end
+
+  test "remote ip spoof detection with the X-Forwarded-For client listed before a spoofed Forwarded address" do
+    request = stub_request "HTTP_FORWARDED"       => "for=3.4.5.6, for=9.9.9.9",
+                           "HTTP_X_FORWARDED_FOR" => "3.4.5.6"
+    if Rack.release < "3"
+      assert_equal "3.4.5.6", request.remote_ip
+    else
+      assert_raise(ActionDispatch::RemoteIp::IpSpoofAttackError) {
+        request.remote_ip
+      }
+    end
+  end
+
+  test "remote ip spoof detection with conflicting Forwarded and X-Forwarded-For carrying a port" do
+    request = stub_request "HTTP_FORWARDED"       => "for=9.9.9.9",
+                           "HTTP_X_FORWARDED_FOR" => "3.4.5.6:1234"
+    if Rack.release < "3"
+      assert_equal "3.4.5.6", request.remote_ip
+    else
+      assert_raise(ActionDispatch::RemoteIp::IpSpoofAttackError) {
+        request.remote_ip
+      }
+    end
+
+    request = stub_request "HTTP_FORWARDED"       => "for=9.9.9.9",
+                           "HTTP_X_FORWARDED_FOR" => "[2001:db8::1]:443"
+    if Rack.release < "3"
+      assert_equal "2001:db8::1", request.remote_ip
+    else
+      assert_raise(ActionDispatch::RemoteIp::IpSpoofAttackError) {
+        request.remote_ip
+      }
+    end
+  end
+
+  test "remote ip spoof detection with the X-Forwarded-For client spelled differently in Forwarded" do
+    request = stub_request "HTTP_FORWARDED"       => 'for="3.4.5.6/32"',
+                           "HTTP_X_FORWARDED_FOR" => "3.4.5.6"
+    if Rack.release < "3"
+      assert_equal "3.4.5.6", request.remote_ip
+    else
+      assert_raise(ActionDispatch::RemoteIp::IpSpoofAttackError) {
+        request.remote_ip
+      }
+    end
+
+    request = stub_request "HTTP_FORWARDED"       => 'for="[2001:DB8::1]"',
+                           "HTTP_X_FORWARDED_FOR" => "2001:db8::1"
+    if Rack.release < "3"
+      assert_equal "2001:db8::1", request.remote_ip
+    else
+      assert_raise(ActionDispatch::RemoteIp::IpSpoofAttackError) {
+        request.remote_ip
+      }
+    end
+  end
+
+  test "remote ip spoof detection with conflicting Forwarded and X-Forwarded-For when Rack reads only Forwarded" do
+    if Rack.release < "3"
+      request = stub_request "HTTP_FORWARDED"       => "for=9.9.9.9",
+                             "HTTP_X_FORWARDED_FOR" => "3.4.5.6"
+      assert_equal "3.4.5.6", request.remote_ip
+    else
+      original_priority = Rack::Request.forwarded_priority
+      begin
+        Rack::Request.forwarded_priority = [:forwarded]
+        request = stub_request "HTTP_FORWARDED"       => "for=9.9.9.9",
+                               "HTTP_X_FORWARDED_FOR" => "3.4.5.6"
+        assert_raise(ActionDispatch::RemoteIp::IpSpoofAttackError) {
+          request.remote_ip
+        }
+      ensure
+        Rack::Request.forwarded_priority = original_priority
+      end
+    end
+  end
+
+  test "remote ip spoof detection with unparseable Forwarded hiding X-Forwarded-For" do
+    request = stub_request "HTTP_FORWARDED"       => "for=unknown",
+                           "HTTP_X_FORWARDED_FOR" => "3.4.5.6"
+    if Rack.release < "3"
+      assert_equal "3.4.5.6", request.remote_ip
+    else
+      assert_raise(ActionDispatch::RemoteIp::IpSpoofAttackError) {
+        request.remote_ip
+      }
+    end
+  end
+
+  test "remote ip with agreeing Forwarded and X-Forwarded-For" do
+    request = stub_request "HTTP_FORWARDED"       => "for=3.4.5.6;proto=https",
+                           "HTTP_X_FORWARDED_FOR" => "3.4.5.6"
+    assert_equal "3.4.5.6", request.remote_ip
+
+    # Ports are stripped.
+    request = stub_request "HTTP_FORWARDED"       => 'for="3.4.5.6:5555"',
+                           "HTTP_X_FORWARDED_FOR" => "3.4.5.6:1234"
+    assert_equal "3.4.5.6", request.remote_ip
+
+    # Square brackets are also stripped.
+    request = stub_request "HTTP_FORWARDED"       => 'for="[2001:db8::1]"',
+                           "HTTP_X_FORWARDED_FOR" => "2001:db8::1"
+    assert_equal "2001:db8::1", request.remote_ip
+  end
+
+  test "remote ip with Forwarded and trusted-proxy-only X-Forwarded-For" do
+    request = stub_request "HTTP_FORWARDED"       => "for=3.4.5.6",
+                           "HTTP_X_FORWARDED_FOR" => "10.0.0.1",
+                           "REMOTE_ADDR"          => "127.0.0.1"
+    if Rack.release < "3"
+      assert_equal "10.0.0.1", request.remote_ip
+    else
+      assert_equal "3.4.5.6", request.remote_ip
+    end
+  end
+
+  test "remote ip with conflicting Forwarded and X-Forwarded-For and spoof detection disabled" do
+    request = stub_request "HTTP_FORWARDED"       => "for=9.9.9.9",
+                           "HTTP_X_FORWARDED_FOR" => "3.4.5.6",
+                           :ip_spoofing_check     => false
+    if Rack.release < "3"
+      assert_equal "3.4.5.6", request.remote_ip
+    else
+      assert_equal "9.9.9.9", request.remote_ip
+    end
   end
 
   test "remote ip with spoof detection disabled" do
@@ -322,6 +460,44 @@ class RequestIP < BaseRequestTest
 
     request = stub_request "HTTP_X_FORWARDED_FOR" => "2001:0db8:85a3:0000:0000:8a2e:0370:7334, fe80:0000:0000:0000:0202:b3ff:fe1e:8329"
     assert_equal "2001:0db8:85a3:0000:0000:8a2e:0370:7334", request.remote_ip
+  end
+
+  test "remote ip ignores addresses with a netmask" do
+    # Client-Ip and REMOTE_ADDR, as X-Forwarded-For is parsed by Rack, which drops
+    # addresses with a netmask in some versions.
+    {
+      "1.2.3.0/24" => "10.0.0.1",
+      "1.2.3.4/32" => "1.2.3.4/32",
+      "3.4.5.6/31" => "10.0.0.1",
+      "10.0.0.0/8" => "10.0.0.1",
+      "3.4.5.6, 1.2.3.0/24" => "3.4.5.6",
+      "1.2.3.0/24, 3.4.5.6" => "3.4.5.6",
+      "3.4.5.6/32, 10.0.0.2" => "3.4.5.6/32",
+      "2001:db8::/32" => "10.0.0.1",
+      "2001:db8::1/128" => "2001:db8::1/128",
+      "fe80::1%eth0, 2001:db8::/32" => "fe80::1%eth0",
+    }.each do |client_ip, remote_ip|
+      request = stub_request "REMOTE_ADDR" => "10.0.0.1", "HTTP_CLIENT_IP" => client_ip
+      assert_equal remote_ip, request.remote_ip, client_ip
+    end
+
+    {
+      "2001:db8::1/128" => "2001:db8::1/128",
+      "3.4.5.6, 2001:db8::/32" => "3.4.5.6",
+      "2001:db8::2, 2001:db8::1/127" => "2001:db8::2",
+    }.each do |remote_addr, remote_ip|
+      request = stub_request "REMOTE_ADDR" => remote_addr
+      assert_equal remote_ip, request.remote_ip, remote_addr
+    end
+    assert_nil stub_request("REMOTE_ADDR" => "2001:db8::/32").remote_ip
+  end
+
+  test "remote ip is the same when calculated again" do
+    request = stub_request "REMOTE_ADDR" => "10.0.0.1", "HTTP_X_FORWARDED_FOR" => "3.4.5.6, 10.0.0.2"
+    get_ip = ActionDispatch::RemoteIp::GetIp.new(request, true, ActionDispatch::RemoteIp::TRUSTED_PROXIES)
+
+    assert_equal "3.4.5.6", get_ip.calculate_ip
+    assert_equal "3.4.5.6", get_ip.calculate_ip
   end
 
   test "remote ip middleware not present still returns an IP" do
@@ -653,6 +829,16 @@ class RequestHost < BaseRequestTest
     assert_equal "rubyonrails.org", request.host_with_port
   end
 
+  test "ignores blank forwarded hosts" do
+    [",", ",,", ", ,", " , , ", "\t,\t", "forwarded.example,  "].each do |forwarded_host|
+      request = stub_request "HTTP_X_FORWARDED_HOST" => forwarded_host, "HTTP_HOST" => "rubyonrails.org:8080"
+
+      assert_equal "rubyonrails.org:8080", request.raw_host_with_port
+      assert_equal "rubyonrails.org", request.host
+      assert_equal 8080, request.port
+    end
+  end
+
   test "host with port if http standard port is specified" do
     request = stub_request "HTTP_X_FORWARDED_HOST" => "glu.ttono.us:80"
     assert_equal "glu.ttono.us", request.host_with_port
@@ -736,6 +922,16 @@ class RequestCGI < BaseRequestTest
     assert_equal 8007, request.server_port
     assert_equal "HTTP/1.1", request.server_protocol
     assert_equal "lighttpd", request.server_software
+  end
+
+  test "each ENV_METHODS entry has a matching reader" do
+    headers = ActionDispatch::Request::ENV_METHODS.index_with { |name| "value for #{name}" }
+    request = ActionDispatch::Request.new(headers)
+
+    headers.each do |name, value|
+      reader = name.delete_prefix("HTTP_").downcase
+      assert_equal value, request.public_send(reader), "#{reader} should read #{name}"
+    end
   end
 end
 
@@ -1489,6 +1685,57 @@ class RequestParameterFilter < BaseRequestTest
 
     path = request.filtered_path
     assert_equal request.script_name + "/authenticate?username=sikachu&secret=[FILTERED]", path
+  end
+
+  test "filtered_path matches decoded query parameter names" do
+    [
+      ["%70assword", :password],
+      ["%70%61%73%73%77%6f%72%64", /\Apassword\z/],
+      ["user%5B%70assword%5D", :password],
+      ["access+token", "access token"],
+      ["access%20token", "access token"],
+      ["p%C3%A4ssword", "pässword"]
+    ].each do |key, filter|
+      request = stub_request(
+        "QUERY_STRING" => "#{key}=secret&visible=hello%20world&#{key}=another-secret",
+        "PATH_INFO" => "/authenticate",
+        "action_dispatch.parameter_filter" => [filter]
+      )
+
+      assert_equal "/authenticate?#{key}=[FILTERED]&visible=hello%20world&#{key}=[FILTERED]", request.filtered_path
+    end
+  end
+
+  test "filtered_path passes decoded query parameter names to proc filters" do
+    request = stub_request(
+      "QUERY_STRING" => "%70assword=secret&visible=hello%20world",
+      "PATH_INFO" => "/authenticate",
+      "action_dispatch.parameter_filter" => [
+        ->(key, value, original_params) { value.replace("[FILTERED]") if key == "password" && original_params[key] == "secret" }
+      ]
+    )
+
+    assert_equal "/authenticate?%70assword=[FILTERED]&visible=hello%20world", request.filtered_path
+  end
+
+  test "filtered_path decodes query parameter names only once" do
+    request = stub_request(
+      "QUERY_STRING" => "%2570assword=visible&password=secret",
+      "PATH_INFO" => "/authenticate",
+      "action_dispatch.parameter_filter" => [:password]
+    )
+
+    assert_equal "/authenticate?%2570assword=visible&password=[FILTERED]", request.filtered_path
+  end
+
+  test "filtered_path masks values of query parameter names that cannot be decoded" do
+    request = stub_request(
+      "QUERY_STRING" => "%=secret&%GG=secret&%FF=secret&password%=secret&%FFpassword=secret&visible=hello%20world",
+      "PATH_INFO" => "/authenticate",
+      "action_dispatch.parameter_filter" => [:password]
+    )
+
+    assert_equal "/authenticate?%=[FILTERED]&%GG=[FILTERED]&%FF=[FILTERED]&password%=[FILTERED]&%FFpassword=[FILTERED]&visible=hello%20world", request.filtered_path
   end
 
   test "filtered_path should not unescape a genuine '[FILTERED]' value" do

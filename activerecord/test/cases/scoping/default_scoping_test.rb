@@ -839,6 +839,44 @@ class DefaultScopingTest < ActiveRecord::TestCase
     assert_match(/type/, select_sql)
     assert_ractor_shareable model.default_scopes
   end
+
+  def test_scope_attributes_with_a_private_default_scope_override
+    model = model_with_private_default_scope
+
+    assert_includes model.all.to_sql, "alpha"
+    assert model.scope_attributes?
+    assert_equal "alpha", model.new.title
+  end
+
+  def test_find_reevaluates_a_private_default_scope_override
+    model = model_with_private_default_scope
+    alpha = model.unscoped.create!(title: "alpha", body: "")
+    beta = model.unscoped.create!(title: "beta", body: "")
+
+    assert_equal alpha, model.find(alpha.id)
+
+    model.scoped_title = "beta"
+
+    assert_equal beta, model.find(beta.id)
+    assert_raises(ActiveRecord::RecordNotFound) { model.find(alpha.id) }
+    assert_nil model.find_by(id: alpha.id)
+  end
+
+  private
+    def model_with_private_default_scope
+      Class.new(ActiveRecord::Base) do
+        def self.name = "post_with_private_default_scope"
+        self.table_name = "posts"
+
+        singleton_class.attr_accessor :scoped_title
+        self.scoped_title = "alpha"
+
+        def self.default_scope
+          where(title: scoped_title)
+        end
+        private_class_method :default_scope
+      end
+    end
 end
 
 class DefaultScopingWithThreadTest < ActiveRecord::TestCase

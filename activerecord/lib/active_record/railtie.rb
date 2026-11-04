@@ -12,7 +12,8 @@ require "active_model/railtie"
 require "action_controller/railtie"
 
 module ActiveRecord
-  # = Active Record Railtie
+  # Active Record Railtie
+  # =====================
   class Railtie < Rails::Railtie # :nodoc:
     config.active_record = ActiveSupport::OrderedOptions.new
     config.active_record.encryption = ActiveSupport::OrderedOptions.new

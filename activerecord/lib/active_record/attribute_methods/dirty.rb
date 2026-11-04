@@ -1,6 +1,5 @@
 # frozen_string_literal: true
 
-# :markup: markdown
 require "active_support/core_ext/module/attribute_accessors"
 
 module ActiveRecord
@@ -92,6 +91,7 @@ module ActiveRecord
       # :   When specified, this method will return false unless the value will be
       # changed to the given value.
       def saved_change_to_attribute?(attr_name, **options)
+        attr_name = attr_name.name if attr_name.is_a?(Symbol)
         mutations_before_last_save.changed?(attr_name.to_s, **options)
       end
 
@@ -104,6 +104,7 @@ module ActiveRecord
       # invoked as `saved_change_to_name` instead of
       # `saved_change_to_attribute("name")`.
       def saved_change_to_attribute(attr_name)
+        attr_name = attr_name.name if attr_name.is_a?(Symbol)
         mutations_before_last_save.change_to_attribute(attr_name.to_s)
       end
 
@@ -114,15 +115,18 @@ module ActiveRecord
       # invoked as `name_before_last_save` instead of
       # `attribute_before_last_save("name")`.
       def attribute_before_last_save(attr_name)
+        attr_name = attr_name.name if attr_name.is_a?(Symbol)
         mutations_before_last_save.original_value(attr_name.to_s)
       end
 
       # Did the last call to `save` have any changes to change?
+      #: () -> bool
       def saved_changes?
         mutations_before_last_save.any_changes?
       end
 
       # Returns a hash containing all the changes that were just saved.
+      #: () -> (ActiveSupport::HashWithIndifferentAccess | Hash[String, [ untyped, untyped ]])
       def saved_changes
         mutations_before_last_save.changes
       end
@@ -144,6 +148,7 @@ module ActiveRecord
       # :   When specified, this method will return false unless the value will be
       # changed to the given value.
       def will_save_change_to_attribute?(attr_name, **options)
+        attr_name = attr_name.name if attr_name.is_a?(Symbol)
         mutations_from_database.changed?(attr_name.to_s, **options)
       end
 
@@ -158,6 +163,7 @@ module ActiveRecord
       # If the attribute will change, the result will be an array containing the
       # original value and the new value about to be saved.
       def attribute_change_to_be_saved(attr_name)
+        attr_name = attr_name.name if attr_name.is_a?(Symbol)
         mutations_from_database.change_to_attribute(attr_name.to_s)
       end
 
@@ -170,22 +176,26 @@ module ActiveRecord
       # saved. It can be invoked as `name_in_database` instead of
       # `attribute_in_database("name")`.
       def attribute_in_database(attr_name)
+        attr_name = attr_name.name if attr_name.is_a?(Symbol)
         mutations_from_database.original_value(attr_name.to_s)
       end
 
       # Will the next call to `save` have any changes to persist?
+      #: () -> bool
       def has_changes_to_save?
         mutations_from_database.any_changes?
       end
 
       # Returns a hash containing all the changes that will be persisted during
       # the next save.
+      #: () -> ActiveSupport::HashWithIndifferentAccess
       def changes_to_save
         mutations_from_database.changes
       end
 
       # Returns an array of the names of any attributes that will change when
       # the record is next saved.
+      #: () -> Array[String]
       def changed_attribute_names_to_save
         mutations_from_database.changed_attribute_names
       end
@@ -196,6 +206,7 @@ module ActiveRecord
       # The hash keys are the attribute names, and the hash values are the
       # original attribute values in the database (as opposed to the in-memory
       # values about to be saved).
+      #: () -> ActiveSupport::HashWithIndifferentAccess
       def attributes_in_database
         mutations_from_database.changed_values
       end
@@ -259,7 +270,8 @@ module ActiveRecord
             changed_attribute_names_to_save
           else
             attribute_names.reject do |attr_name|
-              if column_for_attribute(attr_name).auto_populated_on_insert?
+              if column_for_attribute(attr_name).auto_populated_on_insert? ||
+                  self.class.counter_cache_column?(attr_name)
                 !attribute_changed?(attr_name)
               end
             end

@@ -1,4 +1,3 @@
-# :markup: markdown
 # frozen_string_literal: true
 
 require "concurrent/map"
@@ -20,6 +19,7 @@ class Object
   # ```
   #
   # @return [true, false]
+  #: () -> bool
   def blank?
     respond_to?(:empty?) ? !!empty? : false
   end
@@ -27,6 +27,7 @@ class Object
   # An object is present if it's not blank.
   #
   # @return [true, false]
+  #: () -> bool
   def present?
     !blank?
   end
@@ -53,6 +54,7 @@ class Object
   # ```
   #
   # @return [Object]
+  #: () -> self?
   def presence
     self if present?
   end
@@ -66,6 +68,7 @@ class NilClass
   # ```
   #
   # @return [true]
+  #: () -> true
   def blank?
     true
   end
@@ -83,6 +86,7 @@ class FalseClass
   # ```
   #
   # @return [true]
+  #: () -> true
   def blank?
     true
   end
@@ -100,6 +104,7 @@ class TrueClass
   # ```
   #
   # @return [false]
+  #: () -> false
   def blank?
     false
   end
@@ -177,6 +182,7 @@ class String
   # ```
   #
   # @return [true, false]
+  #: () -> bool
   def blank?
     return true if empty?
 
@@ -187,9 +193,9 @@ class String
       return false if getbyte(0) > 32
 
       i = 0
-      while true
+      len = bytesize
+      while i < len
         byte = getbyte(i)
-        break unless byte
         return false unless byte == 32 || (byte >= 9 && byte <= 13)
         i += 1
       end

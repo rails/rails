@@ -1,7 +1,5 @@
 # frozen_string_literal: true
 
-# :markup: markdown
-
 require "cgi/escape"
 require "cgi/util" if RUBY_VERSION < "3.5"
 require "action_dispatch/journey/router/utils"

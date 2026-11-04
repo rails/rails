@@ -19,6 +19,22 @@ module ActionDispatch
         assert_same  defaults, route.defaults
       end
 
+      def test_verb_matchers
+        verbs = Route::VerbMatchers::VERBS
+
+        verbs.each_with_index do |verb, index|
+          matcher = Route::VerbMatchers.const_get(verb)
+          request_class = verb == "QUERY" ? ActionDispatch::Request : Rack::Request
+          request = request_class.new("REQUEST_METHOD" => verb)
+          other_verb = verbs[(index + 1) % verbs.size]
+          other_request = request_class.new("REQUEST_METHOD" => other_verb)
+
+          assert_equal verb, matcher.verb
+          assert matcher.call(request)
+          assert_not matcher.call(other_request)
+        end
+      end
+
       def test_route_adds_itself_as_memo
         app   = Object.new
         path  = path_from_string "/:controller(/:action(/:id(.:format)))"

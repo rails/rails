@@ -1,6 +1,5 @@
 # frozen_string_literal: true
 
-# :markup: markdown
 #--
 # Copyright (c) 37signals LLC
 #
@@ -53,7 +52,6 @@ Zeitwerk::Loader.for_gem.tap do |loader|
   loader.inflector.inflect("postgresql" => "PostgreSQL")
 end.setup
 
-# :markup: markdown
 # :include: ../README.md
 module ActionCable
   require_relative "action_cable/version"

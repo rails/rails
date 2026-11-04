@@ -1,6 +1,5 @@
 # frozen_string_literal: true
 
-# :markup: markdown
 require "active_support/core_ext/hash/indifferent_access"
 require "active_support/core_ext/object/duplicable"
 
@@ -54,7 +53,7 @@ module ActiveModel
 
     def forget_change(attr_name)
       attributes[attr_name] = attributes[attr_name].forgetting_assignment
-      forced_changes.delete(attr_name)
+      @forced_changes&.delete(attr_name)
     end
 
     def original_value(attr_name)
@@ -77,7 +76,7 @@ module ActiveModel
       end
 
       def attribute_changed?(attr_name)
-        forced_changes.include?(attr_name) || !!attributes[attr_name].changed?
+        @forced_changes&.include?(attr_name) || !!attributes[attr_name].changed?
       end
 
       def fetch_value(attr_name)

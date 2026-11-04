@@ -1,9 +1,10 @@
 # frozen_string_literal: true
 
-# = Active Storage \Variant With Record
+# Active Storage \Variant With Record
+# ===================================
 #
 # Like an ActiveStorage::Variant, but keeps detail about the variant in the database as an
-# ActiveStorage::VariantRecord. This is used if +ActiveStorage.track_variants+ is enabled.
+# ActiveStorage::VariantRecord. This is used if `ActiveStorage.track_variants` is enabled.
 class ActiveStorage::VariantWithRecord
   include ActiveStorage::Blob::Servable
 
@@ -38,22 +39,6 @@ class ActiveStorage::VariantWithRecord
   # Returns true if the variant has already been processed and stored.
   def processed?
     record.present?
-  end
-
-  # Process the variant from a local io, avoiding a download from the service.
-  # This is an optimization for when the original file is still available locally
-  # (e.g., during the initial upload flow).
-  def process_from_io(io) # :nodoc:
-    return if processed?
-
-    variation.transform(io) do |output|
-      create_or_find_record(image: {
-        io: output,
-        filename: "#{blob.filename.base}.#{variation.format.downcase}",
-        content_type: variation.content_type,
-        service_name: blob.service.name
-      })
-    end
   end
 
   private

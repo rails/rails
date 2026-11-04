@@ -60,8 +60,10 @@ module ActiveRecord
       #
       # Examples:
       #
-      #   set_fixture_class some_fixture:        SomeModel,
-      #                     'namespaced/fixture' => Another::Model
+      # ```
+      # set_fixture_class some_fixture:        SomeModel,
+      #                   'namespaced/fixture' => Another::Model
+      # ```
       #
       # The keys must be the fixture names, that coincide with the short paths to the fixture files.
       def set_fixture_class(class_names = {})
@@ -90,8 +92,8 @@ module ActiveRecord
           self.fixture_sets = fixture_sets.dup
           fixture_set_names.each do |fs_name|
             key = fs_name.to_s.include?("/") ? -fs_name.to_s.tr("/", "_") : fs_name
-            key = -key.to_s if key.is_a?(Symbol)
-            fs_name = -fs_name.to_s if fs_name.is_a?(Symbol)
+            key = key.name if key.is_a?(Symbol)
+            fs_name = fs_name.name if fs_name.is_a?(Symbol)
             fixture_sets[key] = fs_name
           end
         end
@@ -113,8 +115,10 @@ module ActiveRecord
 
     # Generic fixture accessor for fixture names that may conflict with other methods.
     #
-    #   assert_equal "Ruby on Rails", web_sites(:rubyonrails).name
-    #   assert_equal "Ruby on Rails", fixture(:web_sites, :rubyonrails).name
+    # ```
+    # assert_equal "Ruby on Rails", web_sites(:rubyonrails).name
+    # assert_equal "Ruby on Rails", fixture(:web_sites, :rubyonrails).name
+    # ```
     def fixture(fixture_set_name, *fixture_names)
       active_record_fixture(fixture_set_name, *fixture_names)
     end
@@ -366,7 +370,7 @@ module ActiveRecord
         @fixture_cache[fs_name] ||= {}
 
         instances = fixture_names.map do |f_name|
-          f_name = f_name.to_s if f_name.is_a?(Symbol)
+          f_name = f_name.name if f_name.is_a?(Symbol)
           @fixture_cache[fs_name].delete(f_name) if force_reload
 
           if @loaded_fixtures[fs_name][f_name]

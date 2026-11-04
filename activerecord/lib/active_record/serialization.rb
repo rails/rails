@@ -1,7 +1,8 @@
 # frozen_string_literal: true
 
 module ActiveRecord # :nodoc:
-  # = Active Record \Serialization
+  # Active Record \Serialization
+  # ============================
   module Serialization
     extend ActiveSupport::Concern
     include ActiveModel::Serializers::JSON

@@ -128,6 +128,33 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     Client.destroyed_client_ids.clear
   end
 
+  def test_ids_methods_for_associations_whose_names_singularize_to_the_same_word
+    contact = Person.create!(first_name: "Contact")
+    agent = Person.create!(first_name: "Agent", primary_contact_id: contact.id)
+
+    with_people = Class.new(ActiveRecord::Base) do
+      def self.name; "PersonWithPeople"; end
+      self.table_name = "people"
+      has_many :people, class_name: "Person", foreign_key: :primary_contact_id, inverse_of: false
+    end
+    with_persons = Class.new(ActiveRecord::Base) do
+      def self.name; "PersonWithPersons"; end
+      self.table_name = "people"
+      has_many :persons, class_name: "Person", foreign_key: :primary_contact_id, inverse_of: false
+    end
+
+    assert_equal [agent.id], with_people.find(contact.id).person_ids
+    assert_equal [agent.id], with_persons.find(contact.id).person_ids
+
+    record = with_persons.find(contact.id)
+    record.person_ids = []
+    assert_empty record.reload.person_ids
+
+    record = with_people.find(contact.id)
+    record.person_ids = [agent.id]
+    assert_equal [agent.id], record.reload.person_ids
+  end
+
   def test_sti_subselect_count
     tag = Tag.first
     len = Post.tagged_with(tag.id).limit(10).size
@@ -740,6 +767,21 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     # arbitrary database order.
     assert_equal [6, 5, 4, 2, 1], author.posts_with_default_order.to_a.map(&:id)
     assert_equal [6, 5, 4, 2, 1], author.posts_with_default_order.reload.map(&:id)
+  end
+
+  def test_default_order_is_applied_when_the_association_is_preloaded
+    id = authors(:david).id
+    expected = [1, 2, 4, 5, 6]
+
+    assert_equal expected, Author.preload(:posts_with_ascending_default_order).find(id).posts_with_ascending_default_order.map(&:id)
+  end
+
+  def test_default_order_option_overrides_default_order_in_scope_when_the_association_is_preloaded
+    author = authors(:david)
+    expected = [1, 2, 4, 5, 6]
+
+    assert_equal expected, author.posts_with_default_order_overriding_scope.map(&:id)
+    assert_equal expected, Author.preload(:posts_with_default_order_overriding_scope).find(author.id).posts_with_default_order_overriding_scope.map(&:id)
   end
 
   def test_default_order_keeps_using_the_statement_cache
@@ -1423,6 +1465,18 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     blog_post.reload
 
     assert_equal 1, blog_post.comments.size
+  end
+
+  def test_loading_has_many_without_selecting_the_owner_key
+    firm = Firm.select(:id).find(companies(:first_firm).id)
+
+    assert_equal Client.where(firm_name: nil).order(:id).to_a, firm.clients_using_primary_key.order(:id).to_a
+  end
+
+  def test_size_without_selecting_the_cached_counter
+    topic = Topic.select(:id).find(topics(:first).id)
+
+    assert_no_queries { assert_equal 0, topic.replies.size }
   end
 
   def test_has_many_without_counter_cache_option
@@ -2114,6 +2168,26 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     assert_not_empty firm.errors
 
     assert_equal "Cannot delete record because dependent client companies exist", firm.errors[:base].first
+    assert RestrictedWithErrorFirm.exists?(name: "restrict")
+    assert firm.companies.exists?(name: "child")
+  ensure
+    I18n.backend.reload!
+  end
+
+  def test_restrict_with_error_exposes_association_name_without_downcasing
+    I18n.backend = I18n::Backend::Simple.new
+    I18n.backend.store_translations "de",
+      activerecord: {
+        attributes: { restricted_with_error_firm: { companies: "Firmen" } },
+        errors: { messages: { restrict_dependent_destroy: { has_many: "Datensatz kann nicht gelöscht werden, da abhängige %{association_name} existieren" } } }
+      }
+    firm = RestrictedWithErrorFirm.create!(name: "restrict")
+    firm.companies.create(name: "child")
+
+    I18n.with_locale(:de) do
+      firm.destroy
+      assert_equal "Datensatz kann nicht gelöscht werden, da abhängige Firmen existieren", firm.errors[:base].first
+    end
     assert RestrictedWithErrorFirm.exists?(name: "restrict")
     assert firm.companies.exists?(name: "child")
   ensure

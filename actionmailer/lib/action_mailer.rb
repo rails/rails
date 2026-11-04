@@ -1,6 +1,5 @@
 # frozen_string_literal: true
 
-# :markup: markdown
 #--
 # Copyright (c) David Heinemeier Hansson
 #
@@ -36,8 +35,7 @@ require "active_support/core_ext/module/attr_internal"
 require "active_support/core_ext/string/inflections"
 require "active_support/lazy_load_hooks"
 
-# :markup: rdoc
-# :include: ../README.rdoc
+# :include: ../README.md
 module ActionMailer
   extend ::ActiveSupport::Autoload
 

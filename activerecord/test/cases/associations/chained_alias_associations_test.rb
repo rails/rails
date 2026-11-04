@@ -48,6 +48,9 @@ class ChainedAliasAssociationsTest < ActiveRecord::TestCase
   end
 
   setup do
+    # Fixture comments left by other tests may point at a reused post id.
+    PlainComment.delete_all
+
     @target = ChainPost.create!(title: "Target", body: "Target")
     @unrelated = ChainPost.create!(title: "Unrelated", body: "Unrelated")
     @row = PlainComment.create!(post_id: @target.id, author_id: @unrelated.id, body: "Chained")

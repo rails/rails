@@ -1,6 +1,5 @@
 # frozen_string_literal: true
 
-# :markup: markdown
 module ActionText
   class Editor::Configurator # :nodoc:
     attr_reader :configurations

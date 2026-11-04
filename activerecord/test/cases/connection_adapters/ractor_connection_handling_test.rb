@@ -501,6 +501,28 @@ module ActiveRecord
             assert_equal ["outer"], conn.select_values("SELECT name FROM #{widgets_table}")
           end
 
+          def test_savepoint_rolled_back_by_before_commit_is_rolled_back_on_the_main_side
+            conn = proxy_connection
+            pinned = main_side
+
+            conn.transaction do
+              conn.insert(Arel.sql("INSERT INTO #{widgets_table} (name, price) VALUES ('outer', 1)"))
+
+              conn.transaction(requires_new: true, joinable: false) do
+                conn.transaction(requires_new: true) do
+                  conn.insert(Arel.sql("INSERT INTO #{widgets_table} (name, price) VALUES ('inner', 2)"))
+                  conn.current_transaction.before_commit { raise ActiveRecord::Rollback }
+                end
+
+                assert_equal 2, pinned.open_transactions
+              end
+
+              assert_equal 1, pinned.open_transactions
+            end
+
+            assert_equal ["outer"], conn.select_values("SELECT name FROM #{widgets_table}")
+          end
+
           def test_execute_returns_materialized_result
             result = proxy_connection.execute("SELECT 1 AS one")
             assert_kind_of ActiveRecord::Result, result

@@ -1,6 +1,5 @@
 # frozen_string_literal: true
 
-# :markup: markdown
 module ActiveRecord::Associations::Builder # :nodoc:
   class HasMany < CollectionAssociation # :nodoc:
     def self.macro

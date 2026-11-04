@@ -1,6 +1,5 @@
 # frozen_string_literal: true
 
-# :markup: markdown
 module ActiveRecord
   module ConnectionAdapters
     module PostgreSQL
@@ -8,8 +7,8 @@ module ActiveRecord
         class Vector < Type::Value # :nodoc:
           attr_reader :delim, :subtype
 
-          # `delim` corresponds to the \`typdelim\` column in the pg_types
-          # table.  `subtype` is derived from the \`typelem\` column in the
+          # `delim` corresponds to the `typdelim` column in the pg_types
+          # table.  `subtype` is derived from the `typelem` column in the
           # pg_types table.
           def initialize(delim, subtype)
             @delim   = delim

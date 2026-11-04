@@ -1,6 +1,5 @@
 # frozen_string_literal: true
 
-# :markup: markdown
 require "active_support/core_ext/enumerable"
 require "active_support/parameter_filter"
 require "active_support/ractors"
@@ -226,7 +225,7 @@ module ActiveRecord
         false
       end
 
-      # Intended to behave like \`.current_preventing_writes\` given the class name as input.
+      # Intended to behave like `.current_preventing_writes` given the class name as input.
       # See PoolConfig and ConnectionHandler::ConnectionDescriptor.
       def self.preventing_writes?(class_name) # :nodoc:
         connected_to_stack.reverse_each do |hash|
@@ -560,7 +559,7 @@ module ActiveRecord
     ##
     # Initialize an empty model object from `attributes`.
     # `attributes` should be an attributes object, and unlike the
-    # \`initialize\` method, no assignment calls are made per attribute.
+    # `initialize` method, no assignment calls are made per attribute.
     def init_with_attributes(attributes, new_record = false) # :nodoc:
       @new_record = new_record
       @attributes = attributes
@@ -688,6 +687,7 @@ module ActiveRecord
     #
     # Note also that destroying a record preserves its ID in the model instance, so deleted
     # models are still comparable.
+    #: (top) -> bool
     def ==(comparison_object)
       super ||
         comparison_object.instance_of?(self.class) &&

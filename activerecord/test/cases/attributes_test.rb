@@ -3,6 +3,7 @@
 require "cases/helper"
 require "active_support/testing/ractors_assertions"
 require "active_support/core_ext/object/with"
+require "models/post"
 
 class OverloadedType < ActiveRecord::Base
   attribute :overloaded_float, :integer
@@ -434,6 +435,53 @@ module ActiveRecord
       end
     end
 
+    test "immutable_strings_by_default only affects string columns" do
+      model = Class.new(Post) do
+        self.immutable_strings_by_default = true
+      end
+
+      assert_not_predicate model.type_for_attribute("title"), :mutable?
+
+      body = model.type_for_attribute("body")
+      assert_equal :text, body.type
+      assert_predicate body, :mutable?
+    end
+
+    test "immutable_strings_by_default leaves types that merely look like strings alone" do
+      # PostgreSQL's `xml`, `citext`, `macaddr` and friends subclass
+      # ActiveModel::Type::String, but carry their own #type along with their
+      # own serialization and comparison behavior.
+      type = Class.new(ActiveModel::Type::String) do
+        def type
+          :special_string
+        end
+      end.new
+      column = ActiveRecord::ConnectionAdapters::Column.new("special", type, nil)
+
+      model = Class.new(ActiveRecord::Base) do
+        self.immutable_strings_by_default = true
+      end
+
+      assert_same type, model.send(:type_for_column, column)
+    end
+
+    test "immutable_strings_by_default leaves types without an immutable counterpart alone" do
+      # PostgreSQL's `OID::Array` delegates #type to its subtype, so a
+      # `varchar[]` column reports `:string` without being a string type.
+      type = Class.new(ActiveModel::Type::Value) do
+        def type
+          :string
+        end
+      end.new
+      column = ActiveRecord::ConnectionAdapters::Column.new("tags", type, nil)
+
+      model = Class.new(ActiveRecord::Base) do
+        self.immutable_strings_by_default = true
+      end
+
+      assert_same type, model.send(:type_for_column, column)
+    end
+
     test "immutable_strings_by_default does not affect `attribute :foo, :string`" do
       with_immutable_strings do
         OverloadedType.reset_column_information
@@ -460,6 +508,17 @@ module ActiveRecord
 
       data.unoverloaded_float = "1.1"
       assert_equal 1, data.unoverloaded_float
+    end
+
+    test "define_attribute accepts a default whose == only handles its own kind" do
+      default = Struct.new(:value) { def ==(other) = value == other.value }.new(1)
+      klass = Class.new(ActiveRecord::Base) do
+        self.table_name = "overloaded_types"
+      end
+
+      klass.define_attribute("non_existent_value", Type::Value.new, default: default)
+
+      assert_equal default, klass.new.non_existent_value
     end
 
     test "serialize boolean for both string types" do

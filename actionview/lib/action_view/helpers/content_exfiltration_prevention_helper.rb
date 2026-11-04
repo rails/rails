@@ -1,6 +1,5 @@
 # frozen_string_literal: true
 
-# :markup: markdown
 require "active_support/core_ext/module/delegation"
 require "active_support/core_ext/string/output_safety"
 

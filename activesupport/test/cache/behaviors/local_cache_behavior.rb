@@ -85,6 +85,25 @@ module LocalCacheBehavior
     end
   end
 
+  def test_local_cache_of_write_multi
+    key = SecureRandom.uuid
+    value = SecureRandom.alphanumeric
+    @cache.with_local_cache do
+      @cache.write(key, SecureRandom.alphanumeric)
+      @cache.write_multi(key => value)
+      assert_equal value, @cache.read(key)
+    end
+  end
+
+  def test_local_cache_of_delete_multi
+    key = SecureRandom.uuid
+    @cache.with_local_cache do
+      @cache.write(key, SecureRandom.alphanumeric)
+      @cache.delete_multi([key])
+      assert_nil @cache.read(key)
+    end
+  end
+
   def test_local_cache_of_read_returns_a_copy_of_the_entry
     key = SecureRandom.alphanumeric.to_sym
     value = SecureRandom.alphanumeric
@@ -432,7 +451,7 @@ module LocalCacheBehavior
     keys = Array.new(5) { SecureRandom.uuid }
     values = keys.index_with(true)
     @cache.with_local_cache do
-      assert @cache.write_multi(values)
+      @cache.write_multi(values)
       assert_equal values, @cache.read_multi(*keys)
     end
   end

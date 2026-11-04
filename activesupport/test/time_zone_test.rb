@@ -58,6 +58,35 @@ class TimeZoneTest < ActiveSupport::TestCase
     end
   end
 
+  def test_periods_of_a_zone_without_transitions_are_reused
+    [["UTC", 0, "UTC"], ["Etc/UTC", 0, "UTC"], ["Etc/GMT+5", -18_000, "-05"]].each do |name, offset, abbreviation|
+      zone = ActiveSupport::TimeZone[name]
+      period = zone.period_for_utc(Time.utc(2000))
+
+      [Time.utc(1900), Time.utc(2026, 10, 30, 12, 34, 56), Time.utc(2100)].each do |time|
+        assert_same period, zone.period_for_utc(time), name
+        assert_same period, zone.period_for_local(time), name
+        assert_equal zone.tzinfo.period_for_utc(time), zone.period_for_utc(time), name
+        assert_equal zone.tzinfo.period_for_local(time), zone.period_for_local(time), name
+      end
+
+      twz = Time.utc(2026, 10, 30, 12).in_time_zone(zone)
+      assert_equal offset, twz.utc_offset, name
+      assert_equal abbreviation, twz.zone, name
+      assert_equal Time.utc(2026, 10, 30, 12) + offset, twz.time, name
+      assert_equal offset, zone.local(2026, 10, 30, 12).utc_offset, name
+    end
+  end
+
+  def test_periods_of_a_zone_with_transitions_follow_them
+    zone = ActiveSupport::TimeZone["Eastern Time (US & Canada)"]
+
+    assert_equal "EST", zone.period_for_utc(Time.utc(2000, 1)).abbreviation
+    assert_equal "EDT", zone.period_for_utc(Time.utc(2000, 7)).abbreviation
+    assert_equal "EST", zone.period_for_local(Time.utc(2000, 1)).abbreviation
+    assert_equal "EDT", zone.period_for_local(Time.utc(2000, 7)).abbreviation
+  end
+
   def test_period_for_local_with_ambiguous_time
     zone = ActiveSupport::TimeZone["Moscow"]
     period = zone.period_for_local(Time.utc(2015, 1, 1))
@@ -148,6 +177,27 @@ class TimeZoneTest < ActiveSupport::TestCase
     assert_equal Date.new(2000, 1, 1), ActiveSupport::TimeZone["Eastern Time (US & Canada)"].today
     travel_to(Time.utc(2000, 1, 2, 5)) # midnight Jan 2 EST
     assert_equal Date.new(2000, 1, 2), ActiveSupport::TimeZone["Eastern Time (US & Canada)"].today
+  end
+
+  def test_today_agrees_with_now
+    zone = ActiveSupport::TimeZone["Australia/Lord_Howe"].dup
+    def zone.time_now
+      Time.new(2024, 4, 7, 0, 15, 0, "+11:00") # still Apr 6 at the standard offset (+10:30)
+    end
+
+    assert_equal Date.new(2024, 4, 7), zone.now.to_date
+    assert_equal Date.new(2024, 4, 7), zone.today
+  end
+
+  def test_today_in_utc_zone_agrees_with_now
+    time = Time.new(2024, 4, 7, 0, 15, 0, "+11:00") # still Apr 6 in UTC
+    zone = ActiveSupport::TimeZone["UTC"].dup
+    zone.define_singleton_method(:time_now) { time }
+
+    assert_equal Date.new(2024, 4, 6), zone.now.to_date
+    assert_equal Date.new(2024, 4, 6), zone.today
+    assert_equal Date.new(2024, 4, 7), zone.tomorrow
+    assert_equal Date.new(2024, 4, 5), zone.yesterday
   end
 
   def test_tomorrow
@@ -909,6 +959,7 @@ class TimeZoneTest < ActiveSupport::TestCase
 
   def test_is_ractor_shareable
     assert_ractor_shareable(ActiveSupport::TimeZone["Central Time (US & Canada)"])
+    assert_ractor_shareable(ActiveSupport::TimeZone["UTC"])
   end
 
   def test_formatted_offset_in_ractor
@@ -1049,6 +1100,23 @@ class TimeZoneTest < ActiveSupport::TestCase
 
     assert_includes ca_zones, ActiveSupport::TimeZone["Manitoba"]
     assert_not_includes ca_zones.map(&:name), "America/Winnipeg"
+  end
+
+  def test_northwest_territories_mapping
+    northwest_territories = ActiveSupport::TimeZone["Northwest Territories"]
+    mountain_us = ActiveSupport::TimeZone["Mountain Time (US & Canada)"]
+
+    assert_equal "America/Inuvik", northwest_territories.standard_name
+    assert_equal "America/Denver", mountain_us.standard_name
+
+    assert_equal "America/Inuvik", northwest_territories.tzinfo.name
+  end
+
+  def test_country_zones_include_northwest_territories
+    ca_zones = ActiveSupport::TimeZone.country_zones(:ca)
+
+    assert_includes ca_zones, ActiveSupport::TimeZone["Northwest Territories"]
+    assert_not_includes ca_zones.map(&:name), "America/Inuvik"
   end
 end
 

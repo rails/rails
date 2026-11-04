@@ -220,6 +220,21 @@ if RUBY_VERSION >= "4.0" && ENV["RACK"] == "head"
         assert_equal "Hello, worker", on_ractor { HelloJob.perform_now("worker") }
       end
 
+      test "silencing a request by path works from a non-main Ractor" do
+        app "production"
+
+        ractorize!
+
+        status = on_ractor do
+          env = {
+            "REQUEST_METHOD" => "GET", "PATH_INFO" => "/up", "SCRIPT_NAME" => "", "QUERY_STRING" => "",
+            "SERVER_NAME" => "localhost", "SERVER_PORT" => "80", "HTTP_HOST" => "localhost", "rack.url_scheme" => "http"
+          }
+          Rails::Rack::SilenceRequest.new(->(_env) { [200, {}, []] }, path: "/up").call(env).first
+        end
+        assert_equal 200, status
+      end
+
       test "error reporting works after the application is ractorized" do
         app "production"
 

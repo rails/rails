@@ -1,7 +1,7 @@
-# :markup: markdown
 # frozen_string_literal: true
 
 require "active_support/inspect_backport"
+require "active_support/ractors"
 require "concurrent/map"
 require "openssl"
 
@@ -68,7 +68,7 @@ module ActiveSupport
 
     def freeze
       @ractor_key = "_caching_key_generator_#{object_id}".to_sym
-      Ractor[@ractor_key] = @cache_keys
+      ActiveSupport::Ractors[@ractor_key] = @cache_keys
       @cache_keys = nil
       super
     end
@@ -80,7 +80,7 @@ module ActiveSupport
 
     private
       def cache_keys
-        @cache_keys || (Ractor[@ractor_key] ||= Concurrent::Map.new)
+        @cache_keys || (ActiveSupport::Ractors[@ractor_key] ||= Concurrent::Map.new)
       end
   end
 end

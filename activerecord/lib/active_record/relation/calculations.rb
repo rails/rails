@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+# :markup: rdoc
+
 require "active_support/core_ext/enumerable"
 
 module ActiveRecord
@@ -173,7 +175,7 @@ module ActiveRecord
     # relation, loading all records could result in performance issues.
     def sum(initial_value_or_column = 0, &block)
       if block_given?
-        map(&block).sum(initial_value_or_column)
+        records.sum(initial_value_or_column, &block)
       else
         calculate(:sum, initial_value_or_column)
       end
@@ -240,7 +242,10 @@ module ActiveRecord
             relation.select_values = Array(model.primary_key || table[Arel.star])
           end
           # PostgreSQL: ORDER BY expressions must appear in SELECT list when using DISTINCT
-          relation.order_values = [] if group_values.empty?
+          if group_values.empty?
+            relation.order_values = []
+            relation.default_order_values = []
+          end
         end
 
         relation.calculate(operation, column_name)
@@ -327,7 +332,11 @@ module ActiveRecord
             ActiveRecord::Result.empty(async: @async)
           else
             model.with_connection do |c|
-              c.select_all(relation.arel, "#{model.name} Pluck", async: @async)
+              if @async
+                model._async_select_all(c, relation.arel, "#{model.name} Pluck")
+              else
+                c.select_all(relation.arel, "#{model.name} Pluck")
+              end
             end
           end
         end
@@ -465,7 +474,7 @@ module ActiveRecord
           query_builder = build_count_subquery(spawn, column_name, distinct)
         else
           # PostgreSQL doesn't like ORDER BY when there are no GROUP BY
-          relation = unscope(:order).distinct!(false)
+          relation = except(:order, :default_order).distinct!(false)
 
           column = relation.aggregate_column(column_name)
           select_value = operation_over_aggregate_column(column, operation, distinct)
@@ -485,7 +494,11 @@ module ActiveRecord
         else
           skip_query_cache_if_necessary do
             model.with_connection do |c|
-              c.select_all(query_builder, "#{model.name} #{operation.capitalize}", async: @async)
+              if @async
+                model._async_select_all(c, query_builder, "#{model.name} #{operation.capitalize}")
+              else
+                c.select_all(query_builder, "#{model.name} #{operation.capitalize}")
+              end
             end
           end
         end
@@ -551,7 +564,11 @@ module ActiveRecord
           relation.select_values = select_values
 
           result = skip_query_cache_if_necessary do
-            connection.select_all(relation.arel, "#{model.name} #{operation.capitalize}", async: @async)
+            if @async
+              model._async_select_all(connection, relation.arel, "#{model.name} #{operation.capitalize}")
+            else
+              connection.select_all(relation.arel, "#{model.name} #{operation.capitalize}")
+            end
           end
 
           result.then do |calculated_data|
@@ -665,7 +682,7 @@ module ActiveRecord
         if column_name == :all
           column_alias = Arel.star
           relation.select_values = [ FinderMethods::ONE_AS_ONE_LITERAL ] unless distinct
-          relation.unscope!(:order)
+          relation = relation.except(:order, :default_order)
         else
           column_alias = COUNT_COLUMN_ALIAS
           relation.select_values = [ relation.aggregate_column(column_name).as(column_alias) ]

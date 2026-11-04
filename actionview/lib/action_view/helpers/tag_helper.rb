@@ -1,6 +1,5 @@
 # frozen_string_literal: true
 
-# :markup: markdown
 require "active_support/code_generator"
 require "active_support/core_ext/enumerable"
 require "active_support/core_ext/string/output_safety"
@@ -19,15 +18,17 @@ module ActionView
       include CaptureHelper
       include OutputSafetyHelper
 
-      BOOLEAN_ATTRIBUTES = %w(allowfullscreen allowpaymentrequest async autofocus
-                              autoplay checked compact controls declare default
-                              defaultchecked defaultmuted defaultselected defer
-                              disabled enabled formnovalidate hidden indeterminate
-                              inert ismap itemscope loop multiple muted nohref
-                              nomodule noresize noshade novalidate nowrap open
-                              pauseonexit playsinline readonly required reversed
-                              scoped seamless selected sortable truespeed
-                              typemustmatch visible).to_set
+      BOOLEAN_ATTRIBUTES = %w(allowfullscreen allowpaymentrequest alpha async
+                              autofocus autoplay checked compact controls declare
+                              default defaultchecked defaultmuted defaultselected
+                              defer disabled enabled formnovalidate headingreset
+                              hidden indeterminate inert ismap itemscope loop
+                              multiple muted nohref nomodule noresize noshade
+                              novalidate nowrap open pauseonexit playsinline
+                              readonly required reversed scoped seamless selected
+                              shadowrootclonable shadowrootcustomelementregistry
+                              shadowrootdelegatesfocus shadowrootserializable
+                              sortable truespeed typemustmatch visible).to_set
 
       BOOLEAN_ATTRIBUTES.merge(BOOLEAN_ATTRIBUTES.map(&:to_sym))
       BOOLEAN_ATTRIBUTES.freeze
@@ -1345,7 +1346,7 @@ module ActionView
           code_generator.class_eval do |batch|
             batch << "\n" <<
               "def #{method_name}(content = nil, escape: true, **options, &block)" <<
-              "  tag_string(#{name.inspect}, content, options, escape: escape, &block)" <<
+              "  tag_string(#{name.inspect}, options, content, escape: escape, &block)" <<
               "end"
           end
         end
@@ -1364,7 +1365,7 @@ module ActionView
             batch << "\n" <<
               "def #{method_name}(content = nil, escape: true, **options, &block)" <<
               "  if content || block" <<
-              "    tag_string(#{name.inspect}, content, options, escape: escape, &block)" <<
+              "    tag_string(#{name.inspect}, options, content, escape: escape, &block)" <<
               "  else" <<
               "   self_closing_tag_string(#{name.inspect}, options, escape)" <<
               "  end" <<
@@ -1534,7 +1535,9 @@ module ActionView
           if escape && content.present?
             content = ERB::Util.unwrapped_html_escape(content)
           end
-          "<#{name}#{tag_options}>#{PRE_CONTENT_STRINGS[name]}#{content}</#{name}>".html_safe
+          # Freezing first lets the SafeBuffer share this string's contents, instead
+          # of Ruby allocating a hidden string for both to share.
+          "<#{name}#{tag_options}>#{PRE_CONTENT_STRINGS[name]}#{content}</#{name}>".freeze.html_safe
         end
 
         def tag_options(options, escape = true) # :nodoc:
@@ -1544,17 +1547,26 @@ module ActionView
           options.each_pair do |key, value|
             next if key.blank?
 
+            name = Symbol === key ? key.name : key.to_s
+            next if name.blank?
+
             type = TAG_TYPES[key]
             if type != :aria && type != :class && value.is_a?(Hash)
               value.each_pair do |k, v|
                 next if k.blank? || v.nil?
 
+                nested_name = Symbol === k ? k.name : k.to_s
+                next if nested_name.blank?
+
                 output << sep
-                append_prefix_tag_option(output, key, k, v, escape)
+                append_prefix_tag_option(output, name, nested_name, v, escape)
               end
             elsif type == :aria && value.is_a?(Hash)
               value.each_pair do |k, v|
                 next if k.blank? || v.nil?
+
+                nested_name = Symbol === k ? k.name : k.to_s
+                next if nested_name.blank?
 
                 case v
                 when Array, Hash
@@ -1563,27 +1575,32 @@ module ActionView
 
                   v = @view_context.safe_join(tokens, " ")
                 else
-                  v = v.to_s
+                  v = v.is_a?(Symbol) ? v.name : v.to_s
                 end
 
                 output << sep
-                append_prefix_tag_option(output, key, k, v, escape)
+                append_prefix_tag_option(output, name, nested_name, v, escape)
               end
             elsif type == :boolean
               if value
                 output << sep
-                append_boolean_tag_option(output, key)
+                if (String === value || Symbol === value) && (key == :hidden || key == "hidden")
+                  # hidden also takes a keyword, such as "until-found"
+                  append_tag_option(output, name, value, escape)
+                else
+                  append_boolean_tag_option(output, name)
+                end
               end
             elsif !value.nil?
               output << sep
-              append_tag_option(output, key, value, escape)
+              append_tag_option(output, name, value, escape)
             end
           end
           output unless output.empty?
         end
 
         private
-          def tag_string(name, content = nil, options, escape: true, &block)
+          def tag_string(name, options, content = nil, escape: true, &block)
             if content && block_given?
               content += @view_context.capture(self, &block)
             elsif block_given?
@@ -1594,7 +1611,7 @@ module ActionView
           end
 
           def self_closing_tag_string(name, options, escape = true, tag_suffix = " />")
-            "<#{name}#{tag_options(options, escape)}#{tag_suffix}".html_safe
+            "<#{name}#{tag_options(options, escape)}#{tag_suffix}".freeze.html_safe
           end
 
           def boolean_tag_option(key)
@@ -1624,11 +1641,15 @@ module ActionView
             key = ERB::Util.xml_name_escape(key) if escape
 
             case value
+            when String
+              value = escape ? ERB::Util.unwrapped_html_escape(value) : value.to_s
             when Array, Hash
               value = TagHelper.build_tag_values(value) if key == "class"
               value = escape ? @view_context.safe_join(value, " ") : value.join(" ")
             when Regexp
               value = escape ? ERB::Util.unwrapped_html_escape(value.source) : value.source
+            when Symbol
+              value = escape ? ERB::Util.unwrapped_html_escape(value.name) : value.name
             else
               value = escape ? ERB::Util.unwrapped_html_escape(value) : value.to_s
             end
@@ -1647,7 +1668,7 @@ module ActionView
           end
 
           def append_prefix_tag_option(output, prefix, key, value, escape)
-            key = "#{prefix}-#{key.to_s.dasherize}"
+            key = "#{prefix}-#{(Symbol === key ? key.name : key.to_s).dasherize}"
             unless value.is_a?(String) || value.is_a?(Symbol) || value.is_a?(BigDecimal)
               value = value.to_json
             end
@@ -1663,7 +1684,7 @@ module ActionView
 
             TagHelper.ensure_valid_html5_tag_name(name)
 
-            tag_string(name, *args, options, escape: escape, &block)
+            tag_string(name, options, *args, escape: escape, &block)
           end
       end
 

@@ -1,6 +1,5 @@
 # frozen_string_literal: true
 
-# :markup: markdown
 require "active_support/core_ext/enumerable"
 require "active_support/core_ext/object/deep_dup"
 require "active_model/attribute_set/builder"
@@ -161,7 +160,7 @@ module ActiveModel
       super
     end
 
-    def initialize_clone(_)
+    def initialize_clone(...)
       @attributes = @attributes.clone
       super
     end
@@ -289,8 +288,18 @@ module ActiveModel
     protected
       def attributes
         unless @materialized
-          values.each_key { |key| self[key] }
-          types.each_key { |key| self[key] }
+          if @attributes.empty?
+            values.each_key { |key| self[key] }
+            types.each_key { |key| self[key] }
+          else
+            assigned_attributes = @attributes
+            @attributes = {}
+
+            (values.keys | types.keys | assigned_attributes.keys).each do |key|
+              @attributes[key] = assigned_attributes[key] || self[key]
+            end
+          end
+
           @materialized = true
         end
         @attributes

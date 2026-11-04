@@ -43,7 +43,7 @@ class RedirectSSLTest < SSLTest
   end
 
   test "exclude can avoid redirect" do
-    excluding = { exclude: -> request { request.path.match?(/healthcheck/) } }
+    excluding = { exclude: -> request { request.path.start_with?("/healthcheck") } }
 
     assert_not_redirected "http://example.org/healthcheck", redirect: excluding
     assert_redirected from: "http://example.org/", redirect: excluding

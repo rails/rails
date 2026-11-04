@@ -1,6 +1,5 @@
 # frozen_string_literal: true
 
-# :markup: markdown
 module ActiveRecord
   module AttributeAssignment
     class InvalidParameterKey < StandardError # :nodoc:
@@ -11,7 +10,7 @@ module ActiveRecord
         multi_parameter_attributes = nested_parameter_attributes = nil
 
         attributes.each do |k, v|
-          key = k.to_s
+          key = k.is_a?(Symbol) ? k.name : k.to_s
 
           if key.include?("(")
             (multi_parameter_attributes ||= {})[key] = v

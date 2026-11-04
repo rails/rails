@@ -1,3 +1,42 @@
+*   Fix `bin/rails test -n ClassName#test_name` running no tests.
+
+    This has been broken since Rails 7.1. It also made isolated tests fail on
+    platforms without `fork`, like JRuby and Windows.
+
+    *Sampo Kuokkanen*
+
+*   Add support for comma-separated values in ENV["RAILS_MASTER_KEY"].
+
+    When multiple keys are provided as comma-separated values, Rails will
+    try each key until it finds one that works.
+
+    *Jeff Tsang*
+
+*   Don't load Capybara and Selenium on boot in new applications.
+
+    The generated `Gemfile` now declares `capybara` and `selenium-webdriver`
+    with `require: false`. `ActionDispatch::SystemTestCase` already requires
+    both when a system test is loaded, so `Bundler.require` no longer loads
+    them into test processes that don't run system tests. Code that uses
+    Capybara outside of system tests, such as `Capybara.string` in a view
+    test, needs to `require "capybara"` itself.
+
+    *Mick Zijdel*
+
+*   Create the local development/test secret file (`tmp/local_secret.txt`) with
+    owner-only permissions (`0600`) instead of inheriting the process umask,
+    and tighten the permissions of an existing file on read on non-Windows
+    platforms.
+
+    The file holds the `secret_key_base` used in development and test to derive
+    keys for signing and encrypting cookies. With a common umask of `022` it was
+    created world-readable, so other local users able to access the application's
+    directory could read it and forge signed or encrypted cookies.
+    This brings it in line with how `config/master.key` and the other
+    credentials key files are created.
+
+    *Sebastian Stange*
+
 *   Add `config.zjit` to enable ZJIT after the application has booted.
 
     Like `config.yjit`, it enables the JIT once boot is done, so it doesn't

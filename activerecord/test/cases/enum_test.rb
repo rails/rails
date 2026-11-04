@@ -703,6 +703,23 @@ class EnumTest < ActiveRecord::TestCase
     assert_equal ["drafted", "uploaded"], book2.status_change
   end
 
+  test "enums added to a parent reach existing subclasses" do
+    parent = Class.new(ActiveRecord::Base) { self.table_name = "books" }
+    child = Class.new(parent)
+    parent.enum :status, [:proposed, :written]
+
+    assert_same parent.defined_enums["status"], child.defined_enums["status"]
+  end
+
+  test "enums added to a parent do not replace a subclass's own enum" do
+    parent = Class.new(ActiveRecord::Base) { self.table_name = "books" }
+    child = Class.new(parent) { enum :status, [:drafted, :uploaded] }
+    parent.enum :status, [:proposed, :written]
+
+    assert_equal({ "drafted" => 0, "uploaded" => 1 }, child.defined_enums["status"])
+    assert_equal({ "proposed" => 0, "written" => 1 }, parent.defined_enums["status"])
+  end
+
   test "attempting to modify enum raises error" do
     e = assert_raises(RuntimeError) do
       Book.statuses["bad_enum"] = 40
@@ -995,6 +1012,32 @@ class EnumTest < ActiveRecord::TestCase
     assert_not_predicate computer, :extendedGold?
   end
 
+  test "enum on an attribute name starting with a capital letter" do
+    klass = Class.new(ActiveRecord::Base) do
+      self.table_name = "books"
+      attribute :Status, :integer
+      enum :Status, [:proposed, :written]
+    end
+
+    book = klass.proposed.create!
+    assert_predicate book, :proposed?
+    assert_not_predicate book, :written?
+
+    book.written!
+    assert_predicate book, :written?
+    assert_not_predicate book, :proposed?
+  end
+
+  test "enum bang methods pass frozen string values" do
+    book = Book.new
+    updated = nil
+    book.define_singleton_method(:update!) { |attributes| updated = attributes }
+
+    book.hard!
+    assert_equal({ "cover" => "hard" }, updated)
+    assert_predicate updated["cover"], :frozen?
+  end
+
   test "unicode characters for enum names" do
     klass = Class.new(ActiveRecord::Base) do
       self.table_name = "books"
@@ -1171,5 +1214,15 @@ class EnumTest < ActiveRecord::TestCase
     instance = klass.new
     assert_raises(NoMethodError) { instance.proposed? }
     assert_raises(NoMethodError) { instance.proposed! }
+  end
+
+  test "default attributes of a model with enums are shareable" do
+    klass = Class.new(ActiveRecord::Base) do
+      self.table_name = "books"
+      enum :status, [:proposed, :written, :published]
+    end
+
+    assert_instance_of ActiveRecord::Enum::EnumType, klass.type_for_attribute(:status)
+    assert Ractor.shareable?(klass._default_attributes)
   end
 end

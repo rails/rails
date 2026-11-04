@@ -178,10 +178,14 @@ module ActiveRecord
     def test_structure_dump_with_ignore_tables
       dbfile   = @database
       filename = File.join(@tmpdir, "awesome-file.sql")
-      ActiveRecord::Base.lease_connection.stub(:data_sources, ["foo", "bar", "prefix_foo", "ignored_foo"]) do
-        ActiveRecord.stub(:schema_ignored_tables, [/^prefix_/, "ignored_foo"]) do
-          ActiveRecord::Tasks::DatabaseTasks.structure_dump(@configuration, filename, "/rails/root")
-        end
+
+      # The ignored tables live in the database being dumped, so only a
+      # connection to that database can find them.
+      `sqlite3 #{dbfile} 'CREATE TABLE prefix_foo(id INTEGER)'`
+      `sqlite3 #{dbfile} 'CREATE TABLE ignored_foo(id INTEGER)'`
+
+      ActiveRecord.stub(:schema_ignored_tables, [/^prefix_/, "ignored_foo"]) do
+        ActiveRecord::Tasks::DatabaseTasks.structure_dump(@configuration, filename, "/rails/root")
       end
       assert File.exist?(dbfile)
       assert File.exist?(filename)
@@ -194,10 +198,8 @@ module ActiveRecord
     def test_structure_dump_with_schema_ignored_tables_as_a_set
       filename = File.join(@tmpdir, "awesome-file.sql")
 
-      ActiveRecord::Base.lease_connection.stub(:data_sources, ["bar", "foo"]) do
-        ActiveRecord.stub(:schema_ignored_tables, Set["foo"]) do
-          ActiveRecord::Tasks::DatabaseTasks.structure_dump(@configuration, filename, "/rails/root")
-        end
+      ActiveRecord.stub(:schema_ignored_tables, Set["foo"]) do
+        ActiveRecord::Tasks::DatabaseTasks.structure_dump(@configuration, filename, "/rails/root")
       end
 
       contents = File.read(filename)

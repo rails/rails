@@ -128,7 +128,7 @@ class IntegrationTest < ActiveRecord::TestCase
   def test_cache_key_for_existing_record_is_not_timezone_dependent
     utc_key = Developer.first.cache_key
 
-    with_timezone_config zone: "EST" do
+    with_timezone_config zone: "America/New_York" do
       est_key = Developer.first.cache_key
       assert_equal utc_key, est_key
     end

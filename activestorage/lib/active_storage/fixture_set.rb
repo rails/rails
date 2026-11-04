@@ -1,6 +1,5 @@
 # frozen_string_literal: true
 
-# :markup: markdown
 require "active_support/testing/file_fixtures"
 require "active_record/secure_token"
 

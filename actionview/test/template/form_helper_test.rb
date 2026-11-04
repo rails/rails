@@ -3980,6 +3980,15 @@ class FormHelperTest < ActionView::TestCase
     assert_not_includes ActionView::Helpers::FormBuilder.instance_methods, :form_for
   end
 
+  def test_form_builder_has_all_field_helpers
+    builder = ActionView::Helpers::FormBuilder.new(:post, @post, self, {})
+    field_helpers = ActionView::Helpers::FormBuilder.field_helpers
+
+    (field_helpers - [:label, :checkbox, :radio_button, :fields_for, :fields, :hidden_field, :file_field]).each do |field_helper|
+      assert_respond_to builder, field_helper
+    end
+  end
+
   def test_form_for_and_fields_for
     form_for(@post, as: :post, html: { id: "create-post" }) do |post_form|
       concat post_form.text_field(:title)

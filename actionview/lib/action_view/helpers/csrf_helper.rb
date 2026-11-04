@@ -1,6 +1,5 @@
 # frozen_string_literal: true
 
-# :markup: markdown
 module ActionView
   module Helpers # :nodoc:
     # Action View CSRF \Helpers
@@ -24,7 +23,8 @@ module ActionView
       # `X-CSRF-Token` HTTP header.
       #
       def csrf_meta_tags
-        if defined?(protect_against_forgery?) && protect_against_forgery?
+        if defined?(protect_against_forgery?) && protect_against_forgery? &&
+            (!defined?(embed_authenticity_token?) || embed_authenticity_token?)
           [
             tag("meta", name: "csrf-param", content: request_forgery_protection_token),
             tag("meta", name: "csrf-token", content: form_authenticity_token)

@@ -241,7 +241,7 @@ module ActiveJob
     # Raised when there is an error with a checkpoint, such as open database transactions.
     class CheckpointError < Error; end
 
-    # Raised when attempting to advance a cursor that doesn't implement \`succ\`.
+    # Raised when attempting to advance a cursor that doesn't implement `succ`.
     class UnadvanceableCursorError < Error; end
 
     # Raised when a job has reached its limit of the number of resumes.

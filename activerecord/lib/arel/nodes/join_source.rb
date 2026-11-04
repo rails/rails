@@ -5,7 +5,9 @@ module Arel # :nodoc: all
     ###
     # Class that represents a join source
     #
-    #   https://www.sqlite.org/syntaxdiagrams.html#join-source
+    # ```
+    # https://www.sqlite.org/syntaxdiagrams.html#join-source
+    # ```
 
     class JoinSource < Arel::Nodes::Binary
       def initialize(single_source, joinop = [])

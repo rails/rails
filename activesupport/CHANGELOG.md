@@ -1,3 +1,82 @@
+*   `ActiveSupport::MessagePack` no longer deserializes an unsafe
+    `ActiveSupport::SafeBuffer` as `html_safe`.
+
+    A `SafeBuffer` that was no longer `html_safe?`, for example after an
+    in-place `gsub!`, was deserialized as an `html_safe` `SafeBuffer`. It is now
+    serialized with an unsafe marker and deserialized as a `String`. Earlier
+    versions of Rails cannot read an unsafe buffer serialized this way.
+
+    [GHSA-2w9f-fxwj-w2qf]
+
+    *Jean Boussier*
+
+*   `ActiveSupport::Inflector#safe_constantize` matches the constant name in a
+    `LoadError` message as a literal string instead of building a `Regexp`
+    from it.
+
+    The name's segments were interpolated unescaped into the pattern, so input
+    that reaches `safe_constantize`, such as the channel identifier in an Action
+    Cable subscribe command, chose the source passed to the regexp compiler.
+
+    [GHSA-8474-xrp6-wh69]
+
+    *Jeremy Daer*
+
+*   Write `ActiveSupport::Duration#iso8601` values as plain decimal numbers.
+
+    Very small or very large float parts were written in scientific notation and
+    rational parts as fractions, which are not valid ISO 8601 and can't be read
+    back with `ActiveSupport::Duration.parse`.
+
+    ```ruby
+    0.00005.seconds.iso8601     # => "PT0.00005S" (was "PT5.0e-05S")
+    Rational(3, 2).days.iso8601 # => "P1.5D" (was "P3/2D")
+    ```
+
+    *Wleeaf*
+
+*   Add `Northwest Territories` to `ActiveSupport::TimeZone::MAPPING`.
+
+    The Northwest Territories no longer shares winter clocks with US Mountain
+    time. The existing `Mountain Time (US & Canada)` entry remains mapped to
+    `America/Denver` for compatibility. Prefer `Northwest Territories` (or the
+    IANA identifier `America/Inuvik`) for users in that region.
+
+    *Andrew Quinn*
+
+*   `Symbol#to_param` now returns `Symbol#name`, the symbol's interned frozen
+    String, instead of allocating a new one on every call before Ruby 4.1.
+
+    *Akira Matsuda*
+
+*   Fix `CurrentAttributes` defaults for attribute names given as strings.
+
+    ```ruby
+    class Current < ActiveSupport::CurrentAttributes
+      attribute "currency", default: "USD"
+    end
+
+    Current.currency # => "USD" (was nil)
+    ```
+
+    *Ryuta Kamizono*
+
+*   `ActiveSupport::Deprecation::DeprecatedObjectProxy` and
+    `DeprecatedInstanceVariableProxy` now inherit from `BasicObject`, so methods
+    added to `Object` after Active Support loads (such as `to_json`, `to_param`,
+    `blank?` or `in?`) are forwarded to the deprecated object with a warning
+    instead of running against the proxy itself.
+
+    *Akira Matsuda*
+
+*   Default `config.active_support.message_serializer` to `:json` for new apps.
+
+    With `config.load_defaults 8.2`, messages from `MessageVerifier` and
+    `MessageEncryptor` (signed IDs, signed GlobalIDs, Active Storage keys, etc.)
+    no longer fall back to deserializing `Marshal` payloads.
+
+    *Ben Sheldon*
+
 *   `ActiveSupport::ParameterFilter#filter_param` now passes `{ key => value }` to
     `Proc` filters as their third argument, the same hash `filter` would pass for that
     single pair, instead of `nil`.

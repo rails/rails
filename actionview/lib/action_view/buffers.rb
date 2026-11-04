@@ -1,14 +1,13 @@
 # frozen_string_literal: true
 
-# :markup: markdown
 require "active_support/core_ext/string/output_safety"
 
 module ActionView
   # Used as a buffer for views
   #
   # The main difference between this and ActiveSupport::SafeBuffer
-  # is for the methods \`<<\` and \`safe_expr_append=\` the inputs are
-  # checked for nil before they are assigned and \`to_s\` is called on
+  # is for the methods `<<` and `safe_expr_append=` the inputs are
+  # checked for nil before they are assigned and `to_s` is called on
   # the input. For example:
   #
   # ```

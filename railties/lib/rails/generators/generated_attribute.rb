@@ -1,6 +1,5 @@
 # frozen_string_literal: true
 
-# :markup: markdown
 require "active_support/time"
 require "active_support/core_ext/string/starts_ends_with"
 

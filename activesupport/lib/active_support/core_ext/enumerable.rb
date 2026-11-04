@@ -1,4 +1,3 @@
-# :markup: markdown
 # frozen_string_literal: true
 
 module ActiveSupport
@@ -85,11 +84,15 @@ module Enumerable
   # ```
   def index_with(default = (no_default = true))
     if block_given?
-      to_h { |elem| [elem, yield(elem)] } # rubocop:disable Rails/IndexWith
+      result = {}
+      each { |elem| result[elem] = yield(elem) }
+      result
     elsif no_default
       to_enum(:index_with) { size if respond_to?(:size) }
     else
-      to_h { |elem| [elem, default] } # rubocop:disable Rails/IndexWith
+      result = {}
+      each { |elem| result[elem] = default }
+      result
     end
   end
 
@@ -124,6 +127,7 @@ module Enumerable
 
   # The negative of the `Enumerable#include?`. Returns `true` if the
   # collection does not include the object.
+  #: (BasicObject) -> bool
   def exclude?(object)
     !include?(object)
   end
@@ -200,6 +204,7 @@ module Enumerable
   # { a: "", b: 1, c: nil, d: [], e: false, f: true }.compact_blank
   # # => { b: 1, f: true }
   # ```
+  #: () -> Array[Elem]
   def compact_blank
     reject(&:blank?)
   end
@@ -231,6 +236,7 @@ module Enumerable
   # Set.new.sole        # => Enumerable::SoleItemExpectedError: no item found
   # { a: 1, b: 2 }.sole # => Enumerable::SoleItemExpectedError: multiple items found
   # ```
+  #: () -> Elem
   def sole
     result = nil
     found = false
@@ -301,5 +307,18 @@ class Array # :nodoc:
   def compact_blank!
     # use delete_if rather than reject! because it always returns self even if nothing changed
     delete_if(&:blank?)
+  end
+
+  # Array#to_h sizes the hash for the array up front, so it stays embedded up
+  # to 8 entries, where Enumerable#index_with's growing hash would move to the
+  # C heap.
+  def index_with(default = (no_default = true))
+    if block_given?
+      to_h { |elem| [elem, yield(elem)] } # rubocop:disable Rails/IndexWith
+    elsif no_default
+      to_enum(:index_with) { size }
+    else
+      to_h { |elem| [elem, default] } # rubocop:disable Rails/IndexWith
+    end
   end
 end

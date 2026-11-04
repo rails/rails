@@ -300,6 +300,13 @@ module ActionDispatch
         assert_equal({}, params)
       end
 
+      def test_generate_with_unknown_name_still_matches_redirects
+        get "/legacy", to: mapper.redirect("/tasks")
+
+        assert_equal "/legacy", @formatter.generate("unknown", {}, {}).path(nil)
+        assert_instance_of Formatter::MissingRoute, @formatter.generate(nil, {}, {})
+      end
+
       def test_generate_with_name
         get "/tasks/index", to: "tasks#index", as: "tasks"
 

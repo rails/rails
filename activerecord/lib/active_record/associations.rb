@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+# :markup: rdoc
+
 module ActiveRecord
   # See ActiveRecord::Associations::ClassMethods for documentation.
   module Associations # :nodoc:
@@ -73,6 +75,16 @@ module ActiveRecord
       super
     end
 
+    def initialize_clone(other, ...) # :nodoc:
+      @association_cache = other.association_cache
+      super
+    end
+
+    protected
+      def association_cache # :nodoc:
+        @association_cache ||= {}
+      end
+
     private
       # The cache is built on the first association access: most records
       # are instantiated, read and discarded without touching an association.
@@ -83,12 +95,12 @@ module ActiveRecord
 
       # Returns the specified association instance if it exists, +nil+ otherwise.
       def association_instance_get(name)
-        (@association_cache ||= {})[name]
+        association_cache[name]
       end
 
       # Set the specified association instance.
       def association_instance_set(name, association)
-        (@association_cache ||= {})[name] = association
+        association_cache[name] = association
       end
 
       def deprecated_associations_api_guard(association, method_name)

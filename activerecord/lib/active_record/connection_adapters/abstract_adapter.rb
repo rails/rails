@@ -1,6 +1,5 @@
 # frozen_string_literal: true
 
-# :markup: markdown
 require "active_record/connection_adapters/sql_type_metadata"
 require "active_record/connection_adapters/abstract/schema_dumper"
 require "active_record/connection_adapters/abstract/schema_creation"
@@ -108,6 +107,11 @@ module ActiveRecord
       # connections on worker Ractors.
       def self.ractor_connection_proxy_class # :nodoc:
         raise ActiveRecordError, "#{name} does not support Ractor connections"
+      end
+
+      # Returns optimizer hints as [outer query hints, subquery hints].
+      def self.partition_optimizer_hints(hints) # :nodoc:
+        [hints, []]
       end
 
       def ractor_connection_profile # :nodoc:
@@ -1178,7 +1182,7 @@ module ActiveRecord
         # and the configured `retry_deadline` limit. (Note that when
         # `allow_retry` is true, it's possible to return without having marked
         # the connection as verified. If the block is guaranteed to exercise the
-        # connection, consider calling \`verified!\` to avoid needless
+        # connection, consider calling `verified!` to avoid needless
         # verification queries in subsequent calls.)
         #
         # If `materialize_transactions` is false, the block will be run without
@@ -1236,7 +1240,7 @@ module ActiveRecord
         end
 
         # Mark the connection as verified. Call this inside a
-        # \`with_raw_connection\` block only when the block is guaranteed to
+        # `with_raw_connection` block only when the block is guaranteed to
         # exercise the raw connection.
         def verified!
           @last_activity = Process.clock_gettime(Process::CLOCK_MONOTONIC)
@@ -1259,7 +1263,8 @@ module ActiveRecord
           # We definitely can't retry if we were inside an invalidated transaction.
           return false if current_transaction.invalidated?
 
-          exception.is_a?(Deadlocked) || exception.is_a?(LockWaitTimeout)
+          exception.is_a?(Deadlocked) || exception.is_a?(SerializationFailure) ||
+            exception.is_a?(LockWaitTimeout)
         end
 
         def build_retry_budget(allow_retry:, reconnectable:)

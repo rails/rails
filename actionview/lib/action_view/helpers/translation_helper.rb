@@ -1,6 +1,5 @@
 # frozen_string_literal: true
 
-# :markup: markdown
 require "action_view/helpers/tag_helper"
 require "active_support/html_safe_translation"
 

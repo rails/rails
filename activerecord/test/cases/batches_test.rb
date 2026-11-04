@@ -220,6 +220,22 @@ class EachTest < ActiveRecord::TestCase
     end
   end
 
+  def test_find_in_batches_should_error_on_default_order
+    assert_raise(ArgumentError) do
+      Post.default_order(:title).find_in_batches(error_on_ignore: true) { }
+    end
+  end
+
+  def test_find_in_batches_should_not_error_on_blank_order
+    assert_nothing_raised do
+      Post.order("").find_in_batches(error_on_ignore: true) { }
+    end
+
+    assert_nothing_raised do
+      Post.reorder(nil).find_in_batches(error_on_ignore: true) { }
+    end
+  end
+
   def test_find_in_batches_should_not_error_if_config_overridden
     # Set the config option which will be overridden
     prev = ActiveRecord.error_on_ignored_order
@@ -668,6 +684,13 @@ class EachTest < ActiveRecord::TestCase
     assert_queries_match(/#{quoted_posts_id} > .+ AND #{quoted_posts_id} <= .+/i) do
       relations.each { |relation| assert_kind_of Post, relation.first }
     end
+  end
+
+  def test_in_batches_with_ranges_drops_ignored_default_order
+    relations = Post.default_order(:title).in_batches(of: 2, use_ranges: true).to_a
+
+    assert_not_empty relations
+    relations.each { |relation| assert_no_match(/ORDER BY/i, relation.to_sql) }
   end
 
   def test_in_batches_no_subqueries_for_whole_tables_batching

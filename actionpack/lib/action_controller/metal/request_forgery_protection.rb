@@ -1,7 +1,5 @@
 # frozen_string_literal: true
 
-# :markup: markdown
-
 require "rack/session/abstract/id"
 require "action_controller/metal/exceptions"
 require "active_support/security_utils"
@@ -137,6 +135,7 @@ module ActionController # :nodoc:
 
       helper_method :form_authenticity_token
       helper_method :protect_against_forgery?
+      helper_method :embed_authenticity_token?
     end
 
     module ClassMethods
@@ -247,7 +246,9 @@ module ActionController # :nodoc:
       #         approach does not require authenticity tokens but only works with
       #         browsers that support the Fetch Metadata Request Headers. Requests
       #         without a valid `Sec-Fetch-Site` header will be rejected. This is
-      #         the default.
+      #         the default. Forms and `csrf_meta_tags` don't render a token under
+      #         this strategy; a form that posts to a controller still checking
+      #         tokens can ask for one with `authenticity_token: true`.
       #
       #     *   `:header_or_legacy_token` - A hybrid approach that first checks the
       #         `Sec-Fetch-Site` header. If the header indicates same-site or
@@ -573,9 +574,15 @@ module ActionController # :nodoc:
       # Appends Sec-Fetch-Site to the Vary header. This ensures proper cache behavior since
       # the response may vary based on this header.
       def append_sec_fetch_site_to_vary_header # :doc:
-        vary_header = response.headers["Vary"].to_s.split(",").map(&:strip).reject(&:blank?)
-        unless vary_header.include?("Sec-Fetch-Site")
-          response.headers["Vary"] = (vary_header + ["Sec-Fetch-Site"]).join(", ")
+        vary = response.headers["Vary"]
+
+        if vary.nil? || vary.empty?
+          response.headers["Vary"] = "Sec-Fetch-Site"
+        else
+          vary_header = vary.split(",").map(&:strip).reject(&:blank?)
+          unless vary_header.include?("Sec-Fetch-Site")
+            response.headers["Vary"] = (vary_header + ["Sec-Fetch-Site"]).join(", ")
+          end
         end
       end
 
@@ -594,7 +601,7 @@ module ActionController # :nodoc:
 
       # Check for cross-origin JavaScript responses.
       def non_xhr_javascript_response? # :doc:
-        %r(\A(?:text|application)/javascript).match?(media_type) && !request.xhr?
+        %r(\A(?:text|application)/javascript).match?(content_type) && !request.xhr?
       end
 
       AUTHENTICITY_TOKEN_LENGTH = 32
@@ -860,6 +867,14 @@ module ActionController # :nodoc:
       # Checks if the controller allows forgery protection.
       def protect_against_forgery? # :doc:
         allow_forgery_protection && (!session.respond_to?(:enabled?) || session.enabled?)
+      end
+
+      # Checks if the forms and `csrf_meta_tags` this controller renders carry an
+      # authenticity token. Under the `:header_only` verification strategy no
+      # request is checked against a token, so none is rendered unless a form asks
+      # for one with `authenticity_token: true`.
+      def embed_authenticity_token? # :doc:
+        protect_against_forgery? && !using_header_only_for_forgery_protection?
       end
 
       NULL_ORIGIN_MESSAGE = <<~MSG

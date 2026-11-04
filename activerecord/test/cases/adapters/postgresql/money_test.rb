@@ -10,6 +10,11 @@ class PostgresqlMoneyTest < ActiveRecord::PostgreSQLTestCase
     validates :depth, numericality: true
   end
 
+  class PostgresqlMoneyWithLimit < ActiveRecord::Base
+    self.table_name = "postgresql_moneys"
+    validates :wealth, numericality: { less_than_or_equal_to: 10 }
+  end
+
   def setup
     super
     @connection = ActiveRecord::Base.lease_connection
@@ -71,6 +76,16 @@ class PostgresqlMoneyTest < ActiveRecord::PostgreSQLTestCase
 
       assert_equal(-number, type.cast("(#{string})"))
       assert_equal(-number, type.cast("($#{string})"))
+    end
+  end
+
+  def test_numericality_validation_with_money_scale
+    ["10.004", 10.004, BigDecimal("10.004")].each do |raw_value|
+      assert_predicate PostgresqlMoneyWithLimit.new(wealth: raw_value), :valid?
+    end
+
+    ["10.005", 10.005, BigDecimal("10.005")].each do |raw_value|
+      assert_not_predicate PostgresqlMoneyWithLimit.new(wealth: raw_value), :valid?
     end
   end
 

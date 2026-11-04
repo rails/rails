@@ -166,6 +166,30 @@ class AggregationsTest < ActiveRecord::TestCase
 
     assert_equal "Lively Street", customers(:barney).address_street
   end
+
+  def test_aggregation_added_to_parent_reaches_subclass_that_defined_its_own_first
+    parent = Class.new(ActiveRecord::Base) do
+      self.table_name = "customers"
+      def self.name = "InheritedAggregationCustomer"
+    end
+    child = Class.new(parent) { composed_of :gps_location, allow_nil: true }
+    parent.composed_of :balance, class_name: "Money", mapping: %i(balance amount)
+
+    assert_same parent.reflect_on_aggregation(:balance), child.reflect_on_aggregation(:balance)
+    assert_nil parent.reflect_on_aggregation(:gps_location)
+
+    customer = child.create!(name: "Inherited", balance: Money.new(25))
+    assert_equal [customer], child.where(balance: Money.new(25)).to_a
+  end
+
+  def test_aggregation_added_to_parent_does_not_replace_subclass_override
+    parent = Class.new(ActiveRecord::Base) { self.table_name = "customers" }
+    child = Class.new(parent) { composed_of :balance, class_name: "Money", mapping: %i(balance amount) }
+    child_reflection = child.reflect_on_aggregation(:balance)
+    parent.composed_of :balance, class_name: "Fullname", mapping: %w(name to_s)
+
+    assert_same child_reflection, child.reflect_on_aggregation(:balance)
+  end
 end
 
 class OverridingAggregationsTest < ActiveRecord::TestCase

@@ -1,6 +1,5 @@
 # frozen_string_literal: true
 
-# :markup: markdown
 require "rails/railtie"
 require "rails/engine/railties"
 require "active_support/callbacks"
@@ -618,6 +617,7 @@ module Rails
 
     # Defines the routes for this engine. If a block is given to
     # routes, it is appended to the engine.
+    #: () ?{ () [self: ActionDispatch::Routing::Mapper] -> void } -> ActionDispatch::Routing::RouteSet
     def routes(&block)
       if block_given?
         if @route_blocks
@@ -645,6 +645,7 @@ module Rails
     # seeds, e.g.:
     #
     # Blog::Engine.load_seed
+    #: () -> void
     def load_seed
       seed_file = paths["db/seeds.rb"].existent.first
       run_callbacks(:load_seed) { load(seed_file) } if seed_file

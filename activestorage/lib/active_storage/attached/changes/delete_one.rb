@@ -1,6 +1,5 @@
 # frozen_string_literal: true
 
-# :markup: markdown
 module ActiveStorage
   class Attached::Changes::DeleteOne # :nodoc:
     attr_reader :name

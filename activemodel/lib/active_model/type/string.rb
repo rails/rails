@@ -1,6 +1,5 @@
 # frozen_string_literal: true
 
-# :markup: markdown
 require "active_model/type/immutable_string"
 
 module ActiveModel
@@ -25,7 +24,7 @@ module ActiveModel
         true
       end
 
-      def to_immutable_string
+      def to_immutable_string # :nodoc:
         ImmutableString.new(
           true: @true,
           false: @false,

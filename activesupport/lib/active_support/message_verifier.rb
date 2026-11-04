@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+# :markup: rdoc
+
 require "openssl"
 require "base64"
 require "active_support/core_ext/object/blank"
@@ -316,6 +318,13 @@ module ActiveSupport
       deserialize_with_metadata(decode(extract_encoded(message)), **options)
     end
 
+    def freeze # :nodoc:
+      return self if frozen?
+
+      @hmac = nil
+      super
+    end
+
     ActiveSupport::InspectBackport.apply(self)
 
     private
@@ -353,7 +362,15 @@ module ActiveSupport
       end
 
       def generate_digest(data)
-        OpenSSL::HMAC.hexdigest(@digest, @secret, data)
+        if frozen?
+          OpenSSL::HMAC.hexdigest(@digest, @secret, data)
+        else
+          hmac.dup.update(data).hexdigest
+        end
+      end
+
+      def hmac
+        @hmac ||= OpenSSL::HMAC.new(@secret, @digest)
       end
 
       def digest_length_in_hex

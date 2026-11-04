@@ -1,6 +1,5 @@
 # frozen_string_literal: true
 
-# :markup: markdown
 module ActiveRecord
   module Encryption
     # This is a wrapper for a hash of encryption properties. It is used by
