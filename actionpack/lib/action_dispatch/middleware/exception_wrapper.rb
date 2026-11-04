@@ -260,6 +260,13 @@ module ActionDispatch
       end
 
       def build_backtrace
+        locations = @exception.backtrace_locations || []
+
+        # Collecting the built templates copies the template cache of every
+        # resolver, so skip it when no backtrace entry can be a template frame,
+        # like for a routing error.
+        return locations.dup unless locations.any? { |loc| compiled_template_method?(loc.base_label) }
+
         built_methods = {}
 
         ActionView::PathRegistry.all_resolvers.each do |resolver|
@@ -268,7 +275,7 @@ module ActionDispatch
           end
         end
 
-        (@exception.backtrace_locations || []).map do |loc|
+        locations.map do |loc|
           if built_methods.key?(loc.base_label)
             thread_backtrace_location = if loc.respond_to?(:__getobj__)
               loc.__getobj__
@@ -280,6 +287,22 @@ module ActionDispatch
             loc
           end
         end
+      end
+
+      # The frames the lookup can map are the ones whose label is the compiled
+      # method of a template, which `Template#method_name` builds out of the
+      # identifier, the identifier hash and the object id. Matching that shape
+      # rather than the path of the frame covers the templates of a custom
+      # resolver, whose identifier need not be a file name, let alone one
+      # carrying the extension of a registered handler.
+      #
+      # The pattern is deliberately wider than the format: a frame that matches
+      # without being a template only costs the lookup that runs today, while
+      # one that fails to match loses its source extract.
+      COMPILED_TEMPLATE_METHOD = /\A_\w+_\d+_\d+\z/
+
+      def compiled_template_method?(label)
+        label && COMPILED_TEMPLATE_METHOD.match?(label)
       end
 
       def causes_for(exception)
