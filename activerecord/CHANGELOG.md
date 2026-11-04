@@ -1,3 +1,18 @@
+*   Fix `pluck` and `pick` returning uncast values for a column unknown to the schema.
+
+    Plucking a column of a joined subquery, a CTE or another table the schema
+    doesn't know now casts it with the column type the database reports for
+    the result, when the adapter reports result column types (PostgreSQL and
+    SQLite), instead of returning the raw value.
+
+    ```ruby
+    Topic.with(read: Topic.select(:id, :last_read)).joins("JOIN read ON read.id = topics.id").pluck("read.last_read")
+    # => ["2004-04-15"] before
+    # => [Thu, 15 Apr 2004] now
+    ```
+
+    *Thomas Klemm*
+
 *   Fix preloading a scoped nested `has_many :through` association after a
     sibling association loaded its records.
 

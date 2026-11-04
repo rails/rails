@@ -1049,6 +1049,30 @@ class CalculationsTest < ActiveRecord::TestCase
     assert_equal expected, actual
   end
 
+  def test_pluck_type_cast_of_columns_unknown_to_the_schema_from_the_result
+    topics = Topic
+      .with(read: Topic.select(:id, :last_read, "topics.approved AS written_on"))
+      .joins("JOIN read ON read.id = topics.id")
+      .where(id: topics(:first).id)
+
+    assert_equal [[topics(:first).title, Date.new(2004, 4, 15), false]], topics.pluck(:title, "read.last_read", "read.written_on")
+    assert_equal Date.new(2004, 4, 15), topics.pick("read.last_read")
+  end if current_adapter?(:SQLite3Adapter, :PostgreSQLAdapter)
+
+  def test_pluck_keeps_an_explicit_value_type
+    topic = Class.new(Topic) { attribute :last_read, ActiveModel::Type::Value.new }
+
+    assert_equal ["2004-04-15"], topic.where.not(last_read: nil).pluck(:last_read)
+  end if current_adapter?(:SQLite3Adapter, :PostgreSQLAdapter)
+
+  def test_pluck_of_a_column_unknown_to_the_schema_without_result_column_types
+    result = ActiveRecord::Result.new(["last_read"], [["2004-04-15"]])
+
+    Topic.lease_connection.stub(:select_all, result) do
+      assert_equal ["2004-04-15"], Topic.joins("JOIN read ON read.id = topics.id").pluck("read.last_read")
+    end
+  end
+
   def test_pluck_type_cast_with_joins_without_table_name_qualified_column
     assert_pluck_type_cast_without_table_name_qualified_column(AuthorAddress.joins(author: :books))
   end
