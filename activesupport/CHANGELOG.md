@@ -1,3 +1,17 @@
+*   Fix `ActiveSupport::TaggedLogging#tagged` removing the wrong tags when the
+    block pushes tags of its own.
+
+    The block's tags were removed by popping the newest tags, so a tag pushed
+    inside the block was removed instead, and the block's tag stayed on later
+    log lines.
+
+    ```ruby
+    logger.tagged("BCX") { logger.push_tags("Jason") }
+    logger.info "Cool story" # => "[Jason] Cool story" (was "[BCX] Cool story")
+    ```
+
+    *Wei-Lun Li*
+
 *   Write `ActiveSupport::Duration#iso8601` values as plain decimal numbers.
 
     Very small or very large float parts were written in scientific notation and

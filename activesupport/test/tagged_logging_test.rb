@@ -40,6 +40,20 @@ class TaggedLoggingTest < ActiveSupport::TestCase
     assert_equal "[BCX] [Jason] [New] Funky time\n", @output.string
   end
 
+  test "tagged block removes its own tags when more tags are pushed inside it" do
+    @logger.tagged("BCX") do
+      @logger.push_tags("Jason")
+      @logger.info "Funky time"
+    end
+    @logger.info "Cool story"
+    @logger.pop_tags
+    @logger.info "Dull story"
+    assert_equal "[BCX] [Jason] Funky time
+[Jason] Cool story
+Dull story
+", @output.string
+  end
+
   test "tagged with an array" do
     @logger.tagged(%w(BCX Jason New)) { @logger.info "Funky time" }
     assert_equal "[BCX] [Jason] [New] Funky time\n", @output.string
