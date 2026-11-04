@@ -4883,6 +4883,7 @@ class TestOptimizedNamedRoutes < ActionDispatch::IntegrationTest
       [:page_path, ["foo?bar"], {}], [:wiki_path, ["foo/bar"], {}], [:thing_path, [1], {}],
       [:product_path, [1], {}], [:product_path, ["fr", 1], {}], [:item_path, [1], {}], [:item_path, [1, "slug"], {}],
       [:user_status_url, ["david", 1], {}], [:user_status_path, ["da.vid", 1], {}], [:guide_path, [], { id: 1 }],
+      [:article_path, [""], {}], [:article_url, [Struct.new(:to_param).new("")], {}],
     ]
     [
       { host: "example.org" },
@@ -5437,6 +5438,14 @@ class TestUrlGenerationErrors < ActionDispatch::IntegrationTest
     message = "No route matches #{url.inspect}, missing required keys: #{missing.inspect}"
 
     error = assert_raises(ActionController::UrlGenerationError) { product_path(nil) }
+    assert_equal message, error.message
+  end
+
+  test "URL helpers raise a 'missing keys' error for an empty param with optimized helpers" do
+    url, missing = { action: "show", controller: "products", id: "" }, [:id]
+    message = "No route matches #{url.inspect}, missing required keys: #{missing.inspect}"
+
+    error = assert_raises(ActionController::UrlGenerationError) { product_path("") }
     assert_equal message, error.message
   end
 
