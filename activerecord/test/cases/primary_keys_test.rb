@@ -297,6 +297,22 @@ class PrimaryKeysTest < ActiveRecord::TestCase
     assert_equal "title", subclass.primary_key
   end
 
+  def test_relation_find_uses_overridden_primary_key_method
+    klass = Class.new(ActiveRecord::Base) do
+      self.table_name = "topics"
+
+      def self.primary_key
+        "title"
+      end
+    end
+
+    topic = klass.first
+
+    assert_equal "title", klass.primary_key
+    assert_equal topic, klass.all.find(topic.title)
+    assert_equal [topic], klass.all.find([topic.title])
+  end
+
   def test_primary_key_assignment_reloads_schema
     klass = Class.new(ActiveRecord::Base) do
       self.table_name = "topics"

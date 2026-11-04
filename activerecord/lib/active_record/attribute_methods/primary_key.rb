@@ -158,8 +158,23 @@ module ActiveRecord
                   reset_primary_key
                 end
 
+                # `primary_key` is documented as overridable in subclasses. Resolve
+                # the definition (above) before reading it so a `super` call in the
+                # override still works, then rebuild from the overridden value so
+                # consumers of `primary_key_definition` (relation finders, etc.)
+                # honor the override rather than the schema-derived key.
+                if primary_key_method_overridden?
+                  @primary_key_definition = ActiveRecord::Key.for(primary_key)
+                  @primary_key_inherited = false
+                  include CompositePrimaryKey if @primary_key_definition.composite?
+                end
+
                 @primary_key_definition
               end
+            end
+
+            def primary_key_method_overridden?
+              singleton_class.instance_method(:primary_key).owner != ClassMethods
             end
 
             def inherited_primary_key_definition
