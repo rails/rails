@@ -825,6 +825,39 @@ class CalculationsTest < ActiveRecord::TestCase
     assert_equal({ "active" => 2, "trial" => 2, "suspended" => 1 }, counts)
   end
 
+  def test_should_cast_group_by_keys_of_a_column_unknown_to_the_schema_from_the_result
+    counts = Account
+      .joins("JOIN (SELECT tsrange(timestamp '2020-01-01', timestamp '2020-01-02') AS status) periods ON TRUE")
+      .group("periods.status")
+      .count
+
+    assert_equal({ Time.utc(2020, 1, 1)...Time.utc(2020, 1, 2) => Account.count }, counts)
+
+    counts = Account
+      .joins("JOIN (SELECT tsrange(timestamp '2020-01-01', timestamp '2020-01-02') AS status) periods ON TRUE")
+      .group("periods.status", :firm_id)
+      .count
+
+    assert_equal 1, counts[[Time.utc(2020, 1, 1)...Time.utc(2020, 1, 2), 1]]
+  end if current_adapter?(:PostgreSQLAdapter)
+
+  def test_should_cast_group_by_keys_of_a_typed_column_selected_by_a_cte_from_the_result
+    counts = Topic
+      .with(read: Topic.select(:id, :last_read))
+      .joins("JOIN read ON read.id = topics.id")
+      .where.not(last_read: nil)
+      .group("read.last_read")
+      .count
+
+    assert_equal [Date.new(2004, 4, 15)], counts.keys
+  end if current_adapter?(:SQLite3Adapter, :PostgreSQLAdapter)
+
+  def test_should_keep_an_explicit_value_type_for_group_by_keys
+    topic = Class.new(Topic) { attribute :last_read, ActiveModel::Type::Value.new }
+
+    assert_equal ["2004-04-15"], topic.where.not(last_read: nil).group(:last_read).count.keys
+  end if current_adapter?(:SQLite3Adapter, :PostgreSQLAdapter)
+
   def test_should_count_field_of_root_table_with_conflicting_group_by_column
     expected = { 1 => 2, 2 => 1, 4 => 5, 5 => 3, 7 => 1 }
     assert_equal expected, Post.joins(:comments).group(:post_id).count
