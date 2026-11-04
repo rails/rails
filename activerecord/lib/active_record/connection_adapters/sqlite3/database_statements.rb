@@ -146,7 +146,8 @@ module ActiveRecord
                     0
                   end
 
-                  ActiveRecord::Result.new(stmt.columns, rows, stmt.types.map { |t| type_map.lookup(t) }, affected_rows: affected_rows)
+                  result_type_map = type_map
+                  ActiveRecord::Result.new(stmt.columns, rows, stmt.types.map { |t| result_type_map.lookup(t) }, affected_rows: affected_rows)
                 end
               ensure
                 stmt.close unless intent.prepare
