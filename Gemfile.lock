@@ -44,6 +44,7 @@ PATH
       builder (~> 3.1)
       erubi (~> 1.11)
       herb (>= 0.10)
+      prism
       rails-dom-testing (~> 2.2)
       rails-html-sanitizer (~> 1.7, >= 1.7.2)
     activejob (8.2.0.alpha)
@@ -94,6 +95,7 @@ PATH
       actionpack (= 8.2.0.alpha)
       activesupport (= 8.2.0.alpha)
       irb (~> 1.13)
+      prism
       rackup (>= 1.0.0)
       rake (>= 12.2)
       thor (~> 1.0, >= 1.2.2)
