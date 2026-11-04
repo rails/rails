@@ -28,6 +28,28 @@ class RoutingLogSubscriberTest < ActionDispatch::IntegrationTest
     assert_match(/Completed 301/, logs.last)
   end
 
+  test "redirect location is filtered by redirect_filter" do
+    draw do
+      get "reset/:token", to: redirect("/password/edit?token=%{token}")
+    end
+
+    get "/reset/secret-token", env: { "action_dispatch.redirect_filter" => [/password\/edit/] }
+
+    assert_equal "Redirected to [FILTERED]", logs.first
+    assert_equal "http://www.example.com/password/edit?token=secret-token", response.location
+  end
+
+  test "redirect query parameters are filtered by parameter_filter" do
+    draw do
+      get "reset/:token", to: redirect("/password/edit?token=%{token}")
+    end
+
+    get "/reset/secret-token", env: { "action_dispatch.parameter_filter" => [:token] }
+
+    assert_equal "Redirected to http://www.example.com/password/edit?token=[FILTERED]", logs.first
+    assert_equal "http://www.example.com/password/edit?token=secret-token", response.location
+  end
+
   test "verbose redirect logs" do
     line = __LINE__ + 7
     old_cleaner = ActionDispatch::LogSubscriber.backtrace_cleaner

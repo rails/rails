@@ -38,6 +38,20 @@ module ActionDispatch
       end
     end
 
+    test "redirect location is filtered in the structured event" do
+      draw do
+        get "reset/:token", to: redirect("/password/edit?token=%{token}")
+      end
+
+      assert_event_reported("action_dispatch.redirect", payload: {
+        location: "http://www.example.com/password/edit?token=[FILTERED]"
+      }) do
+        get "/reset/secret-token", env: { "action_dispatch.parameter_filter" => [:token] }
+      end
+
+      assert_equal "http://www.example.com/password/edit?token=secret-token", response.location
+    end
+
     private
       def draw(&block)
         self.class.stub_controllers do |routes|
