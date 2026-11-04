@@ -300,6 +300,24 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
     ActiveRecord.belongs_to_required_validates_foreign_key = original_value
   end
 
+  def test_association_readers_when_the_owner_has_an_attribute_named_method
+    model = Class.new(ActiveRecord::Base) do
+      self.table_name = "posts"
+      self.inheritance_column = nil
+
+      def self.name; "TempPost"; end
+
+      attribute :method, :string
+
+      belongs_to :author
+      has_many :comments, foreign_key: :post_id
+    end
+
+    post = model.find(posts(:welcome).id)
+    assert_equal authors(:david), post.author
+    assert_equal posts(:welcome).comments.sort_by(&:id), post.comments.sort_by(&:id)
+  end
+
   class AliasedKeyComment < ActiveRecord::Base
     self.table_name = "comments"
     self.inheritance_column = nil

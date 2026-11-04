@@ -283,7 +283,7 @@ module ActiveRecord
           end
 
           klass.with_connection do |c|
-            sc.execute(owner.method(:read_attr), c, async: async) do |record|
+            sc.execute(->(name) { owner.read_attr(name) }, c, async: async) do |record|
               set_inverse_instance(record)
               set_strict_loading(record)
             end
