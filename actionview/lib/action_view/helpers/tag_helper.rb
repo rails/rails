@@ -1641,6 +1641,8 @@ module ActionView
             key = ERB::Util.xml_name_escape(key) if escape
 
             case value
+            when String
+              value = escape ? ERB::Util.unwrapped_html_escape(value) : value.to_s
             when Array, Hash
               value = TagHelper.build_tag_values(value) if key == "class"
               value = escape ? @view_context.safe_join(value, " ") : value.join(" ")
