@@ -584,10 +584,15 @@ module ActiveRecord
             end
 
             key_types = group_columns.each_with_object({}) do |(aliaz, col_name), types|
-              types[aliaz] = col_name.try(:type_caster) ||
-                type_for(col_name) do
-                  calculated_data.column_types.fetch(aliaz, Type.default_value)
-                end
+              type = col_name.try(:type_caster)
+              # A column unknown to the schema has the placeholder Type.default_value (hence equal?); use the database type.
+              types[aliaz] = if type.equal?(Type.default_value)
+                calculated_data.column_types.fetch(aliaz, type)
+              elsif type
+                type
+              else
+                type_for(col_name) { calculated_data.column_types.fetch(aliaz, Type.default_value) }
+              end
             end
 
             hash_rows = calculated_data.cast_values(key_types).map! do |row|
