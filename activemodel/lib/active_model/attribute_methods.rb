@@ -423,7 +423,7 @@ module ActiveModel
         end
 
         def resolve_attribute_name(name)
-          attribute_aliases.fetch(super, &:itself)
+          attribute_aliases.fetch(name = super, name)
         end
 
         def generated_attribute_methods
