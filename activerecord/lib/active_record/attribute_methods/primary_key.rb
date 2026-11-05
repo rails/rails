@@ -82,7 +82,11 @@ module ActiveRecord
           end
 
           def composite_primary_key? # :nodoc:
-            primary_key_definition&.composite?
+            # Read the stored definition (not the override-aware one): a composite
+            # key is established through `primary_key=` / the schema, matching the
+            # pre-`PrimaryKey`-object behavior where this did not reflect a
+            # `primary_key` method that happens to return an Array.
+            stored_primary_key_definition&.composite?
           end
 
           def primary_key_definition # :nodoc:
@@ -162,10 +166,14 @@ module ActiveRecord
               @primary_key_definition || load_primary_key_definition
             end
 
-            # True when a subclass has overridden the `primary_key` class method
-            # (as opposed to assigning it with `primary_key=` or inheriting it).
+            # True when the `primary_key` class method is overridden (defined on
+            # this class or inherited from a subclass's ancestor), as opposed to
+            # the default method, `primary_key=`, or a schema-resolved key.
+            # Memoized because it is read on the `primary_key_definition` hot path
+            # and the method's owner does not change after the class is defined.
             def primary_key_method_overridden?
-              singleton_class.instance_method(:primary_key).owner != ClassMethods
+              return @primary_key_method_overridden unless @primary_key_method_overridden.nil?
+              @primary_key_method_overridden = singleton_class.instance_method(:primary_key).owner != ClassMethods
             end
 
             # Subclasses inherit the primary key of the closest ancestor that
