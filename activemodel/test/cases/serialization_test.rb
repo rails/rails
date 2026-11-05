@@ -100,6 +100,12 @@ class SerializationTest < ActiveModel::TestCase
     assert_equal expected, @user.serializable_hash(only: :name)
   end
 
+  def test_read_attribute_for_serialization_accepts_strings_and_symbols
+    assert_equal "David", @user.read_attribute_for_serialization("name")
+    assert_equal "David", @user.read_attribute_for_serialization(:name)
+    assert_equal "i_am_bar", @user.read_attribute_for_serialization("bar")
+  end
+
   def test_include_option_with_singular_association
     expected = { "name" => "David", "gender" => "male", "email" => "david@example.com",
                 "address" => { "street" => "123 Lane", "city" => "Springfield", "state" => "CA", "zip" => 11111 } }

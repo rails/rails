@@ -182,7 +182,7 @@ module ActiveModel
     # end
     # ```
     def read_attribute_for_serialization(key)
-      send(key)
+      send(key.to_sym)
     end
 
     private
