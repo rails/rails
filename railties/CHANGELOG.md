@@ -1,3 +1,11 @@
+*   Include `bundler-audit`, `brakeman` and `rubocop-rails-omakase` in new apps generated on JRuby and TruffleRuby.
+
+    The app already gets `bin/bundler-audit`, `bin/brakeman`, `bin/rubocop` and
+    the matching `bin/ci` steps, but the whole development/test group was left
+    out of the Gemfile on Rubies other than CRuby. Only `debug` is skipped now.
+
+    *Sampo Kuokkanen*
+
 *   Fix `/rails/info/notes` raising `Encoding::CompatibilityError` when notes
     from Ruby and non-Ruby files contain non-ASCII characters.
 
