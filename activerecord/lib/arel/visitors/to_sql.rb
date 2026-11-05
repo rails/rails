@@ -1,6 +1,5 @@
 # frozen_string_literal: true
 
-# :markup: markdown
 module Arel # :nodoc: all
   module Visitors
     class UnsupportedVisitError < StandardError
@@ -139,17 +138,9 @@ module Arel # :nodoc: all
             collector << " "
           end
 
-          collector = o.cores.inject(collector) { |c, x|
-            visit_Arel_Nodes_SelectCore(x, c)
-          }
+          o.cores.each { |core| collector = visit_Arel_Nodes_SelectCore(core, collector) }
 
-          unless o.orders.empty?
-            collector << " ORDER BY "
-            o.orders.each_with_index do |x, i|
-              collector << ", " unless i == 0
-              collector = visit(x, collector)
-            end
-          end
+          collect_nodes_for o.orders, collector, " ORDER BY "
 
           visit_Arel_Nodes_SelectOptions(o, collector)
         end
@@ -929,8 +920,10 @@ module Arel # :nodoc: all
         end
 
         def inject_join(list, collector, join_str)
-          list.each_with_index do |x, i|
-            collector << join_str unless i == 0
+          first = true
+          list.each do |x|
+            collector << join_str unless first
+            first = false
             collector = visit(x, collector)
           end
           collector
@@ -973,7 +966,7 @@ module Arel # :nodoc: all
         end
         alias :prepare_delete_statement :prepare_update_statement
 
-        # Used by dialects that support \`UPDATE ... FROM\` (PostgreSQL, SQLite).
+        # Used by dialects that support `UPDATE ... FROM` (PostgreSQL, SQLite).
         # Join clauses cannot reference the target table, so alias the updated
         # table, place the entire relation in the FROM clause, and add a
         # self-join (which requires the primary key).

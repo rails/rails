@@ -107,6 +107,35 @@ module ActionDispatch
         assert_equal "/pages/10", route.format(id: 10, section: nil)
       end
 
+      def test_format_with_literals_around_parameters_and_nested_groups
+        path  = path_from_string "/blog/posts/:id/comments(/page/:page(.:format))"
+        route = Route.new(name: "name", path: path, defaults: { controller: "comments", action: "index" })
+
+        assert_equal "/blog/posts/1/comments", route.format(id: 1)
+        assert_equal "/blog/posts/1/comments", route.format(id: 1, format: "json")
+        assert_equal "/blog/posts/1/comments/page/2", route.format(id: 1, page: 2)
+        assert_equal "/blog/posts/1/comments/page/2.json", route.format(id: 1, page: 2, format: "json")
+      end
+
+      def test_format_with_star_between_literals
+        path  = path_from_string "/files/*path/raw"
+        route = Route.new(name: "name", path: path, defaults: { controller: "files", action: "show" })
+
+        assert_equal "/files/a/b/raw", route.format(path: "a/b")
+      end
+
+      def test_format_with_non_ascii_literals_returns_a_new_string_each_time
+        path  = path_from_string "/café/menü/:id"
+        route = Route.new(name: "name", path: path, defaults: { controller: "menus", action: "show" })
+
+        first = route.format(id: 1)
+        assert_equal "/café/menü/1", first
+        assert_equal Encoding::UTF_8, first.encoding
+
+        first << "/changed"
+        assert_equal "/café/menü/1", route.format(id: 1)
+      end
+
       def test_score
         defaults = { controller: "pages", action: "show" }
 

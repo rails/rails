@@ -1,6 +1,5 @@
 # frozen_string_literal: true
 
-# :markup: markdown
 class ActiveStorage::Representations::BaseController < ActiveStorage::BaseController # :nodoc:
   include ActiveStorage::SetBlob
 

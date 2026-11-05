@@ -1,6 +1,5 @@
 # frozen_string_literal: true
 
-# :markup: markdown
 require "active_support/core_ext/string/filters"
 
 module ActiveRecord
@@ -210,7 +209,7 @@ module ActiveRecord
           !updated_at_came_from_user?
       end
 
-      # Converts a raw database string to \`:usec\`
+      # Converts a raw database string to `:usec`
       # format.
       #
       # Example:

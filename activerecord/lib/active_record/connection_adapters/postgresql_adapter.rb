@@ -1,6 +1,5 @@
 # frozen_string_literal: true
 
-# :markup: markdown
 gem "pg", "~> 1.1"
 require "pg"
 
@@ -1045,7 +1044,11 @@ module ActiveRecord
         def get_oid_type(oid, fmod, column_name, sql_type = "")
           load_additional_types([oid]) unless type_map.key?(oid)
 
-          type_map.fetch(oid, fmod, sql_type) { register_unknown_oid_type(oid, column_name) }
+          if sql_type.empty?
+            type_map.fetch_result_type(oid, fmod) { register_unknown_oid_type(oid, column_name) }
+          else
+            type_map.fetch(oid, fmod, sql_type) { register_unknown_oid_type(oid, column_name) }
+          end
         end
 
         def load_additional_types(oids)

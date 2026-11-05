@@ -11,6 +11,8 @@ class Author < ActiveRecord::Base
   has_many :posts_sorted_by_id, -> { order(:id) }, class_name: "Post"
   has_many :posts_sorted_by_id_limited, -> { order("posts.id").limit(1) }, class_name: "Post"
   has_many :posts_with_default_order, class_name: "Post", default_order: "posts.id DESC"
+  has_many :posts_with_ascending_default_order, class_name: "Post", default_order: "posts.id ASC"
+  has_many :posts_with_default_order_overriding_scope, -> { default_order(id: :desc) }, class_name: "Post", default_order: "posts.id ASC"
   has_many :posts_with_categories, -> { includes(:categories) }, class_name: "Post"
   has_many :posts_with_comments_and_categories, -> { includes(:comments, :categories).order("posts.id") }, class_name: "Post"
   has_many :posts_with_special_categorizations, class_name: "PostWithSpecialCategorization"
@@ -154,6 +156,13 @@ class Author < ActiveRecord::Base
 
   has_many :categorized_posts, through: :categorizations, source: :post
   has_many :unique_categorized_posts, -> { distinct }, through: :categorizations, source: :post
+  has_many :categorized_posts_desc, -> { order(id: :desc) }, through: :categorizations, source: :post
+  has_many :categorized_posts_by_default_desc, -> { default_order(id: :desc) }, through: :categorizations, source: :post
+  has_many :popular_categorized_posts_by_default_desc, -> { where(legacy_comments_count: 2..).default_order(id: :desc) }, through: :categorizations, source: :post
+  has_many :popular_categorized_posts_reordered_by_default_desc, -> { where(legacy_comments_count: 2..).reorder(nil).default_order(id: :desc) }, through: :categorizations, source: :post
+  has_many :categorized_posts_with_default_order_scope, through: :categorizations, source: :post_with_default_order_scope
+  has_many :ordered_categorizations, -> { order(:id) }, class_name: "Categorization"
+  has_many :ordered_categorized_posts_by_default_desc, -> { default_order(id: :desc) }, through: :ordered_categorizations, source: :post
 
   has_many :nothings, through: :kateggorizatons, class_name: "Category"
 

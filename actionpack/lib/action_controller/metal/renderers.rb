@@ -64,7 +64,11 @@ module ActionController
       include Renderers
 
       def _all_renderers # :nodoc:
-        _renderers + Renderers.all
+        if _renderers.empty?
+          Renderers.all
+        else
+          _renderers + Renderers.all
+        end
       end
     end
 

@@ -1,6 +1,5 @@
 # frozen_string_literal: true
 
-# :markup: markdown
 module ActiveStorage
   class Attached::Changes::PurgeMany # :nodoc:
     attr_reader :name, :record, :attachments

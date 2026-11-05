@@ -1,6 +1,5 @@
 # frozen_string_literal: true
 
-# :markup: markdown
 require "active_support/core_ext/hash/keys"
 
 module ActiveModel
@@ -39,10 +38,10 @@ module ActiveModel
 
     alias attributes= assign_attributes
 
-    # Like \`BasicObject#method_missing\`, \`#attribute_writer_missing\` is invoked
-    # when \`#assign_attributes\` is passed an unknown attribute name.
+    # Like `BasicObject#method_missing`, `#attribute_writer_missing` is invoked
+    # when `#assign_attributes` is passed an unknown attribute name.
     #
-    # By default, \`#attribute_writer_missing\` raises an UnknownAttributeError.
+    # By default, `#attribute_writer_missing` raises an UnknownAttributeError.
     #
     # ```
     # class Rectangle

@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
-# :markup: markdown
 require "concurrent/map"
+require "active_support/core_ext/class/subclasses"
 
 module ActiveModel
   # Active \Model \Attribute \Methods
@@ -223,6 +223,16 @@ module ActiveModel
         old_name = -old_name.to_s
         new_name = -new_name.to_s
         self.attribute_aliases = attribute_aliases.merge(new_name => old_name).freeze
+
+        # Pass the new alias down to subclasses that hold their own copy,
+        # unless a subclass already has an alias with that name.
+        descendants.each do |subclass|
+          next if subclass.attribute_aliases.equal?(subclass.superclass.attribute_aliases)
+          next if subclass.attribute_aliases.key?(new_name)
+
+          subclass.attribute_aliases = subclass.attribute_aliases.merge(new_name => old_name).freeze
+        end
+
         record_alias_by_attribute_name(old_name, new_name)
         eagerly_generate_alias_attribute_methods(new_name, old_name)
       end
@@ -413,7 +423,7 @@ module ActiveModel
         end
 
         def resolve_attribute_name(name)
-          attribute_aliases.fetch(super, &:itself)
+          attribute_aliases.fetch(name = super, name)
         end
 
         def generated_attribute_methods
@@ -424,8 +434,8 @@ module ActiveModel
           @generated_attribute_methods&.method_defined?(method_name)
         end
 
-        # Define a method \`name\` in \`mod\` that dispatches to \`send\`
-        # using the given \`extra\` args. This falls back on \`send\`
+        # Define a method `name` in `mod` that dispatches to `send`
+        # using the given `extra` args. This falls back on `send`
         # if the called name cannot be compiled.
         def define_proxy_call(code_generator, name, proxy_target, parameters, *call_args, namespace:, as: name)
           mangled_name = build_mangled_name(name)

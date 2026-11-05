@@ -1,7 +1,5 @@
 # frozen_string_literal: true
 
-# :markup: markdown
-
 module ActiveModel
   # Raised when an attribute is not defined.
   #

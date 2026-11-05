@@ -1,6 +1,5 @@
 # frozen_string_literal: true
 
-# :markup: markdown
 module ActiveRecord
   module Querying
     QUERYING_METHODS = [
@@ -96,6 +95,7 @@ module ActiveRecord
       column_types = result_set.column_types
 
       unless column_types.empty?
+        attribute_types = self.attribute_types
         column_types = column_types.reject { |k, _| attribute_types.key?(k) }
       end
 

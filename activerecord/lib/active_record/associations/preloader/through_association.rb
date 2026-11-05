@@ -1,6 +1,5 @@
 # frozen_string_literal: true
 
-# :markup: markdown
 module ActiveRecord
   module Associations
     class Preloader
@@ -32,7 +31,7 @@ module ActiveRecord
             end
 
             records.compact!
-            records.sort_by! { |rhs| preload_index[rhs] } if scope.order_values.any?
+            records.sort_by! { |rhs| preload_index[rhs] } if source_order_applies?
             records.uniq! if scope.distinct_value
             result[owner] = records
           end
@@ -124,13 +123,26 @@ module ActiveRecord
           end
 
           def through_scope_filters_source?
-            !reflection.options[:disable_joins] && !reflection_scope.where_clause.empty?
+            !reflection.options[:disable_joins] &&
+              through_reflection.klass.table_name != klass.table_name &&
+              !reflection_scope.where_clause.empty?
           end
 
           # When the through scope doesn't eager load the source records with the
-          # conditions, the source scope filters them instead.
+          # conditions or the order, the source scope filters or sorts them instead.
           def source_scope_filters_source?
-            !reflection_scope.where_clause.empty? && !through_scope_filters_source?
+            !through_scope_filters_source? &&
+              (!reflection_scope.where_clause.empty? || !reflection_scope.effective_order_values.empty?)
+          end
+
+          # As in SQL, an explicit order on the through association beats the
+          # default order of the source.
+          def source_order_applies?
+            return @source_order_applies if defined?(@source_order_applies)
+
+            @source_order_applies = scope.order_values.any? ||
+              (!scope.effective_order_values.empty? &&
+                through_preloaders.none? { |loader| loader.scope.order_values.any? })
           end
 
           def through_scope
@@ -148,7 +160,7 @@ module ActiveRecord
               scope.where! reflection.foreign_type => options[:source_type]
             end
 
-            unless reflection_scope.where_clause.empty?
+            if through_scope_filters_source?
               scope.where_clause += reflection_scope.where_clause
 
               includes = values[:includes]
@@ -176,8 +188,10 @@ module ActiveRecord
                 scope.left_outer_joins!(source => left_outer_joins)
               end
 
-              if scope.eager_loading? && order_values = values[:order]
-                scope = scope.order(order_values)
+              # Both are kept so that `effective_order_values` picks one as for the source.
+              if scope.eager_loading?
+                scope.order_values = reflection_scope.order_values
+                scope.default_order_values = reflection_scope.default_order_values
               end
             end
 

@@ -74,7 +74,7 @@ module ActiveModel
     private
       def decimal_type_for(record, attr_name)
         type = record.class.try(:type_for_attribute, attr_name)
-        type if type&.type == :decimal
+        type if type&.type == :decimal || type&.scale
       end
 
       def parse_as_number(raw_value, decimal_type, cast: true)
@@ -91,12 +91,18 @@ module ActiveModel
       # value is taken as given. Floats otherwise keep the Float::DIG guarantee.
       def cast_as_number(raw_value, decimal_type, cast)
         if decimal_type
-          cast ? decimal_type.cast(raw_value) : raw_value
+          cast ? cast_as_decimal(raw_value, decimal_type) : raw_value
         elsif raw_value.is_a?(Float)
           raw_value.to_d(Float::DIG)
         else
           raw_value
         end
+      end
+
+      # PostgreSQL's money casts only strings to its scale.
+      def cast_as_decimal(raw_value, decimal_type)
+        value = decimal_type.cast(raw_value)
+        decimal_type.scale ? value.round(decimal_type.scale) : value
       end
 
       def is_number?(raw_value, decimal_type)

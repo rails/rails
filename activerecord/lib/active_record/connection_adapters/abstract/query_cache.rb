@@ -1,6 +1,5 @@
 # frozen_string_literal: true
 
-# :markup: markdown
 require "concurrent/map"
 require "concurrent/atomic/atomic_fixnum"
 
@@ -96,7 +95,7 @@ module ActiveRecord
             @map.shift # evict the oldest entry
           end
 
-          @map[key] ||= yield
+          @map[key] = yield
         end
 
         def clear

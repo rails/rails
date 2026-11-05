@@ -1,6 +1,5 @@
 # frozen_string_literal: true
 
-# :markup: markdown
 module ActiveRecord
   module ConnectionAdapters # :nodoc:
     module DatabaseStatements
@@ -64,7 +63,7 @@ module ActiveRecord
           collector = collector()
           collector.retryable = true
           sql, binds = visitor.compile(arel.ast, collector)
-          query = klass.query(sql, retryable: collector.retryable)
+          query = klass.query(sql.freeze, retryable: collector.retryable)
         else
           collector = klass.partial_query_collector
           collector.retryable = true
@@ -191,8 +190,8 @@ module ActiveRecord
       # Executes insert `sql` statement in the context of this connection using
       # `binds` as the bind substitutes. `name` is logged along with
       # the executed `sql` statement.
-      # Some adapters support the \`returning\` keyword argument which allows to control the result of the query:
-      # \`nil\` is the default value and maintains default behavior. If an array of column names is passed -
+      # Some adapters support the `returning` keyword argument which allows to control the result of the query:
+      # `nil` is the default value and maintains default behavior. If an array of column names is passed -
       # the result will contain values of the specified columns from the inserted row.
       def exec_insert(sql, name = nil, binds = [], pk = nil, sequence_name = nil, returning: nil)
         # The `pk` positional argument is really the RETURNING column name.
@@ -247,7 +246,7 @@ module ActiveRecord
 
       # Executes an INSERT query and returns the new record's ID.
       #
-      # Some adapters support the \`returning\` keyword argument, which controls
+      # Some adapters support the `returning` keyword argument, which controls
       # what the method returns: `nil` (default) returns the id via
       # `last_inserted_id`; a column name returns that column as a single
       # value; an array of column names returns an Array of column values.
@@ -333,7 +332,7 @@ module ActiveRecord
       end
 
       # Executes the update statement and returns an ActiveRecord::Result
-      # Some adapters support the \`returning\` keyword argument
+      # Some adapters support the `returning` keyword argument
       def update_with_result(arel, name = nil, returning:) # :nodoc:
         arel.returning(returning.map { |column| Arel.sql(quote_column_name(column)) })
 
@@ -868,6 +867,8 @@ module ActiveRecord
       end
 
       def finalize_remaining_intents # :nodoc:
+        return if @unfinalized_intents.empty?
+
         intents = @unfinalized_intents
         @unfinalized_intents = []
 
@@ -916,8 +917,11 @@ module ActiveRecord
           raise NotImplementedError
         end
 
+        NO_WARNINGS = [].freeze
+        private_constant :NO_WARNINGS
+
         def collect_warnings(raw_result)
-          []
+          NO_WARNINGS
         end
 
         # Receive a native adapter result object and returns an ActiveRecord::Result object.

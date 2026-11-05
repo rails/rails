@@ -1,6 +1,5 @@
 # frozen_string_literal: true
 
-# :markup: markdown
 module ActiveRecord
   class AssociationRelation < Relation # :nodoc:
     def initialize(klass, association, **)

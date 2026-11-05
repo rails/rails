@@ -1,6 +1,5 @@
 # frozen_string_literal: true
 
-# :markup: markdown
 require "active_support/core_ext/array/extract"
 
 module ActiveRecord
@@ -15,7 +14,7 @@ module ActiveRecord
 
         values = value.map { |x| x.respond_to?(:id) ? x.id : x }
         nils = values.compact!
-        ranges = values.extract! { |v| v.is_a?(Range) }
+        ranges = values.extract! { |v| v.is_a?(Range) } if values.any? { |v| v.is_a?(Range) }
 
         values_predicate =
           case values.length
@@ -28,7 +27,7 @@ module ActiveRecord
           values_predicate = values_predicate.or(attribute.eq(nil))
         end
 
-        if ranges.empty?
+        if ranges.nil?
           values_predicate
         else
           array_predicates = ranges.map! { |range| predicate_builder.build(attribute, range) }

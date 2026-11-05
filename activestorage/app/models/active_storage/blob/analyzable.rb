@@ -1,6 +1,5 @@
 # frozen_string_literal: true
 
-# :markup: markdown
 require "active_storage/analyzer/null_analyzer"
 
 # Active Storage \Blob \Analyzable

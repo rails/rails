@@ -1,6 +1,5 @@
 # frozen_string_literal: true
 
-# :markup: markdown
 require "securerandom"
 require "concurrent/scheduled_task"
 require "concurrent/executor/thread_pool_executor"
@@ -51,8 +50,8 @@ module ActiveJob
       end
 
       # Gracefully stop processing jobs. Finishes in-progress work and handles
-      # any new jobs following the executor's fallback policy (\`caller_runs\`).
-      # Waits for termination by default. Pass \`wait: false\` to continue.
+      # any new jobs following the executor's fallback policy (`caller_runs`).
+      # Waits for termination by default. Pass `wait: false` to continue.
       def shutdown(wait: true) # :nodoc:
         @scheduler.shutdown wait: wait
       end

@@ -1,6 +1,5 @@
 # frozen_string_literal: true
 
-# :markup: markdown
 class ActiveStorage::NamedVariant # :nodoc:
   attr_reader :transformations, :preprocessed
 

@@ -1,6 +1,5 @@
 # frozen_string_literal: true
 
-# :markup: markdown
 module ActiveRecord
   module Associations
     # Active Record Collection Proxy
@@ -717,7 +716,7 @@ module ActiveRecord
       # #    ]
       #
       # person.pets.destroy("4")
-      # # => #<Pet id: 4, name: "Benny", person_id: 1>
+      # # => [#<Pet id: 4, name: "Benny", person_id: 1>]
       #
       # person.pets.size # => 2
       # person.pets
@@ -1241,7 +1240,7 @@ module ActiveRecord
         SpawnMethods,
       ].flat_map { |klass|
         klass.public_instance_methods(false)
-      } - self.public_instance_methods(false) - [ :select ] + [ :scoping, :values, :load_async ]
+      } - self.public_instance_methods(false) - [ :select ] + [ :scoping, :values, :values_for_merge, :load_async ]
 
       delegate(*delegate_methods, to: :scope)
 

@@ -57,6 +57,18 @@ module ActionView # :nodoc:
         Handlers.unregister(*extensions)
       end
 
+      def template_handler_extensions
+        Handlers.extensions.map(&:to_s).sort
+      end
+
+      def registered_template_handler(extension)
+        extension && Handlers.template_handlers[extension.to_sym]
+      end
+
+      def register_default_template_handler(extension, handler)
+        Handlers.register_default(extension.to_sym, handler)
+      end
+
       def handler_for_extension(extension)
         handler = Handlers.template_handlers[extension.to_sym] if extension
         handler || Handlers.default_template_handler

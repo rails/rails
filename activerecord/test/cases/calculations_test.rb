@@ -674,6 +674,15 @@ class CalculationsTest < ActiveRecord::TestCase
     assert_equal "companies: LeetsoftJadedpixel", some_companies.sum("companies: ", &:name)
   end
 
+  def test_sum_with_block_includes_new_records_of_an_association
+    companies = companies(:rails_core).companies
+    companies.build(name: "Unsaved")
+
+    assert_equal 25, companies.sum { |company| company.name.size }
+    assert_equal 3, companies.sum { 1 }
+    assert_equal 8, companies.sum(5) { 1 }
+  end
+
   def test_should_sum_scoped_field
     assert_equal 15, companies(:rails_core).companies.sum(:id)
   end

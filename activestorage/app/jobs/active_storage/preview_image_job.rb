@@ -1,6 +1,5 @@
 # frozen_string_literal: true
 
-# :markup: markdown
 class ActiveStorage::PreviewImageJob < ActiveStorage::BaseJob
   queue_as { ActiveStorage.queues[:preview_image] }
 

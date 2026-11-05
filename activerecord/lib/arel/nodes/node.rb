@@ -1,6 +1,5 @@
 # frozen_string_literal: true
 
-# :markup: markdown
 module Arel # :nodoc: all
   module Nodes
     # Using `Arel::Nodes::Node`
@@ -121,7 +120,7 @@ module Arel # :nodoc: all
     # ```
     #
     # Please keep in mind that passing data as raw SQL literals might introduce a possible SQL injection. However,
-    # \`Arel.sql\` supports binding parameters which will ensure proper quoting. This can be useful when you need to
+    # `Arel.sql` supports binding parameters which will ensure proper quoting. This can be useful when you need to
     # control the exact SQL you run, but you still have potentially user-supplied values.
     #
     # ```
@@ -170,7 +169,7 @@ module Arel # :nodoc: all
       # to_sql on non-head nodes.  This forces us to walk the AST until we
       # can find a node that has a "relation" member.
       #
-      # Maybe we should just use \`Table.engine\`?  :'(
+      # Maybe we should just use `Table.engine`?  :'(
       def to_sql(engine = Table.engine)
         collector = Arel::Collectors::SQLString.new
         engine.with_connection do |connection|

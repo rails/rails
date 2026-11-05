@@ -63,6 +63,10 @@ class RedundantJoinComment < ActiveRecord::Base
   has_one :post_author, through: :post, source: :author
 end
 
+class CategoryWithThroughCounterCache < Category
+  has_many :authors, through: :categorizations, counter_cache: :categorizations_count
+end
+
 class HasManyThroughAssociationsTest < ActiveRecord::TestCase
   fixtures :posts, :readers, :people, :comments, :authors, :categories, :taggings, :tags,
            :owners, :pets, :toys, :jobs, :references, :companies, :members, :author_addresses,
@@ -79,6 +83,20 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
 
   def test_has_many_through_create_record
     assert books(:awdr).subscribers.create!(nick: "bob")
+  end
+
+  def test_create_new_owner_with_counter_cache_and_partial_inserts_disabled
+    original_partial_inserts = ActiveRecord::Base.partial_inserts
+    ActiveRecord::Base.partial_inserts = false
+    category = CategoryWithThroughCounterCache.new(name: "New", authors: [Author.create!(name: "David")])
+
+    assert_equal 1, category.categorizations_count
+
+    category.save!
+
+    assert_equal 1, category.reload.categorizations_count
+  ensure
+    ActiveRecord::Base.partial_inserts = original_partial_inserts
   end
 
   def test_marshal_dump
@@ -1413,6 +1431,38 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
 
     assert_predicate person.posts, :loaded?, "person.posts should be loaded"
     assert_equal [], person.posts
+  end
+
+  class StiRoute < ActiveRecord::Base
+    self.table_name = "companies"
+  end
+
+  class CustomerRoute < StiRoute
+  end
+
+  class BranchRoute < StiRoute
+    has_many :customer_routes,
+      class_name: "HasManyThroughAssociationsTest::CustomerRoute",
+      foreign_key: :client_of
+  end
+
+  class Offer < ActiveRecord::Base
+    self.table_name = "accounts"
+
+    belongs_to :branch_route,
+      class_name: "HasManyThroughAssociationsTest::BranchRoute",
+      foreign_key: :firm_id
+    has_many :customer_routes, through: :branch_route
+  end
+
+  def test_preloading_has_many_through_with_sti_associations_sharing_a_table
+    branch_route = BranchRoute.create!
+    customer_route = CustomerRoute.create!(client_of: branch_route.id)
+    offer = Offer.create!(branch_route: branch_route)
+
+    preloaded_offer = Offer.preload(:customer_routes).find(offer.id)
+
+    assert_no_queries { assert_equal [customer_route], preloaded_offer.customer_routes.to_a }
   end
 
   def test_preloading_empty_through_with_polymorphic_source_association

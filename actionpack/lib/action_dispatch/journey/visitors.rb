@@ -20,18 +20,8 @@ module ActionDispatch
       end
 
       def initialize(parts)
-        @parts      = parts
-        @children   = []
-        @parameters = []
-
-        parts.each_with_index do |object, i|
-          case object
-          when Journey::Format
-            @children << i
-          when Parameter
-            @parameters << i
-          end
-        end
+        @parts      = join_adjacent_literals(parts)
+        @parameters = @parts.grep(Parameter)
       end
 
       def evaluate(hash)
@@ -46,9 +36,7 @@ module ActionDispatch
       # shared buffer avoids the intermediate arrays and strings a
       # join-based evaluation allocates on every generated URL.
       protected def add_to(buffer, hash)
-        @parameters.each do |index|
-          return if hash[@parts[index].name].nil?
-        end
+        return if @parameters.any? { |parameter| hash[parameter.name].nil? }
 
         @parts.each do |part|
           case part
@@ -61,6 +49,18 @@ module ActionDispatch
           end
         end
       end
+
+      private
+        # Joins adjacent literals, so "/", "posts", "/" is appended as one "/posts/".
+        def join_adjacent_literals(parts)
+          parts.each_with_object([]) do |part, joined|
+            if String === part && String === joined.last
+              joined[-1] = -(joined.last + part)
+            else
+              joined << part
+            end
+          end
+        end
     end
 
     module Visitors # :nodoc:

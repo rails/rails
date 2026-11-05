@@ -26,10 +26,35 @@ module ActiveRecord
         ar.clear_reflections_cache
         name = name.to_sym
         ar._reflections = ar._reflections.except(name).merge!(name => reflection).freeze
+
+        # Subclasses that defined an association of their own hold a copy of
+        # the reflections, and every subclass may have cached them, so pass
+        # the new one down unless a subclass defines that name itself.
+        ar.descendants.each do |subclass|
+          subclass.clear_reflections_cache
+          next if subclass._reflections.equal?(subclass.superclass._reflections)
+
+          existing = subclass._reflections[name]
+          next if existing && existing.active_record < ar
+
+          subclass._reflections = subclass._reflections.except(name).merge!(name => reflection).freeze
+        end
       end
 
       def add_aggregate_reflection(ar, name, reflection)
-        ar.aggregate_reflections = ar.aggregate_reflections.merge(name.to_sym => reflection).freeze
+        name = name.to_sym
+        ar.aggregate_reflections = ar.aggregate_reflections.merge(name => reflection).freeze
+
+        # Like associations, pass the new aggregation down to subclasses that
+        # hold their own copy, unless a subclass defines that name itself.
+        ar.descendants.each do |subclass|
+          next if subclass.aggregate_reflections.equal?(subclass.superclass.aggregate_reflections)
+
+          existing = subclass.aggregate_reflections[name]
+          next if existing && existing.active_record < ar
+
+          subclass.aggregate_reflections = subclass.aggregate_reflections.merge(name => reflection).freeze
+        end
       end
 
       private
@@ -738,6 +763,11 @@ module ActiveRecord
       # ThroughReflection.
       def collect_join_chain
         [self]
+      end
+
+      # The scopes of the chain, which is only this reflection.
+      def constraints
+        scopes
       end
 
       # Pass the concrete target class for polymorphic associations.

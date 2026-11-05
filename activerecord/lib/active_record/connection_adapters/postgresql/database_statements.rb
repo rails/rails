@@ -1,6 +1,5 @@
 # frozen_string_literal: true
 
-# :markup: markdown
 module ActiveRecord
   module ConnectionAdapters
     module PostgreSQL
@@ -141,13 +140,13 @@ module ActiveRecord
           IDLE_TRANSACTION_STATUSES = [PG::PQTRANS_IDLE, PG::PQTRANS_INTRANS, PG::PQTRANS_INERROR].freeze
           private_constant :IDLE_TRANSACTION_STATUSES
 
-          # When RETURNING is globally disabled, a positional \`pk\` was
+          # When RETURNING is globally disabled, a positional `pk` was
           # historically the signal to use the currval fallback in
-          # \`_exec_insert\`. Resolve \`sequence_name\` from the caller's \`pk\` (or
+          # `_exec_insert`. Resolve `sequence_name` from the caller's `pk` (or
           # the schema cache's primary key) so the fallback still runs against
-          # the intended sequence — including on tables where a \`BEFORE INSERT\`
-          # trigger short-circuits \`RETURNING\` (e.g. partitioned inheritance).
-          # Then drop \`pk\` to skip the abstract's translation into \`returning:\`
+          # the intended sequence — including on tables where a `BEFORE INSERT`
+          # trigger short-circuits `RETURNING` (e.g. partitioned inheritance).
+          # Then drop `pk` to skip the abstract's translation into `returning:`
           # (which would force the RETURNING path and bypass the fallback).
           def resolve_currval_for_insert(arel_or_sql, pk, sequence_name, returning)
             return [sequence_name, pk] if @use_insert_returning
@@ -230,20 +229,18 @@ module ActiveRecord
               ActiveRecord::Result.empty(affected_rows: result.cmd_tuples)
             else
               types = Array.new(fields.size)
-              field_types = Array.new(fields.size)
-              missing_oids = []
+              missing_oids = nil
 
               fields.size.times do |index|
                 ftype = result.ftype(index)
-                field_types[index] = ftype
-                missing_oids << ftype unless type_map.key?(ftype)
+                (missing_oids ||= []) << ftype unless type_map.key?(ftype)
               end
 
-              if missing_oids.any?
+              if missing_oids
                 load_additional_types(missing_oids)
 
                 fields.size.times do |index|
-                  ftype = field_types[index]
+                  ftype = result.ftype(index)
                   next if type_map.key?(ftype)
 
                   register_unknown_oid_type(ftype, fields[index])
@@ -251,7 +248,7 @@ module ActiveRecord
               end
 
               fields.size.times do |index|
-                ftype = field_types[index]
+                ftype = result.ftype(index)
                 fmod  = result.fmod(index)
                 types[index] = get_oid_type(ftype, fmod, fields[index])
               end
@@ -274,6 +271,8 @@ module ActiveRecord
           end
 
           def collect_warnings(_result)
+            return super if @notice_receiver_sql_warnings.empty?
+
             warnings, @notice_receiver_sql_warnings = @notice_receiver_sql_warnings, []
             warnings
           end

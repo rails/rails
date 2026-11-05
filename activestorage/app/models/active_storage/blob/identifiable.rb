@@ -1,6 +1,5 @@
 # frozen_string_literal: true
 
-# :markup: markdown
 # Active Storage \Blob \Identifiable
 # ==================================
 module ActiveStorage::Blob::Identifiable

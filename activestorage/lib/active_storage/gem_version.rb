@@ -1,6 +1,5 @@
 # frozen_string_literal: true
 
-# :markup: markdown
 module ActiveStorage
   # Returns the currently loaded version of Active Storage as a `Gem::Version`.
   def self.gem_version

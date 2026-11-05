@@ -1,6 +1,5 @@
 # frozen_string_literal: true
 
-# :markup: markdown
 require "pathname"
 require "rails/generators/base"
 require "rails/generators/rails/encryption_key_file/encryption_key_file_generator"

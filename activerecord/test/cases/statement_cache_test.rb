@@ -186,6 +186,13 @@ module ActiveRecord
       assert_not_equal first_books, additional_books
     end
 
+    if ActiveRecord::Base.lease_connection.prepared_statements
+      def test_cached_prepared_queries_return_frozen_sql
+        query, binds = @connection.cacheable_query(StatementCache, Book.where(name: "my book").arel)
+        assert_predicate query.sql_for(binds, @connection), :frozen?
+      end
+    end
+
     def test_unprepared_statements_dont_share_a_cache_with_prepared_statements
       Book.create(name: "my book")
       Book.create(name: "my other book")

@@ -1,6 +1,5 @@
 # frozen_string_literal: true
 
-# :markup: markdown
 gem "aws-sdk-s3", "~> 1.48"
 
 require "aws-sdk-s3"

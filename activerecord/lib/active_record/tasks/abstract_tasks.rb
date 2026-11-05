@@ -1,6 +1,5 @@
 # frozen_string_literal: true
 
-# :markup: markdown
 module ActiveRecord
   module Tasks # :nodoc:
     class AbstractTasks # :nodoc:
@@ -47,6 +46,16 @@ module ActiveRecord
 
         def establish_connection(config = db_config)
           ActiveRecord::Base.establish_connection(config)
+        end
+
+        # The database a task operates on is not necessarily the one
+        # +ActiveRecord::Base+ is connected to, so anything read out of the
+        # database itself has to come from a connection to +db_config+.
+        def with_target_connection
+          connection = db_config.new_connection
+          yield connection
+        ensure
+          connection&.disconnect!
         end
 
         def configuration_hash_without_database

@@ -490,6 +490,15 @@ class RelationTest < ActiveRecord::TestCase
     assert_equal ["id desc"], topics.default_order_values
   end
 
+  def test_order_with_table_name_does_not_modify_receiver
+    topics = Topic.all.load
+
+    assert_equal ["replies"], topics.order(:"replies.id").references_values
+    assert_equal ["replies"], topics.reorder("replies.id" => :desc).references_values
+    assert_equal ["replies"], topics.default_order(replies: { id: :desc }).references_values
+    assert_empty topics.references_values
+  end
+
   def test_finding_with_reorder_by_aliased_attributes
     topics = Topic.order("author_name").reorder(:heading)
     assert_equal 5, topics.to_a.size
@@ -1278,6 +1287,33 @@ class RelationTest < ActiveRecord::TestCase
     assert_not_predicate posts_with_limit_one, :loaded?
   end
 
+  def test_many_with_group
+    posts = Post.joins(:comments).group(:id)
+
+    assert_queries_count(1) do
+      assert_predicate posts, :many?
+    end
+    assert_not_predicate posts, :loaded?
+
+    assert_not_predicate posts.where(id: 1), :many?
+    assert_not_predicate posts.where(id: -1), :many?
+  end
+
+  def test_many_with_aggregate_select_and_group
+    posts = Post.select("posts.*, COUNT(comments.id) AS comments_count").joins(:comments).group(:id)
+
+    assert_predicate posts, :many?
+    assert_not_predicate posts.where(id: 1), :many?
+  end
+
+  def test_many_with_multiple_select_values
+    posts = Post.select("posts.*, 1 AS one")
+
+    assert_predicate posts, :many?
+    assert_predicate posts.limit(5), :many?
+    assert_not_predicate posts.where(id: 1), :many?
+  end
+
   def test_none?
     posts = Post.all
     assert_queries_count(1) do
@@ -1314,6 +1350,33 @@ class RelationTest < ActiveRecord::TestCase
     end
 
     assert_predicate posts, :loaded?
+  end
+
+  def test_one_with_group
+    posts = Post.joins(:comments).group(:id)
+
+    assert_queries_count(1) do
+      assert_not_predicate posts, :one?
+    end
+    assert_not_predicate posts, :loaded?
+
+    assert_operator Post.find(1).comments.count, :>, 1
+    assert_predicate posts.where(id: 1), :one?
+    assert_not_predicate posts.where(id: -1), :one?
+  end
+
+  def test_one_with_aggregate_select_and_group
+    posts = Post.select("posts.*, COUNT(comments.id) AS comments_count").joins(:comments).group(:id)
+
+    assert_not_predicate posts, :one?
+    assert_predicate posts.where(id: 1), :one?
+  end
+
+  def test_one_with_multiple_select_values
+    posts = Post.select("posts.*, 1 AS one")
+
+    assert_not_predicate posts, :one?
+    assert_predicate posts.where(id: 1), :one?
   end
 
   def test_one_with_destroy
@@ -2071,6 +2134,37 @@ class RelationTest < ActiveRecord::TestCase
 
     relation = Post.default_order("title ASC").reverse_order
     assert_match(/ORDER BY title DESC/, relation.to_sql)
+  end
+
+  def test_unscope_default_order
+    relation = Post.default_order("title ASC").unscope(:default_order)
+    assert_empty relation.default_order_values
+    assert_no_match(/ORDER BY/, relation.to_sql)
+
+    relation_with_both = Post.order("id DESC").default_order("title ASC").unscope(:default_order)
+    assert_empty relation_with_both.default_order_values
+    assert_equal ["id DESC"], relation_with_both.order_values
+    assert_match(/ORDER BY id DESC/, relation_with_both.to_sql)
+  end
+
+  def test_unscope_order_preserves_default_order
+    relation = Post.order("id DESC").default_order("title ASC").unscope(:order)
+    assert_empty relation.order_values
+    assert_equal ["title ASC"], relation.default_order_values
+    assert_match(/ORDER BY title ASC/, relation.to_sql)
+  end
+
+  def test_unscope_order_and_default_order
+    relation = Post.order("id DESC").default_order("title ASC").unscope(:order, :default_order)
+    assert_empty relation.order_values
+    assert_empty relation.default_order_values
+    assert_no_match(/ORDER BY/, relation.to_sql)
+  end
+
+  def test_merge_with_unscope_default_order
+    merged = Post.default_order("title ASC").merge(Post.unscope(:default_order))
+    assert_empty merged.default_order_values
+    assert_no_match(/ORDER BY/, merged.to_sql)
   end
 
   def test_reorder_with_first

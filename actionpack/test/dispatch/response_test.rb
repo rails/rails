@@ -148,10 +148,10 @@ class ResponseTest < ActiveSupport::TestCase
 
   def test_parsed_content_type_is_memoized_while_the_header_is_unchanged
     @response.content_type = "text/html"
-    assert_same @response.media_type, @response.media_type
+    assert_same @response.send(:parsed_content_type_header), @response.send(:parsed_content_type_header)
 
     @response.headers["Content-Type"] = "text/html"
-    assert_same @response.media_type, @response.media_type
+    assert_same @response.send(:parsed_content_type_header), @response.send(:parsed_content_type_header)
   end
 
   def test_content_type_set_through_the_writers_reads_back_like_a_parsed_header
@@ -169,6 +169,10 @@ class ResponseTest < ActiveSupport::TestCase
       ["", nil],
       [nil, "utf-8"],
       [nil, nil],
+      ["text/plain".b, nil],
+      ["text/plain".b, "utf-8"],
+      ["text/plain".encode(Encoding::US_ASCII), "utf-8"],
+      ["text/html", "utf-16".b],
     ].each do |content_type, charset|
       written = ActionDispatch::Response.new
       written.send(:set_content_type, content_type, charset)
@@ -177,14 +181,95 @@ class ResponseTest < ActiveSupport::TestCase
       parsed.headers["Content-Type"] = written.headers["Content-Type"]
 
       label = "content_type=#{content_type.inspect} charset=#{charset.inspect} header=#{written.headers["Content-Type"].inspect}"
-      assert_equal [parsed.media_type, parsed.charset, parsed.content_type],
-        [written.media_type, written.charset, written.content_type], label
+      read = ->(response) { [response.media_type, response.charset, response.content_type].map { |value| [value, value&.encoding] } }
+      assert_equal read.(parsed), read.(written), label
     end
   end
 
   def test_empty_content_type_returns_nil
     @response.headers["Content-Type"] = ""
     assert_nil @response.content_type
+  end
+
+  test "media type and charset follow changes to the Content-Type header" do
+    @response.headers["Content-Type"] = +"text/csv; charset=iso-8859-1"
+    assert_equal "text/csv", @response.media_type
+    assert_equal "iso-8859-1", @response.charset
+
+    @response.headers["Content-Type"].replace("text/plain; charset=utf-16")
+    assert_equal "text/plain", @response.media_type
+    assert_equal "utf-16", @response.charset
+
+    @response.headers["Content-Type"] = "application/json"
+    assert_equal "application/json", @response.media_type
+    assert_equal "utf-8", @response.charset
+
+    @response.headers.delete("Content-Type")
+    assert_nil @response.media_type
+    assert_equal "utf-8", @response.charset
+  end
+
+  test "media type and charset return a new string on every read" do
+    @response.content_type = "text/csv; charset=iso-8859-1"
+
+    @response.media_type << "-changed"
+    @response.charset << "-changed"
+
+    assert_equal "text/csv", @response.media_type
+    assert_equal "iso-8859-1", @response.charset
+    assert_not_same @response.media_type, @response.media_type
+    assert_not_same @response.charset, @response.charset
+    assert_equal "text/csv; charset=iso-8859-1", @response.headers["Content-Type"]
+  end
+
+  test "removing the charset leaves a Content-Type header that can be changed in place" do
+    @response.content_type = :html
+    @response.charset = false
+    @response.headers["Content-Type"] << "; header=present"
+
+    assert_equal "text/html; header=present", @response.headers["Content-Type"]
+    assert_equal "text/html", Mime[:html].to_s
+
+    @response.content_type = :pdf
+    @response.sending_file = true
+    @response.headers["Content-Type"] << "; header=present"
+
+    assert_equal "application/pdf; header=present", @response.headers["Content-Type"]
+    assert_equal "application/pdf", Mime[:pdf].to_s
+  end
+
+  test "media type is parsed from the Content-Type header as is" do
+    {
+      "text/plain" => "text/plain",
+      "text/plain " => "text/plain ",
+      "text/plain\t" => "text/plain\t",
+      " text/plain" => nil,
+      "text/plain; header=present" => "text/plain; header=present",
+      "text/plain;charset=utf-16" => "text/plain",
+      "" => nil,
+    }.each do |header, media_type|
+      @response.headers["Content-Type"] = header
+      if media_type
+        assert_equal media_type, @response.media_type, header.inspect
+      else
+        assert_nil @response.media_type, header.inspect
+      end
+    end
+
+    @response.headers["Content-Type"] = "text/plain".b
+    assert_equal Encoding::BINARY, @response.media_type.encoding
+    @response.headers["Content-Type"] = "text/plain"
+    assert_equal Encoding::UTF_8, @response.media_type.encoding
+
+    @response.headers["Content-Type"] = "text/plain".html_safe
+    assert_instance_of String, @response.media_type
+  end
+
+  test "a Content-Type header with invalid bytes raises on every read" do
+    @response.headers["Content-Type"] = "text/html; charset=\xFF"
+
+    assert_raises(ArgumentError) { @response.media_type }
+    assert_raises(ArgumentError) { @response.media_type }
   end
 
   test "simple output" do

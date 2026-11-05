@@ -1,6 +1,5 @@
 # frozen_string_literal: true
 
-# :markup: markdown
 module ActiveRecord::Associations::Builder # :nodoc:
   class BelongsTo < SingularAssociation # :nodoc:
     def self.macro
@@ -66,7 +65,9 @@ module ActiveRecord::Associations::Builder # :nodoc:
 
           old_route = reflection.association_route(origin_class: o.class, destination_class: klass)
           old_origin_id = old_route._origin_key.map_value { |key| read_old.call(key) }
-          old_record = klass.find_by(old_route.destination_key.name => [old_origin_id])
+          unless foreign_key.composite? && old_origin_id.any?(nil)
+            old_record = klass.find_by(old_route.destination_key.name => [old_origin_id])
+          end
 
           if old_record
             if touch != true

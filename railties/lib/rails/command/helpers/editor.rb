@@ -1,6 +1,5 @@
 # frozen_string_literal: true
 
-# :markup: markdown
 require "shellwords"
 require "active_support/encrypted_file"
 

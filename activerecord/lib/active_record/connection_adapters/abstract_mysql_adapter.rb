@@ -1,6 +1,5 @@
 # frozen_string_literal: true
 
-# :markup: markdown
 require "active_record/connection_adapters/abstract_adapter"
 require "active_record/connection_adapters/statement_pool"
 require "active_record/connection_adapters/mysql/column"
@@ -815,7 +814,7 @@ module ActiveRecord
           false
         end
 
-        # \`SHOW CREATE TABLE\` is the only place MySQL reports a table's options, and
+        # `SHOW CREATE TABLE` is the only place MySQL reports a table's options, and
         # it reads one table at a time.
         def fetch_table_options(tables)
           tables.index_with { |table| build_table_options(table, create_table_info(table)) }
@@ -976,7 +975,7 @@ module ActiveRecord
         end
 
         def collect_warnings(_initial_result)
-          return [] if ActiveRecord.db_warnings_action.nil? || @raw_connection.warning_count == 0
+          return super if ActiveRecord.db_warnings_action.nil? || @raw_connection.warning_count == 0
 
           warning_count = @raw_connection.warning_count
           result = @raw_connection.query("SHOW WARNINGS")
@@ -1184,8 +1183,8 @@ module ActiveRecord
         end
 
         # MariaDB reports a default as the SQL literal that produced it, where
-        # \`SHOW FULL FIELDS\` reports the value: a literal comes back quoted, and a
-        # newline inside one is written \`\n\`. Put them back into the form #new_column_from_field
+        # `SHOW FULL FIELDS` reports the value: a literal comes back quoted, and a
+        # newline inside one is written `\n`. Put them back into the form #new_column_from_field
         # reads.
         def unquote_mariadb_default(field)
           default = field["Default"]

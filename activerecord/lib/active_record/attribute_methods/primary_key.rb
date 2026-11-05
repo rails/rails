@@ -1,6 +1,5 @@
 # frozen_string_literal: true
 
-# :markup: markdown
 module ActiveRecord
   module AttributeMethods
     # Active Record Attribute Methods Primary Key

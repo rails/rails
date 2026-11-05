@@ -74,6 +74,20 @@ class LookupContextTest < ActiveSupport::TestCase
     assert_equal 'Invalid formats: :invalid, "also bad"', ex.message
   end
 
+  test "prepending formats validates them even when the format already leads" do
+    lookup_context = ActionView::LookupContext.new([], formats: [])
+    ex = assert_raises ArgumentError do
+      ActionView::TemplateRenderer.new(lookup_context).send(:prepend_formats, [nil])
+    end
+    assert_equal "Invalid formats: nil", ex.message
+
+    lookup_context = ActionView::LookupContext.new([], formats: [:html, :invalid])
+    ex = assert_raises ArgumentError do
+      ActionView::TemplateRenderer.new(lookup_context).send(:prepend_formats, :html)
+    end
+    assert_equal "Invalid formats: :invalid", ex.message
+  end
+
   test "provides getters and setters for locale" do
     @lookup_context.locale = :pt
     assert_equal :pt, @lookup_context.locale

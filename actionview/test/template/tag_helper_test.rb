@@ -10,6 +10,17 @@ class TagHelperTest < ActionView::TestCase
   COMMON_DANGEROUS_CHARS = "&<>\"' %*+,/;=^|"
   INVALID_TAG_CHARS = "> /"
 
+  class NameThatChangesWhenConverted
+    def initialize
+      @conversions = 0
+    end
+
+    def to_s
+      @conversions += 1
+      @conversions == 1 ? "first" : " "
+    end
+  end
+
   def test_tag
     assert_equal "<br />", tag("br")
     assert_equal "<br clear=\"left\" />", tag(:br, clear: "left")
@@ -252,6 +263,36 @@ class TagHelperTest < ActionView::TestCase
     assert_equal [ "src" ], attrs
   end
 
+  def test_tag_with_whitespace_symbol_attribute_name_generates_valid_markup
+    # https://hackerone.com/reports/3904103
+    html = tag("img", "src" => "/nonexistent.png", :" " => "/onerror=alert(1)//")
+    fragment = Nokogiri::HTML5::DocumentFragment.parse(html)
+    attrs = fragment.at_css("img").attribute_nodes.map(&:name)
+    assert_equal [ "src" ], attrs
+  end
+
+  def test_tag_with_whitespace_symbol_data_attribute_name_is_skipped
+    assert_equal "<img />", tag("img", data: { " ": "/onerror=alert(1)//" })
+  end
+
+  def test_tag_with_whitespace_symbol_aria_attribute_name_is_skipped
+    assert_equal "<img />", tag("img", aria: { " ": "/onerror=alert(1)//" })
+  end
+
+  def test_tag_with_attribute_name_that_is_blank_before_conversion_is_skipped
+    assert_equal "<img />", tag("img", { false => "/onerror=alert(1)//" })
+    assert_equal "<img />", tag("img", { [] => "/onerror=alert(1)//" })
+    assert_equal "<img />", tag("img", { data: { false => "x" } })
+    assert_equal "<img />", tag("img", { aria: { false => "x" } })
+  end
+
+  def test_tag_with_attribute_name_that_changes_when_converted_generates_valid_markup
+    html = tag("img", "src" => "/nonexistent.png", NameThatChangesWhenConverted.new => "/onerror=alert(1)//")
+    fragment = Nokogiri::HTML5::DocumentFragment.parse(html)
+    attrs = fragment.at_css("img").attribute_nodes.map(&:name)
+    assert_equal [ "src", "first" ], attrs
+  end
+
   def test_tag_builder_with_dangerous_unknown_attribute_name
     escaped_dangerous_chars = "_" * COMMON_DANGEROUS_CHARS.size
     assert_equal "<the-name #{escaped_dangerous_chars}=\"the value\"></the-name>",
@@ -284,6 +325,26 @@ class TagHelperTest < ActionView::TestCase
     assert_equal "<p><script>evil_js</script></p>",
                  tag.p("<script>evil_js</script>", escape: false)
     assert_equal '<input pattern="\w+">', tag.input(pattern: /\w+/)
+  end
+
+  def test_tags_can_be_appended_to_without_changing_later_tags
+    [
+      -> { content_tag(:div, "Content", class: "card") },
+      -> { tag.div("Content", id: "post_1", class: "card") },
+      -> { tag.input(type: "hidden", name: "authenticity_token") },
+      -> { tag("input", type: "hidden", name: "authenticity_token") },
+    ].each do |build|
+      html = build.call
+      original = String.new(html)
+
+      assert_not_predicate html, :frozen?
+      html << "<b>"
+      html.safe_concat("<i>")
+
+      assert_equal original + "&lt;b&gt;<i>", html
+      assert_predicate html, :html_safe?
+      assert_equal original, build.call
+    end
   end
 
   def test_tag_builder_nested

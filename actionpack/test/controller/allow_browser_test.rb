@@ -93,6 +93,22 @@ class AllowBrowserTest < ActionController::TestCase
     assert_not_empty notification.payload[:versions]
   end
 
+  test "the user agent's version and browser are read once" do
+    reads = Hash.new(0)
+    counting_agent = Class.new(SimpleDelegator) do
+      define_method(:version) { reads[:version] += 1; super() }
+      define_method(:browser) { reads[:browser] += 1; super() }
+    end
+    parse = UserAgent.method(:parse)
+
+    UserAgent.stub(:parse, ->(string) { counting_agent.new(parse.(string)) }) do
+      get_with_agent :modern, CHROME_118
+    end
+
+    assert_response :upgrade_required
+    assert_equal({ version: 1, browser: 1 }, reads)
+  end
+
   private
     def get_with_agent(action, agent)
       @request.headers["User-Agent"] = agent
@@ -105,6 +121,10 @@ class AllowBrowserRactorTest < ActiveSupport::TestCase
 
   test "the default block is shareable" do
     assert_ractor_shareable ActionController::AllowBrowser::ClassMethods.const_get(:DEFAULT_UNSUPPORTED_BROWSER_RESPONSE)
+  end
+
+  test "the expanded named version sets are shareable" do
+    assert_ractor_shareable ActionController::AllowBrowser::BrowserBlocker::EXPANDED_SETS
   end
 
   test "allow_browser registers a shareable callback when the application opts in" do

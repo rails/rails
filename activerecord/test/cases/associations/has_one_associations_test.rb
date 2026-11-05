@@ -345,6 +345,26 @@ class HasOneAssociationsTest < ActiveRecord::TestCase
     I18n.backend.reload!
   end
 
+  def test_restrict_with_error_exposes_association_name_without_downcasing
+    I18n.backend = I18n::Backend::Simple.new
+    I18n.backend.store_translations "de",
+      activerecord: {
+        attributes: { restricted_with_error_firm: { account: "Konto" } },
+        errors: { messages: { restrict_dependent_destroy: { has_one: "Datensatz kann nicht gelöscht werden, da ein abhängiges %{association_name} existiert" } } }
+      }
+    firm = RestrictedWithErrorFirm.create!(name: "restrict")
+    firm.create_account(credit_limit: 10)
+
+    I18n.with_locale(:de) do
+      firm.destroy
+      assert_equal "Datensatz kann nicht gelöscht werden, da ein abhängiges Konto existiert", firm.errors[:base].first
+    end
+    assert RestrictedWithErrorFirm.exists?(name: "restrict")
+    assert_predicate firm.account, :present?
+  ensure
+    I18n.backend.reload!
+  end
+
   def test_successful_build_association
     firm = Firm.new("name" => "GlobalMegaCorp")
     firm.save

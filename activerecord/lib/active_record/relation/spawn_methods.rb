@@ -1,6 +1,5 @@
 # frozen_string_literal: true
 
-# :markup: markdown
 require "active_support/core_ext/hash/except"
 require "active_support/core_ext/hash/slice"
 require "active_record/relation/merger"
@@ -64,7 +63,8 @@ module ActiveRecord
     # Post.where('id > 10').order('id asc').except(:where) # removes the where condition but keeps the order
     # ```
     def except(*skips)
-      relation_with values.except(*skips)
+      skips |= [:with_recursive] if skips.include?(:with)
+      relation_with @values.except(*skips)
     end
 
     # Keeps only the condition(s) specified in `onlies` in the query, removing all others.
@@ -74,7 +74,8 @@ module ActiveRecord
     # Post.order('id asc').only(:where, :order) # keeps only the where and order conditions
     # ```
     def only(*onlies)
-      relation_with values.slice(*onlies)
+      onlies |= [:with_recursive] if onlies.include?(:with)
+      relation_with @values.slice(*onlies)
     end
 
     private

@@ -1,6 +1,5 @@
 # frozen_string_literal: true
 
-# :markup: markdown
 # Finds a representation by a `signed_id` and a `variation_key`, and redirects to a representation's expiring
 # service URL.
 #

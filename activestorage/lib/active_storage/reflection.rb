@@ -1,6 +1,5 @@
 # frozen_string_literal: true
 
-# :markup: markdown
 module ActiveStorage
   module Reflection
     class HasAttachedReflection < ActiveRecord::Reflection::MacroReflection # :nodoc:

@@ -1,4 +1,3 @@
-# :markup: markdown
 # frozen_string_literal: true
 
 require "active_support/core_ext/hash/keys"
@@ -239,8 +238,12 @@ module ActiveSupport
     # counters.fetch(:bar) { |key| 0 } # => 0
     # counters.fetch(:zoo)           # => KeyError: key not found: "zoo"
     # ```
-    def fetch(key, *extras)
-      super(convert_key(key), *extras)
+    def fetch(key, default = (no_default = true; nil))
+      if no_default
+        super(convert_key(key))
+      else
+        super(convert_key(key), default)
+      end
     end
 
     # Same as `Hash#dig` where the key passed as argument can be
@@ -325,8 +328,8 @@ module ActiveSupport
     # This method has the same semantics of `update`, except it does not
     # modify the receiver but rather returns a new hash with indifferent
     # access with the result of the merge.
-    def merge(*hashes, &block)
-      dup.update(*hashes, &block)
+    def merge(...)
+      dup.update(...)
     end
 
     # Like `merge` but the other way around: Merges the receiver into the

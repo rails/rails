@@ -78,6 +78,18 @@ class CookieJarTest < ActiveSupport::TestCase
     request.cookie_jar.write(headers)
     assert_not_includes headers, "Set-Cookie"
   end
+
+  def test_reading_a_missing_signed_or_encrypted_cookie_derives_no_keys
+    request.env["action_dispatch.key_generator"] = Class.new do
+      def generate_key(*)
+        raise "no key should be derived"
+      end
+    end.new
+
+    assert_nil request.cookie_jar.signed[:missing]
+    assert_nil request.cookie_jar.encrypted[:missing]
+    assert_nil request.cookie_jar.signed_or_encrypted[:missing]
+  end
 end
 
 class CookiesMiddlewareTest < ActiveSupport::TestCase
@@ -211,6 +223,37 @@ class CookiesTest < ActionController::TestCase
 
     def get_encrypted_cookie
       cookies.encrypted[:foo]
+      head :ok
+    end
+
+    def get_signed_cookie_with_session_skipped
+      request.session_options[:skip] = true
+      cookies.signed[:user_id]
+      head :ok
+    end
+
+    def get_encrypted_cookie_with_session_skipped
+      request.session_options[:skip] = true
+      cookies.encrypted[:foo]
+      head :ok
+    end
+
+    def get_signed_cookie_before_skipping_session
+      cookies.signed[:user_id]
+      request.session_options[:skip] = true
+      head :ok
+    end
+
+    def reset_signed_cookie_with_session_skipped
+      request.session_options[:skip] = true
+      cookies.signed[:user_id]
+      cookies.signed[:user_id] = 46
+      head :ok
+    end
+
+    def set_signed_cookie_with_session_skipped
+      request.session_options[:skip] = true
+      cookies.signed[:user_id] = 45
       head :ok
     end
 
@@ -1133,6 +1176,80 @@ class CookiesTest < ActionController::TestCase
     secret = key_generator.generate_key(authenticated_encrypted_cookie_salt, key_len)
     encryptor = ActiveSupport::MessageEncryptor.new(secret, cipher: "aes-256-gcm", serializer: Marshal)
     assert_equal 45, encryptor.decrypt_and_verify(@response.cookies["foo"])
+  end
+
+  def test_signed_cookie_rotating_secret_is_not_rewritten_when_session_is_skipped
+    secret = "b3c631c314c0bbca50c1b2843150fe33"
+
+    @request.env["action_dispatch.signed_cookie_digest"] = "SHA256"
+    cookies_rotations.rotate :signed, secret, digest: "SHA1"
+
+    old_message = ActiveSupport::MessageVerifier.new(secret, digest: "SHA1", serializer: Marshal).generate(45)
+    @request.headers["Cookie"] = "user_id=#{old_message}"
+
+    get :get_signed_cookie_with_session_skipped
+    assert_equal 45, controller_cookies.signed[:user_id]
+    assert_nil @response.headers["Set-Cookie"]
+  end
+
+  def test_signed_cookie_read_before_the_session_is_skipped_is_not_rewritten
+    secret = "b3c631c314c0bbca50c1b2843150fe33"
+
+    @request.env["action_dispatch.signed_cookie_digest"] = "SHA256"
+    cookies_rotations.rotate :signed, secret, digest: "SHA1"
+
+    old_message = ActiveSupport::MessageVerifier.new(secret, digest: "SHA1", serializer: Marshal).generate(45)
+    @request.headers["Cookie"] = "user_id=#{old_message}"
+
+    get :get_signed_cookie_before_skipping_session
+    assert_nil @response.headers["Set-Cookie"]
+  end
+
+  def test_rotated_signed_cookie_set_after_reading_is_written_when_session_is_skipped
+    secret = "b3c631c314c0bbca50c1b2843150fe33"
+
+    @request.env["action_dispatch.signed_cookie_digest"] = "SHA256"
+    cookies_rotations.rotate :signed, secret, digest: "SHA1"
+
+    old_message = ActiveSupport::MessageVerifier.new(secret, digest: "SHA1", serializer: Marshal).generate(45)
+    @request.headers["Cookie"] = "user_id=#{old_message}"
+
+    get :reset_signed_cookie_with_session_skipped
+    assert_equal 46, controller_cookies.signed[:user_id]
+    assert_not_nil @response.cookies["user_id"]
+  end
+
+  def test_encrypted_cookie_rotating_secret_is_not_rewritten_when_session_is_skipped
+    secret = "b3c631c314c0bbca50c1b2843150fe33"
+
+    @request.env["action_dispatch.encrypted_cookie_cipher"] = "aes-256-gcm"
+    cookies_rotations.rotate :encrypted, secret, digest: "SHA1"
+
+    old_message = ActiveSupport::MessageEncryptor.new(secret, cipher: "aes-256-gcm", serializer: Marshal).encrypt_and_sign(45)
+    @request.headers["Cookie"] = "foo=#{::Rack::Utils.escape old_message}"
+
+    get :get_encrypted_cookie_with_session_skipped
+    assert_equal 45, controller_cookies.encrypted[:foo]
+    assert_nil @response.headers["Set-Cookie"]
+  end
+
+  def test_encrypted_cookie_using_hybrid_serializer_is_not_rewritten_when_session_is_skipped
+    @request.env["action_dispatch.cookies_serializer"] = :hybrid
+
+    secret = key_generator.generate_key(authenticated_encrypted_cookie_salt, 32)
+
+    marshal_value = ActiveSupport::MessageEncryptor.new(secret, cipher: "aes-256-gcm", serializer: Marshal).encrypt_and_sign("bar")
+    @request.headers["Cookie"] = "foo=#{::Rack::Utils.escape marshal_value}"
+
+    get :get_encrypted_cookie_with_session_skipped
+    assert_equal "bar", controller_cookies.encrypted[:foo]
+    assert_nil @response.headers["Set-Cookie"]
+  end
+
+  def test_signed_cookie_is_set_when_session_is_skipped
+    get :set_signed_cookie_with_session_skipped
+    assert_equal 45, controller_cookies.signed[:user_id]
+    assert_not_nil @response.cookies["user_id"]
   end
 
   def test_cookie_with_hash_value_not_modified_by_rotation

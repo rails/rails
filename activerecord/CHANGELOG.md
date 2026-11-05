@@ -1,3 +1,201 @@
+*   Retry `ActiveRecord::SerializationFailure` on queries that opted into retries.
+
+    A serialization failure rolls back whatever the statement was part of, so a
+    statement that was not part of an open transaction can be re-run on the same
+    connection, exactly as `ActiveRecord::Deadlocked` already is.
+
+    *Adrianna Chang*
+
+*   Fix `in_order_of` modifying the receiver relation.
+
+    `in_order_of` added the referenced table to the receiver's
+    `references_values` instead of only the returned relation's, so it
+    raised `ActiveRecord::UnmodifiableRelation` on a loaded relation.
+
+    ```ruby
+    posts = Post.all.load
+    posts.in_order_of("posts.id", [3, 4, 1])
+    # => ActiveRecord::UnmodifiableRelation before, now the ordered relation
+    ```
+
+    *Ryuta Kamizono*
+
+*   Fix `merge` dropping `RECURSIVE` from a relation built with `with_recursive`.
+
+    The recursive flag is now kept with the relation's other values, so
+    `merge`, `only`, and `or` keep it, and `except(:with)` and `unscope(:with)`
+    remove it along with the CTEs.
+
+    ```ruby
+    Post.all.merge(Post.with_recursive(post_and_replies: [...])).to_sql
+    # => "WITH post_and_replies AS (...)" before, now "WITH RECURSIVE post_and_replies AS (...)"
+    ```
+
+    *Ryuta Kamizono*
+
+*   Fix `one?` and `many?` on grouped relations.
+
+    A grouped count returns a hash, so `one?` returned `false` for a single
+    group and `many?` raised a `TypeError`. They now count the groups, which
+    matches the number of records the relation loads.
+
+    ```ruby
+    Post.joins(:comments).group(:id).many?
+    # => TypeError before, now true when more than one post has comments
+    ```
+
+    *Wei-Lun Li*
+
+*   Fix `in_batches(use_ranges: true)` yielding relations that keep an ignored `default_order`.
+
+    Batching ignores `default_order` like an explicit order, but the ranged
+    relations still carried it, adding a needless `ORDER BY` to each batch.
+
+    *Clément Joubert*
+
+*   Support `unscope(:default_order)`.
+
+    Previously, `unscope(:default_order)` raised an `ArgumentError`. It now
+    removes default ordering while keeping explicit ordering, just like
+    `unscope(:order)` removes explicit ordering while keeping default ordering.
+
+    ```ruby
+    Post.order(:id).default_order(:title).unscope(:default_order)
+    # SELECT "posts".* FROM "posts" ORDER BY "posts"."id" ASC
+    ```
+
+    *Kengo Johira*
+
+*   Fix eager loading with `limit` or `offset` on a relation with a `default_order`.
+
+    The `SELECT DISTINCT` of primary keys ignored `default_order`, which raised
+    on PostgreSQL and MySQL because the `ORDER BY` columns were missing from
+    its select list.
+
+    ```ruby
+    Post.eager_load(:comments).default_order(:title).limit(2).offset(1)
+    # => PG::InvalidColumnReference before, now loads the records
+    ```
+
+    *Clément Joubert*
+
+*   Fix subclasses missing `enum` definitions added to their parent class later.
+
+    `defined_enums` on a subclass that already existed did not include an enum
+    added to its parent afterwards.
+
+    *Ryuta Kamizono*
+
+*   Fix assigning an `attr_readonly` attribute added to a parent class not raising
+    on a subclass whose attribute methods were already generated.
+
+    *Ryuta Kamizono*
+
+*   Fix subclasses missing `attr_readonly` attributes added to their parent class later.
+
+    A subclass that had already declared readonly attributes of its own did
+    not see attributes declared readonly on its parent afterwards, so they
+    could be changed and saved on the subclass.
+
+    *Kengo Johira*
+
+*   Fix subclasses missing `composed_of` aggregations added to their parent class later.
+
+    A subclass that had already defined an aggregation of its own did not see
+    aggregations added to its parent afterwards, so `reflect_on_aggregation`
+    returned `nil` and `where` could not expand the value object.
+
+    *Kengo Johira*
+
+*   Fix preloading a `has_one :through` or `has_many :through` association when
+    its through and source models share a table, such as STI subclasses.
+
+    Source conditions, including the STI type condition, were merged into the
+    through model's query, where they filtered the through records instead of
+    the source records. They are now applied by the source preloader.
+
+    Fixes #43657.
+
+    *Masaki Ozawa*
+
+*   Fix counter caches being incremented twice when creating a new record with
+    a `has_many :through` association and `partial_inserts` disabled.
+
+    The counter incremented in memory on the unsaved owner was written by the
+    `INSERT`, and then incremented again by the join model's `belongs_to`
+    counter cache. Unchanged counter cache columns are now omitted from the
+    `INSERT`, as they already are when `partial_inserts` is enabled.
+
+    Fixes #47555.
+
+    *Masaki Ozawa*
+
+*   Fix preloading an ordered `has_many :through` association reusing the
+    source records already loaded by an unordered one, ignoring its order.
+
+    ```ruby
+    class Author < ActiveRecord::Base
+      has_many :categorizations
+      has_many :categorized_posts, through: :categorizations, source: :post
+      has_many :categorized_posts_desc, -> { order(id: :desc) }, through: :categorizations, source: :post
+    end
+
+    Author.preload(:categorized_posts, :categorized_posts_desc).first.categorized_posts_desc # => now sorted by id desc
+    ```
+
+    Fixes #56110.
+
+    *Clément Joubert*
+
+*   Add a `checkout_wait.active_record` notification.
+
+    It is emitted when a connection checkout waits because the pool is full,
+    and its duration is the time spent waiting, so pool saturation can be
+    measured without patching `ConnectionPool`.
+
+    *Andrew Fader*
+
+*   Pass the association's human name unchanged to `restrict_with_error` messages.
+
+    The `restrict_dependent_destroy` messages interpolate `%{record}`, which is
+    always downcased. That reads well in English, but locales that capitalize
+    nouns, like German, end up with "abhängige firmen". The untouched name is now
+    also available as `%{association_name}`:
+
+    ```yaml
+    de:
+      activerecord:
+        errors:
+          messages:
+            restrict_dependent_destroy:
+              has_many: "Datensatz kann nicht gelöscht werden, da abhängige %{association_name} existieren"
+    ```
+
+    Fixes #21064.
+
+    *Jason Lee*
+
+*   Fix subclasses missing associations added to their parent class later.
+
+    A subclass that defined an association of its own kept a copy of the
+    parent's reflections, so an association added to the parent afterwards
+    (for example by an engine or a concern loaded later) had its methods on the
+    subclass, but raised `ActiveRecord::AssociationNotFoundError` when called.
+
+    ```ruby
+    class Post < ActiveRecord::Base; end
+    class FancyPost < Post
+      has_many :tags
+    end
+    Post.has_many :comments
+
+    FancyPost.first.comments # => no longer raises
+    ```
+
+    Fixes #20678.
+
+    *Jason Lee*
+
 *   Wrap the PostgreSQL driver's null byte error in `ActiveRecord::NullByteError`.
 
     PostgreSQL cannot store null bytes (`\0`) in text columns. Previously the

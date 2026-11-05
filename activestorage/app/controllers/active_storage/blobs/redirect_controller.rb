@@ -1,6 +1,5 @@
 # frozen_string_literal: true
 
-# :markup: markdown
 # Finds a blob by a `signed_id` and redirects to a blob's expiring service URL.
 #
 # The `signed_id`s make URLs hard to guess but permanent by design, allowing the URLs to be cached.

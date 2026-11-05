@@ -1,4 +1,3 @@
-# :markup: markdown
 # frozen_string_literal: true
 
 require "active_support/concern"
@@ -54,7 +53,8 @@ module ActiveSupport
       # ```
       #
       # Exceptions raised inside exception handlers are not propagated up.
-      #: (*(Module | String), ?with: (Symbol | Proc)?) ?{ (untyped) -> void } -> void
+      #: (*(Module | String)) { (Exception) [self: untyped] -> void } -> void
+      #: (*(Module | String), with: Symbol | Proc) -> void
       def rescue_from(*klasses, with: nil, &block)
         unless with
           if block_given?

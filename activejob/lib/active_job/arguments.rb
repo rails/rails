@@ -1,6 +1,5 @@
 # frozen_string_literal: true
 
-# :markup: markdown
 require "bigdecimal"
 require "active_support/core_ext/hash"
 
@@ -161,9 +160,11 @@ module ActiveJob
       end
 
       def serialize_hash(argument)
-        argument.each_with_object({}) do |(key, value), hash|
+        hash = {}
+        argument.each do |key, value|
           hash[serialize_hash_key(key)] = serialize_argument(value)
         end
+        hash
       end
 
       def deserialize_hash(serialized_hash)

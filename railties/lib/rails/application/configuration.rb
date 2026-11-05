@@ -1,6 +1,5 @@
 # frozen_string_literal: true
 
-# :markup: markdown
 require "ipaddr"
 require "active_support/core_ext/array/wrap"
 require "active_support/inspect_backport"

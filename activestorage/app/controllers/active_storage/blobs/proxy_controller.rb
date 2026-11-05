@@ -1,6 +1,5 @@
 # frozen_string_literal: true
 
-# :markup: markdown
 # Finds a blob by a `signed_id` and proxies the file through the application.
 # The blob is streamed from storage directly to the response. This avoids having
 # a redirect and makes files easier to cache.

@@ -1,6 +1,5 @@
 # frozen_string_literal: true
 
-# :markup: markdown
 module ActiveRecord
   module Associations
     # Active Record Has One Association
@@ -15,8 +14,8 @@ module ActiveRecord
 
         when :restrict_with_error
           if load_target
-            record = owner.class.human_attribute_name(reflection.name).downcase
-            owner.errors.add(:base, :'restrict_dependent_destroy.has_one', record: record)
+            association_name = owner.class.human_attribute_name(reflection.name)
+            owner.errors.add(:base, :'restrict_dependent_destroy.has_one', record: association_name.downcase, association_name: association_name)
             throw(:abort)
           end
 

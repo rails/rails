@@ -1,7 +1,6 @@
 # frozen_string_literal: true
 
 
-# :markup: markdown
 module ActiveRecord
   # This is a thread locals registry for EXPLAIN. For example
   #

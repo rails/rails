@@ -1,6 +1,5 @@
 # frozen_string_literal: true
 
-# :markup: markdown
 require "active_support/core_ext/object/deep_dup"
 
 module ActiveRecord
@@ -265,6 +264,12 @@ module ActiveRecord
         singleton_class.define_method(name.pluralize) { enum_values }
         defined_enums[name] = enum_values
 
+        # Every subclass holds its own copy of the enums, so pass the new one
+        # down unless a subclass defines that name itself.
+        descendants.each do |subclass|
+          subclass.defined_enums[name] = enum_values unless subclass.defined_enums.key?(name)
+        end
+
         detect_enum_conflict!(name, name)
         detect_enum_conflict!(name, "#{name}=")
 
@@ -278,7 +283,8 @@ module ActiveRecord
           end
 
           subtype = subtype.subtype if EnumType === subtype
-          EnumType.new(name, enum_values, subtype, raise_on_invalid_values: !validate)
+          enum_type = EnumType.new(name, enum_values, subtype, raise_on_invalid_values: !validate)
+          enum_values.frozen? && subtype.frozen? ? enum_type.freeze : enum_type
         end
 
         value_method_names = []

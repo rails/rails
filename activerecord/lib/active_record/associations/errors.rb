@@ -1,6 +1,5 @@
 # frozen_string_literal: true
 
-# :markup: markdown
 module ActiveRecord
   class AssociationNotFoundError < ConfigurationError # :nodoc:
     attr_reader :record, :association_name

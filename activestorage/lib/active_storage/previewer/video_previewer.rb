@@ -1,6 +1,5 @@
 # frozen_string_literal: true
 
-# :markup: markdown
 require "shellwords"
 
 module ActiveStorage
@@ -33,6 +32,7 @@ module ActiveStorage
       def draw_relevant_frame_from(file, &block)
         draw self.class.ffmpeg_path,
           *Shellwords.split(ActiveStorage.video_preview_input_arguments),
+          *ActiveStorage.ffmpeg_format_whitelist_arguments,
           "-i", file.path,
           *Shellwords.split(ActiveStorage.video_preview_arguments),
           "-", &block

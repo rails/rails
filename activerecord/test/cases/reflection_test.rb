@@ -903,6 +903,57 @@ class ReflectionTest < ActiveRecord::TestCase
     assert_equal "books_count", model.reflect_on_association(:books).counter_cache_column
   end
 
+  def test_association_added_to_parent_reaches_subclass_that_defined_its_own_first
+    parent = Class.new(ActiveRecord::Base) do
+      self.table_name = "posts"
+      self.inheritance_column = nil
+      def self.name = "InheritedReflectionPost"
+    end
+    child = Class.new(parent) { has_many :taggings, foreign_key: :taggable_id }
+    parent.has_many :comments, foreign_key: :post_id, class_name: "Comment"
+
+    assert_same parent.reflect_on_association(:comments), child.reflect_on_association(:comments)
+    assert_same parent._reflect_on_association(:comments), child._reflect_on_association(:comments)
+    assert_not_nil child.reflect_on_association(:taggings)
+    assert_nil parent.reflect_on_association(:taggings)
+
+    post = child.create!(title: "Inherited", body: "Comments come from the parent")
+    first = Comment.create!(post_id: post.id, body: "first")
+    second = Comment.create!(post_id: post.id, body: "second")
+    Comment.create!(post_id: post.id + 1, body: "someone else's")
+
+    assert_equal [first.id, second.id].sort, child.find(post.id).comments.ids.sort
+  end
+
+  def test_association_added_to_parent_reaches_grandchild_that_defined_its_own_first
+    parent = Class.new(ActiveRecord::Base) { self.table_name = "posts"; self.inheritance_column = nil }
+    child = Class.new(parent)
+    grandchild = Class.new(child) { has_many :taggings, foreign_key: :taggable_id }
+    parent.has_many :comments, foreign_key: :post_id, class_name: "Comment"
+
+    assert_same parent.reflect_on_association(:comments), child.reflect_on_association(:comments)
+    assert_same parent.reflect_on_association(:comments), grandchild.reflect_on_association(:comments)
+  end
+
+  def test_association_added_to_parent_reaches_subclass_that_already_read_its_reflections
+    parent = Class.new(ActiveRecord::Base) { self.table_name = "posts"; self.inheritance_column = nil }
+    child = Class.new(parent)
+    assert_empty child.reflect_on_all_associations
+    parent.has_many :comments, foreign_key: :post_id, class_name: "Comment"
+
+    assert_same parent.reflect_on_association(:comments), child.reflect_on_association(:comments)
+  end
+
+  def test_association_added_to_parent_does_not_replace_subclass_override
+    parent = Class.new(ActiveRecord::Base) { self.table_name = "posts"; self.inheritance_column = nil }
+    child = Class.new(parent) { has_many :comments, -> { where(type: "SpecialComment") }, foreign_key: :post_id, class_name: "Comment" }
+    child_reflection = child.reflect_on_association(:comments)
+    parent.has_many :comments, foreign_key: :post_id, class_name: "Comment"
+
+    assert_same child_reflection, child.reflect_on_association(:comments)
+    assert_not_same parent.reflect_on_association(:comments), child.reflect_on_association(:comments)
+  end
+
   private
     def assert_reflection(klass, association, options)
       assert reflection = klass.reflect_on_association(association)

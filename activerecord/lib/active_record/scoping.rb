@@ -1,7 +1,6 @@
 # frozen_string_literal: true
 
 
-# :markup: markdown
 module ActiveRecord
   module Scoping
     extend ActiveSupport::Concern

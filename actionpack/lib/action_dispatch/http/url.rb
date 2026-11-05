@@ -324,8 +324,8 @@ module ActionDispatch
       #     req = ActionDispatch::Request.new 'HTTP_HOST' => 'example.com:8080'
       #     req.raw_host_with_port # => "example.com:8080"
       def raw_host_with_port
-        @raw_host_with_port ||= if forwarded = x_forwarded_host.presence
-          forwarded.split(/,\s?/).last
+        @raw_host_with_port ||= if forwarded = x_forwarded_host&.split(/,\s?/)&.last.presence
+          forwarded
         else
           get_header("HTTP_HOST") || "#{server_name}:#{get_header('SERVER_PORT')}"
         end

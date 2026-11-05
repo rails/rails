@@ -1,3 +1,13 @@
+*   Fix subclasses missing `alias_attribute` aliases added to their parent class later.
+
+    A subclass that held its own copy of the aliases, because it had defined
+    an alias of its own or, in Active Record, because its attribute methods
+    were generated under an abstract class, did not see aliases added to its
+    parent afterwards. `attribute_alias?` returned `false`, and Active Record
+    queries such as `where` used the alias as a column name.
+
+    *Kengo Johira*
+
 *   Fix numericality validator on a decimal attribute with implicit scale.
 
     A value is now validated as it is actually held by the attribute.

@@ -944,7 +944,7 @@ You can use `find_or_initialize_by` to find the customer named 'Nina':
 
 ```irb
 store(dev)> nina = Customer.find_or_initialize_by(first_name: "Nina")
-=> #<Customer id: nil, first_name: "Nina", orders_count: 0, locked: true, created_at: "2011-08-30 06:09:27", updated_at: "2011-08-30 06:09:27">
+=> #<Customer id: nil, first_name: "Nina", orders_count: 0, locked: true, created_at: nil, updated_at: nil>
 
 store(dev)> nina.persisted?
 => false
@@ -2361,7 +2361,7 @@ The above session produces the following SQL for a MySQL backend:
 
 ```sql
 SQL (0.2ms)   BEGIN
-Book Load (0.3ms)   SELECT * FROM books LIMIT 1 FOR UPDATE
+Book Load (0.3ms)   SELECT * FROM books ORDER BY books.id ASC LIMIT 1 FOR UPDATE
 Book Update (0.4ms)   UPDATE books SET updated_at = "2009-02-07 18:05:56", title = "Algorithms, second edition" WHERE id = 1
 SQL (0.8ms)   COMMIT
 ```

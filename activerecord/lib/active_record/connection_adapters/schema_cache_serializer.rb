@@ -1,7 +1,5 @@
 # frozen_string_literal: true
 
-# :markup: markdown
-
 json_min_version = "2.10.0"
 
 begin

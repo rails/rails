@@ -261,7 +261,7 @@ module ActiveRecord
     def in_batches(of: 1000, start: nil, finish: nil, load: false, error_on_ignore: nil, cursor: primary_key, order: DEFAULT_ORDER, use_ranges: nil, &block)
       ensure_valid_options_for_batching!(cursor, start, finish, order)
 
-      if order_values.any?(&:present?) || default_order_values.any?(&:present?)
+      unless effective_order_values.empty?
         act_on_ignored_order(error_on_ignore)
       end
 
@@ -459,7 +459,7 @@ module ActiveRecord
             # Finally, build the yielded relation if at least one value found.
             if values_last
               yielded_relation = apply_finish_limit(batch_relation, cursor, values_last, batch_orders)
-              yielded_relation = yielded_relation.except(:limit, :order)
+              yielded_relation = yielded_relation.except(:limit, :order, :default_order)
               yielded_relation.skip_query_cache!(false)
             end
           else

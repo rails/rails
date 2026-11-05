@@ -2,6 +2,7 @@
 
 require "abstract_unit"
 require "securerandom"
+require_relative "store_shared_tests"
 
 # You need to start a memcached server inorder to run these tests
 class MemCacheStoreTest < ActionDispatch::IntegrationTest
@@ -42,11 +43,13 @@ class MemCacheStoreTest < ActionDispatch::IntegrationTest
     ss = Dalli::Client.new(servers).stats
     raise Dalli::DalliError unless ss[servers] || ss[servers + ":11211"]
 
+    include StoreSharedTests
+
     def test_setting_and_getting_session_value
       with_test_route_set do
         get "/set_session_value"
         assert_response :success
-        assert cookies["_session_id"]
+        assert cookies[SessionKey]
 
         get "/get_session_value"
         assert_response :success
@@ -70,8 +73,8 @@ class MemCacheStoreTest < ActionDispatch::IntegrationTest
       with_test_route_set do
         get "/set_session_value"
         assert_response :success
-        assert cookies["_session_id"]
-        session_cookie = cookies.get_cookie("_session_id")
+        assert cookies[SessionKey]
+        session_cookie = cookies.get_cookie(SessionKey)
 
         get "/call_reset_session"
         assert_response :success
@@ -92,7 +95,7 @@ class MemCacheStoreTest < ActionDispatch::IntegrationTest
         get "/get_session_value"
         assert_response :success
         assert_equal "foo: nil", response.body
-        assert_nil cookies["_session_id"], "should only create session on write, not read"
+        assert_nil cookies[SessionKey], "should only create session on write, not read"
       end
     rescue Dalli::RingError => ex
       skip ex.message, ex.backtrace
@@ -102,8 +105,8 @@ class MemCacheStoreTest < ActionDispatch::IntegrationTest
       with_test_route_set do
         get "/set_session_value"
         assert_response :success
-        assert cookies["_session_id"]
-        session_id = cookies["_session_id"]
+        assert cookies[SessionKey]
+        session_id = cookies[SessionKey]
 
         get "/call_reset_session"
         assert_response :success
@@ -125,8 +128,8 @@ class MemCacheStoreTest < ActionDispatch::IntegrationTest
       with_test_route_set do
         get "/set_session_value"
         assert_response :success
-        assert cookies["_session_id"]
-        session_id = cookies["_session_id"]
+        assert cookies[SessionKey]
+        session_id = cookies[SessionKey]
 
         get "/get_session_id"
         assert_response :success
@@ -141,7 +144,7 @@ class MemCacheStoreTest < ActionDispatch::IntegrationTest
         with_autoload_path "session_autoload_test" do
           get "/set_serialized_session_value"
           assert_response :success
-          assert cookies["_session_id"]
+          assert cookies[SessionKey]
         end
         with_autoload_path "session_autoload_test" do
           get "/get_session_id"
@@ -156,7 +159,7 @@ class MemCacheStoreTest < ActionDispatch::IntegrationTest
       with_test_route_set do
         get "/set_session_value"
         assert_response :success
-        assert cookies["_session_id"]
+        assert cookies[SessionKey]
 
         get "/get_session_value"
         assert_response :success
@@ -171,13 +174,13 @@ class MemCacheStoreTest < ActionDispatch::IntegrationTest
         get "/get_session_value"
         assert_response :success
         assert_equal "foo: nil", response.body
-        session_id = cookies["_session_id"]
+        session_id = cookies[SessionKey]
 
         reset!
 
         get "/set_session_value", params: { _session_id: session_id }
         assert_response :success
-        assert_not_equal session_id, cookies["_session_id"]
+        assert_not_equal session_id, cookies[SessionKey]
       end
     rescue Dalli::RingError => ex
       skip ex.message, ex.backtrace
@@ -189,10 +192,12 @@ class MemCacheStoreTest < ActionDispatch::IntegrationTest
   private
     def app
       @app ||= self.class.build_app do |middleware|
-        middleware.use ActionDispatch::Session::MemCacheStore,
-          key: "_session_id", namespace: "mem_cache_store_test:#{SecureRandom.hex(10)}",
+        middleware.use ActionDispatch::Session::MemCacheStore, cookie_options.reverse_merge(
+          key: SessionKey,
+          namespace: "mem_cache_store_test:#{SecureRandom.hex(10)}",
           memcache_server: ENV["MEMCACHE_SERVERS"] || "localhost:11211",
           socket_timeout: 60
+        )
         middleware.delete ActionDispatch::ShowExceptions
       end
     end

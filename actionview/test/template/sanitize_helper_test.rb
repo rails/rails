@@ -336,11 +336,45 @@ module SanitizeHelperVendorTests
     assert_includes(result, "height")
   end
 
+  def test_strip_tags_returns_nil_for_nil
+    assert_nil(@subject.strip_tags(nil))
+  end
+
   def test_strip_tags
     input = %(<div><a href="http://www.example.com/">Example</a> of a fragment</div>)
     result = @subject.strip_tags(input)
 
     assert_equal("Example of a fragment", result)
+  end
+
+  def test_strip_tags_encodes_ampersand
+    assert_equal("this &amp; that", @subject.strip_tags("this & that"))
+    assert_equal("this &amp; that", @subject.strip_tags("this &amp; that"))
+    assert_equal("this &amp; that", @subject.strip_tags("this &#38; that"))
+  end
+
+  def test_strip_tags_encodes_less_than
+    assert_equal("this &lt; that", @subject.strip_tags("this < that"))
+    assert_equal("this &lt; that", @subject.strip_tags("this &lt; that"))
+    assert_equal("this &lt; that", @subject.strip_tags("this &#60; that"))
+  end
+
+  def test_strip_tags_encodes_greater_than
+    assert_equal("this &gt; that", @subject.strip_tags("this > that"))
+    assert_equal("this &gt; that", @subject.strip_tags("this &gt; that"))
+    assert_equal("this &gt; that", @subject.strip_tags("this &#62; that"))
+  end
+
+  def test_strip_tags_encodes_double_quote
+    assert_equal("this &quot; that", @subject.strip_tags("this \" that"))
+    assert_equal("this &quot; that", @subject.strip_tags("this &quot; that"))
+    assert_equal("this &quot; that", @subject.strip_tags("this &#34; that"))
+  end
+
+  def test_strip_tags_encodes_single_quote
+    assert_equal("this &#39; that", @subject.strip_tags("this ' that"))
+    assert_equal("this &#39; that", @subject.strip_tags("this &apos; that"))
+    assert_equal("this &#39; that", @subject.strip_tags("this &#39; that"))
   end
 
   def test_strip_links

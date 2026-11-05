@@ -1,6 +1,5 @@
 # frozen_string_literal: true
 
-# :markup: markdown
 require "active_record/associations/join_dependency/join_part"
 require "active_support/core_ext/array/extract"
 
@@ -28,7 +27,7 @@ module ActiveRecord
 
           reflection_chain = reflection.chain
           reflection_chain.each_with_index do |reflection, index|
-            table, terminated = yield reflection, reflection_chain[index..]
+            table, terminated = yield reflection, reflection_chain.drop(index)
             @table ||= table
 
             if terminated

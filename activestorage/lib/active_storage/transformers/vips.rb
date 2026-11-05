@@ -1,6 +1,5 @@
 # frozen_string_literal: true
 
-# :markup: markdown
 # Do not remove or reorder these setup steps.
 #
 # active_storage/vips disables libvips's unfuzzed loaders and savers. Requiring image_processing

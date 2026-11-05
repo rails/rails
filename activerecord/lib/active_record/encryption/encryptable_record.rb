@@ -1,6 +1,5 @@
 # frozen_string_literal: true
 
-# :markup: markdown
 module ActiveRecord
   module Encryption
     # This is the concern mixed in Active Record models to make them encryptable. It adds the `encrypts`

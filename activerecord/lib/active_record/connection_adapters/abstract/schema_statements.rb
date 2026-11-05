@@ -1559,7 +1559,7 @@ module ActiveRecord
 
         values = columns_for_distinct(
           primary_key_columns,
-          relation.order_values
+          relation.effective_order_values
         )
 
         limited = relation.reselect(values).distinct!

@@ -769,6 +769,21 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     assert_equal [6, 5, 4, 2, 1], author.posts_with_default_order.reload.map(&:id)
   end
 
+  def test_default_order_is_applied_when_the_association_is_preloaded
+    id = authors(:david).id
+    expected = [1, 2, 4, 5, 6]
+
+    assert_equal expected, Author.preload(:posts_with_ascending_default_order).find(id).posts_with_ascending_default_order.map(&:id)
+  end
+
+  def test_default_order_option_overrides_default_order_in_scope_when_the_association_is_preloaded
+    author = authors(:david)
+    expected = [1, 2, 4, 5, 6]
+
+    assert_equal expected, author.posts_with_default_order_overriding_scope.map(&:id)
+    assert_equal expected, Author.preload(:posts_with_default_order_overriding_scope).find(author.id).posts_with_default_order_overriding_scope.map(&:id)
+  end
+
   def test_default_order_keeps_using_the_statement_cache
     author = authors(:david)
     association = author.association(:posts_with_default_order)
@@ -2153,6 +2168,26 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     assert_not_empty firm.errors
 
     assert_equal "Cannot delete record because dependent client companies exist", firm.errors[:base].first
+    assert RestrictedWithErrorFirm.exists?(name: "restrict")
+    assert firm.companies.exists?(name: "child")
+  ensure
+    I18n.backend.reload!
+  end
+
+  def test_restrict_with_error_exposes_association_name_without_downcasing
+    I18n.backend = I18n::Backend::Simple.new
+    I18n.backend.store_translations "de",
+      activerecord: {
+        attributes: { restricted_with_error_firm: { companies: "Firmen" } },
+        errors: { messages: { restrict_dependent_destroy: { has_many: "Datensatz kann nicht gelöscht werden, da abhängige %{association_name} existieren" } } }
+      }
+    firm = RestrictedWithErrorFirm.create!(name: "restrict")
+    firm.companies.create(name: "child")
+
+    I18n.with_locale(:de) do
+      firm.destroy
+      assert_equal "Datensatz kann nicht gelöscht werden, da abhängige Firmen existieren", firm.errors[:base].first
+    end
     assert RestrictedWithErrorFirm.exists?(name: "restrict")
     assert firm.companies.exists?(name: "child")
   ensure

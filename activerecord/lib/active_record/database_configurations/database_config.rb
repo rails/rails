@@ -1,6 +1,5 @@
 # frozen_string_literal: true
 
-# :markup: markdown
 module ActiveRecord
   class DatabaseConfigurations
     # ActiveRecord::Base.configurations will return either a HashConfig or

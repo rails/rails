@@ -395,6 +395,24 @@ class HasOneThroughAssociationsTest < ActiveRecord::TestCase
     assert_equal dashboards(:second), minivan.dashboard
   end
 
+  def test_has_one_through_belongs_to_stale_state_wraps_only_the_foreign_key_value
+    minivan = minivans(:cool_first)
+    proxy = minivan.association(:dashboard)
+
+    assert_equal [minivan.speedometer_id], proxy.send(:stale_state)
+
+    # The second round runs on warm call sites.
+    counts = 2.times.map do
+      before = GC.stat(:total_allocated_objects)
+      proxy.send(:stale_state)
+      GC.stat(:total_allocated_objects) - before
+    end
+    assert_equal 1, counts.last
+
+    minivan.speedometer_id = nil
+    assert_nil proxy.send(:stale_state)
+  end
+
   def test_has_one_through_belongs_to_setting_belongs_to_foreign_key_after_nil_target_loaded
     minivan = Minivan.new
 
@@ -485,6 +503,52 @@ class HasOneThroughAssociationsTest < ActiveRecord::TestCase
     belongs_to :parent, class_name: name, foreign_key: :firm_id, optional: true
     belongs_to :mentor, class_name: name, foreign_key: :client_of, optional: true
     has_one :scoped_parents_mentor, ->(owner) { where.not(name: owner.name) }, through: :parent, source: :mentor
+  end
+
+  class StiRoute < ActiveRecord::Base
+    self.table_name = "companies"
+  end
+
+  class BranchRoute < StiRoute
+    belongs_to :customer_route,
+      class_name: "HasOneThroughAssociationsTest::CustomerRoute",
+      foreign_key: :client_of
+  end
+
+  class CustomerRoute < StiRoute
+  end
+
+  class Offer < ActiveRecord::Base
+    self.table_name = "accounts"
+
+    belongs_to :branch_route,
+      class_name: "HasOneThroughAssociationsTest::BranchRoute",
+      foreign_key: :firm_id
+    has_one :customer_route, through: :branch_route
+    has_one :named_customer_route, -> { where(name: "named") }, through: :branch_route, source: :customer_route
+  end
+
+  def test_preloading_has_one_through_with_sti_associations_sharing_a_table
+    customer_route = CustomerRoute.create!
+    branch_route = BranchRoute.create!(customer_route: customer_route)
+    offer = Offer.create!(branch_route: branch_route)
+
+    preloaded_offer = assert_queries_count(3) do
+      Offer.includes(:customer_route).find(offer.id)
+    end
+
+    assert_predicate preloaded_offer.association(:customer_route), :loaded?
+    assert_no_queries { assert_equal customer_route, preloaded_offer.customer_route }
+  end
+
+  def test_preloading_scoped_has_one_through_with_associations_sharing_a_table
+    customer_route = CustomerRoute.create!(name: "named")
+    branch_route = BranchRoute.create!(name: "unnamed", customer_route: customer_route)
+    offer = Offer.create!(branch_route: branch_route)
+
+    preloaded_offer = Offer.preload(:named_customer_route).find(offer.id)
+
+    assert_no_queries { assert_equal customer_route, preloaded_offer.named_customer_route }
   end
 
   def test_preloading_has_one_through_for_a_subclass_of_the_owner

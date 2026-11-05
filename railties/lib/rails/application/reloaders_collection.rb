@@ -1,6 +1,5 @@
 # frozen_string_literal: true
 
-# :markup: markdown
 module Rails
   class Application < Engine
     # Wraps the application's set of file reloaders. When a reloader is removed

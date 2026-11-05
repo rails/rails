@@ -1,6 +1,5 @@
 # frozen_string_literal: true
 
-# :markup: markdown
 class ActiveStorage::SyncMetadataJob < ActiveStorage::BaseJob
   queue_as { ActiveStorage.queues[:sync_metadata] }
 

@@ -1,6 +1,5 @@
 # frozen_string_literal: true
 
-# :markup: markdown
 module Arel # :nodoc: all
   class DeleteManager < Arel::TreeManager
     include TreeManager::StatementMethods

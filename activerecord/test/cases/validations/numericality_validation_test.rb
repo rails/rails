@@ -4,6 +4,12 @@ require "cases/helper"
 require "models/numeric_data"
 
 class NumericalityValidationTest < ActiveRecord::TestCase
+  class PriceType < ActiveRecord::Type::Decimal
+    def type
+      :price
+    end
+  end
+
   def setup
     @model_class = NumericData.dup
   end
@@ -187,6 +193,25 @@ class NumericalityValidationTest < ActiveRecord::TestCase
     end
   end
 
+  def test_virtual_attribute_with_decimal_subclass_type
+    model_class.attribute(:virtual_decimal_number, PriceType.new(precision: 4, scale: 2))
+    model_class.validates_numericality_of(
+      :virtual_decimal_number, less_than_or_equal_to: 99.99
+    )
+
+    assert_validated_as_rounded_to_scale
+  end
+
+  def test_normalized_virtual_attribute_with_decimal_subclass_type
+    model_class.attribute(:virtual_decimal_number, PriceType.new(precision: 4, scale: 2))
+    model_class.normalizes(:virtual_decimal_number, with: ->(value) { value })
+    model_class.validates_numericality_of(
+      :virtual_decimal_number, less_than_or_equal_to: 99.99
+    )
+
+    assert_validated_as_rounded_to_scale
+  end
+
   def test_aliased_attribute
     model_class.validates_numericality_of(:new_bank_balance, greater_or_equal_than: 0)
 
@@ -210,4 +235,19 @@ class NumericalityValidationTest < ActiveRecord::TestCase
       assert_equal ActiveModel::Validations::NumericalityValidator, ActiveRecord::Validations::NumericalityValidator
     end
   end
+
+  private
+    def assert_validated_as_rounded_to_scale
+      ["99.994", 99.994, BigDecimal("99.994"), Rational(99_994, 1000)].each do |raw_value|
+        subject = model_class.new(virtual_decimal_number: raw_value)
+        assert_equal BigDecimal("99.99"), subject.virtual_decimal_number
+        assert_predicate subject, :valid?
+      end
+
+      ["99.999", 99.999, BigDecimal("99.999"), Rational(99_999, 1000)].each do |raw_value|
+        subject = model_class.new(virtual_decimal_number: raw_value)
+        assert_equal BigDecimal("100.00"), subject.virtual_decimal_number
+        assert_not_predicate subject, :valid?
+      end
+    end
 end
