@@ -93,14 +93,12 @@ module ActiveRecord
             # `primary_key` is documented as overridable in subclasses. The stored
             # definition (resolved from the schema, assigned, or inherited) backs
             # the default `primary_key` and any `super` call. When the method is
-            # overridden, build the key from its current value so relation finders
-            # and other consumers honor the override -- and re-read it if it changes
-            # -- rather than using the schema-derived key.
-            if primary_key_method_overridden?
-              ActiveRecord::Key.for(primary_key)
-            else
-              stored_primary_key_definition
-            end
+            # overridden to a different key, build the definition from its current
+            # value so relation finders and other consumers honor the override, and
+            # re-read it if it changes, rather than using the schema-derived key.
+            stored = stored_primary_key_definition
+            key = primary_key
+            key == stored.name ? stored : ActiveRecord::Key.for(key)
           end
 
           # Returns a quoted version of the primary key name.
@@ -164,16 +162,6 @@ module ActiveRecord
             # an overridden `primary_key` method.
             def stored_primary_key_definition
               @primary_key_definition || load_primary_key_definition
-            end
-
-            # True when the `primary_key` class method is overridden (defined on
-            # this class or inherited from a subclass's ancestor), as opposed to
-            # the default method, `primary_key=`, or a schema-resolved key.
-            # Memoized because it is read on the `primary_key_definition` hot path
-            # and the method's owner does not change after the class is defined.
-            def primary_key_method_overridden?
-              return @primary_key_method_overridden unless @primary_key_method_overridden.nil?
-              @primary_key_method_overridden = singleton_class.instance_method(:primary_key).owner != ClassMethods
             end
 
             # Subclasses inherit the primary key of the closest ancestor that
