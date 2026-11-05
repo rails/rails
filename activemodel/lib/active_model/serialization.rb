@@ -143,17 +143,17 @@ module ActiveModel
       return serializable_attributes(attribute_names) if options.blank?
 
       if only = options[:only]
-        attribute_names = Array(only).map(&:to_s) & attribute_names
+        attribute_names = Array(only).map { |name| serialization_key(name) } & attribute_names
       elsif except = options[:except]
-        attribute_names -= Array(except).map(&:to_s)
+        attribute_names -= Array(except).map { |name| serialization_key(name) }
       end
 
       hash = serializable_attributes(attribute_names)
 
-      Array(options[:methods]).each { |m| hash[m.to_s] = send(m) }
+      Array(options[:methods]).each { |m| hash[serialization_key(m)] = send(m) }
 
       serializable_add_includes(options) do |association, records, opts|
-        hash[association.to_s] = if records.respond_to?(:to_ary)
+        hash[serialization_key(association)] = if records.respond_to?(:to_ary)
           records.to_ary.map { |a| a.serializable_hash(opts) }
         else
           records.serializable_hash(opts)
@@ -186,6 +186,10 @@ module ActiveModel
     end
 
     private
+      def serialization_key(name)
+        Symbol === name ? name.name : name.to_s
+      end
+
       def attribute_names_for_serialization
         attributes.keys
       end
