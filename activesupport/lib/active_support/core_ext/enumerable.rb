@@ -309,9 +309,6 @@ class Array # :nodoc:
     delete_if(&:blank?)
   end
 
-  # Array#to_h sizes the hash for the array up front, so it stays embedded up
-  # to 8 entries, where Enumerable#index_with's growing hash would move to the
-  # C heap.
   def index_with(default = (no_default = true))
     if block_given?
       to_h { |elem| [elem, yield(elem)] } # rubocop:disable Rails/IndexWith
