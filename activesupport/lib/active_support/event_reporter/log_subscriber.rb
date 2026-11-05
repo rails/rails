@@ -54,10 +54,11 @@ module ActiveSupport
       class_attribute :log_levels, default: {}.freeze # :nodoc:
 
       def emit(event)
+        logger = self.logger
         return unless logger
         event_method = self.class.event_method_for(event[:name])
 
-        public_send(event_method, event) if log_level_satisfied?(event_method)
+        public_send(event_method, event) if log_level_satisfied?(logger, event_method)
       end
 
       # Whether an event with this name would currently be logged, so that
@@ -65,9 +66,10 @@ module ActiveSupport
       # discard. Deliberately not memoized: the answer changes with the
       # logger's level.
       def consumes?(name)
+        logger = self.logger
         return false unless logger
 
-        log_level_satisfied?(self.class.event_method_for(name))
+        log_level_satisfied?(logger, self.class.event_method_for(name))
       end
 
       def logger
@@ -79,7 +81,7 @@ module ActiveSupport
           self.class.namespace
         end
 
-        def log_level_satisfied?(event_method)
+        def log_level_satisfied?(logger, event_method)
           predicate = LOG_LEVEL_PREDICATES[log_levels[event_method]]
           return false unless predicate
 

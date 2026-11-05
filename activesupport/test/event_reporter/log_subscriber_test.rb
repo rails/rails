@@ -34,6 +34,26 @@ class ActiveSupport::EventReporter::LogSubscriberTest < ActiveSupport::TestCase
     end
   end
 
+  class SwitchingLoggerSubscriber < ActiveSupport::EventReporter::LogSubscriber
+    attr_reader :lookups, :handled
+
+    def initialize(*loggers)
+      @loggers = loggers
+      @lookups = 0
+      @handled = []
+    end
+
+    def logger
+      @lookups += 1
+      @loggers.shift
+    end
+
+    def info_only(event)
+      @handled << event[:name]
+    end
+    event_log_level :info_only, :info
+  end
+
   setup do
     @old_logger = nil
     @logger = ActiveSupport::LogSubscriber::TestHelper::MockLogger.new
@@ -57,6 +77,52 @@ class ActiveSupport::EventReporter::LogSubscriberTest < ActiveSupport::TestCase
 
     @logger.level = Logger::DEBUG
     assert @log_subscriber.consumes?("test.debug_only")
+  end
+
+  test "consumes? checks the level on the logger it looked up" do
+    info_logger = ActiveSupport::LogSubscriber::TestHelper::MockLogger.new(Logger::INFO)
+    error_logger = ActiveSupport::LogSubscriber::TestHelper::MockLogger.new(Logger::ERROR)
+
+    subscriber = SwitchingLoggerSubscriber.new(info_logger, error_logger)
+    assert subscriber.consumes?("test.info_only")
+    assert_equal 1, subscriber.lookups
+
+    subscriber = SwitchingLoggerSubscriber.new(error_logger, info_logger)
+    assert_not subscriber.consumes?("test.info_only")
+    assert_equal 1, subscriber.lookups
+
+    subscriber = SwitchingLoggerSubscriber.new(info_logger, nil)
+    assert subscriber.consumes?("test.info_only")
+    assert_equal 1, subscriber.lookups
+
+    subscriber = SwitchingLoggerSubscriber.new(nil, info_logger)
+    assert_not subscriber.consumes?("test.info_only")
+    assert_equal 1, subscriber.lookups
+  end
+
+  test "emit checks the level on the logger it looked up" do
+    info_logger = ActiveSupport::LogSubscriber::TestHelper::MockLogger.new(Logger::INFO)
+    error_logger = ActiveSupport::LogSubscriber::TestHelper::MockLogger.new(Logger::ERROR)
+
+    subscriber = SwitchingLoggerSubscriber.new(info_logger, error_logger)
+    subscriber.emit(name: "test.info_only")
+    assert_equal ["test.info_only"], subscriber.handled
+    assert_equal 1, subscriber.lookups
+
+    subscriber = SwitchingLoggerSubscriber.new(error_logger, info_logger)
+    subscriber.emit(name: "test.info_only")
+    assert_empty subscriber.handled
+    assert_equal 1, subscriber.lookups
+
+    subscriber = SwitchingLoggerSubscriber.new(info_logger, nil)
+    subscriber.emit(name: "test.info_only")
+    assert_equal ["test.info_only"], subscriber.handled
+    assert_equal 1, subscriber.lookups
+
+    subscriber = SwitchingLoggerSubscriber.new(nil, info_logger)
+    subscriber.emit(name: "test.info_only")
+    assert_empty subscriber.handled
+    assert_equal 1, subscriber.lookups
   end
 
   test "events nobody would log are not built" do
