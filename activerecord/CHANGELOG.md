@@ -1,3 +1,9 @@
+*   Deprecate passing a column name to `ActiveRecord::PredicateBuilder#build_bind_attribute`.
+
+    Pass the column's Arel attribute instead, such as `arel_table[:login]`. Rails 8.1 needs the column name.
+
+    *Thomas Klemm*
+
 *   Retry `ActiveRecord::SerializationFailure` on queries that opted into retries.
 
     A serialization failure rolls back whatever the statement was part of, so a

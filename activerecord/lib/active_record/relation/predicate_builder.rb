@@ -126,6 +126,17 @@ module ActiveRecord
     end
 
     def build_bind_attribute(attribute, value)
+      # Checked first so the common Arel attribute path pays one extra is_a?.
+      if !attribute.is_a?(Arel::Attributes::Attribute) && (attribute.is_a?(String) || attribute.is_a?(Symbol))
+        ActiveRecord.deprecator.warn(<<~MSG.squish)
+          Passing a column name to `ActiveRecord::PredicateBuilder#build_bind_attribute`
+          is deprecated and will be removed in Rails 9.0. Pass the column's Arel
+          attribute instead, such as `arel_table[#{attribute.to_sym.inspect}]`;
+          Rails 8.1 needs the column name.
+        MSG
+        return Relation::QueryAttribute.new(attribute, value, table.arel_table.type_for_attribute(attribute))
+      end
+
       bind = Relation::QueryAttribute.new(attribute.name, value, attribute.type_caster)
       attribute.is_a?(ComparisonAttribute) ? ComparisonValue.new(bind) : bind
     end

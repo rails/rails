@@ -244,6 +244,64 @@ module ActiveRecord
       assert_equal hash_predicates.map(&:to_sql), dot_predicates.map(&:to_sql)
     end
 
+    def test_build_bind_attribute_with_a_column_name_is_deprecated
+      topic = Topic.create!(title: "Rails")
+
+      [:id, "id"].each do |column_name|
+        bind = assert_deprecated(/Pass the column's Arel attribute/, ActiveRecord.deprecator) do
+          Topic.predicate_builder.build_bind_attribute(column_name, topic.id.to_s)
+        end
+
+        assert_equal column_name, bind.name
+        assert_same Topic.type_for_attribute("id"), bind.type
+        assert_equal topic.id, bind.value_for_database
+        assert_equal [topic], Topic.where(Topic.arel_table[:id].eq(bind)).to_a
+      end
+    end
+
+    def test_build_bind_attribute_with_a_column_name_on_a_table_without_a_model
+      arel_table = Arel::Table.new(name: "topics", type_caster: ActiveRecord::TypeCaster::Connection.new(Topic, "topics"))
+      builder = PredicateBuilder.new(TableMetadata.new(nil, arel_table))
+      bind = assert_deprecated(/Pass the column's Arel attribute/, ActiveRecord.deprecator) do
+        builder.build_bind_attribute("id", "1")
+      end
+
+      assert_equal "id", bind.name
+      assert_instance_of Topic.type_for_attribute("id").class, bind.type
+      assert_equal 1, bind.value_for_database
+    end
+
+    def test_build_bind_attribute_with_an_attribute_like_object_is_not_deprecated
+      attribute = Struct.new(:name, :type_caster).new("title", Topic.type_for_attribute("title"))
+      bind = assert_not_deprecated(ActiveRecord.deprecator) do
+        Topic.predicate_builder.build_bind_attribute(attribute, "Rails")
+      end
+
+      assert_equal "title", bind.name
+      assert_equal "Rails", bind.value_for_database
+    end
+
+    def test_build_bind_attribute_with_an_attribute_alias_keeps_the_alias_name
+      bind = assert_deprecated(/Pass the column's Arel attribute/, ActiveRecord.deprecator) do
+        Topic.predicate_builder.build_bind_attribute("heading", "Rails")
+      end
+
+      expected = Relation::QueryAttribute.new("heading", "Rails", Topic.arel_table.type_for_attribute("heading"))
+      assert_equal expected, bind
+    end
+
+    def test_build_bind_attribute_with_a_column_name_of_a_comparison_type_is_a_plain_bind
+      type = LowerString.new
+      bind = assert_deprecated(/Pass the column's Arel attribute/, ActiveRecord.deprecator) do
+        topic_model_with_title_type(type).predicate_builder.build_bind_attribute("title", "Rails")
+      end
+
+      assert_instance_of Relation::QueryAttribute, bind
+      assert_equal "title", bind.name
+      assert_same type, bind.type
+      assert_equal "Rails", bind.value_for_database
+    end
+
     def test_does_not_mutate
       defaults = { topics: { title: "rails" }, "topics.approved" => true }
       Topic.where(defaults).to_sql
