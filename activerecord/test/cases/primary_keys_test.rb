@@ -768,6 +768,14 @@ class PrimaryKeyOverriddenMethodTest < ActiveRecord::TestCase
   # class method overridden in a subclass -- including on a table with no schema
   # primary key -- not just the schema-derived key.
 
+  # The table is created in `setup`: skip the Ractor proxy, where schema
+  # statements can't run off the main Ractor, and disable transactional tests,
+  # since the DDL would otherwise end the test's transaction (as in
+  # PrimaryKeyWithAutoIncrementTest above).
+  skip_under_ractor_proxy
+
+  self.use_transactional_tests = false
+
   setup do
     @connection = ActiveRecord::Base.lease_connection
     @connection.create_table(:overridden_key_items, id: false, force: true) do |t|
