@@ -307,6 +307,16 @@ class CoreTest < ActiveRecord::TestCase
         assert_same context, on_ractor { model.schema_context }
       end
 
+      def test_deterministic_encrypted_attributes_of_an_unencrypted_model_on_a_non_main_ractor
+        model = Class.new(ActiveRecord::Base) do
+          def self.name = "ractor_safe_unencrypted"
+          self.table_name = "topics"
+        end
+
+        assert_nil model.deterministic_encrypted_attributes
+        assert_nil on_ractor(model) { |klass| klass.deterministic_encrypted_attributes }
+      end
+
       def test_find_by_statement_cache_is_ractor_local
         model = Class.new(ActiveRecord::Base) do
           def self.name = "ractor_safe_find_by_cache"
