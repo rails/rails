@@ -574,13 +574,13 @@ module ActiveRecord
           return {} if tables.empty?
 
           # SQLite returns 1 row for each column of composite foreign keys.
-          fk_infos = query_all(<<~SQL).group_by { |row| row["table_name"] }
+          fk_infos = group_by_table(query_all(<<~SQL), tables)
             #{MASTER_CTE}
             SELECT m.name AS table_name, fk.id, fk.seq, fk."table", fk."from", fk."to", fk.on_update, fk.on_delete
             FROM master m
             JOIN pragma_foreign_key_list(m.name) fk
             WHERE m.type = 'table'
-              AND m.name IN (#{quoted_table_names(tables)})
+              AND m.name COLLATE NOCASE IN (#{quoted_table_names(tables)})
           SQL
 
           structures = table_structures(tables)
@@ -942,14 +942,14 @@ module ActiveRecord
           fields = ["name", "type", "notnull", "dflt_value", "pk"]
           fields << "hidden" if supports_virtual_columns?
 
-          query_all(<<~SQL).group_by { |row| row["table_name"] }
+          group_by_table(query_all(<<~SQL), tables)
             #{MASTER_CTE}
             SELECT m.name AS table_name, CASE WHEN m.type = 'table' THEN m.sql END AS create_table_sql,
                    #{fields.map { |field| "t.#{quote_column_name(field)}" }.join(", ")}
             FROM master m
             JOIN pragma_#{table_info_pragma}(m.name) t
             WHERE m.type IN ('table', 'view')
-              AND m.name IN (#{quoted_table_names(tables)})
+              AND m.name COLLATE NOCASE IN (#{quoted_table_names(tables)})
             ORDER BY m.name, t.cid
           SQL
             .transform_values do |group|
