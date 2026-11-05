@@ -608,6 +608,13 @@ module ActiveRecord
       assert_equal author, Author.where(params.permit!).first
     end
 
+    def test_merge_where_with_strong_parameters
+      author = authors(:david)
+      params = ProtectedParams.new(name: author.name)
+      assert_raises(ActiveModel::ForbiddenAttributesError) { Author.all.merge(where: [params]) }
+      assert_equal author, Author.all.merge(where: [params.permit!]).first
+    end
+
     def test_where_with_large_number
       assert_equal [authors(:bob)], Author.where(id: [3, 9223372036854775808])
       assert_equal [authors(:bob)], Author.where(id: 3..9223372036854775808)

@@ -297,7 +297,7 @@ module ActiveRecord
           def build_scope
             scope = klass.scope_for_association
             fixed_values = destination_fixed_values
-            scope.where!(fixed_values) unless fixed_values.empty?
+            scope._where!(fixed_values) unless fixed_values.empty?
 
             scope.merge!(reflection_scope) unless reflection_scope.empty_scope?
             scope.default_order!(reflection.options[:default_order]) if reflection.options[:default_order].present?

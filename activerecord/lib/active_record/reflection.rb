@@ -230,7 +230,7 @@ module ActiveRecord
 
         route = association_route_for_join(foreign_klass)
         route.destination_fixed_values.each do |column, value|
-          klass_scope.where!(column => value)
+          klass_scope._where!(column => value)
         end
         scope_chain_items.inject(klass_scope, &:merge!)
 
@@ -238,11 +238,11 @@ module ActiveRecord
           destination_attribute = predicate_builder.predicate_attribute(table[destination_column])
           origin_attribute = predicate_builder.predicate_attribute(foreign_table[origin_column])
 
-          klass_scope.where!(destination_attribute.eq(origin_attribute))
+          klass_scope._where!(destination_attribute.eq(origin_attribute))
         end
 
         if klass.finder_needs_type_condition?
-          klass_scope.where!(klass.send(:type_condition, table))
+          klass_scope._where!(klass.send(:type_condition, table))
         end
 
         klass_scope

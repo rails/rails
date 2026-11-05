@@ -172,7 +172,7 @@ module ActiveRecord
         end
 
         def update_counters_via_scope(klass, values, by, route)
-          scope = klass.all_queries_scope.where!(route.destination_key.where_hash(values))
+          scope = klass.all_queries_scope._where!(route.destination_key.where_hash(values))
           scope.update_counters(reflection.counter_cache_column => by, touch: reflection.options[:touch])
         end
 
