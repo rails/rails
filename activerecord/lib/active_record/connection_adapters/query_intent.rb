@@ -61,11 +61,14 @@ module ActiveRecord
         end
       end
 
+      # Keep background state separate to reduce the intent's instance variable count.
+      AsyncState = Struct.new(:session, :mutex)
+
       attr_reader :arel, :name, :prepare, :allow_retry, :allow_async,
-                  :materialize_transactions, :batch, :pool, :session, :lock_wait,
+                  :materialize_transactions, :batch, :pool, :lock_wait,
                   :event_buffer, :error, :finalized
       alias_method :finalized?, :finalized
-      attr_writer :raw_sql, :session
+      attr_writer :raw_sql
       attr_accessor :adapter, :binds, :ran_async, :notification_payload, :log_handle,
                     :retry_budget
 
@@ -99,8 +102,7 @@ module ActiveRecord
 
         # Deferred execution state
         @pool = adapter.pool
-        @session = nil
-        @mutex = ActiveSupport::Concurrency::NullLock
+        @async = nil
         @error = nil
         @lock_wait = nil
         @event_buffer = nil
@@ -147,11 +149,11 @@ module ActiveRecord
       def execute_or_skip
         return unless pending?
 
-        @session.synchronize do
+        @async.session.synchronize do
           return unless pending?
 
           @pool.with_connection do |connection|
-            return unless @mutex.try_lock
+            return unless @async.mutex.try_lock
             previous_instrumenter = ActiveSupport::IsolatedExecutionState[:active_record_instrumenter]
             begin
               if pending?
@@ -169,7 +171,7 @@ module ActiveRecord
               @error = error
             ensure
               ActiveSupport::IsolatedExecutionState[:active_record_instrumenter] = previous_instrumenter
-              @mutex.unlock
+              @async.mutex.unlock
             end
           end
         end
@@ -177,12 +179,12 @@ module ActiveRecord
 
       # Is this intent still pending (result not yet available)?
       def pending?
-        !@raw_result_available && @session&.active?
+        !@raw_result_available && @async && @async.session.active?
       end
 
       # Was this intent canceled?
       def canceled?
-        @session && !@session.active?
+        @async && !@async.session.active?
       end
 
       def cancel
@@ -302,7 +304,7 @@ module ActiveRecord
           return
         end
 
-        if @session
+        if @async
           # Async was scheduled: wait for result (sets lock_wait)
           execute_or_wait
         end
@@ -392,9 +394,7 @@ module ActiveRecord
             raise AsynchronousQueryInsideTransactionError, "Asynchronous queries are not allowed inside transactions"
           end
 
-          # Upgrade to real mutex now that we'll have concurrent access
-          @mutex = Mutex.new
-          @session = session
+          @async = AsyncState.new(session, Mutex.new)
 
           # Force preprocessing on original thread before queuing
           processed_sql
@@ -450,7 +450,7 @@ module ActiveRecord
           return (@lock_wait = 0.0) if @raw_result_available
 
           start = Process.clock_gettime(Process::CLOCK_MONOTONIC, :float_millisecond)
-          @mutex.synchronize do
+          @async.mutex.synchronize do
             if pending?
               @pool.with_connection do |connection|
                 @adapter = connection

@@ -5,6 +5,8 @@ require "models/post"
 
 module ActiveRecord
   class QueryIntentTest < ActiveRecord::TestCase
+    include WaitForTestHelper
+
     def setup
       super
       @connection = without_ractor_proxy { ActiveRecord::Base.connection_pool }.send(:new_connection)
@@ -14,6 +16,21 @@ module ActiveRecord
     def teardown
       @connection.disconnect!
       super
+    end
+
+    test "copies and frozen intents keep their own lock wait" do
+      connection = ActiveRecord::Base.lease_connection
+      skip "async queries are not enabled" unless connection.async_enabled?
+
+      intent = build_async_intent(connection)
+      copy = intent.dup
+      copy.cast_result
+      assert_equal 0.0, copy.lock_wait
+      assert_nil intent.lock_wait
+
+      frozen = build_async_intent(connection).freeze
+      assert_raises(FrozenError) { frozen.cast_result }
+      assert_nil frozen.lock_wait
     end
 
     test "finalized intents cannot be delivered or reset" do
@@ -293,6 +310,13 @@ module ActiveRecord
     end
 
     private
+      def build_async_intent(connection)
+        intent = ActiveRecord::ConnectionAdapters::QueryIntent.new(adapter: connection, raw_sql: "SELECT 1", allow_async: true)
+        intent.execute!
+        wait_for { intent.raw_result_available? }
+        intent
+      end
+
       def build_intent(connection, allow_retry: false, materialize_transactions: false)
         ActiveRecord::ConnectionAdapters::QueryIntent.new(
           adapter: connection,
