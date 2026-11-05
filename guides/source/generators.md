@@ -940,7 +940,7 @@ see examples of using `ask`, `yes?` and `no?`:
 
 ### ask
 
-The [`ask`][] methods allows you to get feedback from the user and use it in
+The [`ask`][] method allows you to get feedback from the user and use it in
 your templates. Let's say you want your user to name the new shiny library
 you're adding:
 

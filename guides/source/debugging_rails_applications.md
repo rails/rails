@@ -597,7 +597,7 @@ out by supplying a number to `backtrace`:
 (rdbg) backtrace 11
 ```
 
-A regex can be used to filter frames by its identifier or location:
+A regex can be used to filter frames by their identifier or location:
 
 ```shell
 (rdbg) backtrace /Posts/

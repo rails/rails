@@ -319,7 +319,7 @@ their sgid attribute of the element into an instance. Once resolved, that
 instance is passed along to a render helper. As a result, the HTML is embedded
 as a descendant of the `<action-text-attachment>` element.
 
-To be rendered within Action Text `<action-text-attachment>` element as an
+To be rendered within the Action Text `<action-text-attachment>` element as an
 attachment, we must include the `ActionText::Attachable` module, which
 implements `#to_sgid(**options)` (made available through the
 `GlobalID::Identification` concern).

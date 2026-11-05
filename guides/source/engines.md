@@ -236,7 +236,7 @@ It provides the following:
     ```
 
 `--mountable` engines, like above, contain some files that are not present in
-the `--full` option, these are:
+the `--full` option. These are:
 
   * A namespaced `ApplicationController` stub
   * A namespaced `ApplicationHelper` stub

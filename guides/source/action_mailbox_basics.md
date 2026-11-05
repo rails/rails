@@ -419,7 +419,7 @@ Here is an example of an Action Mailbox that processes emails to create
 "forwards" for the user's project.
 
 The `before_processing` callback is used to ensure that certain conditions are
-met before `process` method is called. In this case, `before_processing` checks
+met before the `process` method is called. In this case, `before_processing` checks
 that the user has at least one project. Other supported [Action Mailbox
 callbacks](https://api.rubyonrails.org/classes/ActionMailbox/Callbacks.html) are
 `after_processing` and `around_processing`.

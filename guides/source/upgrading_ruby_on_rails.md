@@ -624,7 +624,7 @@ In Rails 7 there is no configuration point to set the autoloading mode, `config.
 
 The private API of `ActiveSupport::Dependencies` has been deleted. That includes methods like `hook!`, `unhook!`, `depend_on`, `require_or_load`, `mechanism`, and many others.
 
-A few of highlights:
+A few of the highlights:
 
 * If you used `ActiveSupport::Dependencies.constantize` or `ActiveSupport::Dependencies.safe_constantize`, just change them to `String#constantize` or `String#safe_constantize`.
 
@@ -683,7 +683,7 @@ If you configured this setting after the environments configuration has been pro
 ### `ActionDispatch::Request#content_type` now returns Content-Type header as it is.
 
 Previously, `ActionDispatch::Request#content_type` returned value does NOT contain charset part.
-This behavior changed to returned Content-Type header containing charset part as it is.
+This behavior changed to return the Content-Type header containing charset part as it is.
 
 If you want just MIME type, please use `ActionDispatch::Request#media_type` instead.
 
@@ -987,7 +987,7 @@ get("my_action.csv")
 ```
 
 Previous behavior was returning a `text/csv` response's Content-Type which is inaccurate since a JSON response is being rendered.
-Current behavior correctly returns a `application/json` response's Content-Type.
+Current behavior correctly returns an `application/json` response's Content-Type.
 
 If your application relies on the previous incorrect behavior, you are encouraged to specify
 which formats your action accepts, i.e.
@@ -1112,7 +1112,7 @@ To improve security, Rails embeds the purpose and expiry metadata inside encrypt
 Rails can then thwart attacks that attempt to copy the signed/encrypted value
 of a cookie and use it as the value of another cookie.
 
-This new embed metadata make those cookies incompatible with versions of Rails older than 6.0.
+This new embedded metadata makes those cookies incompatible with versions of Rails older than 6.0.
 
 If you require your cookies to be read by Rails 5.2 and older, or you are still validating your 6.0 deploy and want
 to be able to rollback set
@@ -1438,7 +1438,7 @@ config.autoload_paths << "#{config.root}/lib"
 
 #### Eager loading and autoloading are consistent
 
-In `classic` mode, if `app/models/foo.rb` defines `Bar`, you won't be able to autoload that file, but eager loading will work because it loads files recursively blindly. This can be a source of errors if you test things first eager loading, execution may fail later autoloading.
+In `classic` mode, if `app/models/foo.rb` defines `Bar`, you won't be able to autoload that file, but eager loading will work because it loads files recursively blindly. This can be a source of errors if you test things first with eager loading, execution may fail later with autoloading.
 
 In `zeitwerk` mode both loading modes are consistent, they fail and err in the same files.
 
@@ -2241,7 +2241,7 @@ leaving this line in your helper is not harmful in any way.
 
 ### Cookies serializer
 
-Applications created before Rails 4.1 uses `Marshal` to serialize cookie values into
+Applications created before Rails 4.1 use `Marshal` to serialize cookie values into
 the signed and encrypted cookie jars. If you want to use the new `JSON`-based format
 in your application, you can add an initializer file with the following content:
 
@@ -2575,7 +2575,7 @@ set_callback :save, :around, ->(r, block) { stuff; result = block.call; stuff }
 Upgrading from Rails 3.2 to Rails 4.0
 -------------------------------------
 
-If your application is currently on any version of Rails older than 3.2.x, you should upgrade to Rails 3.2 before attempting one to Rails 4.0.
+If your application is currently on any version of Rails older than 3.2.x, you should upgrade to Rails 3.2 before attempting an upgrade to Rails 4.0.
 
 The following changes are meant for upgrading your application to Rails 4.0.
 
@@ -2744,7 +2744,7 @@ Rails 4.0 no longer supports loading plugins from `vendor/plugins`. You must rep
 
 * To re-enable the old finders, you can use the [activerecord-deprecated_finders gem](https://github.com/rails/activerecord-deprecated_finders).
 
-* Rails 4.0 has changed to default join table for `has_and_belongs_to_many` relations to strip the common prefix off the second table name. Any existing `has_and_belongs_to_many` relationship between models with a common prefix must be specified with the `join_table` option. For example:
+* Rails 4.0 has changed the default join table for `has_and_belongs_to_many` relations to strip the common prefix off the second table name. Any existing `has_and_belongs_to_many` relationship between models with a common prefix must be specified with the `join_table` option. For example:
 
     ```ruby
     class CatalogCategory < ActiveRecord::Base
