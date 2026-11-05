@@ -62,6 +62,8 @@ module Weblog
 end
 
 class PolymorphicRoutesTest < ActionController::TestCase
+  include SkipWithoutActiveRecordConnection
+
   Routes = ActionDispatch::Routing::RouteSet.new
   Routes.draw { }
   include Routes.url_helpers

@@ -76,8 +76,19 @@ class ActiveRecordTestConnector
   end
 end
 
+module SkipWithoutActiveRecordConnection
+  def run(*args)
+    return super if ActiveRecordTestConnector.connected
+
+    failures << Minitest::Skip.new("Active Record is not available")
+    self.time = 0
+    Minitest::Result.from(self)
+  end
+end
+
 class ActiveRecordTestCase < ActionController::TestCase
   include ActiveRecord::TestFixtures
+  include SkipWithoutActiveRecordConnection
 
   def self.tests(controller)
     super
@@ -98,10 +109,6 @@ class ActiveRecordTestCase < ActionController::TestCase
   end
 
   def self.fixtures(*args)
-    super if ActiveRecordTestConnector.connected
-  end
-
-  def run(*args)
     super if ActiveRecordTestConnector.connected
   end
 

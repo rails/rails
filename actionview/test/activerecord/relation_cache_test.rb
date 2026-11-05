@@ -4,6 +4,7 @@ require "active_record_unit"
 require "active_record/testing/query_assertions"
 
 class RelationCacheTest < ActionView::TestCase
+  include SkipWithoutActiveRecordConnection
   tests ActionView::Helpers::CacheHelper
   include ActiveRecord::Assertions::QueryAssertions
 

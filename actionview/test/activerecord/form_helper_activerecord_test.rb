@@ -5,6 +5,7 @@ require "fixtures/project"
 require "fixtures/developer"
 
 class FormHelperActiveRecordTest < ActionView::TestCase
+  include SkipWithoutActiveRecordConnection
   tests ActionView::Helpers::FormHelper
 
   def form_for(*)

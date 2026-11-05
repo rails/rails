@@ -4,6 +4,8 @@ require "active_record_unit"
 require "nokogiri"
 
 class DebugHelperTest < ActionView::TestCase
+  include SkipWithoutActiveRecordConnection
+
   def test_debug
     company = Company.new(name: "firebase")
     output = debug(company)

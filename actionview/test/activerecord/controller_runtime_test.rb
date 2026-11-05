@@ -10,6 +10,8 @@ require "action_controller/log_subscriber"
 ActionController::Base.include(ActiveRecord::Railties::ControllerRuntime)
 
 class ControllerRuntimeLogSubscriberTest < ActionController::TestCase
+  include SkipWithoutActiveRecordConnection
+
   class LogSubscriberController < ActionController::Base
     def show
       render inline: "<%= Project.all %>"
