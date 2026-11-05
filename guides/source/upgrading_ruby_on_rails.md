@@ -253,6 +253,26 @@ Book.not_published # => [book2]
 Book.not_published # => [book2, book3]
 ```
 
+### Upgrade Sidekiq to 8.0.3 or later
+
+The `sidekiq` adapter that Rails 8.1 deprecated has been removed, so the adapter
+now comes from the `sidekiq` gem. Older Sidekiq releases can fail to load it, and
+an application that sets
+
+```ruby
+config.active_job.queue_adapter = :sidekiq
+```
+
+then raises a `NameError` for `ActiveJob::QueueAdapters::SidekiqAdapter` during
+boot or when `ActiveJob::Base` loads. Tests configured to use `:test` can miss
+this failure. Some of these releases raise it even when another adapter is
+configured. The Sidekiq 7.3.3 or later that the Rails 8.1 deprecation message
+recommends isn't enough; Sidekiq 8.0.3 and later load the adapter correctly.
+
+Sidekiq must be required before Rails initializes, normally through Bundler.
+If its Gemfile entry uses `require: false`, require `"sidekiq"` in
+`config/application.rb` before initialization.
+
 Upgrading from Rails 8.0 to Rails 8.1
 -------------------------------------
 
