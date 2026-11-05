@@ -127,7 +127,7 @@ module ActiveRecord
           end
         end
 
-        relation.where!(comparison)
+        relation._where!(comparison)
       end
 
       def scope_relation(record, relation)

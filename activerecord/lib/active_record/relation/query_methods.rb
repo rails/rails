@@ -142,9 +142,9 @@ module ActiveRecord
           @scope.left_outer_joins!(association)
           association_conditions = reflection.association_primary_key_definition.index_with(nil)
           if reflection.options[:class_name]
-            @scope.where!(association => association_conditions)
+            @scope._where!(association => association_conditions)
           else
-            @scope.where!(reflection.table_name => association_conditions)
+            @scope._where!(reflection.table_name => association_conditions)
           end
         end
 
@@ -888,7 +888,7 @@ module ActiveRecord
             arel_column.in(values)
           end
 
-        where!(where_clause)
+        _where!(where_clause)
       end
 
       self
@@ -1312,11 +1312,13 @@ module ActiveRecord
       elsif args.length == 1 && args.first.blank?
         self
       else
-        spawn.where!(*args)
+        spawn._where!(args.shift, args)
       end
     end
 
-    def where!(opts, *rest) # :nodoc:
+    def where!(opts, *rest) = _where!(opts, rest) # :nodoc:
+
+    def _where!(opts, rest = FROZEN_EMPTY_ARRAY) # :nodoc:
       self.where_clause += build_where_clause(opts, rest)
       self
     end
@@ -1493,10 +1495,12 @@ module ActiveRecord
     # Order.having('SUM(price) > 30').group('user_id')
     # ```
     def having(opts, *rest)
-      opts.blank? ? self : spawn.having!(opts, *rest)
+      opts.blank? ? self : spawn._having!(opts, rest)
     end
 
-    def having!(opts, *rest) # :nodoc:
+    def having!(opts, *rest) = _having!(opts, rest) # :nodoc:
+
+    def _having!(opts, rest = FROZEN_EMPTY_ARRAY) # :nodoc:
       self.having_clause += build_having_clause(opts, rest)
       self
     end
@@ -1592,7 +1596,7 @@ module ActiveRecord
 
     def none! # :nodoc:
       unless @none
-        where!("1=0")
+        _where!("1=0")
         @none = true
       end
       self
