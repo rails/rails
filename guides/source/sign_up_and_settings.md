@@ -815,7 +815,7 @@ And finally, we'll create our view at `app/views/settings/emails/show.html.erb`:
 ```
 
 To keep things secure, we need to ask for the new email address and validate
-user's current password to ensure only the owner of the account can change the
+the user's current password to ensure only the owner of the account can change the
 email.
 
 In our controller, we will validate the current password and save the new email
@@ -1785,7 +1785,7 @@ Finished in 0.954590s, 2.0951 runs/s, 6.2854 assertions/s.
 ```
 
 We also need to test the `Email::ConfirmationsController` to ensure confirmation
-tokens are validated the email update process completes successfully.
+tokens are validated and the email update process completes successfully.
 
 Let's add another controller test at
 `test/controllers/email/confirmations_controller_test.rb` with the following:
@@ -1982,7 +1982,7 @@ Great! Now, let's deploy this to production.
 Deploying To Production
 -----------------------
 
-Since we previously setup Kamal in the
+Since we previously set up Kamal in the
 [Getting Started Guide](getting_started.html#deploying-to-production), we just
 need to push our code changes to our Git repository and run:
 

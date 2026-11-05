@@ -286,7 +286,7 @@ they can be deployed to production (live, online!) safely.
 In your code editor, open the migration Rails created for us so we can see what
 the migration does.
 
-NOTE: As convention we'll state the filepath as a comment on top of each file
+NOTE: As a convention we'll state the filepath as a comment on top of each file
 
 
 ```ruby
@@ -1416,7 +1416,7 @@ Let's also display any errors from the form submission inside the form.
 ```
 
 TIP: Using local variables allows partials to be reused multiple times on the
-same page with a different value each time. This comes in handy rendering lists
+same page with a different value each time. This comes in handy when rendering lists
 of items like an index page.
 
 To use this partial in our `app/views/products/new.html.erb` view, we can
