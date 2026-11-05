@@ -75,6 +75,95 @@ class SerializedAttributeTest < ActiveRecord::TestCase
     assert_equal({ key: "value" }, t.content)
   end
 
+  def test_serialized_column_default_is_unchanged_on_a_new_record_until_read
+    coder = Class.new do
+      def self.load(value) = value.blank? ? [] : JSON.parse(value)
+      def self.dump(value) = JSON.dump(value)
+    end
+    klass = Class.new(ActiveRecord::Base) do
+      self.table_name = "admin_users"
+      serialize :preferences, coder: coder
+    end
+
+    user = klass.new
+    assert_not_predicate user, :changed?
+    user.save!(validate: false)
+    assert_equal "", user.reload.preferences_before_type_cast
+
+    user = klass.new
+    assert_equal [], user.preferences
+    assert_predicate user, :changed?
+  end
+
+  def test_freezing_eligibility_of_column_defaults
+    main_ractor_connection(ActiveRecord::Base.lease_connection).create_table(:serialized_defaults, force: true) do |t|
+      t.string :settings, default: '{"theme":{"mode":"light"}}'
+      t.json :data
+      t.string :options
+    end
+    plain = Class.new(ActiveRecord::Base) do
+      self.table_name = "serialized_defaults"
+      serialize :settings, coder: JSON
+    end
+    normalized = Class.new(plain) { normalizes :settings, with: ->(settings) { settings } }
+
+    [plain, normalized].each do |klass|
+      klass.new.settings["theme"]["mode"] = "dark"
+      assert_equal "light", klass.new.settings["theme"]["mode"]
+      assert_not_predicate klass.new, :changed?
+    end
+
+    with_null_json = Class.new(ActiveRecord::Base) { self.table_name = "serialized_defaults" }
+    with_json_default = Class.new(with_null_json) { attribute :settings, :json }
+    with_null_serialized = Class.new(with_null_json) { serialize :options, coder: JSON }
+    assert_predicate with_null_json._default_attributes, :frozen?
+    assert_not_predicate with_json_default._default_attributes, :frozen?
+    assert_not_predicate with_null_serialized._default_attributes, :frozen?
+    assert_not_predicate Class.new(with_null_serialized) { encrypts :options }._default_attributes, :frozen?
+    assert_predicate Class.new(with_null_json) { encrypts :settings, :options }._default_attributes, :frozen?
+    assert_predicate Class.new(with_null_json) { normalizes :data, with: ->(data) { data } }._default_attributes, :frozen?
+
+    json = ActiveRecord::Type::Json.new
+    [
+      ActiveRecord::Encryption::EncryptedAttributeType.new(scheme: ActiveRecord::Encryption::Scheme.new, cast_type: json),
+      ActiveModel::Attributes::Normalization::NormalizedValueType.new(cast_type: json, normalizer: ->(value) { value }, normalize_nil: false),
+    ].each do |type|
+      assert type.freezable_default?(nil)
+      assert_not type.freezable_default?("{}")
+    end
+
+    duck_type = Object.new
+    def duck_type.deserialize(value) = value
+    assert_predicate Class.new(with_null_json) { attribute :options, duck_type; encrypts :options }._default_attributes, :frozen?
+    assert_predicate Class.new(with_null_json) { attribute :options, duck_type; normalizes :options, with: ->(options) { options } }._default_attributes, :frozen?
+
+    nested_coder = Class.new do
+      def self.load(value) = value.nil? ? { "theme" => { "mode" => "light" } } : JSON.parse(value)
+      def self.dump(value) = JSON.dump(value)
+    end
+    with_nested_null = Class.new(with_null_json) { serialize :options, coder: nested_coder }
+    with_nested_null.new.options["theme"]["mode"] = "dark"
+    assert_equal "light", with_nested_null.new.options["theme"]["mode"]
+  ensure
+    main_ractor_connection(ActiveRecord::Base.lease_connection).drop_table(:serialized_defaults, if_exists: true)
+  end
+
+  def test_schema_load_and_new_leave_a_serialized_default_unloaded
+    coder = Class.new do
+      singleton_class.attr_accessor :calls
+      self.calls = 0
+      def self.load(value) = (self.calls += 1; value)
+      def self.dump(value) = (self.calls += 1; value)
+    end
+    klass = Class.new(ActiveRecord::Base) do
+      self.table_name = "admin_users"
+      serialize :preferences, coder: coder
+    end
+
+    klass.new
+    assert_equal 0, coder.calls
+  end
+
   def test_serialized_attribute_on_custom_attribute_with_default
     klass = Class.new(ActiveRecord::Base) do
       self.table_name = Topic.table_name
