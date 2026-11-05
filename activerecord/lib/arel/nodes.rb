@@ -1,6 +1,5 @@
 # frozen_string_literal: true
 
-# :markup: markdown
 # node
 require "arel/nodes/node"
 require "arel/nodes/node_expression"

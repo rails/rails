@@ -395,6 +395,24 @@ class HasOneThroughAssociationsTest < ActiveRecord::TestCase
     assert_equal dashboards(:second), minivan.dashboard
   end
 
+  def test_has_one_through_belongs_to_stale_state_wraps_only_the_foreign_key_value
+    minivan = minivans(:cool_first)
+    proxy = minivan.association(:dashboard)
+
+    assert_equal [minivan.speedometer_id], proxy.send(:stale_state)
+
+    # The second round runs on warm call sites.
+    counts = 2.times.map do
+      before = GC.stat(:total_allocated_objects)
+      proxy.send(:stale_state)
+      GC.stat(:total_allocated_objects) - before
+    end
+    assert_equal 1, counts.last
+
+    minivan.speedometer_id = nil
+    assert_nil proxy.send(:stale_state)
+  end
+
   def test_has_one_through_belongs_to_setting_belongs_to_foreign_key_after_nil_target_loaded
     minivan = Minivan.new
 

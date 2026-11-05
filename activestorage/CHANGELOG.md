@@ -1,3 +1,125 @@
+*   Preserve committed proxy responses when a storage error interrupts a
+    streamed download.
+
+    [GHSA-4v2w-w6g6-f8f8]
+
+    *Jeremy Daer*
+
+*   Derive `ActiveStorage::Filename#base` and `#extension` from the sanitized
+    filename.
+
+    This prevents null bytes and invalid byte sequences in stored filename
+    metadata from raising when a blob is opened or represented. Existing blob
+    records are handled without a data migration.
+
+    [GHSA-p2pm-g2h6-7j5j]
+
+    *Jeremy Daer*
+
+*   Ship an ImageMagick security policy and apply it to every ImageMagick
+    process MiniMagick spawns.
+
+    ImageMagick chooses a coder from the content of the file it is given, and
+    some coders act on files named inside the image rather than on the image
+    itself. Active Storage constrained none of them, so an uploaded file could
+    reach any coder the host's policy allowed, through the ImageMagick analyzer
+    at attach time, with no variant or `analyze` call in the application.
+
+    Active Storage now ships a `policy.xml` in
+    `ActiveStorage::ImageMagick::POLICY_DIRECTORY` and prepends that directory
+    to `MAGICK_CONFIGURE_PATH` through `MiniMagick.cli_env`. ImageMagick applies
+    every policy file on its search path, so the shipped policy adds to the
+    host's policy rather than replacing it. A `MAGICK_CONFIGURE_PATH` set in the
+    environment or in `MiniMagick.cli_env`, including by an initializer or
+    dotenv, is kept after the shipped directory.
+
+    The shipped policy denies the coders that script ImageMagick (`MSL`), read
+    or delete files other than the image (`TEXT`, `EPHEMERAL`), fetch remote
+    references (`URL`, `HTTP`, `HTTPS`, `FTP`), display to a screen (`SHOW`,
+    `WIN`, `PLT`), or hand the file to Ghostscript (the `PS`, `EPS`, `EPT` and
+    `PDF` coders, every alias of them, and the `gs` delegate), or reach a file
+    directly (`FILE`, `MPC`, `XPS`, `PCL`), and it refuses `@filename`
+    indirection. The policy applies to every ImageMagick command MiniMagick
+    runs, not only Active Storage's.
+
+    These applications must act:
+
+    *   One whose variant processor is `:mini_magick` has to use mini_magick 5.1
+        or later, which applying the policy requires. With an older mini_magick,
+        it raises at boot.
+    *   One that renders PostScript or PDF through ImageMagick has to re-allow
+        the `gs` delegate and the coders it uses in the host's `policy.xml`. A
+        host policy that allows a coder overrides the shipped deny.
+    *   One that replaces `MiniMagick.cli_env` after it boots, clears the
+        environment with `MiniMagick.cli_prefix`, or installs its own
+        `MiniMagick::Shell` never receives the shipped policy and has to carry
+        its rules in ImageMagick's system policy. So does one that uses
+        GraphicsMagick, which does not read ImageMagick policies.
+
+    Every other application needs no change. See "ImageMagick Security Policy"
+    in the Active Storage guide.
+
+    [GHSA-f3w6-w445-fwh9]
+
+    *Mike Dalessio*
+
+*   Enforce the declared content length on Google Cloud Storage direct uploads.
+
+    The signed URL now requires an `x-goog-content-length-range` header matching the blob's
+    `byte_size`, so Cloud Storage rejects a body of any other size.
+
+    Browsers send the new header, so a bucket's CORS configuration must list
+    `x-goog-content-length-range` in `responseHeader`, or direct uploads from the browser fail.
+
+    [GHSA-hfr4-8rjc-97m2]
+
+    *Mike Dalessio*
+
+*   Sign GCS direct uploads with V2 when `cache_control` is set.
+
+    V4 signatures did not bind the Content-Type or Content-MD5 headers, so the uploader could
+    choose the stored Content-Type. Direct-upload URLs with `cache_control` are no longer limited
+    to 7 days, and the client sends `Cache-Control` unsigned.
+
+    [GHSA-3w93-6hmw-whh4]
+
+    *Mike Dalessio*
+
+*   Stop an uploaded filename choosing the extension of the tempfile Active
+    Storage hands to an external tool.
+
+    `ActiveStorage::Blob#open` named its tempfile after the uploaded filename,
+    extension and all. Tools that select a decoder from the extension alone,
+    such as FFmpeg's AviSynth demuxer on `.avs`, therefore took their
+    instructions from the uploader. The extension is now kept only when it
+    denotes the blob's recorded media type, and dropped otherwise.
+
+    [GHSA-v924-7rp8-4mxh]
+
+    *Mike Dalessio*
+
+*   Restrict the formats ffmpeg and ffprobe will open when previewing and
+    analyzing video and audio.
+
+    Active Storage now passes `-format_whitelist` before the input at every
+    ffmpeg and ffprobe call site, limiting demuxer selection to common audio and
+    video container formats. Configure the list with
+    `config.active_storage.ffmpeg_allowed_formats`, or set it to `nil` to let
+    ffmpeg choose any demuxer it was built with.
+
+    Files in other formats, such as MXF, DV, AC3, WavPack, AU, W64, and raw
+    H.264 or MPEG-1/2 video streams, now fail to preview with
+    `ActiveStorage::PreviewError`, and their analysis stores no media metadata
+    and logs a warning. Add their demuxers to the list to keep them.
+
+    ```ruby
+    config.active_storage.ffmpeg_allowed_formats += %w[ mxf ]
+    ```
+
+    [GHSA-3f4q-8x5m-76v8]
+
+    *Mike Dalessio*
+
 *   Detect axis-swapping orientations in the Vips image analyzer from libvips' normalized
     `orientation` field instead of parsing the `exif-ifd0-Orientation` label.
 

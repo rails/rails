@@ -1,6 +1,5 @@
 # frozen_string_literal: true
 
-# :markup: markdown
 require "arel/collectors/plain_string"
 
 module Arel # :nodoc: all

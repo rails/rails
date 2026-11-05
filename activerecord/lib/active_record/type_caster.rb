@@ -1,6 +1,5 @@
 # frozen_string_literal: true
 
-# :markup: markdown
 require "active_record/type_caster/map"
 require "active_record/type_caster/connection"
 

@@ -459,7 +459,7 @@ module ActiveRecord
             # Finally, build the yielded relation if at least one value found.
             if values_last
               yielded_relation = apply_finish_limit(batch_relation, cursor, values_last, batch_orders)
-              yielded_relation = yielded_relation.except(:limit, :order)
+              yielded_relation = yielded_relation.except(:limit, :order, :default_order)
               yielded_relation.skip_query_cache!(false)
             end
           else

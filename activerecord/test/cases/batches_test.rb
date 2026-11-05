@@ -686,6 +686,13 @@ class EachTest < ActiveRecord::TestCase
     end
   end
 
+  def test_in_batches_with_ranges_drops_ignored_default_order
+    relations = Post.default_order(:title).in_batches(of: 2, use_ranges: true).to_a
+
+    assert_not_empty relations
+    relations.each { |relation| assert_no_match(/ORDER BY/i, relation.to_sql) }
+  end
+
   def test_in_batches_no_subqueries_for_whole_tables_batching
     quoted_posts_id = Regexp.escape(quote_table_name("posts.id"))
     assert_queries_match(/DELETE FROM #{Regexp.escape(quote_table_name("posts"))} WHERE #{quoted_posts_id} > .+ AND #{quoted_posts_id} <=/i) do

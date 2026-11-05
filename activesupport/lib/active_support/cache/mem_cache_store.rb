@@ -221,15 +221,9 @@ module ActiveSupport
 
         def write_serialized_entry(key, payload, **options)
           method = options[:unless_exist] ? :add : :set
-          expires_in = options[:expires_in].to_i
-          if options[:race_condition_ttl] && expires_in > 0 && !options[:raw]
-            # Set the memcache expire a few minutes in the future to support race condition ttls on read
-            expires_in += 5.minutes
-          end
+          expires_in, dalli_options = dalli_write_options(options)
           rescue_error_with nil do
-            # Don't pass compress option to Dalli since we are already dealing with compression.
-            options.delete(:compress)
-            @data.with { |c| !!c.send(method, key, payload, expires_in, **options) }
+            @data.with { |c| !!c.send(method, key, payload, expires_in, **dalli_options) }
           end
         end
 
@@ -240,18 +234,21 @@ module ActiveSupport
             return super if options[:unless_exist]
 
             entries = entries.transform_values { |entry| serialize_entry(entry, **options) }
-            expires_in = options[:expires_in].to_i
-            if options[:race_condition_ttl] && expires_in > 0 && !options[:raw]
-              # Set the memcache expire a few minutes in the future to support race condition ttls on read
-              expires_in += 5.minutes
-            end
-
+            expires_in, dalli_options = dalli_write_options(options)
             rescue_error_with(nil) do
-              # Don't pass compress option to Dalli since we are already dealing with compression.
-              options.delete(:compress)
-              @data.with { |c| c.set_multi(entries, expires_in, options) }
+              @data.with { |c| c.set_multi(entries, expires_in, dalli_options) }
             end
           end
+        end
+
+        def dalli_write_options(options)
+          expires_in = options[:expires_in].to_i
+          if options[:race_condition_ttl] && expires_in > 0 && !options[:raw]
+            # Set the memcache expire a few minutes in the future to support race condition ttls on read
+            expires_in += 5.minutes
+          end
+          # Don't pass compress option to Dalli since we are already dealing with compression.
+          [expires_in, options.except(:compress)]
         end
 
         # Reads multiple entries from the cache implementation.

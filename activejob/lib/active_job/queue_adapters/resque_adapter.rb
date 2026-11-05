@@ -1,6 +1,5 @@
 # frozen_string_literal: true
 
-# :markup: markdown
 require "resque"
 require "active_support/core_ext/enumerable"
 require "active_support/core_ext/array/access"

@@ -1,6 +1,5 @@
 # frozen_string_literal: true
 
-# :markup: markdown
 module ActiveJob
   # Raised during job payload deserialization when it references an uninitialized job class.
   class UnknownJobClassError < NameError

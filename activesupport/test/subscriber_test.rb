@@ -148,4 +148,84 @@ class SubscriberTest < ActiveSupport::TestCase
 
     assert_in_delta event.duration / 1_000.0, computed_duration, 0.05
   end
+
+  def test_dispatches_to_handlers_named_like_internal_state
+    handled = []
+    subscriber = Class.new(ActiveSupport::Subscriber) do
+      define_method(:event_method_names) { |event| handled << [:event_method_names, event.name] }
+      define_method(:open_party) { |event| handled << [:open_party, event.name] }
+    end
+    subscriber.attach_to :doodle
+
+    ActiveSupport::Notifications.instrument("event_method_names.doodle")
+    ActiveSupport::Notifications.instrument("open_party.doodle")
+
+    assert_equal [[:event_method_names, "event_method_names.doodle"], [:open_party, "open_party.doodle"]], handled
+  ensure
+    subscriber.detach_from :doodle
+  end
+
+  def test_dispatches_on_the_event_name_before_its_first_dot
+    handled = []
+    subscriber = Class.new(ActiveSupport::Subscriber) do
+      define_method(:open) { |event| handled << [:open, event.name] }
+      define_method(:"open.party") { |event| handled << [:"open.party", event.name] }
+    end
+    subscriber.attach_to :doodle
+
+    ActiveSupport::Notifications.instrument("open.party.doodle")
+
+    assert_equal [[:open, "open.party.doodle"]], handled
+  ensure
+    subscriber.detach_from :doodle
+  end
+
+  def test_attaches_and_detaches_subscribers_with_regexp_patterns
+    handled = []
+    subscriber = Class.new(ActiveSupport::Subscriber) do
+      def self.prepare_pattern(event) = /\A#{event}\.doodle\z/
+      define_method(:open_party) { |event| handled << event.name }
+    end
+    subscriber.attach_to :doodle
+
+    ActiveSupport::Notifications.instrument("open_party.doodle")
+    subscriber.detach_from :doodle
+    ActiveSupport::Notifications.instrument("open_party.doodle")
+
+    assert_equal ["open_party.doodle"], handled
+  ensure
+    subscriber.detach_from :doodle
+  end
+
+  def test_event_method_names_stay_shareable_with_string_subclass_patterns
+    pattern_class = Class.new(String)
+    handled = []
+    subscriber = Class.new(ActiveSupport::Subscriber) do
+      define_singleton_method(:prepare_pattern) { |event| pattern_class.new("#{event}.doodle") }
+      define_method(:open_party) { |event| handled << event.name }
+    end
+    subscriber.attach_to :doodle
+
+    ActiveSupport::Notifications.instrument("open_party.doodle")
+
+    assert_equal ["open_party.doodle"], handled
+    assert Ractor.shareable?(subscriber.event_method_names)
+  ensure
+    subscriber.detach_from :doodle
+  end
+
+  def test_subscriber_that_skips_super_in_initialize_receives_events_when_subscribed_directly
+    handled = []
+    subscriber = Class.new(ActiveSupport::Subscriber) do
+      def initialize; end
+      define_method(:hello) { |event| handled << event.name }
+    end
+
+    subscription = ActiveSupport::Notifications.subscribe("hello.manual", subscriber.new)
+    ActiveSupport::Notifications.instrument("hello.manual")
+
+    assert_equal ["hello.manual"], handled
+  ensure
+    ActiveSupport::Notifications.unsubscribe(subscription)
+  end
 end

@@ -1,6 +1,5 @@
 # frozen_string_literal: true
 
-# :markup: markdown
 require "rails/generators/app_base"
 require "rails/generators/rails/devcontainer/devcontainer_generator"
 
