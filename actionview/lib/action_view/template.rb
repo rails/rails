@@ -215,7 +215,18 @@ module ActionView
 
     STRICT_LOCALS_REGEX = /\#\s+locals:\s+\((.*?)\)(?=\s*-?%>|\s*$)/m
 
+    # Matches every name #method_name can produce: the identifier reduced to
+    # `[a-z_]`, then the identifier hash (whose sign becomes an underscore) and
+    # the object id.
+    METHOD_NAME_REGEX = /\A_[a-z_]*__\d+_\d+\z/
+
     class << self
+      # Whether +name+ may be the name of a compiled template method, as found
+      # in the +base_label+ of a backtrace location.
+      def method_name?(name)
+        METHOD_NAME_REGEX.match?(name)
+      end
+
       def mime_types_implementation=(implementation)
         # This method isn't thread-safe, but it's not supposed
         # to be called after initialization
