@@ -428,6 +428,18 @@ class MergingDifferentRelationsTest < ActiveRecord::TestCase
     assert_equal ["Mary", "Mary", "Mary", "Bob"], posts_by_author_name
   end
 
+  test "merging order relations into includes references the merged table" do
+    expected = Post.left_joins(:author).order("authors.name", "posts.id").map(&:id)
+
+    assert_equal expected, Post.includes(:author).merge(Author.order(:name)).order(:id).map(&:id)
+    assert_equal expected, Post.includes(:author).order(:title).merge(Author.reorder(:name)).order(:id).map(&:id)
+    assert_equal expected, Post.includes(:author).merge(Author.order(Author.arel_table[:name])).order(:id).map(&:id)
+    aliased = ActiveRecord::Relation.create(Author, table: Author.arel_table.alias("author")).order(:name)
+    assert_equal expected, Post.includes(:author).merge(aliased).order(:id).map(&:id)
+
+    assert_empty Post.all.merge(Post.order(:title)).references_values
+  end
+
   test "relation merging (using a proc argument)" do
     dev = Developer.where(name: "Jamis").first
 

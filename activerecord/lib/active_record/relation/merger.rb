@@ -160,11 +160,10 @@ module ActiveRecord
         def merge_multi_values
           if other.reordering_value
             # override any order specified in the original relation
-            relation.reordering_value = true
-            relation.order_values = other.order_values
+            relation._reorder!(other.order_values.dup)
           elsif other.order_values.any?
             # merge in order_values from relation
-            relation.order_values |= other.order_values
+            relation._order!(other.order_values)
           end
 
           relation.with_values |= other.with_values unless other.with_values.empty?
