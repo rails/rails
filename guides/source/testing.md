@@ -476,7 +476,7 @@ cases. In fact, Rails provides the following classes for you to inherit from:
 * [`ActionDispatch::SystemTestCase`](https://api.rubyonrails.org/classes/ActionDispatch/SystemTestCase.html)
 * [`Rails::Generators::TestCase`](https://api.rubyonrails.org/classes/Rails/Generators/TestCase.html)
 
-Each of these classes include `Minitest::Assertions`, allowing us to use all of
+Each of these classes includes `Minitest::Assertions`, allowing us to use all of
 the basic assertions in your tests.
 
 TIP: For more information on `minitest`, refer to the [minitest
@@ -1195,7 +1195,7 @@ message will already be implemented in your `create` action.
 
 ### Tests for `show`, `update`, and `delete` Actions
 
-So far in the guide tests for the `:index` as well as the`:create` action have
+So far in the guide tests for the `:index` as well as the `:create` action have
 been outlined. What about the other actions?
 
 You can write a test for `:show` as follows:
@@ -1239,7 +1239,7 @@ test "should update article" do
 end
 ```
 
-Notice that there is some duplication in these three tests - they both access
+Notice that there is some duplication in these three tests - they all access
 the same article fixture data. It is possible to DRY ('Don't Repeat
 Yourself') the implementation by using the `setup` and `teardown` methods
 provided by `ActiveSupport::Callbacks`.
@@ -2568,7 +2568,7 @@ config.active_job.queue_adapter = :inline
 
 #### System Tests
 
-In order to clear these files, you use a `after_teardown` callback. Doing it
+In order to clear these files, you use an `after_teardown` callback. Doing it
 there ensures that all connections created during the test are complete and you
 won't receive an error from Active Storage saying it can't find a file.
 
