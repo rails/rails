@@ -297,22 +297,6 @@ class PrimaryKeysTest < ActiveRecord::TestCase
     assert_equal "title", subclass.primary_key
   end
 
-  def test_relation_find_uses_overridden_primary_key_method
-    klass = Class.new(ActiveRecord::Base) do
-      self.table_name = "topics"
-
-      def self.primary_key
-        "title"
-      end
-    end
-
-    topic = klass.first
-
-    assert_equal "title", klass.primary_key
-    assert_equal topic, klass.all.find(topic.title)
-    assert_equal [topic], klass.all.find([topic.title])
-  end
-
   def test_primary_key_assignment_reloads_schema
     klass = Class.new(ActiveRecord::Base) do
       self.table_name = "topics"
@@ -776,5 +760,52 @@ class PrimaryKeyIntegerTest < ActiveRecord::TestCase
         assert_match %r/create_table "widgets", id: { type: :bigint, unsigned: true }/, schema
       end
     end
+  end
+end
+
+class PrimaryKeyOverriddenMethodTest < ActiveRecord::TestCase
+  # Regression tests for #59622: relation finders must honor a `primary_key`
+  # class method overridden in a subclass -- including on a table with no schema
+  # primary key -- not just the schema-derived key.
+
+  setup do
+    @connection = ActiveRecord::Base.lease_connection
+    @connection.create_table(:overridden_key_items, id: false, force: true) do |t|
+      t.string :uuid_key
+      t.string :name
+    end
+  end
+
+  teardown do
+    @connection.drop_table(:overridden_key_items, if_exists: true)
+  end
+
+  def test_relation_find_uses_overridden_primary_key_method
+    klass = Class.new(ActiveRecord::Base) do
+      self.table_name = "overridden_key_items"
+
+      def self.primary_key
+        "uuid_key"
+      end
+    end
+    record = klass.create!(uuid_key: "abc", name: "Coffee")
+
+    assert_equal "uuid_key", klass.primary_key
+    assert_equal record, klass.all.find("abc")
+    assert_equal [record], klass.all.find(["abc"])
+  end
+
+  def test_overridden_primary_key_method_can_build_on_super
+    klass = Class.new(ActiveRecord::Base) do
+      self.table_name = "overridden_key_items"
+
+      def self.primary_key
+        super || "uuid_key"
+      end
+    end
+    record = klass.create!(uuid_key: "abc", name: "Coffee")
+
+    assert_equal "uuid_key", klass.primary_key
+    assert_equal record, klass.all.find("abc")
   end
 end

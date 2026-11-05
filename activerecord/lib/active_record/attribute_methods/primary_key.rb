@@ -78,7 +78,7 @@ module ActiveRecord
           # Overwriting will negate any effect of the `primary_key_prefix_type`
           # setting, though.
           def primary_key
-            primary_key_definition.name
+            stored_primary_key_definition.name
           end
 
           def composite_primary_key? # :nodoc:
@@ -86,7 +86,17 @@ module ActiveRecord
           end
 
           def primary_key_definition # :nodoc:
-            @primary_key_definition || load_primary_key_definition
+            # `primary_key` is documented as overridable in subclasses. The stored
+            # definition (resolved from the schema, assigned, or inherited) backs
+            # the default `primary_key` and any `super` call. When the method is
+            # overridden, build the key from its current value so relation finders
+            # and other consumers honor the override -- and re-read it if it changes
+            # -- rather than using the schema-derived key.
+            if primary_key_method_overridden?
+              ActiveRecord::Key.for(primary_key)
+            else
+              stored_primary_key_definition
+            end
           end
 
           # Returns a quoted version of the primary key name.
@@ -127,14 +137,14 @@ module ActiveRecord
             @primary_key_definition = ActiveRecord::Key.for(value)
             @primary_key_inherited = false
 
-            include CompositePrimaryKey if primary_key_definition.composite?
+            include CompositePrimaryKey if @primary_key_definition.composite?
 
             # Only invalidate loaded contexts; initial schema loading can resolve the primary key.
             ([self] + descendants).each do |model|
               model.clear_inherited_primary_key
               model.reload_schema_from_cache(false) if model.schema_loaded?
               # Regenerate so the id_value reader is replaced by an alias.
-              model.undefine_attribute_methods if primary_key_definition.composite? && model.attribute_methods_generated?
+              model.undefine_attribute_methods if @primary_key_definition.composite? && model.attribute_methods_generated?
             end
           end
 
@@ -144,6 +154,20 @@ module ActiveRecord
             end
 
           private
+            # The definition resolved from the schema, assigned via
+            # `primary_key=`, or inherited. It backs the default `primary_key`
+            # method and any `super` call inside an override, so it never reflects
+            # an overridden `primary_key` method.
+            def stored_primary_key_definition
+              @primary_key_definition || load_primary_key_definition
+            end
+
+            # True when a subclass has overridden the `primary_key` class method
+            # (as opposed to assigning it with `primary_key=` or inheriting it).
+            def primary_key_method_overridden?
+              singleton_class.instance_method(:primary_key).owner != ClassMethods
+            end
+
             # Subclasses inherit the primary key of the closest ancestor that
             # has one, otherwise it is resolved from the schema.
             def load_primary_key_definition
@@ -158,23 +182,8 @@ module ActiveRecord
                   reset_primary_key
                 end
 
-                # `primary_key` is documented as overridable in subclasses. Resolve
-                # the definition (above) before reading it so a `super` call in the
-                # override still works, then rebuild from the overridden value so
-                # consumers of `primary_key_definition` (relation finders, etc.)
-                # honor the override rather than the schema-derived key.
-                if primary_key_method_overridden?
-                  @primary_key_definition = ActiveRecord::Key.for(primary_key)
-                  @primary_key_inherited = false
-                  include CompositePrimaryKey if @primary_key_definition.composite?
-                end
-
                 @primary_key_definition
               end
-            end
-
-            def primary_key_method_overridden?
-              singleton_class.instance_method(:primary_key).owner != ClassMethods
             end
 
             def inherited_primary_key_definition
