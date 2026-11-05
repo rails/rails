@@ -525,11 +525,11 @@ module ActiveRecord
           tables_query = ["SELECT name FROM pragma_table_list WHERE schema <> 'temp' AND name NOT IN ('sqlite_sequence', 'sqlite_schema') AND type IN ('table','view')", "SCHEMA", []]
           structure_query = [<<~SQL.squish, "SCHEMA", []]
             WITH master AS (
-              SELECT name, type, sql FROM sqlite_master
+              SELECT 'main' AS schema, name, type, sql FROM sqlite_master
               WHERE type NOT IN ('table', 'view')
                 OR name COLLATE NOCASE NOT IN (SELECT name FROM sqlite_temp_master WHERE type IN ('table', 'view'))
               UNION ALL
-              SELECT name, type, sql FROM sqlite_temp_master
+              SELECT 'temp', name, type, sql FROM sqlite_temp_master
             )
             SELECT m.name AS table_name, CASE WHEN m.type = 'table' THEN m.sql END AS create_table_sql,
                    t."name", t."type", t."notnull", t."dflt_value", t."pk", t."hidden"
@@ -783,15 +783,15 @@ module ActiveRecord
         with_example_table do
           index_list_query = [<<~SQL.squish, "SCHEMA", []]
             WITH master AS (
-              SELECT name, type, sql FROM sqlite_master
+              SELECT 'main' AS schema, name, type, sql FROM sqlite_master
               WHERE type NOT IN ('table', 'view')
                 OR name COLLATE NOCASE NOT IN (SELECT name FROM sqlite_temp_master WHERE type IN ('table', 'view'))
               UNION ALL
-              SELECT name, type, sql FROM sqlite_temp_master
+              SELECT 'temp', name, type, sql FROM sqlite_temp_master
             )
-            SELECT m.name AS table_name, i.name, i."unique"
+            SELECT m.name AS table_name, m.schema, i.name, i."unique"
             FROM master m
-            JOIN pragma_index_list(m.name) i
+            JOIN pragma_index_list(m.name, m.schema) i
             WHERE m.type = 'table'
               AND m.name COLLATE NOCASE IN ('ex')
               AND i.name NOT GLOB 'sqlite_*'
@@ -1008,6 +1008,36 @@ module ActiveRecord
         end
       ensure
         @conn.execute "DROP VIEW IF EXISTS main.shadowed"
+      end
+
+      def test_indexes_read_a_permanent_and_a_temporary_index_of_the_same_name_each_from_its_own_table
+        with_example_table "id integer PRIMARY KEY, number integer", "permanent_items" do
+          @conn.execute "CREATE INDEX shared_index ON permanent_items (number) WHERE number > 0"
+          @conn.execute "CREATE TEMP TABLE temporary_items (id integer PRIMARY KEY, label text)"
+          @conn.execute "CREATE INDEX temp.shared_index ON temporary_items (label)"
+
+          indexes = @conn.indexes(["permanent_items", "temporary_items"])
+
+          assert_equal [["shared_index", %w[ number ], "number > 0"]],
+            indexes["permanent_items"].map { |index| [index.name, index.columns, index.where] }
+          assert_equal [["shared_index", %w[ label ], nil]],
+            indexes["temporary_items"].map { |index| [index.name, index.columns, index.where] }
+        ensure
+          @conn.execute "DROP TABLE IF EXISTS temp.temporary_items"
+        end
+      end
+
+      def test_indexes_read_a_temporary_table_that_hides_a_permanent_one_of_another_ascii_case
+        with_example_table "id integer PRIMARY KEY, number integer", "Gizmos" do
+          @conn.add_index "Gizmos", :number, name: "permanent_index"
+          @conn.execute "CREATE TEMP TABLE gizmos (id integer PRIMARY KEY, label text)"
+          @conn.execute "CREATE INDEX temp.temporary_index ON gizmos (label)"
+
+          assert_equal({ "Gizmos" => %w[ temporary_index ], "gizmos" => %w[ temporary_index ] },
+            @conn.indexes(["Gizmos", "gizmos"]).transform_values { |indexes| indexes.map(&:name) })
+        ensure
+          @conn.execute "DROP TABLE IF EXISTS temp.gizmos"
+        end
       end
 
       def test_schema_readers_are_not_hidden_by_temporary_indexes_triggers_or_tables_of_other_names

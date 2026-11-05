@@ -71,13 +71,14 @@ module ActiveRecord
         private
           # sqlite_master lists the permanent objects in the database and
           # sqlite_temp_master the temporary ones.
+          # Qualify index pragmas because index names can repeat across schemas.
           MASTER_CTE = <<~SQL
             WITH master AS (
-              SELECT name, type, sql FROM sqlite_master
+              SELECT 'main' AS schema, name, type, sql FROM sqlite_master
               WHERE type NOT IN ('table', 'view')
                 OR name COLLATE NOCASE NOT IN (SELECT name FROM sqlite_temp_master WHERE type IN ('table', 'view'))
               UNION ALL
-              SELECT name, type, sql FROM sqlite_temp_master
+              SELECT 'temp', name, type, sql FROM sqlite_temp_master
             )
           SQL
 
@@ -91,9 +92,9 @@ module ActiveRecord
 
             rows = group_by_table(query_all(<<~SQL), tables)
               #{MASTER_CTE}
-              SELECT m.name AS table_name, i.name, i."unique"
+              SELECT m.name AS table_name, m.schema, i.name, i."unique"
               FROM master m
-              JOIN pragma_index_list(m.name) i
+              JOIN pragma_index_list(m.name, m.schema) i
               WHERE m.type = 'table'
                 AND m.name COLLATE NOCASE IN (#{quoted_table_names(tables)})
                 AND i.name NOT GLOB 'sqlite_*'
@@ -103,7 +104,7 @@ module ActiveRecord
 
             tables.index_with do |table_name|
               rows.fetch(table_name, []).map do |row|
-                index_sql, columns = details[row["name"]] || [nil, []]
+                index_sql, columns = details[[row["schema"], row["name"]]] || [nil, []]
 
                 build_index(table_name, row, index_sql, columns)
               end
@@ -115,11 +116,11 @@ module ActiveRecord
           def index_details(names)
             return {} if names.empty?
 
-            query_all(<<~SQL).group_by { |row| row["index_name"] }
+            query_all(<<~SQL).group_by { |row| [row["schema"], row["index_name"]] }
               #{MASTER_CTE}
-              SELECT m.name AS index_name, m.sql, i.name
+              SELECT m.schema, m.name AS index_name, m.sql, i.name
               FROM master m
-              JOIN pragma_index_info(m.name) i
+              JOIN pragma_index_info(m.name, m.schema) i
               WHERE m.type = 'index'
                 AND m.name IN (#{names.map { |name| quote(name) }.join(", ")})
               ORDER BY m.name, i.seqno
