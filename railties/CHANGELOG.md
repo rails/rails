@@ -1,3 +1,13 @@
+*   Add a breadcrumb and a theme menu to the Action Mailer preview page.
+
+    A preview now links back to the list of all previews and to the mailer's
+    own list. HTML previews also get a "Theme" menu: choosing "Dark" applies
+    the email's `@media (prefers-color-scheme: dark)` rules inside the preview
+    frame, which shows the email as dark-mode clients such as Apple Mail render
+    it without changing the operating system theme.
+
+    *Alessandro Rodi*
+
 *   Fix `bin/rails test -n ClassName#test_name` running no tests.
 
     This has been broken since Rails 7.1. It also made isolated tests fail on
