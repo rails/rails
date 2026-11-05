@@ -46,18 +46,24 @@ module ActionDispatch
       "ActionDispatch::Http::MimeNegotiation::InvalidType"
     ].freeze
 
-    attr_reader :backtrace_cleaner, :wrapped_causes, :exception_class_name, :exception
+    attr_reader :backtrace_cleaner, :exception_class_name, :exception
 
     def initialize(backtrace_cleaner, exception)
       @outer_exception = nil
       @backtrace_cleaner = backtrace_cleaner
       @exception_class_name = exception.class.name
-      @wrapped_causes = wrapped_causes_for(exception, backtrace_cleaner)
+      @wrapped_causes = nil
       @exception = exception
       if exception.is_a?(SyntaxError)
         @exception = ActiveSupport::SyntaxErrorProxy.new(exception)
       end
       @backtrace = nil
+    end
+
+    # Built on first use, as the wrappers of the causes would otherwise each wrap
+    # their own causes, doubling the wrappers with every cause in the chain.
+    def wrapped_causes
+      @wrapped_causes ||= wrapped_causes_for(@exception, backtrace_cleaner)
     end
 
     def routing_error?
