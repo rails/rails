@@ -67,4 +67,21 @@ class ValidationsContextTest < ActiveModel::TestCase
     assert_includes topic.errors[:base], ERROR_MESSAGE
     assert_includes topic.errors[:base], ANOTHER_ERROR_MESSAGE
   end
+
+  test "the private validation_context= writer sets the context for run_validations!" do
+    Topic.validates_with(ValidatorThatAddsErrors, on: :custom)
+    topic = Topic.new
+    assert_not_respond_to topic, :validation_context=
+
+    topic.send(:validation_context=, :custom)
+    topic.send(:run_validations!)
+    assert_equal :custom, topic.validation_context
+    assert_includes topic.errors[:base], ERROR_MESSAGE
+
+    topic.send(:validation_context=, nil)
+    topic.errors.clear
+    topic.send(:run_validations!)
+    assert_nil topic.validation_context
+    assert_empty topic.errors[:base]
+  end
 end
