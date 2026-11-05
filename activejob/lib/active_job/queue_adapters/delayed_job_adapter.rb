@@ -1,6 +1,5 @@
 # frozen_string_literal: true
 
-# :markup: markdown
 require "delayed_job"
 require "active_support/core_ext/string/inflections"
 

@@ -309,9 +309,23 @@ class Array # :nodoc:
     delete_if(&:blank?)
   end
 
-  # Array#to_h sizes the hash for the array up front, so it stays embedded up
-  # to 8 entries, where Enumerable#index_with's growing hash would move to the
-  # C heap.
+  # Convert an enumerable to a hash, using the element as the key and the block
+  # result as the value.
+  #
+  # ```
+  # post = Post.new(title: "hey there", body: "what's up?")
+  #
+  # %i( title body ).index_with { |attr_name| post.public_send(attr_name) }
+  # # => { title: "hey there", body: "what's up?" }
+  # ```
+  #
+  # If an argument is passed instead of a block, it will be used as the value
+  # for all elements:
+  #
+  # ```
+  # %i( created_at updated_at ).index_with(Time.now)
+  # # => { created_at: 2020-03-09 22:31:47, updated_at: 2020-03-09 22:31:47 }
+  # ```
   def index_with(default = (no_default = true))
     if block_given?
       to_h { |elem| [elem, yield(elem)] } # rubocop:disable Rails/IndexWith

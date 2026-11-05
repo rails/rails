@@ -117,6 +117,47 @@ module ActiveRecord
         assert_match "WITH RECURSIVE", relation.to_sql
       end
 
+      def test_with_recursive_is_kept_by_merge
+        top_companies = Company.where(firm_id: nil).to_a
+        child_companies = Company.where(firm_id: top_companies).to_a
+        top_companies_and_children = (top_companies.map(&:id) + child_companies.map(&:id)).sort
+
+        recursive = Company.with_recursive(
+          top_companies_and_children: [
+            Company.where(firm_id: nil),
+            Company.joins("JOIN top_companies_and_children ON companies.firm_id = top_companies_and_children.id"),
+          ]
+        )
+        relation = Company.from("top_companies_and_children AS companies").merge(recursive)
+
+        assert_equal top_companies_and_children, relation.order(:id).pluck(:id)
+        assert_match "WITH RECURSIVE", relation.to_sql
+        assert_match "WITH RECURSIVE", Company.with(other: Company.all).merge(recursive).to_sql
+        assert_match "WITH RECURSIVE", recursive.merge(Company.with(other: Company.all)).to_sql
+      end
+
+      def test_with_recursive_is_kept_by_only_and_dropped_by_except_and_unscope
+        relation = Post.with_recursive(posts_with_comments: Post.where("legacy_comments_count > 0"))
+          .from("posts_with_comments AS posts")
+
+        assert_match "WITH RECURSIVE", relation.only(:with, :from).to_sql
+
+        assert_no_match(/RECURSIVE/, relation.except(:with).with(cte: Post.all).to_sql)
+        assert_no_match(/RECURSIVE/, relation.unscope(:with).with(cte: Post.all).to_sql)
+      end
+
+      def test_with_recursive_or_relation_without_with_recursive
+        cte = { posts_with_comments: Post.where("legacy_comments_count > 0") }
+        base = Post.from("posts_with_comments AS posts")
+        relation = base.with_recursive(cte).where(id: 1).or(base.with(cte).where(id: 2))
+
+        assert_match "WITH RECURSIVE", relation.to_sql
+        assert_equal [1, 2], relation.order(:id).pluck(:id)
+        assert_raises(ArgumentError, match: /with_recursive/) do
+          Post.with(cte: Post.all).or(Post.with_recursive(cte: Post.all))
+        end
+      end
+
       def test_with_joins
         relation = Post
           .with(commented_posts: Comment.select(:post_id).distinct)

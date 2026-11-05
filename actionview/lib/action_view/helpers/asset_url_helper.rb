@@ -121,7 +121,7 @@ module ActionView
     #   )
     #
     module AssetUrlHelper
-      URI_REGEXP = %r{^[-a-z]+://|^(?:cid|data):|^//}i
+      URI_REGEXP = %r{^(?:[-a-z]+://|(?:cid|data):|//)}i
 
       # This is the entry point for all assets.
       # When using an asset pipeline gem (e.g. propshaft or sprockets-rails), the

@@ -1,6 +1,5 @@
 # frozen_string_literal: true
 
-# :markup: markdown
 module ActiveJob
   module QueueAdapters
     # Active Job Inline adapter

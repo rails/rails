@@ -481,7 +481,7 @@ module ActiveRecord
           relation = Relation.create(self)
 
           if finder_needs_type_condition? && !ignore_default_scope?
-            relation.where!(type_condition)
+            relation._where!(type_condition)
           else
             relation
           end

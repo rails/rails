@@ -131,10 +131,11 @@ module ActiveRecord
 
     def record_update_timestamps
       if @_touch_record && should_record_timestamps?
-        current_time = current_time_from_proper_timezone
+        current_time = nil
 
         timestamp_attributes_for_update_in_model.each do |column|
           next if will_save_change_to_attribute?(column)
+          current_time ||= current_time_from_proper_timezone
           _write_attribute(column, current_time)
         end
       end

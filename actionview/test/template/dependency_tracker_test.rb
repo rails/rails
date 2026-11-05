@@ -30,6 +30,10 @@ class FakeTemplate
     end
   end
 
+  def identifier
+    "fake_template"
+  end
+
   def type
     ["text/html"]
   end

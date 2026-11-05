@@ -1,6 +1,5 @@
 # frozen_string_literal: true
 
-# :markup: markdown
 #--
 # Copyright (c) David Heinemeier Hansson
 #
@@ -30,7 +29,6 @@ require "active_job/version"
 require "active_job/deprecator"
 require "global_id"
 
-# :markup: markdown
 # :include: ../README.md
 module ActiveJob
   extend ActiveSupport::Autoload

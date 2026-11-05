@@ -156,7 +156,7 @@ module ActiveRecord
 
         def apply_scope(scope, table, key, value, create_default: true)
           if scope.table == table && create_default
-            scope.where!(key => value)
+            scope._where!(key => value)
           else
             if scope.table != table
               scope.references_values |= [Arel.sql(table.name, retryable: true)]
@@ -167,7 +167,7 @@ module ActiveRecord
 
             predicate = predicate_builder[key, value]
             predicate = query_constraint(predicate) unless create_default
-            scope.where!(predicate)
+            scope._where!(predicate)
           end
         end
 

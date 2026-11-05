@@ -176,7 +176,14 @@ module ActionView
         formats = Array(formats)
         return if formats.empty? || @lookup_context.html_fallback_for_js
 
-        @lookup_context.formats = formats | @lookup_context.formats
+        current = @lookup_context.formats
+        if formats.size == 1 && !current.empty? && formats.first.equal?(current.first)
+          # The format already leads, so the union would rebuild the same list.
+          # Assign it anyway so formats= still normalizes and validates it.
+          @lookup_context.formats = current
+        else
+          @lookup_context.formats = formats | current
+        end
       end
 
       def build_rendered_template(content, template)

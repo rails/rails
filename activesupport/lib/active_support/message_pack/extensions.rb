@@ -250,11 +250,19 @@ module ActiveSupport
       end
 
       def write_safe_buffer(buffer, packer)
+        unless buffer.html_safe?
+          packer.write(false)
+        end
         packer.write(buffer.to_str)
       end
 
       def read_safe_buffer(unpacker)
-        ActiveSupport::SafeBuffer.new(unpacker.read)
+        string_or_safe = unpacker.read
+        if string_or_safe
+          ActiveSupport::SafeBuffer.new(string_or_safe)
+        else
+          unpacker.read
+        end
       end
 
       def raise_unserializable(object, *)

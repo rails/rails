@@ -211,7 +211,17 @@ module ActionDispatch
       end
 
       def should_apply_vary_header?
-        !params_readable? && use_accept_header && valid_accept_header
+        !params_readable?
+      end
+
+      def vary_headers # :nodoc:
+        if use_accept_header
+          headers = ["Accept", "X-Requested-With"]
+          headers.insert(1, "Content-Type") if xhr? && accept.blank?
+          headers
+        else
+          ["X-Requested-With"]
+        end
       end
 
       private

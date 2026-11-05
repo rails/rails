@@ -177,12 +177,150 @@ class RequestIP < BaseRequestTest
     }
     assert_match(/IP spoofing attack/, e.message)
     assert_match(/HTTP_X_FORWARDED_FOR="1\.1\.1\.1"/, e.message)
-    if Rack.release < "3"
-      assert_match(/HTTP_FORWARDED="for=1\.1\.1\.1"/, e.message)
-    else
-      assert_match(/HTTP_FORWARDED="for=2\.2\.2\.2, for=3\.3\.3\.3"/, e.message)
-    end
+    assert_match(/HTTP_FORWARDED="for=2\.2\.2\.2, for=3\.3\.3\.3"/, e.message)
     assert_match(/HTTP_CLIENT_IP="127\.0\.0\.1"/, e.message)
+  end
+
+  test "remote ip spoof detection with conflicting Forwarded and X-Forwarded-For" do
+    request = stub_request "HTTP_FORWARDED"       => "for=9.9.9.9",
+                           "HTTP_X_FORWARDED_FOR" => "3.4.5.6"
+    if Rack.release < "3"
+      # Rack 2 does not read the `Forwarded` header.
+      assert_equal "3.4.5.6", request.remote_ip
+    else
+      e = assert_raise(ActionDispatch::RemoteIp::IpSpoofAttackError) {
+        request.remote_ip
+      }
+      assert_match(/IP spoofing attack/, e.message)
+      assert_match(/HTTP_X_FORWARDED_FOR="3\.4\.5\.6"/, e.message)
+      assert_match(/HTTP_FORWARDED="for=9\.9\.9\.9"/, e.message)
+    end
+  end
+
+  test "remote ip spoof detection with the X-Forwarded-For client listed before a spoofed Forwarded address" do
+    request = stub_request "HTTP_FORWARDED"       => "for=3.4.5.6, for=9.9.9.9",
+                           "HTTP_X_FORWARDED_FOR" => "3.4.5.6"
+    if Rack.release < "3"
+      assert_equal "3.4.5.6", request.remote_ip
+    else
+      assert_raise(ActionDispatch::RemoteIp::IpSpoofAttackError) {
+        request.remote_ip
+      }
+    end
+  end
+
+  test "remote ip spoof detection with conflicting Forwarded and X-Forwarded-For carrying a port" do
+    request = stub_request "HTTP_FORWARDED"       => "for=9.9.9.9",
+                           "HTTP_X_FORWARDED_FOR" => "3.4.5.6:1234"
+    if Rack.release < "3"
+      assert_equal "3.4.5.6", request.remote_ip
+    else
+      assert_raise(ActionDispatch::RemoteIp::IpSpoofAttackError) {
+        request.remote_ip
+      }
+    end
+
+    request = stub_request "HTTP_FORWARDED"       => "for=9.9.9.9",
+                           "HTTP_X_FORWARDED_FOR" => "[2001:db8::1]:443"
+    if Rack.release < "3"
+      assert_equal "2001:db8::1", request.remote_ip
+    else
+      assert_raise(ActionDispatch::RemoteIp::IpSpoofAttackError) {
+        request.remote_ip
+      }
+    end
+  end
+
+  test "remote ip spoof detection with the X-Forwarded-For client spelled differently in Forwarded" do
+    request = stub_request "HTTP_FORWARDED"       => 'for="3.4.5.6/32"',
+                           "HTTP_X_FORWARDED_FOR" => "3.4.5.6"
+    if Rack.release < "3"
+      assert_equal "3.4.5.6", request.remote_ip
+    else
+      assert_raise(ActionDispatch::RemoteIp::IpSpoofAttackError) {
+        request.remote_ip
+      }
+    end
+
+    request = stub_request "HTTP_FORWARDED"       => 'for="[2001:DB8::1]"',
+                           "HTTP_X_FORWARDED_FOR" => "2001:db8::1"
+    if Rack.release < "3"
+      assert_equal "2001:db8::1", request.remote_ip
+    else
+      assert_raise(ActionDispatch::RemoteIp::IpSpoofAttackError) {
+        request.remote_ip
+      }
+    end
+  end
+
+  test "remote ip spoof detection with conflicting Forwarded and X-Forwarded-For when Rack reads only Forwarded" do
+    if Rack.release < "3"
+      request = stub_request "HTTP_FORWARDED"       => "for=9.9.9.9",
+                             "HTTP_X_FORWARDED_FOR" => "3.4.5.6"
+      assert_equal "3.4.5.6", request.remote_ip
+    else
+      original_priority = Rack::Request.forwarded_priority
+      begin
+        Rack::Request.forwarded_priority = [:forwarded]
+        request = stub_request "HTTP_FORWARDED"       => "for=9.9.9.9",
+                               "HTTP_X_FORWARDED_FOR" => "3.4.5.6"
+        assert_raise(ActionDispatch::RemoteIp::IpSpoofAttackError) {
+          request.remote_ip
+        }
+      ensure
+        Rack::Request.forwarded_priority = original_priority
+      end
+    end
+  end
+
+  test "remote ip spoof detection with unparseable Forwarded hiding X-Forwarded-For" do
+    request = stub_request "HTTP_FORWARDED"       => "for=unknown",
+                           "HTTP_X_FORWARDED_FOR" => "3.4.5.6"
+    if Rack.release < "3"
+      assert_equal "3.4.5.6", request.remote_ip
+    else
+      assert_raise(ActionDispatch::RemoteIp::IpSpoofAttackError) {
+        request.remote_ip
+      }
+    end
+  end
+
+  test "remote ip with agreeing Forwarded and X-Forwarded-For" do
+    request = stub_request "HTTP_FORWARDED"       => "for=3.4.5.6;proto=https",
+                           "HTTP_X_FORWARDED_FOR" => "3.4.5.6"
+    assert_equal "3.4.5.6", request.remote_ip
+
+    # Ports are stripped.
+    request = stub_request "HTTP_FORWARDED"       => 'for="3.4.5.6:5555"',
+                           "HTTP_X_FORWARDED_FOR" => "3.4.5.6:1234"
+    assert_equal "3.4.5.6", request.remote_ip
+
+    # Square brackets are also stripped.
+    request = stub_request "HTTP_FORWARDED"       => 'for="[2001:db8::1]"',
+                           "HTTP_X_FORWARDED_FOR" => "2001:db8::1"
+    assert_equal "2001:db8::1", request.remote_ip
+  end
+
+  test "remote ip with Forwarded and trusted-proxy-only X-Forwarded-For" do
+    request = stub_request "HTTP_FORWARDED"       => "for=3.4.5.6",
+                           "HTTP_X_FORWARDED_FOR" => "10.0.0.1",
+                           "REMOTE_ADDR"          => "127.0.0.1"
+    if Rack.release < "3"
+      assert_equal "10.0.0.1", request.remote_ip
+    else
+      assert_equal "3.4.5.6", request.remote_ip
+    end
+  end
+
+  test "remote ip with conflicting Forwarded and X-Forwarded-For and spoof detection disabled" do
+    request = stub_request "HTTP_FORWARDED"       => "for=9.9.9.9",
+                           "HTTP_X_FORWARDED_FOR" => "3.4.5.6",
+                           :ip_spoofing_check     => false
+    if Rack.release < "3"
+      assert_equal "3.4.5.6", request.remote_ip
+    else
+      assert_equal "9.9.9.9", request.remote_ip
+    end
   end
 
   test "remote ip with spoof detection disabled" do

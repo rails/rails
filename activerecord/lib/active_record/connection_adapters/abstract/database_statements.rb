@@ -63,7 +63,7 @@ module ActiveRecord
           collector = collector()
           collector.retryable = true
           sql, binds = visitor.compile(arel.ast, collector)
-          query = klass.query(sql, retryable: collector.retryable)
+          query = klass.query(sql.freeze, retryable: collector.retryable)
         else
           collector = klass.partial_query_collector
           collector.retryable = true
