@@ -85,6 +85,22 @@ module ActiveSupport
         @supports_flush = logger.respond_to?(:flush)
       end
 
+      def colorize_logging
+        ActiveSupport.deprecator.warn(<<~MSG)
+          `ActiveSupport::LogSubscriber.colorize_logging` is deprecated and will be removed in Rails 9.0.
+          Use `ActiveSupport.colorize_logging` instead.
+        MSG
+        ActiveSupport.colorize_logging
+      end
+
+      def colorize_logging=(value)
+        ActiveSupport.deprecator.warn(<<~MSG)
+          `ActiveSupport::LogSubscriber.colorize_logging=` is deprecated and will be removed in Rails 9.0.
+          Use `ActiveSupport.colorize_logging=` instead.
+        MSG
+        ActiveSupport.colorize_logging = value
+      end
+
       def attach_to(...) # :nodoc:
         result = super
         set_event_levels
