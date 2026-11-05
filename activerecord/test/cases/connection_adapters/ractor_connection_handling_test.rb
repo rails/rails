@@ -1,7 +1,5 @@
 # frozen_string_literal: true
 
-# :markup: markdown
-
 require "cases/helper"
 require "active_support/testing/ractors_assertions"
 require "models/course"
