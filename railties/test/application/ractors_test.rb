@@ -117,6 +117,59 @@ if RUBY_VERSION >= "4.0" && ENV["RACK"] == "head"
         assert_equal "post", on_ractor { PostsController._wrapper_options.name }
       end
 
+      test "ractorize! freezes the parameter parsers registered during boot" do
+        app_file "config/initializers/parameter_parsers.rb", <<~RUBY
+          ActionDispatch::Request.parameter_parsers[:xml] = Ractor.shareable_lambda { |raw_post| { "xml" => raw_post } }
+        RUBY
+
+        app "production"
+
+        assert_not_predicate ActionDispatch::Request.parameter_parsers, :frozen?
+
+        ractorize!
+
+        assert_predicate ActionDispatch::Request.parameter_parsers, :frozen?
+        assert_equal [:json, :xml], on_ractor { ActionDispatch::Request.parameter_parsers.keys }
+        assert_equal({ "xml" => "<a/>" }, on_ractor { ActionDispatch::Request.parameter_parsers[:xml].call("<a/>") })
+      end
+
+      test "ractorize! keeps the parameter parsers frozen when a later before_ractorize hook assigns them" do
+        app_file "config/initializers/parameter_parsers.rb", <<~RUBY
+          ActiveSupport.on_load(:before_ractorize) do
+            xml_parser = Ractor.shareable_lambda { |raw_post| { "xml" => raw_post } }
+            ActionDispatch::Request.parameter_parsers = ActionDispatch::Request.parameter_parsers.merge(xml: xml_parser)
+          end
+        RUBY
+
+        app "production"
+
+        ractorize!
+
+        assert_predicate ActionDispatch::Request.parameter_parsers, :frozen?
+        assert_equal({ "xml" => "<a/>" }, on_ractor { ActionDispatch::Request.parameter_parsers[:xml].call("<a/>") })
+      end
+
+      test "ractorize! freezes the parameter parsers once ActionDispatch::Request is loaded" do
+        # Drawing any route loads ActionDispatch::Request.
+        use_frameworks %i[activerecord activestorage activejob actionmailer actiontext]
+        add_to_config "config.active_storage.draw_routes = false"
+        app_file "config/routes.rb", "Rails.application.routes.draw { }"
+        add_to_env_config "production", "config.eager_load = false"
+        app_file "config/initializers/parameter_parsers.rb", <<~RUBY
+          ActiveSupport.on_load(:action_dispatch_request) do
+            parameter_parsers[:xml] = Ractor.shareable_lambda { |raw_post| { "xml" => raw_post } }
+          end
+        RUBY
+
+        app "production"
+
+        ractorize!
+
+        assert ActionDispatch.autoload?(:Request)
+        assert_predicate ActionDispatch::Request.parameter_parsers, :frozen?
+        assert_equal [:json, :xml], on_ractor { ActionDispatch::Request.parameter_parsers.keys }
+      end
+
       test "ractorize! makes Rails.logger shareable" do
         app "production"
 
