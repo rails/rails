@@ -128,7 +128,7 @@ module ActiveSupport
               else
                 next_sequence = next_sequence.nested
                 begin
-                  target, block, method, *arguments = current.expand_call_template(env, invoke_sequence)
+                  target, block, method, arguments = current.expand_call_template(env, invoke_sequence)
                   target.send(method, *arguments, &block)
                 ensure
                   next_sequence = current
@@ -382,7 +382,7 @@ module ActiveSupport
           #
           # Returns an array of the form:
           #
-          #   [target, block, method, *arguments]
+          #   [target, block, method, arguments]
           #
           # This array can be used as such:
           #
@@ -414,7 +414,7 @@ module ActiveSupport
           end
 
           def expand(target, value, block)
-            [@override_target || target, block, @method_name, target]
+            [@override_target || target, block, @method_name, [target]]
           end
 
           def make_lambda
@@ -458,7 +458,7 @@ module ActiveSupport
           end
 
           def expand(target, value, block)
-            [target, @override_block, :instance_exec, target]
+            [target, @override_block, :instance_exec, [target]]
           end
 
           def make_lambda
@@ -481,7 +481,7 @@ module ActiveSupport
 
           def expand(target, value, block)
             raise ArgumentError unless block
-            [target, @override_block || block, :instance_exec, target, block]
+            [target, @override_block || block, :instance_exec, [target, block]]
           end
 
           def make_lambda
@@ -505,7 +505,7 @@ module ActiveSupport
           end
 
           def expand(target, value, block)
-            [@override_target || target, block, :call, target, value]
+            [@override_target || target, block, :call, [target, value]]
           end
 
           def make_lambda
