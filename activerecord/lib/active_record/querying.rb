@@ -92,12 +92,7 @@ module ActiveRecord
     def _load_from_sql(result_set, &block) # :nodoc:
       return [] if result_set.empty?
 
-      column_types = result_set.column_types
-
-      unless column_types.empty?
-        attribute_types = self.attribute_types
-        column_types = column_types.reject { |k, _| attribute_types.key?(k) }
-      end
+      column_types = result_set.column_types_except(attribute_types)
 
       message_bus = ActiveSupport::Notifications.instrumenter
 

@@ -197,6 +197,20 @@ module ActiveRecord
       end
     end
 
+    # The types of the columns that +known_types+ has no key for, by column name.
+    def column_types_except(known_types) # :nodoc:
+      return EMPTY_HASH unless @column_types
+
+      types = nil
+      @columns.each_with_index do |name, index|
+        unless known_types.key?(name)
+          types ||= {}
+          types[name] = @column_types[index] || Type.default_value
+        end
+      end
+      types || EMPTY_HASH
+    end
+
     private
       def column_type(name, index, type_overrides)
         if type_overrides
