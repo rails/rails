@@ -1,3 +1,13 @@
+*   Stop reporting ERB syntax errors on lines past the end of the template.
+
+    When Ruby only notices a mistake at the end of a template, as with
+    `<%= foo( %>` or a stray `<% end %>`, it reports a line of the method compiled
+    around the template. The error page then showed that line number with an empty
+    source pane. It now shows the end of the template, and the message says to look
+    earlier for the mistake.
+
+    *Islam Elsayed*
+
 *   Skip attribute names in tag helpers that are blank once converted to a
     string.
 

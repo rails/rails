@@ -2,6 +2,7 @@
 
 require "abstract_unit"
 require "active_support/testing/ractors_assertions"
+require "tmpdir"
 
 module ActionDispatch
   class ExceptionWrapperTest < ActionDispatch::IntegrationTest
@@ -104,6 +105,26 @@ module ActionDispatch
 
       assert_called_with(wrapper, :source_fragment, ["lib/file.rb", 42], returns: "foo") do
         assert_equal [ code: "foo", line_number: 42, trace: trace ], wrapper.source_extracts
+      end
+    end
+
+    test "#source_extracts uses a template's last line when its syntax error is reported past it" do
+      source = "<p>one</p>\n<% end %>\n<p>three</p>\n"
+
+      Dir.mktmpdir do |dir|
+        path = File.join(dir, "show.html.erb")
+        File.write(path, source)
+        template = ActionView::Template.new(source, path, ActionView::Template::Handlers::ERB.new, format: :html, locals: [])
+        exception = assert_raises(ActionView::SyntaxErrorInTemplate) do
+          silence_warnings { template.render(ActionView::Base.with_empty_template_cache.empty, {}) }
+        end
+
+        Rails.stub :root, Pathname.new(dir) do
+          extract = ExceptionWrapper.new(nil, exception).source_extracts.first
+
+          assert_equal 3, extract[:line_number]
+          assert_equal "<p>three</p>\n", extract[:code][3]
+        end
       end
     end
 
