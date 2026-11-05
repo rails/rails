@@ -2,6 +2,8 @@
 
 require "cases/helper"
 require "active_model/attribute_set"
+require "active_support/testing/isolation"
+require "active_support/testing/ractors_assertions"
 require "json"
 
 module ActiveModel
@@ -119,6 +121,35 @@ module ActiveModel
     test "uninitialized attributes are not included in the attributes hash" do
       attributes = attributes_with_uninitialized_key
       assert_equal({ foo: 1 }, attributes.to_hash)
+    end
+
+    test "keys does not build the attributes of a database row" do
+      builder = AttributeSet::Builder.new({ foo: Type::Integer.new, bar: Type::Integer.new }, {}, nil)
+      attributes = builder.build_from_database(foo: "1", bar: "2")
+
+      assert_not_called(Attribute, :from_database) do
+        assert_equal [:foo, :bar], attributes.keys
+      end
+    end
+
+    test "keys lists the database row, then the types, then the assigned attributes" do
+      builder = AttributeSet::Builder.new(
+        { foo: Type::Integer.new, bar: Type::Integer.new, baz: Type::Integer.new },
+        { baz: Attribute.from_user(:baz, 3, Type::Integer.new) },
+        nil
+      )
+      attributes = builder.build_from_database(extra: "1", bar: "2")
+      attributes[:assigned] = Attribute.from_user(:assigned, 4, Type::Integer.new)
+
+      assert_equal [:extra, :bar, :baz, :assigned], attributes.keys
+    end
+
+    test "keys skips attributes of a database row that are marked as uninitialized" do
+      builder = AttributeSet::Builder.new({ foo: Type::Integer.new, bar: Type::Integer.new }, {}, nil)
+      attributes = builder.build_from_database(foo: "1", bar: "2")
+      attributes[:foo] = Attribute.uninitialized(:foo, Type::Integer.new)
+
+      assert_equal [:bar], attributes.keys
     end
 
     test "uninitialized attributes are not included in keys" do
@@ -380,6 +411,26 @@ module ActiveModel
       assert_predicate read_only.deep_dup, :frozen?
       assert_equal read_only, read_only.deep_dup
       assert_predicate read_only.map { |attr| attr.with_value_from_user("x") }, :frozen?
+    end
+
+    class RactorTest < ActiveModel::TestCase
+      include ActiveSupport::Testing::Isolation
+      include ActiveSupport::Testing::RactorsAssertions
+
+      test "keys on a Ractor" do
+        builder = AttributeSet::Builder.new({ foo: Type::Integer.new, bar: Type::Integer.new }, {}, nil)
+        assert_ractor_make_shareable builder
+
+        assert_equal [:foo], on_ractor(builder) { |set_builder| set_builder.build_from_database(foo: "1").keys }
+      end
+
+      test "keys of a shareable set on a Ractor" do
+        builder = AttributeSet::Builder.new({ foo: Type::Integer.new, bar: Type::Integer.new }, {}, nil)
+        attributes = builder.build_from_database(foo: "1")
+        assert_ractor_make_shareable attributes
+
+        assert_equal [:foo], on_ractor(attributes) { |set| set.keys }
+      end
     end
 
     private
