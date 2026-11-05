@@ -765,6 +765,11 @@ module ActiveRecord
         [self]
       end
 
+      # The scopes of the chain, which is only this reflection.
+      def constraints
+        scopes
+      end
+
       # Pass the concrete target class for polymorphic associations.
       def clear_association_scope_cache(klass = self.klass) # :nodoc:
         AssociationRoute::Cache.clear(self)

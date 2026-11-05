@@ -1,6 +1,5 @@
 # frozen_string_literal: true
 
-# :markup: markdown
 module ActiveRecord
   module Validations
     class LengthValidator < ActiveModel::Validations::LengthValidator # :nodoc:

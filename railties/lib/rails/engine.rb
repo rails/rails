@@ -1,6 +1,5 @@
 # frozen_string_literal: true
 
-# :markup: markdown
 require "rails/railtie"
 require "rails/engine/railties"
 require "active_support/callbacks"

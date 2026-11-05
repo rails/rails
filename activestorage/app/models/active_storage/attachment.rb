@@ -212,9 +212,10 @@ class ActiveStorage::Attachment < ActiveStorage::Record
       named_variants.each do |_variant_name, named_variant|
         next unless named_variant.process(record) == :immediately
 
-        blob.variant(named_variant.transformations).process_from_io(io)
-        io.rewind if io.respond_to?(:rewind)
+        blob.variant(named_variant.transformations).processed
       end
+
+      io.rewind if io.respond_to?(:rewind)
 
       self.immediate_variants_processed = true
     end

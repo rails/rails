@@ -1,6 +1,5 @@
 # frozen_string_literal: true
 
-# :markup: markdown
 require "rails"
 require "global_id/railtie"
 require "active_job"

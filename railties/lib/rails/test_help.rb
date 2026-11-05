@@ -1,6 +1,5 @@
 # frozen_string_literal: true
 
-# :markup: markdown
 # :enddoc:
 
 # Make double-sure the RAILS_ENV is not set to production,

@@ -1,6 +1,5 @@
 # frozen_string_literal: true
 
-# :markup: markdown
 require "active_support/core_ext/time/conversions"
 require "active_support/log_subscriber"
 require "rack/body_proxy"

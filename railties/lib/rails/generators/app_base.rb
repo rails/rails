@@ -1,6 +1,5 @@
 # frozen_string_literal: true
 
-# :markup: markdown
 require "fileutils"
 require "digest/md5"
 require "rails/version" unless defined?(Rails::VERSION)

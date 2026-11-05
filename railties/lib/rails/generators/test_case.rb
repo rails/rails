@@ -1,6 +1,5 @@
 # frozen_string_literal: true
 
-# :markup: markdown
 require "rails/generators"
 require "rails/generators/testing/behavior"
 require "rails/generators/testing/setup_and_teardown"

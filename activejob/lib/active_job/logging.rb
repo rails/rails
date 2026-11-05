@@ -1,6 +1,5 @@
 # frozen_string_literal: true
 
-# :markup: markdown
 require "active_support/tagged_logging"
 require "active_support/logger"
 

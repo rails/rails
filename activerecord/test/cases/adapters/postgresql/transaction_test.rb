@@ -73,6 +73,25 @@ module ActiveRecord
       end
     end
 
+    test "does not retry a serialization failure while the transaction is aborted" do
+      connection = Sample.lease_connection
+      attempts = 0
+
+      connection.transaction do
+        assert_raises(ActiveRecord::StatementInvalid) { connection.execute("SELECT 1/0") }
+        assert_equal ::PG::PQTRANS_INERROR, connection.instance_variable_get(:@raw_connection).transaction_status
+
+        assert_raises(ActiveRecord::SerializationFailure) do
+          connection.send(:with_raw_connection, allow_retry: true) do
+            attempts += 1
+            raise ActiveRecord::SerializationFailure, "made-up serialization failure"
+          end
+        end
+      end
+
+      assert_equal 1, attempts
+    end
+
     test "raises Deadlocked when a deadlock is encountered" do
       connections = Concurrent::Set.new
       assert_raises(ActiveRecord::Deadlocked) do

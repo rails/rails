@@ -993,6 +993,32 @@ module ActiveRecord
         assert_equal 1, budget.attempts_used
       end
 
+      test "retries a serialization failure on the same connection" do
+        connection = main_ractor_connection(@connection)
+        attempts = 0
+
+        connection.send(:with_raw_connection, allow_retry: true) do
+          attempts += 1
+          raise ActiveRecord::SerializationFailure.new("made-up serialization failure") if attempts == 1
+        end
+
+        assert_equal 2, attempts
+      end
+
+      test "does not retry a serialization failure when retries are disabled" do
+        connection = main_ractor_connection(@connection)
+        attempts = 0
+
+        assert_raises(ActiveRecord::SerializationFailure) do
+          connection.send(:with_raw_connection) do
+            attempts += 1
+            raise ActiveRecord::SerializationFailure.new("made-up serialization failure")
+          end
+        end
+
+        assert_equal 1, attempts
+      end
+
       test "can reconnect and retry queries under limit when retry deadline is set" do
         connection = main_ractor_connection(@connection)
         attempts = 0
@@ -1204,6 +1230,23 @@ if ActiveRecord::Base.lease_connection.savepoint_errors_invalidate_transactions?
       # asserting outside of the transaction to make sure we actually reach the end of the test
       # and perform the assertion
       assert @invalidated
+    end
+
+    def test_does_not_retry_a_serialization_failure_inside_a_transaction
+      @attempts = 0
+      connection = ActiveRecord::Base.lease_connection
+
+      connection.transaction do
+        connection.send(:with_raw_connection, allow_retry: true) do
+          @attempts += 1
+          raise ActiveRecord::SerializationFailure, "made-up serialization failure"
+        end
+
+      rescue ActiveRecord::SerializationFailure => error
+        flunk("Rescuing wrong error") unless error.message == "made-up serialization failure"
+      end
+
+      assert_equal 1, @attempts
     end
   end
 end

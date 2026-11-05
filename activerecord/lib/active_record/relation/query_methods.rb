@@ -279,10 +279,12 @@ module ActiveRecord
     # matching user has other additional posts.
     def includes(*args)
       check_if_method_has_arguments!(__callee__, args)
-      spawn.includes!(*args)
+      spawn._includes!(args)
     end
 
-    def includes!(*args) # :nodoc:
+    def includes!(*args) = _includes!(args) # :nodoc:
+
+    def _includes!(args) # :nodoc:
       self.includes_values |= args
       self
     end
@@ -323,10 +325,12 @@ module ActiveRecord
     # contain redundant data and it performs poorly at scale.
     def eager_load(*args)
       check_if_method_has_arguments!(__callee__, args)
-      spawn.eager_load!(*args)
+      spawn._eager_load!(args)
     end
 
-    def eager_load!(*args) # :nodoc:
+    def eager_load!(*args) = _eager_load!(args) # :nodoc:
+
+    def _eager_load!(args) # :nodoc:
       self.eager_load_values |= args
       self
     end
@@ -359,10 +363,12 @@ module ActiveRecord
     # ```
     def preload(*args)
       check_if_method_has_arguments!(__callee__, args)
-      spawn.preload!(*args)
+      spawn._preload!(args)
     end
 
-    def preload!(*args) # :nodoc:
+    def preload!(*args) = _preload!(args) # :nodoc:
+
+    def _preload!(args) # :nodoc:
       self.preload_values |= args
       self
     end
@@ -398,11 +404,13 @@ module ActiveRecord
     # ```
     def references(*table_names)
       check_if_method_has_arguments!(__callee__, table_names)
-      spawn.references!(*table_names)
+      spawn._references!(table_names)
     end
 
-    def references!(*table_names) # :nodoc:
-      self.references_values |= table_names
+    def references!(*table_names) = _references!(table_names) # :nodoc:
+
+    def _references!(table_names) # :nodoc:
+      self.references_values |= table_names unless table_names.empty?
       self
     end
 
@@ -563,12 +571,13 @@ module ActiveRecord
     def with(*args)
       raise ArgumentError, "ActiveRecord::Relation#with does not accept a block" if block_given?
       check_if_method_has_arguments!(__callee__, args)
-      spawn.with!(*args)
+      spawn._with!(process_with_args(args))
     end
 
     # Like #with, but modifies relation in place.
-    def with!(*args) # :nodoc:
-      args = process_with_args(args)
+    def with!(*args) = _with!(process_with_args(args)) # :nodoc:
+
+    def _with!(args) # :nodoc:
       self.with_values |= args
       self
     end
@@ -589,14 +598,15 @@ module ActiveRecord
     # See #with for more information.
     def with_recursive(*args)
       check_if_method_has_arguments!(__callee__, args)
-      spawn.with_recursive!(*args)
+      spawn._with_recursive!(process_with_args(args))
     end
 
     # Like #with_recursive but modifies the relation in place.
-    def with_recursive!(*args) # :nodoc:
-      args = process_with_args(args)
+    def with_recursive!(*args) = _with_recursive!(process_with_args(args)) # :nodoc:
+
+    def _with_recursive!(args) # :nodoc:
       self.with_values |= args
-      @with_is_recursive = true
+      self.with_recursive_value = true
       self
     end
 
@@ -615,11 +625,13 @@ module ActiveRecord
     def reselect(*args)
       check_if_method_has_arguments!(__callee__, args)
       args = process_select_args(args)
-      spawn.reselect!(*args)
+      spawn._reselect!(args)
     end
 
     # Same as #reselect but operates on relation in-place instead of copying.
-    def reselect!(*args) # :nodoc:
+    def reselect!(*args) = _reselect!(args) # :nodoc:
+
+    def _reselect!(args) # :nodoc:
       self.select_values = args
       self
     end
@@ -652,10 +664,12 @@ module ActiveRecord
     # ```
     def group(*args)
       check_if_method_has_arguments!(__callee__, args)
-      spawn.group!(*args)
+      spawn._group!(args)
     end
 
-    def group!(*args) # :nodoc:
+    def group!(*args) = _group!(args) # :nodoc:
+
+    def _group!(args) # :nodoc:
       self.group_values |= args
       self
     end
@@ -674,11 +688,13 @@ module ActiveRecord
     # Note that we're unscoping the entire group statement.
     def regroup(*args)
       check_if_method_has_arguments!(__callee__, args)
-      spawn.regroup!(*args)
+      spawn._regroup!(args)
     end
 
     # Same as #regroup but operates on relation in-place instead of copying.
-    def regroup!(*args) # :nodoc:
+    def regroup!(*args) = _regroup!(args) # :nodoc:
+
+    def _regroup!(args) # :nodoc:
       args.uniq!
       self.group_values = args
       self
@@ -752,12 +768,14 @@ module ActiveRecord
       check_if_method_has_arguments!(__callee__, args) do
         sanitize_order_arguments(args)
       end
-      spawn.order!(*args)
+      spawn._order!(preprocess_order_args(args))
     end
 
     # Same as #order but operates on relation in-place instead of copying.
-    def order!(*args) # :nodoc:
-      preprocess_order_args(args) unless args.empty?
+    def order!(*args) = _order!(preprocess_order_args(args)) # :nodoc:
+
+    def _order!(args) # :nodoc:
+      _references!(column_references(args))
       self.order_values |= args
       self
     end
@@ -833,9 +851,10 @@ module ActiveRecord
       model.disallow_raw_sql!([column], permit: model.adapter_class.column_name_with_order_matcher)
       return spawn.none! if values.empty?
 
-      references = column_references([column])
-      self.references_values |= references unless references.empty?
+      spawn._in_order_of!(column, values, filter)
+    end
 
+    def _in_order_of!(column, values, filter) # :nodoc:
       if column.is_a?(Arel::Nodes::SqlLiteral)
         arel_column = column
       else
@@ -853,10 +872,11 @@ module ActiveRecord
         if arel_column.is_a?(PredicateBuilder::ComparisonAttribute)
           values = comparison_values_for_in_order_of(values, arel_column)
         end
-        return spawn.none! if values.empty?
+        return none! if values.empty?
       end
 
-      scope = spawn.order!(build_case_for_value_position(arel_column, values, filter: filter))
+      _references!(column_references([arel_column]))
+      _order!([build_case_for_value_position(arel_column, values, filter: filter)])
 
       if filter
         values = values.flatten(1)
@@ -868,10 +888,10 @@ module ActiveRecord
             arel_column.in(values)
           end
 
-        scope = scope.where!(where_clause)
+        where!(where_clause)
       end
 
-      scope
+      self
     end
 
     # Replaces any existing order defined on the relation with the specified order.
@@ -891,12 +911,14 @@ module ActiveRecord
       check_if_method_has_arguments!(__callee__, args) do
         sanitize_order_arguments(args)
       end
-      spawn.reorder!(*args)
+      spawn._reorder!(preprocess_order_args(args))
     end
 
     # Same as #reorder but operates on relation in-place instead of copying.
-    def reorder!(*args) # :nodoc:
-      preprocess_order_args(args)
+    def reorder!(*args) = _reorder!(preprocess_order_args(args)) # :nodoc:
+
+    def _reorder!(args) # :nodoc:
+      _references!(column_references(args))
       args.uniq!
       self.reordering_value = true
       self.order_values = args
@@ -921,12 +943,14 @@ module ActiveRecord
       check_if_method_has_arguments!(__callee__, args) do
         sanitize_order_arguments(args)
       end
-      spawn.default_order!(*args)
+      spawn._default_order!(preprocess_order_args(args))
     end
 
     # Same as #default_order but operates on relation in-place instead of copying.
-    def default_order!(*args) # :nodoc:
-      preprocess_order_args(args)
+    def default_order!(*args) = _default_order!(preprocess_order_args(args)) # :nodoc:
+
+    def _default_order!(args) # :nodoc:
+      _references!(column_references(args))
       args.uniq!
       self.default_order_values = args
       self
@@ -942,7 +966,7 @@ module ActiveRecord
       orders
     end
 
-    VALID_UNSCOPING_VALUES = Set.new([:where, :select, :group, :order, :lock,
+    VALID_UNSCOPING_VALUES = Set.new([:where, :select, :group, :order, :default_order, :lock,
                                      :limit, :offset, :joins, :left_outer_joins, :annotate,
                                      :includes, :eager_load, :preload, :from, :readonly,
                                      :having, :optimizer_hints, :with]).freeze
@@ -992,10 +1016,12 @@ module ActiveRecord
     #
     def unscope(*args)
       check_if_method_has_arguments!(__callee__, args)
-      spawn.unscope!(*args)
+      spawn._unscope!(args)
     end
 
-    def unscope!(*args) # :nodoc:
+    def unscope!(*args) = _unscope!(args) # :nodoc:
+
+    def _unscope!(args) # :nodoc:
       self.unscope_values |= args
 
       args.each do |scope|
@@ -1007,6 +1033,7 @@ module ActiveRecord
           end
           assert_modifiable!
           @values.delete(scope)
+          @values.delete(:with_recursive) if scope == :with
         when Hash
           scope.each do |key, target_value|
             if key != :where
@@ -1082,10 +1109,12 @@ module ActiveRecord
     # ```
     def joins(*args)
       check_if_method_has_arguments!(__callee__, args)
-      spawn.joins!(*args)
+      spawn._joins!(args)
     end
 
-    def joins!(*args) # :nodoc:
+    def joins!(*args) = _joins!(args) # :nodoc:
+
+    def _joins!(args) # :nodoc:
       self.joins_values |= args
       self
     end
@@ -1099,11 +1128,13 @@ module ActiveRecord
     #
     def left_outer_joins(*args)
       check_if_method_has_arguments!(__callee__, args)
-      spawn.left_outer_joins!(*args)
+      spawn._left_outer_joins!(args)
     end
     alias :left_joins :left_outer_joins
 
-    def left_outer_joins!(*args) # :nodoc:
+    def left_outer_joins!(*args) = _left_outer_joins!(args) # :nodoc:
+
+    def _left_outer_joins!(args) # :nodoc:
       self.left_outer_joins_values |= args
       self
     end
@@ -1281,11 +1312,11 @@ module ActiveRecord
       elsif args.length == 1 && args.first.blank?
         self
       else
-        spawn.where!(*args)
+        spawn.where!(args.shift, args)
       end
     end
 
-    def where!(opts, *rest) # :nodoc:
+    def where!(opts, rest = FROZEN_EMPTY_ARRAY) # :nodoc:
       self.where_clause += build_where_clause(opts, rest)
       self
     end
@@ -1462,10 +1493,10 @@ module ActiveRecord
     # Order.having('SUM(price) > 30').group('user_id')
     # ```
     def having(opts, *rest)
-      opts.blank? ? self : spawn.having!(opts, *rest)
+      opts.blank? ? self : spawn.having!(opts, rest)
     end
 
-    def having!(opts, *rest) # :nodoc:
+    def having!(opts, rest = FROZEN_EMPTY_ARRAY) # :nodoc:
       self.having_clause += build_having_clause(opts, rest)
       self
     end
@@ -1762,13 +1793,15 @@ module ActiveRecord
     # ```
     def extending(*modules, &block)
       if modules.any? || block
-        spawn.extending!(*modules, &block)
+        spawn._extending!(modules, &block)
       else
         self
       end
     end
 
-    def extending!(*modules, &block) # :nodoc:
+    def extending!(*modules, &block) = _extending!(modules, &block) # :nodoc:
+
+    def _extending!(modules, &block) # :nodoc:
       return self if modules.empty? && !block
 
       modules << Module.new(&block) if block
@@ -1797,10 +1830,12 @@ module ActiveRecord
     # ```
     def optimizer_hints(*args)
       check_if_method_has_arguments!(__callee__, args)
-      spawn.optimizer_hints!(*args)
+      spawn._optimizer_hints!(args)
     end
 
-    def optimizer_hints!(*args) # :nodoc:
+    def optimizer_hints!(*args) = _optimizer_hints!(args) # :nodoc:
+
+    def _optimizer_hints!(args) # :nodoc:
       self.optimizer_hints_values |= args
       self
     end
@@ -1851,11 +1886,13 @@ module ActiveRecord
     # Some escaping is performed, however untrusted user input should not be used.
     def annotate(*args)
       check_if_method_has_arguments!(__callee__, args)
-      spawn.annotate!(*args)
+      spawn._annotate!(args)
     end
 
     # Like #annotate, but modifies relation in place.
-    def annotate!(*args) # :nodoc:
+    def annotate!(*args) = _annotate!(args) # :nodoc:
+
+    def _annotate!(args) # :nodoc:
       self.annotate_values |= args
       self
     end
@@ -1943,7 +1980,7 @@ module ActiveRecord
         end
       end
 
-      def build_where_clause(opts, rest = []) # :nodoc:
+      def build_where_clause(opts, rest = FROZEN_EMPTY_ARRAY) # :nodoc:
         opts = sanitize_forbidden_attributes(opts)
 
         if opts.is_a?(Array)
@@ -2210,7 +2247,7 @@ module ActiveRecord
         elsif model.ignored_columns.any? || model.enumerate_columns_in_select_statements || model.only_columns.any?
           arel.project(*model.column_names.map { |field| table[field] })
         else
-          arel.project(table[Arel.star])
+          arel.projections << table[Arel.star]
         end
       end
 
@@ -2221,7 +2258,7 @@ module ActiveRecord
           build_with_value_from_hash(with_value)
         end
 
-        @with_is_recursive ? arel.with(:recursive, with_statements) : arel.with(with_statements)
+        with_recursive_value ? arel.with(:recursive, with_statements) : arel.with(with_statements)
       end
 
       def build_with_value_from_hash(hash)
@@ -2280,8 +2317,8 @@ module ActiveRecord
         end
       end
 
-      def arel_column_with_table(table_name, column_name)
-        self.references_values |= [Arel.sql(table_name, retryable: true)]
+      def arel_column_with_table(table_name, column_name, references: true)
+        self.references_values |= [Arel.sql(table_name, retryable: true)] if references
 
         if column_name.is_a?(Symbol) || !column_name.match?(/\W/)
           predicate_builder.resolve_arel_attribute(table_name, column_name) do
@@ -2292,7 +2329,7 @@ module ActiveRecord
         end
       end
 
-      def arel_column(field)
+      def arel_column(field, references: true)
         field = field.name if is_symbol = field.is_a?(Symbol)
 
         field = model.attribute_aliases[field] || field
@@ -2301,7 +2338,7 @@ module ActiveRecord
         if model.columns_hash.key?(field) && (!from || table_name_matches?(from))
           table[field]
         elsif /\A(?<table>(?:\w+\.)?\w+)\.(?<column>\w+)\z/ =~ field
-          arel_column_with_table(table, column)
+          arel_column_with_table(table, column, references: references)
         elsif block_given?
           yield field
         elsif Arel.arel_node?(field)
@@ -2400,9 +2437,6 @@ module ActiveRecord
 
         validate_order_args(order_args)
 
-        references = column_references(order_args)
-        self.references_values |= references unless references.empty?
-
         # if a symbol is given we prepend the quoted table name
         order_args.map! do |arg|
           case arg
@@ -2427,6 +2461,8 @@ module ActiveRecord
             arg
           end
         end.flatten!
+
+        order_args
       end
 
       def sanitize_order_arguments(order_args)
@@ -2435,29 +2471,26 @@ module ActiveRecord
         end
       end
 
-      def column_references(order_args)
-        order_args.flat_map do |arg|
-          case arg
-          when String, Symbol
-            extract_table_name_from(arg)
-          when Hash
-            arg
-              .map do |key, value|
-                case value
-                when Hash
-                  key.to_s
-                else
-                  extract_table_name_from(key) if key.is_a?(String) || key.is_a?(Symbol)
-                end
-              end
-          when Arel::Attribute
-            arg.relation.name
-          when Arel::Nodes::Ordering
-            if arg.expr.is_a?(Arel::Attribute)
-              arg.expr.relation.name
+      def column_references(columns)
+        references = nil
+
+        columns.each do |column|
+          column = column.expr if column.is_a?(Arel::Nodes::Ordering)
+
+          table_name =
+            case column
+            when Arel::Attribute
+              column.relation.name unless column.relation == table
+            when String
+              extract_table_name_from(column)
             end
+
+          if table_name
+            (references ||= []) << Arel.sql(table_name, retryable: true)
           end
-        end.filter_map { |ref| Arel.sql(ref, retryable: true) if ref }
+        end
+
+        references || FROZEN_EMPTY_ARRAY
       end
 
       def extract_table_name_from(string)
@@ -2465,7 +2498,7 @@ module ActiveRecord
       end
 
       def order_column(field)
-        column = arel_column(field) do |attr_name|
+        column = arel_column(field, references: false) do |attr_name|
           if attr_name == "count" && !group_values.empty?
             table[attr_name]
           else
@@ -2661,7 +2694,8 @@ module ActiveRecord
 
         # `and`/`or` are focused to combine where-like clauses, so it relaxes
         # the difference when other's multi values are uninitialized.
-        return false if v1.is_a?(Array) && v2.nil?
+        # Likewise, `with_recursive` is relaxed when other's CTEs are not recursive.
+        return false if (v1.is_a?(Array) || method == :with_recursive) && v2.nil?
 
         !(v1 == v2)
       end

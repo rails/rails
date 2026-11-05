@@ -1,6 +1,5 @@
 # frozen_string_literal: true
 
-# :markup: markdown
 require "rails/generators/test_unit"
 require "rails/generators/resource_helpers"
 

@@ -1,6 +1,5 @@
 # frozen_string_literal: true
 
-# :markup: markdown
 module Rails
   # Implements the logic behind `Rails::Command::NotesCommand`. See `rails notes --help` for usage information.
   #

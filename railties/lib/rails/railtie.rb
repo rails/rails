@@ -1,6 +1,5 @@
 # frozen_string_literal: true
 
-# :markup: markdown
 require "active_support/rails"
 require "rails/initializable"
 require "active_support/descendants_tracker"

@@ -1291,14 +1291,14 @@ class EagerAssociationTest < ActiveRecord::TestCase
 
   def test_preload_has_many_through_with_source_type_ignores_other_types_in_loaded_through_records
     tag = tags(:general)
-    expected = tag.tagged_posts.to_a
+    expected = tag.tagged_posts.sort_by(&:id)
     assert tag.taggings.any? { |tagging| tagging.taggable_type == "FakeModel" }
 
     tag_with_preloads = assert_queries_count(3) do
       Tag.preload(:taggings, :tagged_posts).find(tag.id)
     end
     assert_no_queries do
-      assert_equal expected, tag_with_preloads.tagged_posts
+      assert_equal expected, tag_with_preloads.tagged_posts.sort_by(&:id)
     end
   end
 

@@ -234,9 +234,9 @@ module ActionDispatch
                 format = inner_options && inner_options[:format]
                 path = optimized_helper(args, format)
                 if path.nil?
-                  # With options, a missing argument raises the general path's error,
-                  # as does any argument that fails a requirement.
-                  return super if inner_options || @requirements
+                  # With options or default URL options, the general path handles a
+                  # missing argument, as it does any argument that fails a requirement.
+                  return super if inner_options || @requirements || default_url_options?(t)
                   raise_generation_error(args)
                 end
                 merge_url_and_query_options!(options, inner_options) if inner_options && !sole_format?(inner_options)

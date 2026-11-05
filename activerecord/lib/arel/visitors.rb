@@ -1,6 +1,5 @@
 # frozen_string_literal: true
 
-# :markup: markdown
 require "arel/visitors/visitor"
 require "arel/visitors/to_sql"
 require "arel/visitors/sqlite"

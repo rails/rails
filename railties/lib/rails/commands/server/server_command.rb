@@ -1,6 +1,5 @@
 # frozen_string_literal: true
 
-# :markup: markdown
 require "fileutils"
 require "action_dispatch"
 require "rails"

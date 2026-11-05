@@ -219,6 +219,14 @@ class ActiveRecord::Relation
       assert_equal expected, where_clause.ast
     end
 
+    test "ast of a single predicate" do
+      predicate = table["id"].in([1, 2, 3])
+
+      assert_same predicate, WhereClause.new([predicate]).ast
+      assert_equal Arel::Nodes::Grouping.new(Arel.sql("foo = bar")), WhereClause.new([Arel.sql("foo = bar")]).ast
+      assert_equal Arel::Nodes::And.new([]), WhereClause.new([""]).ast
+    end
+
     test "ast removes any empty strings" do
       where_clause = WhereClause.new([table["id"].in([1, 2, 3])])
       where_clause_with_empty = WhereClause.new([table["id"].in([1, 2, 3]), Arel.sql("")])

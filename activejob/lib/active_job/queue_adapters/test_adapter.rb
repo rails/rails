@@ -1,6 +1,5 @@
 # frozen_string_literal: true
 
-# :markup: markdown
 module ActiveJob
   module QueueAdapters
     # Test adapter for Active Job

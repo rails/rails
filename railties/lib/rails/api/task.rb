@@ -1,6 +1,5 @@
 # frozen_string_literal: true
 
-# :markup: markdown
 require "rdoc/task"
 require "rails/api/generator"
 
