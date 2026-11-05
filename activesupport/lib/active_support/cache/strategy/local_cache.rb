@@ -67,7 +67,7 @@ module ActiveSupport
 
         def initialize(...)
           super
-          @local_cache_key = "#{self.class.name.underscore}_local_cache_#{object_id}".gsub(/[\/-]/, "_").to_sym
+          @local_cache_key = "#{self.class.name.to_s.underscore}_local_cache_#{object_id}".gsub(/[\/-]/, "_").to_sym
         end
 
         # Use a local cache for the duration of block.
