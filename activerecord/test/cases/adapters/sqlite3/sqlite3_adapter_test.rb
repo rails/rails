@@ -527,7 +527,7 @@ module ActiveRecord
             WITH master AS (
               SELECT name, type, sql FROM sqlite_master
               WHERE type NOT IN ('table', 'view')
-                OR name NOT IN (SELECT name FROM sqlite_temp_master WHERE type IN ('table', 'view'))
+                OR name COLLATE NOCASE NOT IN (SELECT name FROM sqlite_temp_master WHERE type IN ('table', 'view'))
               UNION ALL
               SELECT name, type, sql FROM sqlite_temp_master
             )
@@ -536,7 +536,7 @@ module ActiveRecord
             FROM master m
             JOIN pragma_table_xinfo(m.name) t
             WHERE m.type IN ('table', 'view')
-              AND m.name IN ('ex')
+              AND m.name COLLATE NOCASE IN ('ex')
             ORDER BY m.name, t.cid
           SQL
           modified_insert_query = [(sql + ' RETURNING "id"'), name, []]
@@ -687,6 +687,75 @@ module ActiveRecord
         end
       end
 
+      def test_schema_readers_find_a_table_by_any_ascii_case_of_its_name
+        with_example_table <<~SQL, "Widgets" do
+          id integer PRIMARY KEY,
+          number integer,
+          FOREIGN KEY (number) REFERENCES "Widgets"(id)
+        SQL
+          @conn.add_index "Widgets", :number
+          @conn.execute 'CREATE VIEW "WidgetsView" AS SELECT id FROM "Widgets"'
+
+          assert_equal %w[ id number ], @conn.columns("widgets").map(&:name)
+          assert_equal "id", @conn.primary_key("widgets")
+          assert_equal ["index_Widgets_on_number"], @conn.indexes("widgets").map(&:name)
+          assert_equal [["number", "Widgets"]], @conn.foreign_keys("widgets").map { |fk| [fk.column, fk.to_table] }
+          assert_equal %w[ id ], @conn.columns("widgetsview").map(&:name)
+          assert_equal({ "Widgets" => %w[ id number ], "widgets" => %w[ id number ] },
+            @conn.columns(["Widgets", "widgets"]).transform_values { |columns| columns.map(&:name) })
+        ensure
+          @conn.execute 'DROP VIEW IF EXISTS "WidgetsView"'
+        end
+      end
+
+      def test_schema_readers_tell_apart_tables_whose_names_differ_in_non_ascii_case
+        with_example_table "id integer PRIMARY KEY, upper integer", "Ärger" do
+          with_example_table "id integer PRIMARY KEY, lower integer", "ärger" do
+            assert_equal({ "Ärger" => %w[ id upper ], "ärger" => %w[ id lower ] },
+              @conn.columns(["Ärger", "ärger"]).transform_values { |columns| columns.map(&:name) })
+          end
+        end
+      end
+
+      def test_schema_readers_do_not_let_a_temporary_table_hide_one_whose_name_differs_in_non_ascii_case
+        with_example_table "id integer PRIMARY KEY, upper integer", "Ärger" do
+          @conn.execute "CREATE TEMP TABLE ärger (id integer PRIMARY KEY, lower integer)"
+
+          assert_equal({ "Ärger" => %w[ id upper ], "ärger" => %w[ id lower ] },
+            @conn.columns(["Ärger", "ärger"]).transform_values { |columns| columns.map(&:name) })
+        ensure
+          @conn.execute "DROP TABLE IF EXISTS temp.ärger"
+        end
+      end
+
+      def test_schema_readers_read_a_temporary_table_that_hides_a_permanent_one_of_another_ascii_case
+        [["Widgets", "widgets"], ["widgets", "Widgets"]].each do |permanent, temporary|
+          with_example_table %(id integer PRIMARY KEY, permanent integer, CONSTRAINT "permanent_fk" FOREIGN KEY ("permanent") REFERENCES "#{permanent}" ("id")), permanent do
+            @conn.add_index permanent, :permanent
+            @conn.execute %(CREATE TEMP TABLE "#{temporary}" ("temp_id" integer PRIMARY KEY, "temporary" text COLLATE "NOCASE", CONSTRAINT "temporary_fk" FOREIGN KEY ("temporary") REFERENCES "targets" ("id")))
+            @conn.execute %(CREATE INDEX temp.temp_idx ON "#{temporary}" (temporary))
+
+            names = [permanent, temporary]
+            columns = @conn.columns(names)
+            primary_keys = @conn.primary_keys(names)
+            indexes = @conn.indexes(names)
+            foreign_keys = @conn.foreign_keys(names)
+
+            names.each do |name|
+              assert_equal %w[ temp_id temporary ], columns[name].map(&:name)
+              # Check that metadata comes from the temporary CREATE statement.
+              assert_equal "NOCASE", columns[name].last.collation
+              assert_equal %w[ temp_id ], primary_keys[name]
+              assert_equal %w[ temp_idx ], indexes[name].map(&:name)
+              assert_equal [["temporary", "targets", "temporary_fk"]],
+                foreign_keys[name].map { |fk| [fk.column, fk.to_table, fk.name] }
+            end
+          ensure
+            @conn.execute %(DROP TABLE IF EXISTS temp."#{temporary}")
+          end
+        end
+      end
+
       def test_add_column_with_not_null
         with_example_table "id integer PRIMARY KEY AUTOINCREMENT, number integer not null" do
           assert_nothing_raised { @conn.add_column :ex, :name, :string, null: false }
@@ -716,7 +785,7 @@ module ActiveRecord
             WITH master AS (
               SELECT name, type, sql FROM sqlite_master
               WHERE type NOT IN ('table', 'view')
-                OR name NOT IN (SELECT name FROM sqlite_temp_master WHERE type IN ('table', 'view'))
+                OR name COLLATE NOCASE NOT IN (SELECT name FROM sqlite_temp_master WHERE type IN ('table', 'view'))
               UNION ALL
               SELECT name, type, sql FROM sqlite_temp_master
             )
@@ -724,7 +793,7 @@ module ActiveRecord
             FROM master m
             JOIN pragma_index_list(m.name) i
             WHERE m.type = 'table'
-              AND m.name IN ('ex')
+              AND m.name COLLATE NOCASE IN ('ex')
               AND i.name NOT GLOB 'sqlite_*'
           SQL
 
