@@ -272,7 +272,24 @@ module ActionView
           Encountered a syntax error while rendering template: check #{@offending_code_string}
         MESSAGE
       else
-        "Encountered a syntax error while rendering template located at: #{template.short_identifier}"
+        message = "Encountered a syntax error while rendering template located at: #{template.short_identifier}"
+        message += ". Ruby only noticed it at the end of the template, so look earlier for an unclosed expression or a stray <% end %>" if reported_outside_template?
+        message
+      end
+    end
+
+    def line_number
+      line = super
+      line && line_in_template(line.to_i).to_s
+    end
+
+    def backtrace_locations
+      super&.map do |location|
+        if syntax_error_location?(location)
+          ActiveSupport::SyntaxErrorProxy::BacktraceLocation.new(location.path, line_in_template(location.lineno), location.to_s)
+        else
+          location
+        end
       end
     end
 
@@ -282,5 +299,26 @@ module ActionView
         "#{index}:#{indentation}#{line}"
       }
     end
+
+    private
+      # Ruby can reach the end of a template without finding the mistake, as with
+      # <%= foo( %> or a stray <% end %>. It then reports a line of the method
+      # compiled around the template, which doesn't exist in the template itself.
+      def line_in_template(line)
+        line.clamp(1, last_template_line)
+      end
+
+      def last_template_line
+        [template.encode!.lines.size, 1].max
+      end
+
+      def reported_outside_template?
+        location = @cause.backtrace_locations&.first
+        syntax_error_location?(location) && !location.lineno.between?(1, last_template_line)
+      end
+
+      def syntax_error_location?(location)
+        location.is_a?(ActiveSupport::SyntaxErrorProxy::BacktraceLocation) && location.path == file_name
+      end
   end
 end
