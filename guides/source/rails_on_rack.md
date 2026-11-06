@@ -407,7 +407,7 @@ The unique request id can be used to trace a request end-to-end and would typica
 
 #### `Rack::ConditionalGet`
 
-[`Rack::ConditionalGet`][] enables "Conditional `GET`" requests using if-none-match and if-modified-since. If the requested page wasn't changed returns a 304 Not Modified and an empty body.
+[`Rack::ConditionalGet`][] enables "Conditional `GET`" requests using if-none-match and if-modified-since. If the requested page wasn't changed, it returns a 304 Not Modified and an empty body.
 
 [`Rack::ConditionalGet`]: https://rack.github.io/rack/3.2/Rack/ConditionalGet.html
 

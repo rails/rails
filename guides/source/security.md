@@ -97,7 +97,7 @@ $ bin/rails db:migrate
 
 Then, if you visit `/session/new` in your browser (you will see this route has
 been added in `routes.rb`), you'll see a form that accepts an email and a
-password with "sign in" button. This form routes to the `SessionsController`
+password with a "sign in" button. This form routes to the `SessionsController`
 which was added by the generator. If you provide an email/password for a user
 that exists in the database, you will be able to successfully authenticate with
 those credentials and log in to the application.
@@ -572,7 +572,7 @@ security token doesn't match what was expected, an exception will be thrown.
 
 When submitting forms with [Turbo](https://turbo.hotwired.dev/) the security
 token is required as well. Turbo looks for the token in the `csrf` meta tags of
-your application layout and adds it to request in the `X-CSRF-Token` request
+your application layout and adds it to the request in the `X-CSRF-Token` request
 header. These meta tags are created with the [`csrf_meta_tags`][] helper
 method:
 
@@ -962,7 +962,7 @@ SELECT * FROM projects WHERE (name = '') UNION
   SELECT id,login AS name,password AS description,1,1,1 FROM users --'
 ```
 
-The result won't be a list of projects (because there is no project with an empty name), but a list of usernames and their password. So hopefully you [securely hashed the passwords](#user-management) in the database! The only problem for the attacker is, that the number of columns has to be the same in both queries. That's why the second query includes a list of ones (1), which will be always the value 1, in order to match the number of columns in the first query.
+The result won't be a list of projects (because there is no project with an empty name), but a list of usernames and their passwords. So hopefully you [securely hashed the passwords](#user-management) in the database! The only problem for the attacker is, that the number of columns has to be the same in both queries. That's why the second query includes a list of ones (1), which will be always the value 1, in order to match the number of columns in the first query.
 
 Also, the second query renames some columns with the AS statement so that the
 Web application displays the values from the user table.
@@ -1007,7 +1007,7 @@ INFO: _The most widespread, and one of the most devastating security vulnerabili
 
 An entry point is a vulnerable URL and its parameters where an attacker can start an attack.
 
-The most common entry points are message posts, user comments, and guest books, but project titles, document names, and search result pages have also been vulnerable - just about everywhere where the user can input data. But the input does not necessarily have to come from input boxes on websites, it can be in any URL parameter - obvious, hidden or internal. Remember that the user may intercept any traffic. Applications or client-site proxies make it easy to change requests. There are also other attack vectors like banner advertisements.
+The most common entry points are message posts, user comments, and guest books, but project titles, document names, and search result pages have also been vulnerable - just about everywhere where the user can input data. But the input does not necessarily have to come from input boxes on websites, it can be in any URL parameter - obvious, hidden or internal. Remember that the user may intercept any traffic. Applications or client-side proxies make it easy to change requests. There are also other attack vectors like banner advertisements.
 
 XSS attacks work like this: An attacker injects some code, the web application saves it and displays it on a page, later presented to a victim. Most XSS examples simply display an alert box, but it is more powerful than that. XSS can steal the cookie, hijack the session, redirect the victim to a fake website, display advertisements for the benefit of the attacker, change elements on the website to get confidential information or install malicious software through security holes in the web browser.
 
