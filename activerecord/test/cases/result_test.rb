@@ -167,6 +167,33 @@ module ActiveRecord
       end
     end
 
+    test "column_types_except returns the types of the other columns by name" do
+      integer = Type::Integer.new
+      float = Type::Float.new
+      result = Result.new(["id", "score", "rank"], [[1, 2.5, 3]], [integer, float, nil])
+
+      types = result.column_types_except("id" => integer)
+
+      assert_equal ["score", "rank"], types.keys
+      assert_same float, types["score"]
+      assert_same Type.default_value, types["rank"]
+    end
+
+    test "column_types_except keeps the type of the last column with a name" do
+      integer = Type::Integer.new
+      float = Type::Float.new
+      result = Result.new(["id", "id"], [[1, 2.5]], [integer, float])
+
+      assert_equal({ "id" => float }, result.column_types_except({}))
+    end
+
+    test "column_types_except is empty when every column is known or there are no types" do
+      types = { "col1" => Type::Integer.new }
+
+      assert_empty Result.new(["col1"], [[1]], [Type::Integer.new]).column_types_except(types)
+      assert_empty Result.new(["col1", "col2"], [[1, 2]]).column_types_except(types)
+    end
+
     test "shuffle_rows returns a copy with the rows reordered" do
       rows = 10.times.map { |i| ["row #{i}"] }
       result = ActiveRecord::Result.new(["col_1"], rows.map(&:dup))

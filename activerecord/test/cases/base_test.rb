@@ -1742,6 +1742,13 @@ class BasicsTest < ActiveRecord::TestCase
     assert_equal "t.lo", topic.author_name
   end
 
+  def test_loading_casts_selected_columns_unknown_to_the_model_with_the_result_types
+    topic = Topic.select("topics.*, topics.written_on AS written_copy").order(:id).first
+
+    assert_kind_of Time, topic.written_copy
+    assert_equal topic.written_on, topic.written_copy
+  end
+
   if current_adapter?(:PostgreSQLAdapter)
     def test_column_types_on_queries_on_postgresql
       result = ActiveRecord::Base.lease_connection.exec_query("SELECT 1 AS test")
