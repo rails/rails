@@ -1,3 +1,11 @@
+*   Fix `/rails/info/notes` raising `Encoding::CompatibilityError` when notes
+    from Ruby and non-Ruby files contain non-ASCII characters.
+
+    Notes extracted from files such as ERB, YAML, JS or CSS are now UTF-8
+    like the ones extracted from Ruby files, with invalid bytes replaced.
+
+    *alexandre184*
+
 *   Fix `bin/rails test -n ClassName#test_name` running no tests.
 
     This has been broken since Rails 7.1. It also made isolated tests fail on
