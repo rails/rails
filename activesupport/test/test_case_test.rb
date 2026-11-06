@@ -29,8 +29,14 @@ class AssertionsTest < ActiveSupport::TestCase
   end
 
   def test_assert_not_pattern
+    skip "Patterns require minitest 5.18 or newer" unless respond_to?(:refute_pattern)
+
     assert_pattern { { a: true } => { a: true } }
     assert_not_pattern { { a: true } => { a: false } }
+
+    assert_raises(Minitest::Assertion) do
+      assert_not_pattern { { a: true } => { a: true } }
+    end
   end
 
   def test_assert_raises_with_match_pass
