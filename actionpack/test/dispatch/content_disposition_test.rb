@@ -51,5 +51,41 @@ module ActionDispatch
     test ".format without filename" do
       assert_equal "inline", Http::ContentDisposition.format(disposition: :inline, filename: nil)
     end
+
+    test "strips CRLF injection from disposition" do
+      disposition = Http::ContentDisposition.new(
+        disposition: "attachment\r\nX-Evil: 1",
+        filename: "report.pdf"
+      )
+
+      assert_equal "attachment", disposition.disposition
+      assert_no_match(/[\r\n]/, disposition.to_s)
+      assert_equal "attachment; #{disposition.ascii_filename}; #{disposition.utf8_filename}", disposition.to_s
+    end
+
+    test "strips quotes and truncates at first non-token character" do
+      disposition = Http::ContentDisposition.new(
+        disposition: %(attachment"; filename="evil),
+        filename: "report.pdf"
+      )
+
+      assert_equal "attachment", disposition.disposition
+    end
+
+    test "falls back to attachment when disposition has no token characters" do
+      disposition = Http::ContentDisposition.new(disposition: "\r\n\"\\", filename: nil)
+
+      assert_equal "attachment", disposition.to_s
+    end
+
+    test ".format sanitizes disposition with CRLF" do
+      header = Http::ContentDisposition.format(
+        disposition: "inline\r\nSet-Cookie: a=b",
+        filename: "a.txt"
+      )
+
+      assert_no_match(/[\r\n]/, header)
+      assert_match(/\Ainline; /, header)
+    end
   end
 end
