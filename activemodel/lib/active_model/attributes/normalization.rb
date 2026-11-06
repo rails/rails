@@ -185,6 +185,10 @@ module ActiveModel
             ActiveModel::Type::SerializeCastValue.serialize(cast_type, value)
           end
 
+          def freezable_default?(value)
+            !cast_type.respond_to?(:freezable_default?) || cast_type.freezable_default?(value)
+          end
+
           def ==(other)
             self.class == other.class &&
               normalize_nil? == other.normalize_nil? &&

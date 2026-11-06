@@ -339,6 +339,25 @@ module ActiveModel
       end
     end
 
+    test "an attribute with a Type::Value type is freezable" do
+      assert_predicate Attribute.from_database(:foo, "b", Type::Value.new), :freezable?
+    end
+
+    test "an attribute with a type that doesn't inherit Type::Value is freezable" do
+      type = Object.new
+      def type.deserialize(value) = value
+
+      assert_predicate Attribute.from_database(:foo, "b", type), :freezable?
+    end
+
+    test "an attribute with a mutable type is freezable only with a nil default" do
+      type = Class.new(Type::Value) { include Type::Helpers::Mutable }.new
+
+      assert_predicate Attribute.from_database(:foo, nil, type), :freezable?
+      assert_not_predicate Attribute.from_database(:foo, "b", type), :freezable?
+      assert_not_predicate Attribute.from_database(:foo, "b", DelegateClass(Type::Value).new(type)), :freezable?
+    end
+
     test "with_type preserves mutations" do
       attribute = Attribute.from_database(:foo, +"", Type::Value.new)
       attribute.value << "1"

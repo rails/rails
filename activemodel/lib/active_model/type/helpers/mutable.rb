@@ -18,6 +18,10 @@ module ActiveModel
         def mutable? # :nodoc:
           true
         end
+
+        def freezable_default?(value)
+          value.nil?
+        end
       end
     end
   end
