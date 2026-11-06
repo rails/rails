@@ -31,6 +31,16 @@ module ActiveRecord
               @value = value
             end
 
+            # Lets ActiveSupport::MessagePack::CacheSerializer dump records with
+            # attributes of this type. They load as the String the database returns.
+            def self.from_msgpack_ext(value)
+              value
+            end
+
+            def to_msgpack_ext
+              to_s
+            end
+
             def to_s
               value
             end
