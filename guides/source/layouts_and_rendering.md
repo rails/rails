@@ -373,11 +373,11 @@ can be disabled using `layout: false`:
 render file: "#{Rails.root}/public/404.html", layout: false
 ```
 
-NOTE: The layout that a static file is inserted into can written using a
+NOTE: The layout that a static file is inserted into can be written using a
 templating language like ERB. However, the file supplied to the `file:` option
 must be static. It will not be processed through a templating engine.
 
-WARNING: Using the `:file` option in combination with users input can lead to
+WARNING: Using the `:file` option in combination with user input can lead to
 security problems since an attacker could use this action to access security
 sensitive files on your file system.
 
@@ -786,7 +786,7 @@ render formats: :json
 
 An array can be passed to define fallbacks if the template for a given format
 doesn't exist. The below example will attempt to render the JSON template, but
-fallback to XML if it doesn't exist.
+fall back to XML if it doesn't exist.
 
 ```ruby
 render formats: [:json, :xml]
@@ -1106,7 +1106,7 @@ class ProductsController < ApplicationController
 end
 ```
 
-Now, if the current user is a administrator, they'll get the admin-specific
+Now, if the current user is an administrator, they'll get the admin-specific
 layout when viewing a product.
 
 You can also invoke `layout` with a

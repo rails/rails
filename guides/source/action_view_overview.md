@@ -245,7 +245,7 @@ method within the view:
 
 This will look for a file named `_product.html.erb` in the same folder to render
 within that view. If no such file exists, Rails will look for it under the
-`app/view/application/` folder. This makes `app/views/application/` a great
+`app/views/application/` folder. This makes `app/views/application/` a great
 place for your shared partials.
 
 NOTE: Rails doesn't automatically create `app/views/application/`. You'll
@@ -253,7 +253,7 @@ need to create this folder yourself.
 
 NOTE: Refer to the
 [Layouts and Rendering guide](layouts_and_rendering.html#template-lookup-hierarchy)
-for further information on the lookup hierarchy of partials and template.
+for further information on the lookup hierarchy of partials and templates.
 
 Partial file names start with leading underscore character by
 convention. The file name distinguishes partials from regular views. However, no
@@ -792,7 +792,7 @@ example, rendering actions from the `ProductsController` class will use
 
 Rails will use `app/views/layouts/application.html.erb` if a controller-specific layout does not exist.
 
-Here is an example of a basic layout in `application.html.erb` file:
+Here is an example of a basic layout in the `application.html.erb` file:
 
 ```html+erb
 <!DOCTYPE html>
@@ -941,7 +941,7 @@ slot was provided:
 ```
 
 This example is functionally equivalent to the previous one where we
-used `yield :head`.
+used `yield :header`.
 
 TIP: The `content_for` method is very helpful when your layout contains
 distinct regions such as sidebars and footers that should get their own
