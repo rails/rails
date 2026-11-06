@@ -37,6 +37,12 @@ class ActionCable::Connection::SubscriptionsTest < ActionCable::TestCase
     end
   end
 
+  class FailToSubscribeChannel < ActionCable::Channel::Base
+    def subscribed
+      raise ChatChannelError.new("Uh Oh")
+    end
+  end
+
   setup do
     @server = TestServer.new
     @chat_identifier = ActiveSupport::JSON.encode(id: 1, channel: "ActionCable::Connection::SubscriptionsTest::ChatChannel")
@@ -94,6 +100,24 @@ class ActionCable::Connection::SubscriptionsTest < ActionCable::TestCase
     end
 
     assert_equal 1, @subscriptions.identifiers.size
+  end
+
+  test "subscribe command does not leave a slot when subscribe_to_channel raises" do
+    setup_connection
+
+    identifier = ActiveSupport::JSON.encode(id: 1, channel: "ActionCable::Connection::SubscriptionsTest::FailToSubscribeChannel")
+    subscribe = -> { @subscriptions.execute_command "command" => "subscribe", "identifier" => identifier }
+
+    # `add` inserts the slot, then `subscribe_to_channel` runs `subscribed`,
+    # which raises. The half-initialized subscription must not be left behind...
+    assert_raises(ChatChannelError) { subscribe.call }
+    assert_empty @subscriptions.identifiers
+
+    # ...otherwise the slot stays "poisoned": the same identifier could never be
+    # subscribed again, every retry being rejected with AlreadySubscribedError.
+    # Here the retry instead reaches the channel again (raising ChatChannelError),
+    # proving the slot was freed.
+    assert_raises(ChatChannelError) { subscribe.call }
   end
 
   test "unsubscribe command" do
