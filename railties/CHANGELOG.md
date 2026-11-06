@@ -1,3 +1,11 @@
+*   Add composable selectors and output formats to `bin/rails routes`.
+
+    Use `--search` for literal metadata search, `--recognize` for request-path recognition, or `--name`, `--path`, `--controller`, `--action`, and `--verb` to select individual fields. Selectors compose with AND semantics and support explicit `--regex` and `--exact` matching. `--format` (`-f`) now supports table, expanded, JSON, and TSV output.
+
+    Existing `--grep`, `--controller`, and `--expanded` commands remain supported.
+
+    *Ben Moskovitz*
+
 *   Fix `bin/rails test -n ClassName#test_name` running no tests.
 
     This has been broken since Rails 7.1. It also made isolated tests fail on
