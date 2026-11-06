@@ -320,45 +320,171 @@ module ActiveSupport::Cache::DeprecatedRedisCacheStoreTests
   class ConnectionPoolBehaviorTest < StoreTest
     include ConnectionPoolBehavior
 
-    def test_pool_options_work
-      cache = ActiveSupport::Cache.lookup_store(:deprecated_redis_cache_store, pool: { size: 2, timeout: 1 })
-      pool = cache.redis # loads 'connection_pool' gem
-      assert_kind_of ::ConnectionPool, pool
-      assert_equal 2, pool.size
-      assert_equal 1, pool.instance_variable_get(:@timeout)
+    class GenericRedisPool
+      class Error < RuntimeError; end
+      class TimeoutError < Timeout::Error; end
+
+      attr_writer :error
+
+      def initialize(connection)
+        @connection = connection
+      end
+
+      def with(**)
+        raise @error if @error
+
+        yield @connection
+      end
+
+      def checkout(**)
+        raise @error if @error
+
+        @connection
+      end
+
+      def checkin(*)
+      end
     end
 
-    def test_connection_pooling_by_default
-      cache = ActiveSupport::Cache.lookup_store(:deprecated_redis_cache_store)
+    class GenericRedisPoolWrapper
+      def initialize(pool)
+        @pool = pool
+      end
+
+      def wrapped_pool
+        @pool
+      end
+
+      def with(**, &block)
+        @pool.with(**, &block)
+      end
+    end
+
+    def test_pool_exhaustion_returns_a_miss_and_recovers
+      cache = ActiveSupport::Cache::DeprecatedRedisCacheStore.new(
+        namespace: @namespace,
+        pool: { size: 1, timeout: 0 },
+      )
+      cache.write("pool-key", "pool-value")
       pool = cache.redis
-      assert_kind_of ::ConnectionPool, pool
-      assert_equal 5, pool.size
-      assert_equal 5, pool.instance_variable_get(:@timeout)
+      ready = Queue.new
+      release = Queue.new
+
+      holder = Thread.new do
+        pool.with do
+          ready << true
+          release.pop
+        end
+      end
+
+      ready.pop
+      assert_nil cache.read("pool-key")
+      release << true
+      holder.join
+      assert_equal "pool-value", cache.read("pool-key")
+    ensure
+      release << true if release && holder&.alive?
+      holder&.join
+      pool&.shutdown(&:close)
     end
 
-    def test_no_connection_pooling_by_default_when_already_a_pool
-      redis = ::ConnectionPool.new(size: 10, timeout: 2.5) { Redis.new }
-      cache = ActiveSupport::Cache.lookup_store(:deprecated_redis_cache_store, redis: redis)
-      pool = cache.redis
-      assert_kind_of ::ConnectionPool, pool
-      assert_same redis, pool
-      assert_equal 10, pool.size
-      assert_equal 2.5, pool.instance_variable_get(:@timeout)
+    def test_adapts_a_noninternal_pool
+      connection = Redis.new(url: REDIS_URL)
+      pool = GenericRedisPool.new(connection)
+      errors = []
+      cache = supplied_pool_store(pool, error_handler: -> (method:, returning:, exception:) { errors << exception })
+
+      cache.write("pool-key", "pool-value")
+      assert_equal "pool-value", cache.read("pool-key")
+
+      pool.error = GenericRedisPool::TimeoutError.new
+      assert_nil cache.read("pool-key")
+      assert_instance_of GenericRedisPool::TimeoutError, errors.last
+    ensure
+      connection&.close
     end
 
-    def test_no_connection_pooling_by_default_when_already_wrapped_in_a_pool
-      redis = ::ConnectionPool::Wrapper.new(size: 10, timeout: 2.5) { Redis.new }
-      cache = ActiveSupport::Cache.lookup_store(:deprecated_redis_cache_store, redis: redis)
-      wrapped_redis = cache.redis
-      assert_kind_of ::Redis, wrapped_redis
-      assert_same redis, wrapped_redis
-      pool = wrapped_redis.wrapped_pool
-      assert_kind_of ::ConnectionPool, pool
-      assert_equal 10, pool.size
-      assert_equal 2.5, pool.instance_variable_get(:@timeout)
+    def test_adapts_a_noninternal_pool_wrapper
+      connection = Redis.new(url: REDIS_URL)
+      wrapper = GenericRedisPoolWrapper.new(GenericRedisPool.new(connection))
+      cache = supplied_pool_store(wrapper)
+
+      cache.write("pool-key", "pool-value")
+      assert_equal "pool-value", cache.read("pool-key")
+    ensure
+      connection&.close
+    end
+
+    def test_supplied_internal_pool_preserves_identity_and_cache_behavior
+      pool = ActiveSupport::ConnectionPool.new { Redis.new(url: REDIS_URL) }
+
+      assert_supplied_pool_round_trip(pool)
+    end
+
+    def test_supplied_internal_pool_errors_preserve_cache_failure_behavior
+      errors = []
+      pool = ActiveSupport::ConnectionPool.new(size: 1, timeout: 0) { Redis.new(url: REDIS_URL) }
+      cache = supplied_pool_store(pool, error_handler: -> (method:, returning:, exception:) { errors << exception })
+      cache.write("pool-key", "pool-value")
+      ready = Queue.new
+      release = Queue.new
+
+      holder = Thread.new do
+        pool.with do
+          ready << true
+          release.pop
+        end
+      end
+
+      ready.pop
+      assert_nil cache.read("pool-key")
+      assert_instance_of ActiveSupport::ConnectionPool::TimeoutError, errors.last
+      release << true
+      holder.join
+      pool.shutdown(&:close)
+
+      assert_nil cache.read("pool-key")
+      assert_instance_of ActiveSupport::ConnectionPool::PoolShuttingDownError, errors.last
+
+      raising_pool = ActiveSupport::ConnectionPool.new(size: 1, timeout: 0) { Redis.new(url: REDIS_URL) }
+      raising_cache = supplied_pool_store(raising_pool, error_handler: -> (method:, returning:, exception:) { raise exception })
+      raising_ready = Queue.new
+      raising_release = Queue.new
+      raising_holder = Thread.new do
+        raising_pool.with do
+          raising_ready << true
+          raising_release.pop
+        end
+      end
+
+      raising_ready.pop
+      assert_raises(ActiveSupport::ConnectionPool::TimeoutError) { raising_cache.read("pool-key") }
+    ensure
+      release << true if release && holder&.alive?
+      holder&.join
+      pool&.shutdown(&:close)
+      raising_release << true if defined?(raising_release) && raising_holder&.alive?
+      raising_holder&.join if defined?(raising_holder)
+      raising_pool&.shutdown(&:close) if defined?(raising_pool)
     end
 
     private
+      def assert_supplied_pool_round_trip(pool)
+        cache = supplied_pool_store(pool)
+
+        assert_same pool, cache.redis
+        cache.write("pool-key", "pool-value")
+        assert_equal "pool-value", cache.read("pool-key")
+      ensure
+        pool&.shutdown(&:close)
+      end
+
+      def supplied_pool_store(pool, error_handler: nil)
+        options = { namespace: @namespace, redis: pool }
+        options[:error_handler] = error_handler if error_handler
+        ActiveSupport::Cache::DeprecatedRedisCacheStore.new(**options)
+      end
+
       def store
         [:deprecated_redis_cache_store]
       end
