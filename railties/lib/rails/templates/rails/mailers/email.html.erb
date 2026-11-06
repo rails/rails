@@ -62,6 +62,13 @@
 <body>
 <header>
   <dl>
+    <dt>Preview:</dt>
+    <dd>
+      <%= link_to "All previews", url_for(controller: "rails/mailers", action: "index") %> /
+      <%= link_to @preview.preview_name, url_for(controller: "rails/mailers", action: "preview", path: @preview.preview_name) %> /
+      <%= @email_action %>
+    </dd>
+
     <% if Array(@email.from) != Array(@email.smtp_envelope_from) %>
       <dt>SMTP-From:</dt>
       <dd id="smtp_from"><%= @email.smtp_envelope_from %></dd>
@@ -155,13 +162,23 @@
       </dd>
     <% end %>
 
+    <% if @part && @part.mime_type == 'text/html' %>
+      <dt>Theme:</dt>
+      <dd>
+        <select id="color_scheme" onchange="applyColorScheme();">
+          <option value="light">Light</option>
+          <option value="dark">Dark</option>
+        </select>
+      </dd>
+    <% end %>
+
     <dt>EML File:</dt>
     <dd><%= link_to "Download", action: :download, locale: params[:locale] %></dd>
   </dl>
 </header>
 
 <% if @part && @part.mime_type %>
-  <iframe name="messageBody" src="?<%= part_query(@part.mime_type) %>"></iframe>
+  <iframe name="messageBody" src="?<%= part_query(@part.mime_type) %>" onload="applyColorScheme();"></iframe>
 <% else %>
   <p>
     You are trying to preview an email that does not have any content.
@@ -170,6 +187,28 @@
 <% end %>
 
 <script>
+  function applyColorScheme() {
+    var scheme_select = document.querySelector('select#color_scheme');
+    var iframe = document.getElementsByName('messageBody')[0];
+    if (!scheme_select || !iframe.contentDocument) return;
+
+    var dark = scheme_select.value === 'dark';
+    var doc = iframe.contentDocument;
+    doc.documentElement.style.colorScheme = dark ? 'dark' : 'light';
+
+    Array.prototype.forEach.call(doc.styleSheets, function(sheet) {
+      var rules;
+      try { rules = sheet.cssRules; } catch (e) { return; }
+      Array.prototype.forEach.call(rules, function(rule) {
+        if (!(rule instanceof iframe.contentWindow.CSSMediaRule)) return;
+        var original = rule.originalMediaText || rule.media.mediaText;
+        if (!/prefers-color-scheme:\s*dark/.test(original)) return;
+        rule.originalMediaText = original;
+        rule.media.mediaText = dark ? 'all' : original;
+      });
+    });
+  }
+
   function refreshBody(reload) {
     var part_select = document.querySelector('select#part');
     var locale_select = document.querySelector('select#locale');

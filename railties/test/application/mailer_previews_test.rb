@@ -579,6 +579,50 @@ module ApplicationTests
       assert_match '<option selected value="part=text%2Fplain">View as plain-text email</option>', last_response.body
     end
 
+    test "preview page links back to the preview lists and offers a theme menu for HTML parts" do
+      mailer "notifier", <<-RUBY
+        class Notifier < ActionMailer::Base
+          default from: "from@example.com"
+
+          def foo
+            mail to: "to@example.org"
+          end
+        end
+      RUBY
+
+      html_template "notifier/foo", <<-RUBY
+        <p>Hello, World!</p>
+      RUBY
+
+      text_template "notifier/foo", <<-RUBY
+        Hello, World!
+      RUBY
+
+      mailer_preview "notifier", <<-RUBY
+        class NotifierPreview < ActionMailer::Preview
+          def foo
+            Notifier.foo
+          end
+        end
+      RUBY
+
+      app("development")
+
+      get "/rails/mailers/notifier/foo.html"
+      assert_equal 200, last_response.status
+      assert_select "a[href=?]", "/rails/mailers", text: "All previews"
+      assert_select "a[href=?]", "/rails/mailers/notifier", text: "notifier"
+      assert_select "select#color_scheme" do
+        assert_select "option[value=light]", text: "Light"
+        assert_select "option[value=dark]", text: "Dark"
+      end
+
+      get "/rails/mailers/notifier/foo.txt"
+      assert_equal 200, last_response.status
+      assert_select "a[href=?]", "/rails/mailers", text: "All previews"
+      assert_select "select#color_scheme", count: 0
+    end
+
     test "locale menu selects correct option" do
       app_file "config/initializers/available_locales.rb", <<-RUBY
         Rails.application.configure do
@@ -706,7 +750,7 @@ module ApplicationTests
 
       get "/rails/mailers/notifier/foo.txt"
       assert_equal 200, last_response.status
-      assert_match '<iframe name="messageBody" src="?part=text%2Fplain">', last_response.body
+      assert_match '<iframe name="messageBody" src="?part=text%2Fplain" onload="applyColorScheme();">', last_response.body
       assert_match '<option selected value="part=text%2Fplain">', last_response.body
       assert_match '<option value="part=text%2Fhtml">', last_response.body
 
@@ -716,7 +760,7 @@ module ApplicationTests
 
       get "/rails/mailers/notifier/foo.html?name=Ruby"
       assert_equal 200, last_response.status
-      assert_match '<iframe name="messageBody" src="?name=Ruby&amp;part=text%2Fhtml">', last_response.body
+      assert_match '<iframe name="messageBody" src="?name=Ruby&amp;part=text%2Fhtml" onload="applyColorScheme();">', last_response.body
       assert_match '<option selected value="name=Ruby&amp;part=text%2Fhtml">', last_response.body
       assert_match '<option value="name=Ruby&amp;part=text%2Fplain">', last_response.body
 
