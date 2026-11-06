@@ -644,24 +644,6 @@ module ActionView
           (STRINGIFIED_COMMON_METHODS[method] || method.to_s.downcase) != "get"
         end
 
-        def token_tag(token = nil, form_options: {})
-          if token != false && defined?(protect_against_forgery?) && protect_against_forgery? &&
-              (token || !defined?(embed_authenticity_token?) || embed_authenticity_token?)
-            token = form_authenticity_token(form_options: form_options) if token == true || token.nil?
-            options = { type: "hidden", name: request_forgery_protection_token.to_s, value: token }
-            options[:autocomplete] = "off" unless ActionView::Base.remove_hidden_field_autocomplete
-            tag(:input, options)
-          else
-            ""
-          end
-        end
-
-        def method_tag(method)
-          options = { type: "hidden", name: "_method", value: method.to_s }
-          options[:autocomplete] = "off" unless ActionView::Base.remove_hidden_field_autocomplete
-          tag("input", options)
-        end
-
         # Returns an array of hashes each containing :name and :value keys
         # suitable for use as the names and values of form input fields:
         #
