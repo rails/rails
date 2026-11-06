@@ -16,36 +16,25 @@ module ActionDispatch
           @stdparam_states = {}
           @regexp_states   = {}
           @string_states   = {}
-          @accepting       = {}
-          @memos           = Hash.new { |h, k| h[k] = [] }
+          @memos           = {}
         end
 
         def freeze
           return self if frozen?
 
-          @memos.default_proc = nil
           @stdparam_states.freeze
           @regexp_states.freeze
           @string_states.freeze
-          @accepting.freeze
           @memos.freeze
           super
         end
 
-        def add_accepting(state)
-          @accepting[state] = true
-        end
-
         def accepting_states
-          @accepting.keys
-        end
-
-        def accepting?(state)
-          @accepting[state]
+          @memos.keys
         end
 
         def add_memo(idx, memo)
-          @memos[idx] << memo
+          (@memos[idx] ||= []) << memo
         end
 
         def memo(idx)
@@ -119,7 +108,7 @@ module ActionDispatch
             regexp_states:   simple_regexp.stringify_keys,
             string_states:   @string_states.stringify_keys,
             stdparam_states: @stdparam_states.stringify_keys,
-            accepting:       @accepting.stringify_keys
+            accepting:       @memos.to_h { |state, _| [state.to_s, true] }
           }
         end
 
