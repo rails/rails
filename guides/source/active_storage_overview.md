@@ -560,7 +560,7 @@ The default configuration mode is `rails_storage_redirect`. You can configure
 Active Storage to use proxying like this:
 
 ```ruby
-# config/initializers/active_storage.rb
+# config/environments/production.rb
 Rails.application.config.active_storage.resolve_model_to_route = :rails_storage_proxy
 ```
 
