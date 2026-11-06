@@ -99,7 +99,7 @@ module ActiveRecord
         if condition.is_a?(Array) && condition.first.to_s.include?("?")
           disallow_raw_sql!(
             [condition.first],
-            permit: adapter_class.column_name_with_order_matcher
+            order: true
           )
 
           # Ensure we aren't dealing with a subclass of String that might
@@ -218,10 +218,15 @@ module ActiveRecord
         raise ActiveRecord::PreparedStatementInvalid, error.message
       end
 
-      def disallow_raw_sql!(args, permit: adapter_class.column_name_matcher) # :nodoc:
+      # Without `permit`, the adapter's column name matcher, or its ORDER BY one
+      # with `order: true`, is looked up only for an argument that is neither a
+      # Symbol nor Arel.
+      def disallow_raw_sql!(args, permit: nil, order: false) # :nodoc:
         unexpected = nil
         args.each do |arg|
-          next if arg.is_a?(Symbol) || Arel.arel_node?(arg) || permit.match?(arg.to_s.strip)
+          next if arg.is_a?(Symbol) || Arel.arel_node?(arg)
+          permit ||= order ? adapter_class.column_name_with_order_matcher : adapter_class.column_name_matcher
+          next if permit.match?(arg.to_s.strip)
           (unexpected ||= []) << arg
         end
 
