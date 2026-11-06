@@ -45,7 +45,7 @@ class Rails::Engine::CommandsTest < ActiveSupport::TestCase
 
     def test_dbconsole_command_work_inside_engine
       primary, replica = PTY.open
-      spawn_command("dbconsole", replica)
+      spawn_command("dbconsole", replica, env: { "SQLITE_PS1" => "sqlite> " })
       assert_output("sqlite>", primary)
     ensure
       primary.puts ".exit"
