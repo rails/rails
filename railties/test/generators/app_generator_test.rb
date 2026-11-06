@@ -649,6 +649,27 @@ class AppGeneratorTest < Rails::Generators::TestCase
     end
   end
 
+  def test_inclusion_of_development_and_test_gems_on_other_ruby_engines
+    stub_const(Object, :RUBY_ENGINE, "jruby") do
+      run_generator
+    end
+
+    assert_no_gem "debug"
+    assert_gem "bundler-audit"
+    assert_gem "brakeman"
+    assert_gem "rubocop-rails-omakase"
+  end
+
+  def test_no_empty_development_and_test_group_on_other_ruby_engines
+    stub_const(Object, :RUBY_ENGINE, "jruby") do
+      run_generator [destination_root, "--minimal"]
+    end
+
+    assert_file "Gemfile" do |content|
+      assert_no_match(/group :development, :test do/, content)
+    end
+  end
+
   def test_inclusion_of_thruster
     run_generator
     assert_gem "thruster"

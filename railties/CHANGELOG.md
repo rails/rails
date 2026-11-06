@@ -1,3 +1,11 @@
+*   Include `bundler-audit`, `brakeman` and `rubocop-rails-omakase` in new apps generated on JRuby and TruffleRuby.
+
+    The app already gets `bin/bundler-audit`, `bin/brakeman`, `bin/rubocop` and
+    the matching `bin/ci` steps, but the whole development/test group was left
+    out of the Gemfile on Rubies other than CRuby. Only `debug` is skipped now.
+
+    *Sampo Kuokkanen*
+
 *   Fix `bin/rails test -n ClassName#test_name` running no tests.
 
     This has been broken since Rails 7.1. It also made isolated tests fail on
