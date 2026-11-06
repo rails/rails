@@ -1,3 +1,12 @@
+*   Check request-based constraints on routes whose `to:` is a controller class.
+
+    `constraints` blocks and `constraints:` objects that respond to `matches?`
+    or `call` were ignored when the target was a controller class, as in
+    `get "photos", to: PhotosController, action: "index"`. The route matched
+    every request instead of only the requests the constraint accepts.
+
+    *Richard Desmarais*
+
 *   Apply `config.action_dispatch.cookies_same_site_protection` to every session
     store.
 
