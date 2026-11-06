@@ -13,7 +13,16 @@ module ActiveRecord::Associations
 
     def nullified_owner_attributes
       route = reflection.association_route(origin_class: owner.class, destination_class: klass)
-      route.reference_destination_key.index_with(nil).merge!(route.destination_fixed_values.transform_values { nil })
+      reference_key = route.reference_destination_key
+      primary_key = klass.primary_key_definition
+
+      # Preserve shared primary key columns only if another reference column
+      # can be cleared to disassociate the record.
+      if primary_key && reference_key.any? { |key| !primary_key.include?(key) }
+        reference_key = reference_key.to_a.reject { |key| primary_key.include?(key) }
+      end
+
+      reference_key.index_with(nil).merge!(route.destination_fixed_values.transform_values { nil })
     end
 
     private
