@@ -48,6 +48,14 @@ class RoutingLogSubscriberTest < ActionDispatch::IntegrationTest
     ActionDispatch::LogSubscriber.backtrace_cleaner = old_cleaner
   end
 
+  test "request started is logged" do
+    ActiveSupport.event_reporter.notify("action_dispatch.request_started",
+      method: "GET", path: "/blah", remote_ip: "1.2.3.4")
+
+    assert_equal 1, logs.size
+    assert_match(/\AStarted GET "\/blah" for 1\.2\.3\.4 at \d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2} [+-]\d{4}\z/, logs.first)
+  end
+
   private
     def draw(&block)
       self.class.stub_controllers do |routes|
