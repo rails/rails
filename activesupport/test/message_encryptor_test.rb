@@ -4,6 +4,7 @@ require_relative "abstract_unit"
 require "openssl"
 require "active_support/time"
 require "active_support/json"
+require "active_support/testing/ractors_assertions"
 require_relative "messages/message_codec_tests"
 
 class MessageEncryptorTest < ActiveSupport::TestCase
@@ -157,6 +158,15 @@ class MessageEncryptorTest < ActiveSupport::TestCase
     assert_match(/\A#<ActiveSupport::MessageEncryptor:0x[0-9a-f]+>\z/, encryptor.inspect)
   end
 
+  test "an encryptor frozen before its first decryption decrypts messages" do
+    ["aes-256-gcm", "aes-256-cbc"].each do |cipher|
+      message = ActiveSupport::MessageEncryptor.new(@secret, cipher: cipher).encrypt_and_sign("alice")
+      encryptor = ActiveSupport::MessageEncryptor.new(@secret, cipher: cipher).freeze
+
+      assert_equal "alice", encryptor.decrypt_and_verify(message), cipher
+    end
+  end
+
   def test_invalid_base64_argument
     assert_not_decrypted("jrcc<!--esi-->rkls<!--esx-->tyx9")
   end
@@ -193,4 +203,22 @@ class MessageEncryptorTest < ActiveSupport::TestCase
       bits.reverse!
       ::Base64.strict_encode64(bits)
     end
+end
+
+class RactorMessageEncryptorTest < ActiveSupport::TestCase
+  include ActiveSupport::Testing::RactorsAssertions
+
+  setup do
+    @secret = SecureRandom.random_bytes(32)
+  end
+
+  test "an encryptor shared across ractors decrypts messages" do
+    ["aes-256-gcm", "aes-256-cbc"].each do |cipher|
+      message = ActiveSupport::MessageEncryptor.new(@secret, cipher: cipher, serializer: JSON).encrypt_and_sign("alice")
+      encryptor = ActiveSupport::MessageEncryptor.new(@secret, cipher: cipher, serializer: JSON)
+      ActiveSupport::Ractors.make_shareable(encryptor)
+
+      assert_equal "alice", on_ractor(encryptor, message) { |encryptor, message| encryptor.decrypt_and_verify(message) }, cipher
+    end
+  end
 end
