@@ -147,6 +147,20 @@ warning naming each route whose controller does not exist. Such routes used to
 go unnoticed until a request matched them. Check the boot log for
 `references a missing controller` and fix or remove the routes it lists.
 
+### Active Job arguments are copied before `perform` in new applications.
+
+New applications (`config.load_defaults 8.2`) set
+`config.active_job.immutable_arguments = true`. Active Job then copies string,
+array, and hash arguments before calling `perform`, so mutations of those
+parameters no longer leak into retries. GlobalID records, such as Active
+Record models, are passed through unchanged.
+
+Existing applications keep the previous behavior. To opt in, uncomment the
+setting in `config/initializers/new_framework_defaults_8_2.rb` or set
+`config.active_job.immutable_arguments = true`. Jobs that intentionally persist
+state across retries should mutate `job.arguments` rather than the `perform`
+parameters.
+
 ### The old Active Record 6.1 marshalling format was removed.
 
 If your application still sets `active_record.marshalling_format_version = 6.1`, which may
