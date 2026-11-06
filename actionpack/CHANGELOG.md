@@ -1,3 +1,14 @@
+*   Fix a deadlock between `ActionController::Live` and code reloading in
+    development.
+
+    A queued unload could block the Live child thread while waiting for the
+    parent request, which was itself waiting for the child to commit the
+    response.
+
+    Fixes #56888.
+
+    *Pim Vermeyden*
+
 *   Apply `config.action_dispatch.cookies_same_site_protection` to every session
     store.
 
