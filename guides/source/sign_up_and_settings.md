@@ -661,6 +661,8 @@ this controller.
 
 ```ruby
 class Settings::PasswordsController < Settings::BaseController
+  # ...
+end
 ```
 
 And update `app/controllers/settings/profiles_controller.rb` to inherit from it
@@ -668,6 +670,8 @@ too.
 
 ```ruby
 class Settings::ProfilesController < Settings::BaseController
+  # ...
+end
 ```
 
 Deleting Accounts

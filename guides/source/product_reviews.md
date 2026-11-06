@@ -196,10 +196,9 @@ class Products::ReviewsController < ApplicationController
   end
 
   private
-
-  def set_product
-    @product = Product.find(params[:product_id])
-  end
+    def set_product
+      @product = Product.find(params[:product_id])
+    end
 end
 ```
 
@@ -325,7 +324,7 @@ Next, we need to save reviews in the database when the form is submitted.
 
 Add the `create` action to the controller:
 
-```ruby#8-15,23-25
+```ruby#8-15,22-24
 class Products::ReviewsController < ApplicationController
   before_action :set_product
 
@@ -343,14 +342,13 @@ class Products::ReviewsController < ApplicationController
   end
 
   private
+    def set_product
+      @product = Product.find(params[:product_id])
+    end
 
-  def set_product
-    @product = Product.find(params[:product_id])
-  end
-
-  def review_params
-    params.expect(review: [ :rating, :body, images: [] ]).with_defaults(user: Current.user)
-  end
+    def review_params
+      params.expect(review: [ :rating, :body, images: [] ]).with_defaults(user: Current.user)
+    end
 end
 ```
 
@@ -744,14 +742,13 @@ class Store::ReviewsController < Store::BaseController
   end
 
   private
+    def set_review
+      @review = Review.find(params[:id])
+    end
 
-  def set_review
-    @review = Review.find(params[:id])
-  end
-
-  def review_params
-    params.expect(review: [ :rating, :body, images: [] ])
-  end
+    def review_params
+      params.expect(review: [ :rating, :body, images: [] ])
+    end
 end
 ```
 
