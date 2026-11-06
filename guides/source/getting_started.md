@@ -3052,7 +3052,7 @@ You can use Kamal to open a production Rails console.
 $ bin/kamal console
 ```
 
-```ruby
+```irb
 store(prod)> User.create!(email_address: "you@example.org", password: "s3cr3t", password_confirmation: "s3cr3t")
 ```
 
