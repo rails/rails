@@ -812,6 +812,22 @@ class ReflectionTest < ActiveRecord::TestCase
     assert_equal "id", actual
   end
 
+  def test_implicit_composite_foreign_key_respects_custom_target_primary_key_getter
+    target = Class.new(ActiveRecord::Base) do
+      self.table_name = "topics"
+      def self.primary_key = "title"
+    end
+    owner = Class.new(ActiveRecord::Base) do
+      self.table_name = "sharded_comments"
+      query_constraints :blog_id, :id
+      belongs_to :target, anonymous_class: target
+    end
+
+    reflection = owner.reflect_on_association(:target)
+
+    assert_equal "title", reflection.association_primary_key
+  end
+
   def test_through_reflection_association_primary_key_with_composite_key
     reflection = Sharded::Blog.reflect_on_association(:comments_via_posts)
     actual = reflection.association_primary_key
@@ -854,33 +870,124 @@ class ReflectionTest < ActiveRecord::TestCase
     assert_equal ["blog_id", "tag_id"], reflection.association_foreign_key
   end
 
-  def test_using_query_constraints_warns_about_changing_behavior
-    has_many_expected_message = <<~MSG.squish
-      Setting `query_constraints:` option on `Firm.has_many :clients` is not allowed.
-      To get the same behavior, use the `foreign_key` option instead.
-    MSG
+  def test_query_constraints_without_foreign_key_use_the_conventional_reference
+    reflection = ActiveRecord::Reflection.create(
+      :belongs_to, :blog_post, nil,
+      { class_name: "Sharded::BlogPost", query_constraints: :blog_id },
+      Sharded::Comment
+    )
+    route = reflection.association_route
 
-    assert_raises(ActiveRecord::ConfigurationError, match: has_many_expected_message) do
-      ActiveRecord::Reflection.create(:has_many, :clients, nil, { query_constraints: [:firm_id, :firm_name] }, Firm)
+    assert_equal "blog_post_id", reflection.foreign_key
+    assert_equal [["blog_id", "blog_id"], ["blog_post_id", "id"]], route.each_match.to_a
+    assert_equal [["blog_post_id", "id"]], route.each_reference.to_a
+  end
+
+  def test_query_constraint_mappings_use_the_conventional_foreign_key
+    reflection = ActiveRecord::Reflection.create(
+      :has_many, :clients, nil,
+      { class_name: "Client", query_constraints: { name: :firm_name } },
+      Firm
+    )
+    route = reflection.association_route
+
+    assert_equal "firm_id", reflection.foreign_key
+    assert_equal [["id", "firm_id"]], route.each_reference.to_a
+    assert_equal [["name", "firm_name"], ["id", "firm_id"]], route.each_match.to_a
+  end
+
+  def test_query_constraints_cannot_include_the_referenced_key
+    reflection = ActiveRecord::Reflection.create(
+      :belongs_to, :client, nil,
+      { query_constraints: { firm_id: :id } },
+      Firm
+    )
+
+    error = assert_raises(ArgumentError) { reflection.check_validity! }
+    assert_equal "`query_constraints` on `Firm.belongs_to :client` " \
+      "must not include the referenced key columns [\"id\"].", error.message
+  end
+
+  def test_foreign_key_option_keeps_model_query_constraints_as_the_owner_key
+    owner = Class.new(ActiveRecord::Base) do
+      def self.name = "QueryConstrainedFirm"
+      self.table_name = "companies"
+      self.inheritance_column = nil
+      query_constraints :name
+      has_many :clients, class_name: "Client", foreign_key: :firm_name
+      has_one :client, class_name: "Client", foreign_key: :firm_name
+    end
+    firm = owner.create!(name: "Acme")
+
+    assert_equal ["name"], owner.reflect_on_association(:clients).active_record_primary_key
+    assert_equal ["name"], owner.reflect_on_association(:client).active_record_primary_key
+    assert_equal({ "firm_name" => "Acme" }, firm.clients.where_values_hash.slice("firm_name"))
+    assert_equal "Acme", firm.clients.build.firm_name
+  end
+
+  def test_query_constraints_reject_non_column_values
+    reflection = ActiveRecord::Reflection.create(
+      :has_many, :clients, nil,
+      { class_name: "Client", foreign_key: :firm_id, query_constraints: [:firm_name, 42] },
+      Firm
+    )
+
+    error = assert_raises(ArgumentError) { reflection.check_validity! }
+    assert_equal "`query_constraints` on `Firm.has_many :clients` must contain column names or mappings.", error.message
+  end
+
+  def test_query_constraints_cannot_include_the_foreign_key
+    reflection = ActiveRecord::Reflection.create(
+      :has_many, :clients, nil,
+      { class_name: "Client", foreign_key: :firm_id, query_constraints: [:firm_name, :firm_id] },
+      Firm
+    )
+
+    error = assert_raises(ArgumentError) { reflection.check_validity! }
+    assert_equal "`query_constraints` on `Firm.has_many :clients` " \
+      "must not include the foreign key columns [\"firm_id\"].", error.message
+  end
+
+  def test_automatic_inverse_requires_both_sides_to_have_the_same_query_constraints
+    post, comment = build_blog_post_models(comment_constraints: :blog_id)
+    assert_nil post.reflect_on_association(:comments).inverse_of
+    assert_nil comment.reflect_on_association(:blog_post).inverse_of
+
+    post, comment = build_blog_post_models(post_constraints: :blog_id)
+    assert_nil post.reflect_on_association(:comments).inverse_of
+    assert_nil comment.reflect_on_association(:blog_post).inverse_of
+  end
+
+  def test_automatic_inverse_with_matching_query_constraints
+    post, comment = build_blog_post_models(post_constraints: :blog_id, comment_constraints: :blog_id)
+
+    assert_equal :blog_post, post.reflect_on_association(:comments).inverse_of.name
+    assert_equal :comments, comment.reflect_on_association(:blog_post).inverse_of.name
+  end
+
+  def test_automatic_inverse_with_different_query_constraints
+    post, comment = build_blog_post_models(post_constraints: :blog_id, comment_constraints: :body)
+
+    assert_nil post.reflect_on_association(:comments).inverse_of
+    assert_nil comment.reflect_on_association(:blog_post).inverse_of
+  end
+
+  def test_query_constraints_are_rejected_on_through_associations
+    error = assert_raises(ArgumentError) do
+      ActiveRecord::Reflection.create(:has_many, :comments, nil, { through: :posts, query_constraints: :tenant_id }, Author)
     end
 
-    has_one_expected_message = <<~MSG.squish
-      Setting `query_constraints:` option on `Firm.has_one :account` is not allowed.
-      To get the same behavior, use the `foreign_key` option instead.
-    MSG
+    assert_equal "`query_constraints` is not supported on `Author.has_many :comments` because it is a `through:` association. " \
+      "Declare `query_constraints` on the associations it goes through instead.", error.message
+  end
 
-    assert_raises(ActiveRecord::ConfigurationError, match: has_one_expected_message) do
-      ActiveRecord::Reflection.create(:has_one, :account, nil, { query_constraints: [:firm_id, :firm_name] }, Firm)
+  def test_query_constraints_are_rejected_on_has_and_belongs_to_many_associations
+    error = assert_raises(ArgumentError) do
+      ActiveRecord::Reflection::HasAndBelongsToManyReflection.new(:categories, nil, { query_constraints: :tenant_id }, Post)
     end
 
-    belongs_to_expected_message = <<~MSG.squish
-      Setting `query_constraints:` option on `Firm.belongs_to :client` is not allowed.
-      To get the same behavior, use the `foreign_key` option instead.
-    MSG
-
-    assert_raises(ActiveRecord::ConfigurationError, match: belongs_to_expected_message) do
-      ActiveRecord::Reflection.create(:belongs_to, :client, nil, { query_constraints: [:firm_id, :firm_name] }, Firm)
-    end
+    assert_equal "`query_constraints` is not supported on `Post.has_and_belongs_to_many :categories`. " \
+      "Use `has_many :through` and declare `query_constraints` on the join model's associations instead.", error.message
   end
 
   def test_counter_cache_column_defaults_when_counter_cache_is_true
@@ -955,6 +1062,21 @@ class ReflectionTest < ActiveRecord::TestCase
   end
 
   private
+    def build_blog_post_models(post_constraints: nil, comment_constraints: nil)
+      post = Class.new(ActiveRecord::Base) do
+        def self.name = "BlogPost"
+        self.table_name = "sharded_blog_posts"
+      end
+      comment = Class.new(ActiveRecord::Base) do
+        def self.name = "Comment"
+        self.table_name = "sharded_comments"
+      end
+      post.has_many :comments, anonymous_class: comment, **{ query_constraints: post_constraints }.compact
+      comment.belongs_to :blog_post, anonymous_class: post, **{ query_constraints: comment_constraints }.compact
+
+      [post, comment]
+    end
+
     def assert_reflection(klass, association, options)
       assert reflection = klass.reflect_on_association(association)
       options.each do |method, value|
