@@ -13,7 +13,11 @@ module ActiveRecord # :nodoc:
 
     def serializable_hash(options = nil)
       if self.class._has_attribute?(self.class.inheritance_column)
-        options = options ? options.dup : {}
+        if options.blank?
+          return serializable_attributes(attribute_names_for_serialization - [self.class.inheritance_column])
+        end
+
+        options = options.dup
 
         options[:except] = Array(options[:except]).map(&:to_s)
         options[:except] |= Array(self.class.inheritance_column)
