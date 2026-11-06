@@ -3019,7 +3019,8 @@ the `ApplicationController`:
 # app/controllers/application_controller.rb
 # TODO: Remove this todo
 class ApplicationController < ActionController::Base
-# ...
+  # ...
+end
 ```
 
 Now when I run it on the CI:
@@ -3042,7 +3043,8 @@ To verify, remove the comment:
 ```ruby
 # app/controllers/application_controller.rb
 class ApplicationController < ActionController::Base
-# ...
+  # ...
+end
 ```
 
 and `bin/ci` should now pass:
@@ -3163,7 +3165,7 @@ You can use Kamal to open a production Rails console.
 $ bin/kamal console
 ```
 
-```ruby
+```irb
 store(prod)> User.create!(email_address: "you@example.org", password: "s3cr3t", password_confirmation: "s3cr3t")
 ```
 

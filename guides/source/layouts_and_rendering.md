@@ -963,10 +963,9 @@ module SetRequestVariant
   end
 
   private
-
     def set_request_variant
       # App-specific logic to determine which variant is requested
-      request.variant = # ...
+      request.variant = :mobile if request.user_agent&.include?("Mobile")
     end
 end
 

@@ -497,7 +497,9 @@ GEM
     rubocop-ast (1.50.0)
       parser (>= 3.3.7.2)
       prism (~> 1.7)
-    rubocop-md (2.0.4)
+    rubocop-md (3.0.0)
+      kramdown (~> 2.4)
+      kramdown-parser-gfm (~> 1.1)
       lint_roller (~> 1.1)
       rubocop (>= 1.72.1)
     rubocop-minitest (0.37.1)
@@ -962,7 +964,7 @@ CHECKSUMS
   rouge (4.6.1) sha256=5075346d5797d6864be93f7adc75a16047a7dbfa572c63c502419ffa582c77de
   rubocop (1.90.0) sha256=9eb4c065b5c5154e4ef554c547972f3905a9eb6b53e657e580b6796b54bf8242
   rubocop-ast (1.50.0) sha256=b9ca88300da0803ee222ad20cdb30494c0a784eed06fdc35d254b06d662788db
-  rubocop-md (2.0.4) sha256=0d076b6b5e99dea2ddc928c4bd702497decb9a8400da7808091e02ebcafcfb93
+  rubocop-md (3.0.0) sha256=d2e43f9af97268a1204a0e071ef541a47d6cdd43717b7511a3c0471b785bddb1
   rubocop-minitest (0.37.1) sha256=dcdcc2c835a859193e50bc67296daaf95ac99f6410838119374df31490460d36
   rubocop-packaging (0.6.0) sha256=fb92bd0fb48e6f8cdb1648d2249b0cd51c2497dcc87340132d22f01edbf558a7
   rubocop-performance (1.24.0) sha256=e5bd39ff3e368395b9af886927cc37f5892f43db4bd6c8526594352d5b4440b5

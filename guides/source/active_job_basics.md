@@ -749,7 +749,6 @@ class ProcessImportJob < ApplicationJob
         step.advance!
       end
     end
-
   end
 end
 ```
