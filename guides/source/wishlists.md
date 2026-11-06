@@ -537,14 +537,13 @@ class WishlistsController < ApplicationController
   end
 
   private
+    def set_wishlist
+      @wishlist = Current.user.wishlists.find(params[:id])
+    end
 
-  def set_wishlist
-    @wishlist = Current.user.wishlists.find(params[:id])
-  end
-
-  def wishlist_params
-    params.expect(wishlist: [ :name ])
-  end
+    def wishlist_params
+      params.expect(wishlist: [ :name ])
+    end
 end
 ```
 
@@ -769,14 +768,13 @@ class Wishlists::WishlistProductsController < ApplicationController
   end
 
   private
+    def set_wishlist
+      @wishlist = Current.user.wishlists.find_by(id: params[:wishlist_id])
+    end
 
-  def set_wishlist
-    @wishlist = Current.user.wishlists.find_by(id: params[:wishlist_id])
-  end
-
-  def set_wishlist_product
-    @wishlist_product = @wishlist.wishlist_products.find(params[:id])
-  end
+    def set_wishlist_product
+      @wishlist_product = @wishlist.wishlist_products.find(params[:id])
+    end
 end
 ```
 
@@ -1365,8 +1363,8 @@ returned and wishlists without that product are not.
 
 Let's run this test file again to ensure they are all passing:
 
-```ruby
-bin/rails test test/models/wishlist_test.rb
+```bash
+$ bin/rails test test/models/wishlist_test.rb
 Running 3 tests in a single process (parallelization threshold is 50)
 Run options: --seed 27430
 
