@@ -33,6 +33,18 @@ class ActiveStorage::Representations::ProxyControllerWithVariantsTest < ActionDi
     assert_equal @blob.variant(@transformations).download, response.body
   end
 
+  test "showing variant with an arbitrary disposition" do
+    get rails_blob_representation_proxy_url(
+      disposition: 'attachment; filename="invoice.exe"',
+      filename: @blob.filename,
+      signed_blob_id: @blob.signed_id,
+      variation_key: ActiveStorage::Variation.encode(@transformations))
+
+    assert_response :ok
+    assert_match(/^inline; /, response.headers["Content-Disposition"])
+    assert_no_match(/invoice\.exe/, response.headers["Content-Disposition"])
+  end
+
   test "showing untracked variant" do
     without_variant_tracking do
       get rails_blob_representation_proxy_url(
