@@ -502,6 +502,38 @@ module ActiveRecord
       end
     end
 
+    def test_where_with_empty_string_condition_and_values
+      edges = Edge.where(sink_id: [2, 3])
+      [{}, { sink_id: 1 }, 1].each do |values|
+        assert_equal 2, edges.where("", values).count
+        assert_equal 2, edges.where(["", values]).count
+      end
+    end
+
+    def test_where_with_sanitized_string_condition_and_values
+      [
+        ["sink_id = %s", 2, "sink_id = 2"],
+        ["(sink_id = %s)", 2, "(sink_id = 2)"],
+        ["sink_id = %s OR sink_id = 4", 2, "sink_id = 2 OR sink_id = 4"],
+      ].each do |condition, value, expected|
+        edges = Edge.where(sink_id: [2, 3])
+        expected_sql = edges.where(expected).to_sql
+        [edges.where(condition, value), edges.where([condition, value])].each do |relation|
+          assert_equal expected_sql, relation.to_sql
+          assert_equal [2], relation.pluck(:sink_id)
+        end
+      end
+    end
+
+    def test_where_with_bound_sql_literal_is_grouped
+      condition = Arel.sql("sink_id = ? OR sink_id = ?", 2, 4)
+      edges = Edge.where(sink_id: [3, 4])
+
+      assert_equal edges.where("sink_id = ? OR sink_id = ?", 2, 4).to_sql, edges.where(condition).to_sql
+      assert_equal [4], Edge.where(condition).where(sink_id: [3, 4]).pluck(:sink_id)
+      assert_equal [4], Edge.where(condition).merge(edges).pluck(:sink_id)
+    end
+
     def test_where_with_integer_for_string_column
       count = Post.where(title: 0).count
       assert_equal 0, count

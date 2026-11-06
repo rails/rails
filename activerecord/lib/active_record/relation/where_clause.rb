@@ -206,7 +206,7 @@ module ActiveRecord
 
         def wrap_sql_literal(node)
           case node
-          when Arel::Nodes::SqlLiteral, ::String
+          when Arel::Nodes::SqlLiteral, Arel::Nodes::BoundSqlLiteral, ::String
             Arel::Nodes::Grouping.new(node)
           else node
           end
