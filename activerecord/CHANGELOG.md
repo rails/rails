@@ -14,6 +14,32 @@
     Fixes #49197.
 
     *Clément Joubert*
+*   Restore association `query_constraints` with additive matching and guarded assignment.
+
+    `query_constraints` adds columns to the foreign-key mapping used to load,
+    preload, join, and filter an association. Assigning an association fills
+    nil constraint columns on the record holding the foreign key. Existing
+    values must match the associated record, or assignment raises `ArgumentError`.
+    Clearing an association nullifies only the foreign key and preserves its
+    query-constraint columns. Changing a query-constraint column retargets a
+    `belongs_to` like changing its foreign key does, for dirty tracking,
+    staleness, counter caches, and touch. Rails derives the conventional
+    foreign key when `foreign_key` is omitted.
+
+    ```ruby
+    # Reads and writes both columns as a composite foreign key.
+    belongs_to :post, foreign_key: [:account_id, :post_id]
+
+    # Matches account_id and post_id; fills a nil account_id, but never clears it.
+    belongs_to :post, query_constraints: :account_id
+    ```
+
+    Symbols and strings match same-named columns. Hashes map columns on the
+    declaring model to columns on the associated model. `through:` and
+    `has_and_belongs_to_many` associations reject `query_constraints`; declare
+    them on the direct associations instead.
+
+    *Nikita Vasilevsky* and *Adrianna Chang*
 
 *   Retry `ActiveRecord::SerializationFailure` on queries that opted into retries.
 

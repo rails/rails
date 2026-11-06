@@ -3,7 +3,7 @@
 require "active_support/weak_key_map"
 
 module ActiveRecord
-  # An association's writable foreign-key reference and query-only constraints
+  # An association's writable foreign-key reference and additional match constraints
   # from the perspective of the record that holds the foreign key.
   class AssociationLink # :nodoc:
     EMPTY_FIXED_VALUES = {}.freeze
@@ -37,6 +37,8 @@ module ActiveRecord
       @_target_key = resolve_aliases(reference&.target_key, target_class)
       @_match_reference_key = resolve_aliases(@match&.reference_key, reference_class)
       @_match_target_key = resolve_aliases(@match&.target_key, target_class)
+      @_constraint_reference_key = resolve_aliases(constraints.reference_key, reference_class)
+      @_constraint_target_key = resolve_aliases(constraints.target_key, target_class)
       @_fixed_values = resolve_fixed_values(@fixed_values, reference_class)
 
       @hash = [self.class, reference, reference_key, constraints, @fixed_values,
@@ -90,6 +92,30 @@ module ActiveRecord
       end unless _fixed_values.empty?
     end
 
+    def validate_constraints!(reference_record, target_record)
+      return if constraints.empty? || !target_record
+
+      each_constraint_value(reference_record, target_record) do |column, value|
+        current_value = reference_record._read_attribute(column)
+        next if current_value.nil? || current_value == value
+
+        raise ArgumentError,
+          "Cannot assign #{target_record.class}: query constraint #{reference_record.class}##{column} " \
+          "is #{current_value.inspect}, but the associated value is #{value.inspect}."
+      end
+    end
+
+    def write_constraints(reference_record, target_record)
+      return if constraints.empty? || !target_record
+
+      validate_constraints!(reference_record, target_record)
+      each_constraint_value(reference_record, target_record) do |column, value|
+        if !value.nil? && reference_record._read_attribute(column).nil?
+          reference_record._write_attribute(column, value)
+        end
+      end
+    end
+
     def clear_reference(reference_record, preserve: nil, fixed_values: true, force: true)
       _reference_key.each do |column|
         next if preserve&.include?(column)
@@ -119,6 +145,14 @@ module ActiveRecord
       def resolve_fixed_values(fixed_values, owner)
         return fixed_values if owner.nil? || fixed_values.none? { |column, _| owner.resolve_alias(column) != column }
         fixed_values.to_h { |column, value| [-owner.resolve_alias(column), value] }.freeze
+      end
+
+      def each_constraint_value(reference_record, target_record)
+        target_columns = @_constraint_target_key.columns
+        @_constraint_reference_key.each_with_index do |column, index|
+          value = target_record._read_attribute(target_columns[index])
+          yield column, reference_record.class.type_for_attribute(column).cast(value)
+        end
       end
 
       def each_reference_value(target_record, &)
@@ -283,7 +317,16 @@ module ActiveRecord
     end
 
     def write(origin, destination, force: true)
+      write_constraints(origin, destination)
       @link.write_reference(origin, destination, force: force)
+    end
+
+    def validate_constraints!(origin, destination)
+      @link.validate_constraints!(origin, destination)
+    end
+
+    def write_constraints(origin, destination)
+      @link.write_constraints(origin, destination)
     end
 
     def clear_reference(reference_record, **)
@@ -345,10 +388,19 @@ module ActiveRecord
     end
 
     def write(origin, destination, force: true)
+      write_constraints(origin, destination)
       @link.write_reference(destination, origin, force: force)
     end
 
-    # The attributes #write would assign to a destination, for building one.
+    def validate_constraints!(origin, destination)
+      @link.validate_constraints!(destination, origin)
+    end
+
+    def write_constraints(origin, destination)
+      @link.write_constraints(destination, origin)
+    end
+
+    # The foreign-key attributes used when building a destination.
     def destination_attributes(origin)
       @link.reference_values(origin)
     end
