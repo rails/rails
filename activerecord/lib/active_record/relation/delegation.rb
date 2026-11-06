@@ -53,6 +53,12 @@ module ActiveRecord
         generated_relation_methods.generate_method(method)
       end
 
+      def extend_relations(*modules)
+        @relation_delegate_cache.each_value do |klass|
+          klass.include(*modules)
+        end
+      end
+
       protected
         def include_relation_methods(delegate)
           superclass.include_relation_methods(delegate) unless base_class?
