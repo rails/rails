@@ -56,7 +56,7 @@ class CacheSerializerWithFallbackTest < ActiveSupport::TestCase
     end
   end
 
-  test ":message_pack serializer handles missing class gracefully" do
+  test ":message_pack serializer raises a deserialization error for a missing class" do
     klass = Class.new do
       def self.name; "DoesNotActuallyExist"; end
       def self.from_msgpack_ext(string); self.new; end
@@ -65,7 +65,9 @@ class CacheSerializerWithFallbackTest < ActiveSupport::TestCase
 
     dumped = serializer(:message_pack).dump(klass.new)
     assert_not_nil dumped
-    assert_nil serializer(:message_pack).load(dumped)
+    assert_raises ActiveSupport::Cache::DeserializationError do
+      serializer(:message_pack).load(dumped)
+    end
   end
 
   test "raises on invalid format name" do
