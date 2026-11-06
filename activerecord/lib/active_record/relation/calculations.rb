@@ -632,12 +632,19 @@ module ActiveRecord
         else
           join_dependencies = nil
           columns.map.with_index do |column, i|
-            column.try(:type_caster) ||
+            type = column.try(:type_caster)
+            # Prefer the result type only for the default placeholder, preserving explicit types.
+            if type.equal?(Type.default_value)
+              result.column_types[i] || type
+            elsif type
+              type
+            else
               model.attribute_types.fetch(name = result.columns[i]) do
                 join_dependencies ||= build_join_dependencies
                 lookup_cast_type_from_join_dependencies(name, join_dependencies) ||
                   result.column_types[i] || Type.default_value
               end
+            end
           end
         end
         result.cast_values(cast_types)
