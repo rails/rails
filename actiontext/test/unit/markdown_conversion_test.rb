@@ -637,6 +637,44 @@ class ActionText::MarkdownConversionTest < ActiveSupport::TestCase
     )
   end
 
+  test "<ol> tags preserve their starting number" do
+    assert_converted_to(
+      "5. five\n6. six",
+      '<ol start="5"><li>five</li><li>six</li></ol>'
+    )
+  end
+
+  test "<ol> tags can start at zero" do
+    assert_converted_to("0. zero", '<ol start="0"><li>zero</li></ol>')
+  end
+
+  test "<ol> starting numbers determine continuation indentation" do
+    assert_converted_to(
+      "10. ten\n    - nested\n11. eleven",
+      '<ol start="10"><li>ten<ul><li>nested</li></ul></li><li>eleven</li></ol>'
+    )
+  end
+
+  test "nested <ol> tags use their own starting numbers" do
+    assert_converted_to(
+      "5. five\n   2. two\n6. six",
+      '<ol start="5"><li>five<ol start="2"><li>two</li></ol></li><li>six</li></ol>'
+    )
+  end
+
+  test "<ol> starting numbers must be representable as Markdown list markers" do
+    ["invalid", "-1", "1000000000"].each do |start|
+      assert_converted_to("1. one", %Q(<ol start="#{start}"><li>one</li></ol>))
+    end
+  end
+
+  test "<ol> markers stay within the Markdown digit limit" do
+    assert_converted_to(
+      "999999999. one\n999999999. two",
+      '<ol start="999999999"><li>one</li><li>two</li></ol>'
+    )
+  end
+
   test "empty <li> tags are skipped" do
     assert_converted_to(
       "before\n\n- real\n\nafter",
