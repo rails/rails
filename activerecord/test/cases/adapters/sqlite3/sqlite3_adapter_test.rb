@@ -678,6 +678,14 @@ module ActiveRecord
         end
       end
 
+      def test_columns_with_boolean_default
+        with_example_table "id integer PRIMARY KEY AUTOINCREMENT, active boolean default TRUE, disabled boolean default FALSE" do
+          columns = @conn.columns("ex").index_by(&:name)
+          assert_equal "1", columns["active"].default
+          assert_equal "0", columns["disabled"].default
+        end
+      end
+
       def test_columns_with_not_null
         with_example_table "id integer PRIMARY KEY AUTOINCREMENT, number integer not null" do
           column = @conn.columns("ex").find { |x| x.name == "number" }
