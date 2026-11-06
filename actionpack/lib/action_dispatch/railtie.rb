@@ -111,5 +111,12 @@ module ActionDispatch
         ActiveSupport::Ractors.make_shareable(ActionDispatch::ExceptionWrapper.silent_exceptions)
       end
     end
+
+    initializer "action_dispatch.ractorize" do
+      ActiveSupport.on_load(:before_ractorize) do
+        ActionDispatch::Http::Parameters.parameter_parsers_frozen = true
+        ObjectSpace.each_object(ActionDispatch::Http::Parameters::ClassMethods) { |klass| klass.parameter_parsers&.freeze }
+      end
+    end
   end
 end

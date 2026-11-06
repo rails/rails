@@ -81,6 +81,52 @@ class WebServiceTest < ActionDispatch::IntegrationTest
     end
   end
 
+  def test_register_parser_in_place
+    original_parsers = ActionDispatch::Request.parameter_parsers.dup
+    ActionDispatch::Request.parameter_parsers = { Mime[:json] => original_parsers[:json] }
+    ActionDispatch::Request.parameter_parsers[:xml] = Proc.new { |data| { "summary" => data } }
+
+    with_test_route_set do
+      post "/", params: "<summary/>", headers: { "CONTENT_TYPE" => "application/xml" }
+
+      assert_equal "summary", @controller.response.body
+      assert_equal "<summary/>", @controller.params["summary"]
+
+      post "/", params: '{"summary":"json"}', headers: { "CONTENT_TYPE" => "application/json" }
+      assert_equal "json", @controller.params["summary"]
+    end
+  ensure
+    ActionDispatch::Request.parameter_parsers = original_parsers
+  end
+
+  def test_register_parser_in_place_on_the_default_parsers
+    parameters = Class.new { include ActionDispatch::Http::Parameters }
+    parameters.parameter_parsers[:xml] = Proc.new { |data| { "summary" => data } }
+
+    assert_equal [:json, :xml], parameters.parameter_parsers.keys
+    assert_equal [:json], ActionDispatch::Http::Parameters::DEFAULT_PARSERS.keys
+  end
+
+  def test_register_parser_in_place_after_replacing_frozen_parsers
+    original_parsers = ActionDispatch::Request.parameter_parsers.dup
+    ActionDispatch::Request.parameter_parsers.freeze
+    ActionDispatch::Request.parameter_parsers = original_parsers.dup
+    ActionDispatch::Request.parameter_parsers[:xml] = Proc.new { |data| { "summary" => data } }
+
+    assert_equal [:json, :xml], ActionDispatch::Request.parameter_parsers.keys
+  ensure
+    ActionDispatch::Request.parameter_parsers = original_parsers
+  end
+
+  def test_register_parser_in_place_on_a_request_subclass
+    request_class = Class.new(ActionDispatch::Request)
+    request_class.parameter_parsers = ActionDispatch::Request.parameter_parsers
+    request_class.parameter_parsers[:xml] = Proc.new { |data| { "summary" => data } }
+
+    assert_equal [:json, :xml], request_class.parameter_parsers.keys
+    assert_equal [:json], ActionDispatch::Request.parameter_parsers.keys
+  end
+
   def test_use_json_with_empty_request
     with_test_route_set do
       assert_nothing_raised { post "/", headers: { "CONTENT_TYPE" => "application/json" } }
