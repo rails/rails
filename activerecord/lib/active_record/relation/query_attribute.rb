@@ -58,7 +58,7 @@ module ActiveRecord
       alias eql? ==
 
       def hash
-        [self.class, name, value_for_database, type].hash
+        @hash ||= [self.class, name, value_for_database, type].hash
       end
 
       private
