@@ -1017,7 +1017,8 @@ order of operations and atomicity:
 
 IMPORTANT: For `create_or_find_by` to work correctly, you must have a unique
 constraint on the attribute or attributes being queried. Without that
-constraint, the method can raise duplicate key violations. This method is most
+constraint, the insert never fails, so the method silently creates a duplicate
+record instead of finding the existing one. This method is most
 appropriate in situations where you expect the record to be created most of the
 time, where a unique constraint already exists on the relevant attributes, and
 where you want to avoid race conditions that might otherwise result in duplicate
