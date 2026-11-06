@@ -162,6 +162,20 @@ class DateHelperTest < ActionView::TestCase
     )
   end
 
+  def test_distance_in_words_reads_year_and_month_in_the_time_zone
+    # March 1st in Rome, still February 29th in UTC: the leap day of 2000
+    # must not count, or this reads "about 10 years".
+    from = Time.utc(2000, 2, 29, 23, 30).in_time_zone("Rome")
+    assert_equal "over 10 years", distance_of_time_in_words(from, from + 5_390_280.minutes)
+  end
+
+  def test_time_ago_in_words_with_time_with_zone
+    assert_equal "3 minutes", time_ago_in_words(3.minutes.ago.in_time_zone("Hawaii"))
+    assert_equal "3 minutes", time_ago_in_words(3.minutes.from_now.in_time_zone("Hawaii"))
+    assert_equal "3 minutes ago", relative_time_in_words(3.minutes.ago.in_time_zone("Hawaii"))
+    assert_equal "in 3 minutes", relative_time_in_words(3.minutes.from_now.in_time_zone("Hawaii"))
+  end
+
   def test_distance_in_words_with_dates
     start_date = Date.new 1975, 1, 31
     end_date = Date.new 1977, 1, 31
