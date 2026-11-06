@@ -968,6 +968,36 @@ module ActiveRecord
             assert_equal expected, on_ractor { WorkerRactorOnlyModel.count }
           end
 
+          def test_lists_and_serializes_attributes_of_records_loaded_on_a_ractor
+            table = widgets_table
+            model = Class.new(ActiveRecord::Base) do
+              self.table_name = table
+              def self.name = "RactorWidget"
+            end
+            model.create!(name: "first", price: 5)
+
+            row_sql = "SELECT * FROM #{table}"
+            partial_sql = "SELECT id, name FROM #{table}"
+
+            record = model.find_by_sql(row_sql).first
+            partial = model.find_by_sql(partial_sql).first
+            expected = [record.attribute_names, record.to_json, partial.attribute_names, partial.to_json] * 2
+
+            actual = on_ractor(model, row_sql, partial_sql) do |model, row_sql, partial_sql|
+              lazy = model.find_by_sql(row_sql).first
+              lazy_partial = model.find_by_sql(partial_sql).first
+              frozen = model.find_by_sql(row_sql).first.freeze
+              frozen_partial = model.find_by_sql(partial_sql).first.freeze
+
+              [
+                lazy.attribute_names, lazy.to_json, lazy_partial.attribute_names, lazy_partial.to_json,
+                frozen.attribute_names, frozen.to_json, frozen_partial.attribute_names, frozen_partial.to_json,
+              ]
+            end
+
+            assert_equal expected, actual
+          end
+
           def test_compiles_arel_locally_matching_the_main_side_compile
             t = Arel::Table.new(name: "topics")
             ast = t.project(Arel.star).where(t[:id].eq(Arel::Nodes::BindParam.new(1))).ast
