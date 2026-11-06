@@ -46,6 +46,13 @@ class JsonParamsParsingTest < ActionDispatch::IntegrationTest
     )
   end
 
+  test "parses JSON params for application merge-patch+json" do
+    assert_parses(
+      { "person" => { "name" => "David" } },
+      "{\"person\": {\"name\": \"David\"}}", "CONTENT_TYPE" => "application/merge-patch+json"
+    )
+  end
+
   test "does not parse unregistered media types such as application/vnd.api+json" do
     assert_parses(
       {},
