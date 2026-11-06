@@ -1164,6 +1164,34 @@ class ActionText::MarkdownConversionTest < ActiveSupport::TestCase
     )
   end
 
+  test "Content attachment code block in a heading becomes a code span" do
+    assert_converted_to(
+      "# ``` <img src=x> [x](javascript:alert(1)) ```",
+      "<h1>#{content_attachment("<pre>&lt;img src=x&gt;\n[x](javascript:alert(1))</pre>")}</h1>"
+    )
+  end
+
+  test "Content attachment code block in a summary becomes a code span" do
+    assert_converted_to(
+      "**``` <img src=x> ```**",
+      "<details><summary>#{content_attachment("<pre>\n&lt;img src=x&gt;\n</pre>")}</summary></details>"
+    )
+  end
+
+  test "Content attachment code block in a table cell becomes a code span with escaped pipes" do
+    assert_converted_to(
+      "| ``` a \\| <img src=x> ``` |",
+      "<table><tr><td>#{content_attachment("<pre>a | &lt;img src=x&gt;</pre>")}</td></tr></table>"
+    )
+  end
+
+  test "Content attachment code block after inline text starts its own block" do
+    assert_converted_to(
+      "Hello\n\n```\n<img src=x>\n```",
+      "<div>Hello#{content_attachment("<pre>&lt;img src=x&gt;</pre>")}</div>"
+    )
+  end
+
   test "Blob image without :attachment_links uses caption" do
     blob = create_file_blob(filename: "racecar.jpg", content_type: "image/jpeg")
     html = %Q(<action-text-attachment sgid="#{blob.attachable_sgid}" caption="Captioned"></action-text-attachment>)
@@ -1455,6 +1483,10 @@ class ActionText::MarkdownConversionTest < ActiveSupport::TestCase
   private
     def assert_converted_to(expected_markdown, html, **options)
       assert_equal expected_markdown, ActionText::Content.new(html).to_markdown(**options)
+    end
+
+    def content_attachment(html)
+      %(<action-text-attachment content-type="text/html" content="#{ERB::Util.html_escape(html)}"></action-text-attachment>)
     end
 
     def with_controller_renderer(script_name: "")
