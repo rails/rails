@@ -11,11 +11,11 @@ module AbstractController
 
     module ConfigMethods
       def cache_store
-        config.cache_store
+        config[:cache_store]
       end
 
       def cache_store=(store)
-        config.cache_store = ActiveSupport::Cache.lookup_store(*store)
+        config[:cache_store] = ActiveSupport::Cache.lookup_store(*store)
       end
 
       private
@@ -30,16 +30,13 @@ module AbstractController
     included do
       extend ConfigMethods
 
-      singleton_class.delegate :default_static_extension, :default_static_extension=, to: :config
-      delegate :default_static_extension, :default_static_extension=, to: :config
+      config_delegate :default_static_extension
       self.default_static_extension ||= ".html"
 
-      singleton_class.delegate :perform_caching, :perform_caching=, to: :config
-      delegate :perform_caching, :perform_caching=, to: :config
+      config_delegate :perform_caching
       self.perform_caching = true if perform_caching.nil?
 
-      singleton_class.delegate :enable_fragment_cache_logging, :enable_fragment_cache_logging=, to: :config
-      delegate :enable_fragment_cache_logging, :enable_fragment_cache_logging=, to: :config
+      config_delegate :enable_fragment_cache_logging
       self.enable_fragment_cache_logging = false
 
       class_attribute :_view_cache_dependencies, default: [].freeze
