@@ -1,3 +1,11 @@
+*   Fix MessagePack serialization of records with PostgreSQL array, `bit` or
+    `xml` columns.
+
+    Caching such a record with `serializer: :message_pack` raised
+    `ActiveSupport::MessagePack::UnserializableObjectError`.
+
+    *Hasan Nadeem*
+
 *   Retry `ActiveRecord::SerializationFailure` on queries that opted into retries.
 
     A serialization failure rolls back whatever the statement was part of, so a

@@ -7,7 +7,17 @@ module ActiveRecord
         class Array < Type::Value # :nodoc:
           include ActiveModel::Type::Helpers::Mutable
 
-          Data = Struct.new(:encoder, :values) # :nodoc:
+          Data = Struct.new(:encoder, :values) do # :nodoc:
+            # Lets ActiveSupport::MessagePack::CacheSerializer dump records with array
+            # attributes. The encoder is left out, since #deserialize reads only the values.
+            def to_msgpack_ext
+              values
+            end
+
+            def self.from_msgpack_ext(values)
+              new(nil, values)
+            end
+          end
 
           # Subtypes whose serialize only returns integers or nil: subclasses may return anything.
           INTEGER_SUBTYPES = [Type::Integer, Type::BigInteger].freeze # :nodoc:
