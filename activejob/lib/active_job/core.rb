@@ -131,7 +131,7 @@ module ActiveJob
         "locale"     => locale || I18n.locale.to_s,
         "timezone"   => timezone,
         "enqueued_at" => Time.now.utc.iso8601(9),
-        "scheduled_at" => scheduled_at ? scheduled_at.utc.iso8601(9) : nil,
+        "scheduled_at" => scheduled_at ? scheduled_at.getutc.iso8601(9) : nil,
       }
     end
 
