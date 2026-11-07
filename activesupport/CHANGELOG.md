@@ -1,3 +1,12 @@
+*   Treat a `:message_pack` cache entry that references a class that no longer
+    exists as a cache miss.
+
+    Reading such an entry returned `nil` as if `nil` had been cached, so `fetch`
+    never called its block and `exist?` returned `true` until the entry expired.
+    It is now a miss, as it is with the Marshal serializers.
+
+    *Hasan Nadeem*
+
 *   Fix `FrozenError` when using a frozen `ActiveSupport::MessageVerifier` or
     `ActiveSupport::MessageEncryptor` that had not verified or decrypted a
     message yet, as after `Ractor.make_shareable`, and when freezing an already
