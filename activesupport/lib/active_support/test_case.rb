@@ -369,7 +369,7 @@ module ActiveSupport
     # Alias for: [refute_pattern](https://docs.seattlerb.org/minitest/Minitest/Assertions.html#method-i-refute_pattern)
 
     #
-    alias :assert_not_pattern :refute_pattern
+    alias :assert_not_pattern :refute_pattern if method_defined?(:refute_pattern)
 
     ##
     # :method: assert_not_predicate
