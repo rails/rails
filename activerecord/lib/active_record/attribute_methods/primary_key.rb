@@ -78,15 +78,27 @@ module ActiveRecord
           # Overwriting will negate any effect of the `primary_key_prefix_type`
           # setting, though.
           def primary_key
-            primary_key_definition.name
+            stored_primary_key_definition.name
           end
 
           def composite_primary_key? # :nodoc:
-            primary_key_definition&.composite?
+            # Read the stored definition (not the override-aware one): a composite
+            # key is established through `primary_key=` / the schema, matching the
+            # pre-`PrimaryKey`-object behavior where this did not reflect a
+            # `primary_key` method that happens to return an Array.
+            stored_primary_key_definition&.composite?
           end
 
           def primary_key_definition # :nodoc:
-            @primary_key_definition || load_primary_key_definition
+            # `primary_key` is documented as overridable in subclasses. The stored
+            # definition (resolved from the schema, assigned, or inherited) backs
+            # the default `primary_key` and any `super` call. When the method is
+            # overridden to a different key, build the definition from its current
+            # value so relation finders and other consumers honor the override, and
+            # re-read it if it changes, rather than using the schema-derived key.
+            stored = stored_primary_key_definition
+            key = primary_key
+            key == stored.name ? stored : ActiveRecord::Key.for(key)
           end
 
           # Returns a quoted version of the primary key name.
@@ -127,14 +139,14 @@ module ActiveRecord
             @primary_key_definition = ActiveRecord::Key.for(value)
             @primary_key_inherited = false
 
-            include CompositePrimaryKey if primary_key_definition.composite?
+            include CompositePrimaryKey if @primary_key_definition.composite?
 
             # Only invalidate loaded contexts; initial schema loading can resolve the primary key.
             ([self] + descendants).each do |model|
               model.clear_inherited_primary_key
               model.reload_schema_from_cache(false) if model.schema_loaded?
               # Regenerate so the id_value reader is replaced by an alias.
-              model.undefine_attribute_methods if primary_key_definition.composite? && model.attribute_methods_generated?
+              model.undefine_attribute_methods if @primary_key_definition.composite? && model.attribute_methods_generated?
             end
           end
 
@@ -144,6 +156,14 @@ module ActiveRecord
             end
 
           private
+            # The definition resolved from the schema, assigned via
+            # `primary_key=`, or inherited. It backs the default `primary_key`
+            # method and any `super` call inside an override, so it never reflects
+            # an overridden `primary_key` method.
+            def stored_primary_key_definition
+              @primary_key_definition || load_primary_key_definition
+            end
+
             # Subclasses inherit the primary key of the closest ancestor that
             # has one, otherwise it is resolved from the schema.
             def load_primary_key_definition
