@@ -4096,6 +4096,56 @@ module ApplicationTests
       assert_equal true, ActiveSupport.utc_to_local_returns_utc_offset_times
     end
 
+    test "STORAGE_URL configures Active Storage without a storage.yml" do
+      remove_file "config/storage.yml"
+      add_to_config "config.active_storage.service = :local"
+
+      switch_env "STORAGE_URL", "disk:///tmp/storage_url" do
+        app "development"
+
+        assert_equal "/tmp/storage_url", ActiveStorage::Blob.service.root
+        assert_equal :local, ActiveStorage::Blob.service.name
+      end
+    end
+
+    test "STORAGE_URL only overrides the service chosen by config.active_storage.service" do
+      app_file "config/storage.yml", <<~YAML
+        local:
+          service: Disk
+          root: /tmp/storage_yml_local
+        other:
+          service: Disk
+          root: /tmp/storage_yml_other
+      YAML
+      add_to_config "config.active_storage.service = :local"
+
+      switch_env "STORAGE_URL", "disk:///tmp/storage_url" do
+        app "development"
+
+        assert_equal "/tmp/storage_url", ActiveStorage::Blob.services.fetch(:local).root
+        assert_equal "/tmp/storage_yml_other", ActiveStorage::Blob.services.fetch(:other).root
+      end
+    end
+
+    test "STORAGE_URL configures a default service when config.active_storage.service is not set" do
+      switch_env "STORAGE_URL", "disk:///tmp/storage_url" do
+        app "development"
+
+        assert_equal "/tmp/storage_url", ActiveStorage::Blob.service.root
+        assert_equal :default, ActiveStorage::Blob.service.name
+      end
+    end
+
+    test "a blank STORAGE_URL doesn't replace a missing storage.yml" do
+      remove_file "config/storage.yml"
+
+      switch_env "STORAGE_URL", "" do
+        app "development"
+
+        assert_raises(RuntimeError, match: /Couldn't find Active Storage configuration/) { ActiveStorage::Blob }
+      end
+    end
+
     test "ActiveStorage.queues[:analysis] is :active_storage_analysis by default in 6.0" do
       remove_from_config '.*config\.load_defaults.*\n'
       add_to_config 'config.load_defaults "6.0"'

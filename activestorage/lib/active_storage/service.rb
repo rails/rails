@@ -71,6 +71,26 @@ module ActiveStorage
           service_instance.name = name
         end
       end
+
+      # Override in subclasses to convert a URL into the service's config.
+      def service_config_from_url(url) # :nodoc:
+        raise NotImplementedError
+      end
+
+      private
+        # The URL can hold credentials, so errors must not quote it or keep a cause that does.
+        def parse_storage_url(url)
+          uri = URI.parse(url)
+
+          if uri.query || uri.fragment
+            raise ArgumentError, "STORAGE_URL can't have a query or a fragment. Percent-encode reserved " \
+              "characters in credentials, and set other options in config/storage.yml"
+          end
+
+          uri
+        rescue URI::InvalidURIError
+          raise ArgumentError, "STORAGE_URL isn't a valid URL. Percent-encode reserved characters in credentials", cause: nil
+        end
     end
 
     # Upload the `io` to the `key` specified. If a `checksum` is provided, the service will
