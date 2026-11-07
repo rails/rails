@@ -347,7 +347,7 @@ def change
 end
 ```
 
-Hint: to show all the values of the all enums you have, you can call this query in `bin/rails db` or `psql` console:
+Hint: to show all the values of all the enums you have, you can call this query in `bin/rails db` or `psql` console:
 
 ```sql
 SELECT n.nspname AS enum_schema,
