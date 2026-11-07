@@ -48,6 +48,10 @@ module ActiveRecord
         with_context { encryptor.encrypted? value }
       end
 
+      def freezable_default?(value) # :nodoc:
+        !cast_type.respond_to?(:freezable_default?) || cast_type.freezable_default?(value)
+      end
+
       def changed_in_place?(raw_old_value, new_value)
         old_value = raw_old_value.nil? ? nil : deserialize(raw_old_value)
         old_value != new_value
