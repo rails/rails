@@ -102,7 +102,7 @@ view.
 called with a single argument, it fetches and returns the cached value for the
 given key. If a block is passed, the block is executed only on a cache miss. The
 block's return value is written to the cache under the given cache key and
-returned. In case of cache hit, the cached value is returned directly without
+returned. In case of a cache hit, the cached value is returned directly without
 executing the block.
 
 For example:
