@@ -297,8 +297,8 @@ module ActiveRecord
           remote_dispatch(:rename_table, ...)
         end
 
-        def return_value_after_insert?(...)
-          remote_dispatch(:return_value_after_insert?, ...)
+        def return_value_after_insert?(column)
+          supports_insert_returning? ? column.auto_populated_on_insert? : column.auto_increment?
         end
 
         def table_comment(...)

@@ -3,6 +3,7 @@
 require "active_support/core_ext/enumerable"
 require "active_support/parameter_filter"
 require "active_support/ractors"
+require "active_support/weak_key_map"
 require "concurrent/map"
 
 module ActiveRecord
@@ -287,7 +288,7 @@ module ActiveRecord
 
     module ClassMethods
       def initialize_find_by_cache # :nodoc:
-        ActiveSupport::Ractors[find_by_statement_cache_key] = { true => Concurrent::Map.new, false => Concurrent::Map.new }
+        ActiveSupport::Ractors[find_by_statement_cache_key] = ActiveSupport::WeakKeyMap.new
       end
 
       def find_by_statement_cache_key # :nodoc:
@@ -620,7 +621,11 @@ module ActiveRecord
     def init_attributes(_) # :nodoc:
       attrs = @attributes.deep_dup
 
-      self.class.primary_key_definition.each { |key| attrs.reset(key) }
+      if primary_key_is_composite?
+        @primary_key.each { |key| attrs.reset(key) }
+      elsif @primary_key
+        attrs.reset(@primary_key)
+      end
 
       attrs
     end
@@ -704,7 +709,7 @@ module ActiveRecord
     def hash
       id = self.id
 
-      if self.class.composite_primary_key? ? primary_key_values_present? : id
+      if primary_key_is_composite? ? primary_key_values_present? : id
         [self.class, id].hash
       else
         super

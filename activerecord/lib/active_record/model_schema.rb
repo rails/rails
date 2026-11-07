@@ -183,12 +183,12 @@ module ActiveRecord
         alias_method :inheritance_column=, :real_inheritance_column=
       end
 
+      initialize_load_schema_monitor
+
       self.ignored_columns = [].freeze
       self.only_columns = [].freeze
 
       delegate :type_for_attribute, :column_for_attribute, to: :class
-
-      initialize_load_schema_monitor
     end
 
     # Derives the join table name for `first_table` and `second_table`. The
@@ -206,19 +206,38 @@ module ActiveRecord
     end
 
     module ClassMethods
-      # The loaded schema context, if any, without loading it.
       def current_schema_context # :nodoc:
         @schema_context
       end
 
       def schema_context # :nodoc:
-        return @schema_context if schema_loaded?
-        load_schema
-        @schema_context
+        return @schema_context if @schema_context
+
+        ActiveSupport::Ractors.on_main(self) do
+          @load_schema_monitor.synchronize do
+            @schema_context ||= ActiveSupport::Ractors.make_shareable(build_schema_context)
+          end
+        end
       end
 
       def build_schema_context # :nodoc:
         ActiveRecord::ModelSchema::SchemaContext.new(self)
+      end
+
+      def loaded_mapped_table # :nodoc:
+        @loaded_mapped_table
+      end
+
+      def mapped_table # :nodoc:
+        loaded_mapped_table || schema_context.mapped_table
+      end
+
+      def schema_attributes # :nodoc:
+        if table = loaded_mapped_table
+          table.attributes || schema_context.ractor_attributes
+        else
+          schema_context.attributes
+        end
       end
 
       # Guesses the table name (in forced lower-case) based on the name of the class in the
@@ -307,6 +326,8 @@ module ActiveRecord
           reset_column_information if connected?
         end
 
+        reload_schema_from_cache if @schema_context
+
         @table_name        = value
         @arel_table        = Arel::Table.new(klass: self)
         @predicate_builder = PredicateBuilder.new(TableMetadata.new(self, @arel_table)) if renaming
@@ -373,6 +394,7 @@ module ActiveRecord
       end
 
       def real_inheritance_column=(value) # :nodoc:
+        reload_schema_from_cache
         self._inheritance_column = value.to_s
       end
 
@@ -489,35 +511,23 @@ module ActiveRecord
       end
 
       def attributes_builder # :nodoc:
-        schema_context.attributes.builder
+        schema_attributes.builder
       end
 
       def columns_hash # :nodoc:
-        schema_context.columns_hash
+        mapped_table.columns_hash
       end
 
       def columns
-        schema_context.columns
+        mapped_table.columns
       end
 
       def _returning_columns_for_insert(connection) # :nodoc:
-        @_returning_columns_for_insert || begin
-          columns = schema_context._returning_columns_for_insert(connection)
-
-          ActiveSupport::Ractors.on_main(self) do
-            @_returning_columns_for_insert ||= columns
-          end
-        end
+        mapped_table._returning_columns_for_insert(connection)
       end
 
       def _returning_columns_for_update(connection) # :nodoc:
-        @_returning_columns_for_update || begin
-          columns = schema_context._returning_columns_for_update(connection)
-
-          ActiveSupport::Ractors.on_main(self) do
-            @_returning_columns_for_update ||= columns
-          end
-        end
+        mapped_table._returning_columns_for_update(connection)
       end
 
       # Returns the column object for the named attribute.
@@ -545,18 +555,18 @@ module ActiveRecord
       # Returns a hash where the keys are column names and the values are
       # default values when instantiating the Active Record object for this table.
       def column_defaults
-        schema_context.attributes.column_defaults
+        schema_attributes.column_defaults
       end
 
       # Returns an array of column names as strings.
       def column_names
-        schema_context.column_names
+        mapped_table.column_names
       end
 
       # Returns an array of column objects where the primary id, all columns ending in "\_id" or "\_count",
       # and columns used for single table inheritance have been removed.
       def content_columns
-        schema_context.content_columns
+        mapped_table.content_columns
       end
 
       # Resets all the cached information about columns, which will cause them
@@ -593,27 +603,45 @@ module ActiveRecord
         schema_cache.clear_data_source_cache!(table_name)
 
         reload_schema_from_cache
-        initialize_find_by_cache
       end
 
       # Load the model's schema information either from the schema cache
       # or directly from the database.
       def load_schema
         return if schema_loaded?
+        schema_context.mapped_table
+        true
+      end
 
-        @load_schema_monitor.synchronize do
-          unless schema_loaded? || @schema_context
-            @schema_context = build_schema_context
-            @schema_context.load_schema!
-            ActiveSupport::Ractors.make_shareable(@schema_context)
-            unless @schema_hooks_loaded
-              load_schema!
-              @schema_hooks_loaded = true
+      def load_schema_context(context) # :nodoc:
+        if table = context.loaded_mapped_table
+          return table
+        end
+
+        ActiveSupport::Ractors.on_main(self) do
+          @load_schema_monitor.synchronize do
+            if table = context.loaded_mapped_table
+              table
+            elsif @schema_loading_tables.key?(context)
+              @schema_loading_tables[context]
+            else
+              begin
+                @schema_loading_tables[context] = nil
+                table = context.load_schema! { |loading| @schema_loading_tables[context] = loading }
+                if context.equal?(current_schema_context) && !@schema_hooks_loaded
+                  load_schema!
+                  @schema_hooks_loaded = true
+                end
+                @loaded_mapped_table = table if context.equal?(current_schema_context)
+                table
+              rescue
+                reload_schema_from_cache if context.equal?(current_schema_context)
+                raise
+              ensure
+                @schema_loading_tables.delete(context)
+              end
             end
           end
-        rescue
-          reload_schema_from_cache # If the schema loading failed half way through, we must reset the state.
-          raise
         end
       end
 
@@ -629,6 +657,7 @@ module ActiveRecord
       protected
         def initialize_load_schema_monitor
           @load_schema_monitor = Monitor.new
+          @schema_loading_tables = {}.compare_by_identity
         end
 
         def reload_schema_from_cache(recursive = true)
@@ -647,9 +676,10 @@ module ActiveRecord
         end
 
         def reload_schema_contexts_from_cache
-          @schema_context = nil
-          @_returning_columns_for_insert = nil
-          @_returning_columns_for_update = nil
+          @load_schema_monitor.synchronize do
+            @schema_context = nil
+            @loaded_mapped_table = nil
+          end
         end
 
         def schema_loaded?

@@ -67,6 +67,29 @@ class RactorsTest < ActiveSupport::TestCase
       assert_kind_of Ractor::IsolationError, error
     end
 
+    def test_cell_in_a_shareable_object_can_still_be_written_on_the_main_ractor
+      holder = ActiveSupport::Ractors.make_shareable([ActiveSupport::Ractors::Cell.new])
+      cell = holder.first
+      assert_nil Ractor.new(holder) { |h| h.first.value }.value
+
+      cell.value = ActiveSupport::Ractors.make_shareable(["loaded"])
+
+      assert_equal ["loaded"], Ractor.new(holder) { |h| h.first.value }.value
+    end
+
+    def test_cell_cannot_be_written_on_a_non_main_ractor
+      cell = ActiveSupport::Ractors::Cell.new
+      error = Ractor.new(cell) do |c|
+        c.value = 1
+        nil
+      rescue Ractor::IsolationError => e
+        e
+      end.value
+
+      assert_kind_of Ractor::IsolationError, error
+      assert_nil cell.value
+    end
+
     def test_ractor_make_shareable_returns_a_shareable_object
       string = +"hello"
       assert_not ActiveSupport::Ractors.shareable?(string)

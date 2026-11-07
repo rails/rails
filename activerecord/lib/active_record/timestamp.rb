@@ -76,15 +76,15 @@ module ActiveRecord
       end
 
       def timestamp_attributes_for_create_in_model
-        schema_context.timestamp_attributes_for_create_in_model
+        mapped_table.timestamp_attributes_for_create_in_model
       end
 
       def timestamp_attributes_for_update_in_model
-        schema_context.timestamp_attributes_for_update_in_model
+        mapped_table.timestamp_attributes_for_update_in_model
       end
 
       def all_timestamp_attributes_in_model
-        schema_context.all_timestamp_attributes_in_model
+        mapped_table.all_timestamp_attributes_in_model
       end
 
       def current_time_from_proper_timezone
