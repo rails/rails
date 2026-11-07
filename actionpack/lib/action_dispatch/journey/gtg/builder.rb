@@ -36,7 +36,6 @@ module ActionDispatch
               if u.all? { |pos| pos == DUMMY_END_NODE }
                 to = state_id[Object.new]
                 dtrans[from, to] = sym
-                dtrans.add_accepting(to)
 
                 ps.each { |state| dtrans.add_memo(to, state.memo) }
               else
@@ -49,8 +48,6 @@ module ActionDispatch
                       dtrans.add_memo(to, state.memo)
                     end
                   end
-
-                  dtrans.add_accepting(to)
                 end
               end
 
