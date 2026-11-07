@@ -1121,4 +1121,100 @@ class OptimisticLockingRollbackTest < ActiveRecord::TestCase
     assert_equal 1, p.lock_version
     assert_equal "after-tx", Person.find(@person.id).first_name
   end
+
+  def test_lock_version_restored_to_savepoint_value_after_nested_savepoint_rollback
+    p = Person.find(@person.id)
+    assert_equal 0, p.lock_version
+
+    Person.transaction do
+      p.update!(first_name: "outer-save")
+      assert_equal 1, p.lock_version
+
+      Person.transaction(requires_new: true) do
+        p.update!(first_name: "savepoint-save")
+        assert_equal 2, p.lock_version
+        raise ActiveRecord::Rollback
+      end
+
+      # The savepoint only reverts the row to the value it had when the savepoint
+      # was created (1, from the earlier save in this transaction), not all the way
+      # back to the pristine transaction-start value (0). The in-memory record must
+      # match that intermediate value so the next save doesn't raise
+      # `StaleObjectError` against the row the savepoint restored.
+      assert_equal 1, Person.find(@person.id).lock_version
+      assert_equal 1, p.lock_version
+      assert_not p.will_save_change_to_attribute?(:lock_version)
+      assert_nothing_raised do
+        p.update!(first_name: "after-savepoint-rollback")
+      end
+      assert_equal 2, p.lock_version
+    end
+
+    assert_equal 2, Person.find(@person.id).lock_version
+    assert_equal "after-savepoint-rollback", Person.find(@person.id).first_name
+  end
+
+  def test_lock_version_restored_after_rollback_of_multiple_nested_savepoints
+    p = Person.find(@person.id)
+    assert_equal 0, p.lock_version
+
+    Person.transaction do
+      p.update!(first_name: "outer-save")
+
+      Person.transaction(requires_new: true) do
+        p.update!(first_name: "inner-save")
+        assert_equal 2, p.lock_version
+
+        Person.transaction(requires_new: true) do
+          p.update!(first_name: "innermost-save")
+          assert_equal 3, p.lock_version
+          raise ActiveRecord::Rollback
+        end
+
+        # The innermost savepoint reverts the row to 2.
+        assert_equal 2, Person.find(@person.id).lock_version
+        assert_equal 2, p.lock_version
+        assert_nothing_raised { p.update!(first_name: "after-innermost") }
+        assert_equal 3, p.lock_version
+        raise ActiveRecord::Rollback
+      end
+
+      # The outer savepoint reverts the row to 1.
+      assert_equal 1, Person.find(@person.id).lock_version
+      assert_equal 1, p.lock_version
+      assert_nothing_raised { p.update!(first_name: "after-outer-savepoint") }
+      assert_equal 2, p.lock_version
+    end
+
+    assert_equal 2, Person.find(@person.id).lock_version
+  end
+
+  def test_lock_version_restored_after_rollback_of_sibling_savepoint
+    p = Person.find(@person.id)
+    assert_equal 0, p.lock_version
+
+    Person.transaction do
+      p.update!(first_name: "outer-save")
+
+      Person.transaction(requires_new: true) do
+        p.update!(first_name: "first-savepoint")
+        raise ActiveRecord::Rollback
+      end
+
+      assert_equal 1, p.lock_version
+
+      # A sibling savepoint that reuses the same nesting depth must still see the
+      # value the previous savepoint restored, and must not raise `StaleObjectError`.
+      Person.transaction(requires_new: true) do
+        assert_nothing_raised { p.update!(first_name: "second-savepoint") }
+        assert_equal 2, p.lock_version
+      end
+
+      assert_equal 2, p.lock_version
+      assert_nothing_raised { p.update!(first_name: "after-siblings") }
+    end
+
+    assert_equal 3, Person.find(@person.id).lock_version
+    assert_equal "after-siblings", Person.find(@person.id).first_name
+  end
 end
