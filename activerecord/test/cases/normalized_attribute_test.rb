@@ -28,6 +28,14 @@ class NormalizedAttributeTest < ActiveRecord::TestCase
     normalizes :name, with: -> value { value.strip.downcase }
   end
 
+  class ClampedWheelsAircraft < Aircraft
+    normalizes :wheels_count, with: -> count { count.clamp(0, 100) }
+  end
+
+  class ScaledWheelsAircraft < Aircraft
+    normalizes :wheels_count, with: -> count { count * 2**40 }
+  end
+
   setup do
     @time = Time.utc(1999, 12, 31, 12, 34, 56)
     @aircraft = NormalizedAircraft.create!(name: "fly HIGH", manufactured_at: @time)
@@ -50,6 +58,23 @@ class NormalizedAttributeTest < ActiveRecord::TestCase
   test "finds record by normalized value" do
     assert_equal @time.noon, @aircraft.manufactured_at
     assert_equal @aircraft, NormalizedAircraft.find_by(manufactured_at: @time.to_s)
+  end
+
+  test "finds record by out of range value that is normalized into range" do
+    aircraft = ClampedWheelsAircraft.create!(wheels_count: 2**64)
+    assert_equal 100, aircraft.wheels_count
+
+    assert_equal aircraft, ClampedWheelsAircraft.find_by(wheels_count: 2**64)
+    assert_equal [aircraft], ClampedWheelsAircraft.where(wheels_count: 2**64).to_a
+    assert ClampedWheelsAircraft.exists?(wheels_count: 2**64)
+  end
+
+  test "matches no records when an in range value is normalized out of range" do
+    relation = ScaledWheelsAircraft.where(wheels_count: 2**24)
+
+    assert_includes relation.to_sql, "1=0"
+    assert_empty relation.to_a
+    assert_not ScaledWheelsAircraft.exists?(wheels_count: 2**24)
   end
 
   test "uses the same query when finding record by nil and normalized nil values" do
