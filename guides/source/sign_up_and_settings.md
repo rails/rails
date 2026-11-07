@@ -1162,6 +1162,8 @@ class Store::UsersController < Store::BaseController
   end
 
   def destroy
+    @user.destroy
+    redirect_to store_users_path, status: :see_other, notice: "User has been deleted."
   end
 
   private
