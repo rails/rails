@@ -94,6 +94,116 @@ class ActiveJob::AttributesTest < ActiveSupport::TestCase
     assert_equal 0, restored.count
   end
 
+  class Record
+    include GlobalID::Identification
+
+    cattr_accessor :missing_ids, default: []
+
+    attr_reader :id
+
+    def self.where(id:)
+      Array(id).filter_map { |value| new(value) unless missing_ids.include?(value) }
+    end
+
+    def initialize(id)
+      @id = id
+    end
+
+    def ==(other)
+      other.is_a?(Record) && id == other.id
+    end
+  end
+
+  class RecordAttributeJob < ActiveJob::Base
+    include ActiveJob::Attributes
+
+    attribute :record
+
+    cattr_accessor :performed, default: []
+    cattr_accessor :discarded, default: []
+
+    def perform
+      performed << record
+    end
+  end
+
+  class DiscardRecordJob < RecordAttributeJob
+    discard_on ActiveJob::DeserializationError do |job, error|
+      job.discarded << error.class
+    end
+  end
+
+  class RetryRecordJob < RecordAttributeJob
+    retry_on ActiveJob::DeserializationError, wait: 0
+  end
+
+  setup do
+    Record.missing_ids = []
+    RecordAttributeJob.performed = []
+    RecordAttributeJob.discarded = []
+  end
+
+  test "attribute deserialization errors are handled by the job's rescue handlers" do
+    data = DiscardRecordJob.new.tap { |job| job.record = Record.new("1") }.serialize
+    Record.missing_ids = ["1"]
+
+    assert_nothing_raised { ActiveJob::Base.execute(data) }
+    assert_equal [ActiveJob::DeserializationError::RecordNotFound], RecordAttributeJob.discarded
+    assert_empty RecordAttributeJob.performed
+  end
+
+  test "retrying after an attribute deserialization error keeps the serialized attributes" do
+    RetryRecordJob.new.tap { |job| job.record = Record.new("1") }.enqueue
+    Record.missing_ids = ["1"]
+
+    assert_enqueued_jobs 1, only: RetryRecordJob do
+      perform_enqueued_jobs
+    end
+    assert_empty RecordAttributeJob.performed
+
+    Record.missing_ids = []
+    perform_enqueued_jobs
+
+    assert_equal [Record.new("1")], RecordAttributeJob.performed
+  end
+
+  test "values written after a successful deserialize are serialized and performed" do
+    data = RecordAttributeJob.new.tap { |job| job.record = Record.new("1") }.serialize
+
+    job = RecordAttributeJob.new
+    job.deserialize(data)
+    job.record = Record.new("2")
+
+    restored = RecordAttributeJob.new
+    restored.deserialize(job.serialize)
+    assert_equal Record.new("2"), restored.record
+
+    job.perform_now
+    assert_equal [Record.new("2")], RecordAttributeJob.performed
+  end
+
+  class EagerArgumentsJob < ActiveJob::Base
+    def deserialize(job_data)
+      super
+      ActiveJob::Arguments.deserialize(job_data["arguments"])
+    end
+  end
+
+  class EagerArgumentsAttributeJob < EagerArgumentsJob
+    include ActiveJob::Attributes
+
+    attribute :name, :string
+  end
+
+  test "deserialization errors raised by super are not rescued" do
+    data = EagerArgumentsAttributeJob.new(Record.new("1")).serialize
+    Record.missing_ids = ["1"]
+
+    assert_raises(ActiveJob::DeserializationError::RecordNotFound) do
+      EagerArgumentsAttributeJob.new.deserialize(data)
+    end
+  end
+
   class RetryJob < ActiveJob::Base
     include ActiveJob::Attributes
 
