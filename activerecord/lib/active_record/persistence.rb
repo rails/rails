@@ -671,7 +671,9 @@ module ActiveRecord
       change = public_send(attribute) - (public_send(:"#{attribute}_in_database") || 0)
       counters = { attribute => change, touch: touch }
 
-      self.class.all_queries_scope._where!(_query_constraints_hash).update_counters(counters)
+      # Counters are updated atomically, so the optimistic locking predicate is
+      # not needed here; the row is still identified by its query constraints.
+      self.class.all_queries_scope._where!(_identity_query_constraints_hash).update_counters(counters)
       public_send(:"clear_#{attribute}_change")
       self
     end
@@ -899,6 +901,10 @@ module ActiveRecord
       end
 
       def _query_constraints_hash
+        _identity_query_constraints_hash
+      end
+
+      def _identity_query_constraints_hash
         if self.class.query_constraints_list.nil?
           { @primary_key => id_in_database }
         else

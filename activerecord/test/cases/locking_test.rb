@@ -33,6 +33,21 @@ class PersonWithAliasedLockVersion < ActiveRecord::Base
   alias_attribute :aliased_lock_version, :lock_version
 end
 
+class PersonWithLockVersionQueryConstraints < ActiveRecord::Base
+  self.table_name = :people
+  query_constraints :first_name, :lock_version
+end
+
+class PersonWithLockVersionInCompositePrimaryKey < ActiveRecord::Base
+  self.table_name = :people
+  self.primary_key = [:first_name, :lock_version]
+end
+
+class PersonWithLockVersionDefaultScope < ActiveRecord::Base
+  self.table_name = :people
+  default_scope -> { where(lock_version: 0) }, all_queries: true
+end
+
 class OptimisticLockingTest < ActiveRecord::TestCase
   fixtures :people, :legacy_things, :references, :string_key_objects, :peoples_treasures
 
@@ -607,6 +622,90 @@ class OptimisticLockingTest < ActiveRecord::TestCase
     assert_equal 4, car.lock_version
     assert_not car.lock_version_changed?
     assert_nothing_raised { car.update(name: "herbie") }
+  end
+
+  def test_increment_bang_with_stale_lock_version_still_increments_counter
+    first = Person.find(people(:michael).id)
+    second = Person.find(people(:michael).id)
+
+    first.increment!(:followers_count)
+    second.increment!(:followers_count)
+
+    assert_equal 3, Person.find(first.id).followers_count
+    assert_equal second.lock_version + 1, Person.find(first.id).lock_version
+    assert_raises(ActiveRecord::StaleObjectError) do
+      second.update!(first_name: "stale")
+    end
+  end
+
+  def test_decrement_bang_with_stale_lock_version_still_decrements_counter
+    first = Person.find(people(:michael).id)
+    second = Person.find(people(:michael).id)
+
+    first.decrement!(:followers_count)
+    second.decrement!(:followers_count)
+
+    assert_equal(-1, Person.find(first.id).followers_count)
+    assert_equal second.lock_version + 1, Person.find(first.id).lock_version
+    assert_raises(ActiveRecord::StaleObjectError) do
+      second.update!(first_name: "stale")
+    end
+  end
+
+  def test_increment_bang_keeps_lock_version_from_query_constraints
+    target = PersonWithLockVersionQueryConstraints.create!(first_name: "tenant", lock_version: 0)
+    other = PersonWithLockVersionQueryConstraints.create!(first_name: "tenant", lock_version: 5)
+
+    target.increment!(:followers_count)
+
+    assert_equal 1, Person.find(target.id).followers_count
+    assert_equal 0, Person.find(other.id).followers_count
+  end
+
+  def test_decrement_bang_keeps_lock_version_from_query_constraints
+    target = PersonWithLockVersionQueryConstraints.create!(first_name: "tenant", lock_version: 0)
+    other = PersonWithLockVersionQueryConstraints.create!(first_name: "tenant", lock_version: 5)
+
+    target.decrement!(:followers_count)
+
+    assert_equal(-1, Person.find(target.id).followers_count)
+    assert_equal 0, Person.find(other.id).followers_count
+  end
+
+  def test_increment_bang_keeps_lock_version_from_composite_primary_key
+    target = PersonWithLockVersionInCompositePrimaryKey.create!(first_name: "tenant", lock_version: 0)
+    PersonWithLockVersionInCompositePrimaryKey.create!(first_name: "tenant", lock_version: 5)
+
+    target.increment!(:followers_count)
+
+    assert_equal [1, 0], Person.where(first_name: "tenant").order(:lock_version).pluck(:followers_count)
+  end
+
+  def test_decrement_bang_keeps_lock_version_from_composite_primary_key
+    target = PersonWithLockVersionInCompositePrimaryKey.create!(first_name: "tenant", lock_version: 0)
+    PersonWithLockVersionInCompositePrimaryKey.create!(first_name: "tenant", lock_version: 5)
+
+    target.decrement!(:followers_count)
+
+    assert_equal [-1, 0], Person.where(first_name: "tenant").order(:lock_version).pluck(:followers_count)
+  end
+
+  def test_increment_bang_keeps_all_queries_default_scope_on_lock_version
+    person = PersonWithLockVersionDefaultScope.unscoped.create!(first_name: "outside", lock_version: 1)
+
+    person.increment!(:followers_count)
+
+    assert_equal 0, Person.find(person.id).followers_count
+    assert_equal 1, Person.find(person.id).lock_version
+  end
+
+  def test_decrement_bang_keeps_all_queries_default_scope_on_lock_version
+    person = PersonWithLockVersionDefaultScope.unscoped.create!(first_name: "outside", lock_version: 1)
+
+    person.decrement!(:followers_count)
+
+    assert_equal 0, Person.find(person.id).followers_count
+    assert_equal 1, Person.find(person.id).lock_version
   end
 
   def test_polymorphic_destroy_with_dependencies_and_lock_version
