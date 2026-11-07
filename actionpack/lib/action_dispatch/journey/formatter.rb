@@ -16,7 +16,7 @@ module ActionDispatch
       end
 
       class RouteWithParams
-        attr_reader :params
+        attr_reader :params, :route
 
         def initialize(route, parameterized_parts, params)
           @route = route
