@@ -163,7 +163,8 @@ module ActiveRecord
             if through_scope_filters_source?
               scope.where_clause += reflection_scope.where_clause
 
-              includes = values[:includes]
+              includes = values.values_at(:includes, :eager_load).compact.flatten
+              includes = nil if includes.empty?
 
               # The class fixed by `source_type` can't be preloaded, only eager loaded.
               if source_type_reflection = reflection.source_type_reflection
@@ -178,6 +179,10 @@ module ActiveRecord
                 scope.references_values |= values[:references]
               else
                 scope.references!((source_type_reflection || source_reflection).table_name)
+              end
+
+              if preload = values[:preload]
+                scope.preload!(source_reflection.name => preload)
               end
 
               if joins = values[:joins]
