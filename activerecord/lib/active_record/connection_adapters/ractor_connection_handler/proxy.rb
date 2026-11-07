@@ -164,7 +164,14 @@ module ActiveRecord
             @connections_lock.synchronize do
               @connections.each_value do |connection|
                 reclaim(connection)
-                connection.pool.checkin(connection) if connection.in_use?
+                next unless connection.in_use?
+
+                if connection.active?
+                  connection.reset!
+                  connection.pool.checkin(connection)
+                else
+                  connection.pool.remove(connection)
+                end
               end
               @connections.clear
             end
