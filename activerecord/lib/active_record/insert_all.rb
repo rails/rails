@@ -65,6 +65,10 @@ module ActiveRecord
       on_duplicate == :skip
     end
 
+    def select_duplicates?
+      on_duplicate == :select
+    end
+
     def update_duplicates?
       on_duplicate == :update
     end
@@ -190,6 +194,16 @@ module ActiveRecord
           raise ArgumentError, "#{connection.class} does not support upsert"
         end
 
+        if select_duplicates?
+          unless connection.supports_insert_on_conflict_select?
+            raise ArgumentError, "#{connection.class} does not support :select_duplicates"
+          end
+
+          unless returning
+            raise ArgumentError, "You must specify :returning when using :select_duplicates"
+          end
+        end
+
         if unique_by && !connection.supports_insert_conflict_target?
           raise ArgumentError, "#{connection.class} does not support :unique_by"
         end
@@ -227,7 +241,7 @@ module ActiveRecord
       class Builder # :nodoc:
         attr_reader :model
 
-        delegate :skip_duplicates?, :update_duplicates?, :keys, :keys_including_timestamps, :record_timestamps?, :primary_keys, to: :insert_all
+        delegate :skip_duplicates?, :select_duplicates?, :update_duplicates?, :keys, :keys_including_timestamps, :record_timestamps?, :primary_keys, to: :insert_all
 
         def initialize(insert_all)
           @insert_all, @model, @connection = insert_all, insert_all.model, insert_all.connection
@@ -277,7 +291,7 @@ module ActiveRecord
             sql = +"(#{format_columns(index.columns)})"
             sql << " WHERE #{index.where}" if index.where
             sql
-          elsif update_duplicates?
+          elsif update_duplicates? || select_duplicates?
             "(#{format_columns(insert_all.primary_keys)})"
           end
         end

@@ -1,3 +1,21 @@
+*   Return conflicting rows from `insert_all` with `select_duplicates: true` on PostgreSQL 19+.
+
+    `insert_all` skips conflicting rows, and returns nothing for them, so the result
+    cannot tell you the id of a row that already existed. On PostgreSQL 19 or later,
+    `select_duplicates: true` returns the existing row instead, using
+    `ON CONFLICT ... DO SELECT`:
+
+    ```ruby
+    Tag.insert_all([{ name: "backend" }], unique_by: :name, select_duplicates: true).rows
+    # => [[1]], whether the row was just inserted or already existed
+    ```
+
+    `ON CONFLICT ... DO SELECT` requires both a conflict target and a `RETURNING`
+    clause, so `:unique_by` falls back to the primary key, and `returning: false`
+    raises an `ArgumentError`.
+
+    *Willian Tenfen Wazilewski*
+
 *   Retry `ActiveRecord::SerializationFailure` on queries that opted into retries.
 
     A serialization failure rolls back whatever the statement was part of, so a

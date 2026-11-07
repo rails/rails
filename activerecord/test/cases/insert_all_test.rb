@@ -142,6 +142,92 @@ class InsertAllTest < ActiveRecord::TestCase
     end
   end
 
+  def test_insert_all_with_select_duplicates_returns_existing_and_inserted_rows
+    skip unless supports_insert_on_conflict_select?
+
+    result = nil
+
+    assert_difference "Book.count", +1 do
+      result = Book.insert_all [
+        { name: "Ruby for Rails", author_id: 1 },
+        { name: "Rework", author_id: 1 }
+      ], unique_by: %i[ author_id name ], select_duplicates: true
+    end
+
+    ids = result.rows.flatten
+
+    assert_equal 2, ids.length
+    assert_includes ids, books(:rfr).id
+    assert_includes ids, Book.find_by(name: "Rework").id
+  end
+
+  def test_insert_all_with_select_duplicates_returns_the_existing_row_not_the_given_one
+    skip unless supports_insert_on_conflict_select?
+
+    assert_no_difference "Book.count" do
+      result = Book.insert_all [{ name: "Ruby for Rails", author_id: 1, format: "paperback" }],
+        unique_by: %i[ author_id name ], returning: %i[ id format ], select_duplicates: true
+
+      assert_equal [[books(:rfr).id, "ebook"]], result.rows
+    end
+  end
+
+  def test_insert_all_with_select_duplicates_can_return_every_column
+    skip unless supports_insert_on_conflict_select?
+
+    result = Book.insert_all [{ name: "Ruby for Rails", author_id: 1, format: "paperback" }],
+      unique_by: %i[ author_id name ], returning: Arel.sql("*"), select_duplicates: true
+
+    assert_equal Book.column_names.sort, result.columns.sort
+
+    row = result.to_a.sole
+    assert_equal books(:rfr).id, row["id"]
+    assert_equal "ebook", row["format"]
+  end
+
+  def test_insert_with_select_duplicates
+    skip unless supports_insert_on_conflict_select?
+
+    result = Book.insert({ name: "Ruby for Rails", author_id: 1 }, unique_by: %i[ author_id name ], select_duplicates: true)
+
+    assert_equal [[books(:rfr).id]], result.rows
+  end
+
+  def test_insert_all_with_select_duplicates_infers_a_partial_unique_index
+    skip unless supports_insert_on_conflict_select?
+
+    # `books.isbn` unique index is partial: it only applies when `published_on` is NOT NULL.
+    published_on = Time.now.utc
+    book = Book.create!(name: "Existing", author_id: 1, isbn: "select-duplicates", published_on: published_on)
+
+    assert_no_difference "Book.count" do
+      result = Book.insert_all [{ name: "Another", author_id: 2, isbn: "select-duplicates", published_on: published_on }],
+        unique_by: :isbn, select_duplicates: true
+
+      assert_equal [[book.id]], result.rows
+    end
+  end
+
+  def test_insert_all_with_select_duplicates_requires_returning
+    skip unless supports_insert_on_conflict_select?
+
+    error = assert_raises ArgumentError do
+      Book.insert_all [{ name: "Rework", author_id: 1 }], unique_by: %i[ author_id name ], returning: false, select_duplicates: true
+    end
+
+    assert_match(/You must specify :returning/, error.message)
+  end
+
+  def test_insert_all_with_select_duplicates_raises_on_unsupported_connections
+    skip if supports_insert_on_conflict_select?
+
+    error = assert_raises ArgumentError do
+      Book.insert_all [{ name: "Rework", author_id: 1 }], select_duplicates: true
+    end
+
+    assert_match(/does not support :select_duplicates/, error.message)
+  end
+
   def test_insert_all_returns_nothing_if_returning_is_empty
     skip unless supports_insert_returning?
 
