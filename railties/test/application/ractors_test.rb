@@ -134,6 +134,44 @@ if RUBY_VERSION >= "4.0" && ENV["RACK"] == "head"
         assert_predicate Rails.application, :initialized?
       end
 
+      test "a route appended by an engine is usable from a non-main Ractor" do
+        add_engine_adding_route_with :append
+
+        app "production"
+
+        ractorize!
+
+        assert_equal "/blog", on_ractor { Rails.application.routes.url_helpers.blog_path }
+      end
+
+      test "a route prepended by an engine is usable from a non-main Ractor" do
+        add_engine_adding_route_with :prepend
+
+        app "production"
+
+        ractorize!
+
+        assert_equal "/blog", on_ractor { Rails.application.routes.url_helpers.blog_path }
+      end
+
+      test "the application boots with an engine appending a route and unshareable_proc_action :raise" do
+        add_to_env_config "production", "ActiveSupport::Ractors.unshareable_proc_action = :raise"
+        add_engine_adding_route_with :append
+
+        app "production"
+
+        assert_predicate Rails.application, :initialized?
+      end
+
+      test "an appended route block reading an unshareable local raises where it is added" do
+        add_to_env_config "production", "ActiveSupport::Ractors.unshareable_proc_action = :raise"
+        add_engine_adding_route_with :append, path: "path = +'/blog'", to: "path"
+
+        error = assert_raises(Ractor::IsolationError) { app "production" }
+
+        assert_match "vendor/blog/lib/blog.rb", error.backtrace.first(5).join("\n")
+      end
+
       test "deprecation warnings from jobs performed in a non-main Ractor reach the configured behavior" do
         add_to_env_config "production", "config.active_support.report_deprecations = true"
         add_to_env_config "production", "config.active_support.deprecation = :raise"
@@ -303,6 +341,27 @@ if RUBY_VERSION >= "4.0" && ENV["RACK"] == "head"
       end
 
       private
+        def add_engine_adding_route_with(method, path: nil, to: '"/blog"')
+          app_file "vendor/blog/lib/blog.rb", <<~RUBY
+            module Blog
+              class Engine < ::Rails::Engine
+                initializer "blog.routes" do |app|
+                  #{path}
+                  app.routes.#{method} do
+                    get #{to} => "posts#index", as: :blog
+                  end
+                end
+              end
+            end
+          RUBY
+          add_to_top_of_config 'require_relative "../vendor/blog/lib/blog"'
+
+          app_file "app/controllers/posts_controller.rb", <<~RUBY
+            class PostsController < ApplicationController
+            end
+          RUBY
+        end
+
         def ractorize!
           @original_experimental_warning = Warning[:experimental]
           Warning[:experimental] = false

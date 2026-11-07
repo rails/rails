@@ -558,11 +558,11 @@ module ActionDispatch
       end
 
       def append(&block)
-        @append << block
+        @append << ActiveSupport::Ractors.try_shareable_proc(block)
       end
 
       def prepend(&block)
-        @prepend << block
+        @prepend << ActiveSupport::Ractors.try_shareable_proc(block)
       end
 
       def eval_block(block)
