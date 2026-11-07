@@ -506,6 +506,62 @@ User with ID 1 destroyed successfully
 Notification sent to other users about user deletion
 ```
 
+### Understanding Around Callbacks
+
+Around callbacks (such as `around_save` or `around_create`) wrap the execution of a
+life cycle event. They are unique because they require the use of the `yield`
+statement to allow the operation to proceed.
+
+#### The Role of `yield`
+
+When an `around_*` callback is triggered, Rails pauses execution and enters the
+callback method. The actual database operation (and any subsequent callbacks in
+the chain) will only execute when `yield` is called.
+
+* **Before `yield`**: Any code placed here acts like a `before_*` callback.
+* **After `yield`**: Any code placed here acts like an `after_*` callback.
+
+If `yield` is never called, the entire operation is halted and the record will
+not be saved. This is similar to returning `throw :abort` in a `before_*`
+callback.
+
+
+#### Why Use Around Callbacks?
+
+While many tasks can be accomplished by combining `before_*` and `after_*`
+callbacks, `around_*` callbacks offer specific advantages:
+
+1. **Atomic Stack Frame**: Since the entire lifecycle happens within a single
+   method, you can use **local variables** to share state between the "before"
+   and "after" phases. This avoids polluting the object with temporary
+   instance variables.
+2. **Guaranteed Cleanup**: By wrapping `yield` in a `begin...ensure` block, you
+   can guarantee that a specific cleanup task (like releasing a lock) runs
+   even if the database operation fails or raises an exception.
+3. **Exception Handling**: You can wrap `yield` in a `rescue` block to handle
+   specific database errors or external service failures within the
+   transactional context.
+
+#### Common Use Cases
+
+A common use case is performance monitoring or wrapping the save in an external
+service's lifecycle:
+
+```ruby
+class User < ApplicationRecord
+  around_save :benchmark_save
+
+  private
+    def benchmark_save
+      start_time = Process.clock_gettime(Process::CLOCK_MONOTONIC)
+      yield
+      end_time = Process.clock_gettime(Process::CLOCK_MONOTONIC)
+
+      Rails.logger.info "User saved in #{end_time - start_time} seconds"
+    end
+end
+```
+
 ### `after_initialize` and `after_find`
 
 Whenever an Active Record object is instantiated, either by directly using `new`
