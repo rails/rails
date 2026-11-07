@@ -707,12 +707,29 @@ module ActiveRecord
             yield definition if block_given?
           end
 
+          if open_transactions == 1 && current_transaction.joinable? && referenced_by_destructive_foreign_key?(table_name)
+            materialize_transactions
+            commit_db_transaction
+            restart = true
+          end
+
           disable_referential_integrity do
-            transaction do
+            transaction(requires_new: restart) do
               move_table(table_name, altered_table_name, temporary: true)
               move_table(altered_table_name, table_name, &caller)
             end
+          ensure
+            rollback_db_transaction if restart
           end
+        ensure
+          begin_db_transaction if restart
+        end
+
+        def referenced_by_destructive_foreign_key?(table_name)
+          query_value(<<~SQL)
+            SELECT 1 FROM sqlite_master m JOIN pragma_foreign_key_list(m.name) fk
+            WHERE fk."table" = #{quote(table_name)} AND fk.on_delete IN ('CASCADE', 'SET NULL', 'SET DEFAULT')
+          SQL
         end
 
         def move_table(from, to, options = {}, &block)
