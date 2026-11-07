@@ -645,6 +645,28 @@ class EagerAssociationTest < ActiveRecord::TestCase
     end
   end
 
+  def test_preloading_nested_association_under_already_preloaded_has_many_through
+    author = Author.preload(:comments, comments: :ratings).find(authors(:david).id)
+
+    assert_no_queries do
+      assert_equal 3, author.comments.sum { |comment| comment.ratings.size }
+    end
+  end
+
+  def test_preloading_nested_association_under_ordered_has_many_through_loaded_on_some_owners
+    loaded_author = authors(:david)
+    loaded_author.comments_desc.load
+    other_author = Author.create!(name: "alice")
+    other_author.posts.create!(title: "Hello", body: "World").comments.create!([{ body: "Nice" }, { body: "Great" }])
+
+    ActiveRecord::Associations::Preloader.new(records: [loaded_author, other_author], associations: { comments_desc: :ratings }).call
+
+    assert_no_queries do
+      assert_equal 3, loaded_author.comments_desc.sum { |comment| comment.ratings.size }
+      assert_equal 0, other_author.comments_desc.sum { |comment| comment.ratings.size }
+    end
+  end
+
   def test_eager_with_has_many_through_an_sti_join_model_with_conditions_on_both
     author = Author.all.merge!(includes: :special_nonexistent_post_comments, order: "authors.id").first
     assert_equal [], author.special_nonexistent_post_comments

@@ -14,7 +14,7 @@ module ActiveRecord
         end
 
         def preloaded_records
-          @preloaded_records ||= source_preloaders.flat_map(&:preloaded_records)
+          @preloaded_records ||= owners.flat_map { |owner| records_by_owner[owner] }
         end
 
         def records_by_owner
@@ -117,7 +117,7 @@ module ActiveRecord
           end
 
           def preload_index
-            @preload_index ||= preloaded_records.each_with_object({}).with_index do |(record, result), index|
+            @preload_index ||= source_preloaders.flat_map(&:preloaded_records).each_with_object({}).with_index do |(record, result), index|
               result[record] = index
             end
           end
