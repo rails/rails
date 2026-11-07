@@ -1,0 +1,47 @@
+name: Auto-tag on version bump
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  tag:
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: '3.4'
+
+      - name: Read version from gemspec
+        id: read
+        run: |
+          version=$(ruby -e '
+            spec = Gem::Specification.load(Dir["*.gemspec"].first)
+            puts spec.version
+          ')
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+
+      - name: Check if tag exists
+        id: check
+        run: |
+          tag="v${{ steps.read.outputs.version }}"
+          if git rev-parse "$tag" >/dev/null 2>&1; then
+            echo "exists=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "exists=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Create and push tag
+        if: steps.check.outputs.exists == 'false'
+        run: |
+          tag="v${{ steps.read.outputs.version }}"
+          git config user.name  "Nathan K"
+          git config user.email "nathankidd@hey.com"
+          git tag -a "$tag" -m "Release $tag"
+          git push origin "$tag"
