@@ -83,7 +83,10 @@ module ActiveRecord
         end
 
         def replace(record, save = true)
-          raise_on_type_mismatch!(record) if record
+          if record
+            raise_on_type_mismatch!(record)
+            validate_query_constraints!(record)
+          end
 
           return target unless load_target || record
 

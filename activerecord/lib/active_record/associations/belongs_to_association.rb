@@ -5,13 +5,18 @@ module ActiveRecord
     # Active Record Belongs To Association
     # ====================================
     class BelongsToAssociation < SingularAssociation # :nodoc:
-      attr_reader :foreign_key, :foreign_type
+      attr_reader :foreign_key, :foreign_type, :match_key
 
       # The foreign key and type are physical names for the owner's class, for
-      # use with the non-resolving attribute APIs and dirty tracking.
+      # use with the non-resolving attribute APIs and dirty tracking. The match
+      # key adds query-constraint columns, so changing any of them retargets the
+      # association just like changing the foreign key. Polymorphic routes only
+      # know their constraints per target class, so they match by foreign key.
       def initialize(owner, reflection)
         super
-        @foreign_key = reflection.association_route(origin_class: owner.class)._reference_origin_key
+        route = reflection.association_route(origin_class: owner.class)
+        @foreign_key = route._reference_origin_key
+        @match_key = route._origin_key || @foreign_key
         @foreign_type = nil
         if reflection.polymorphic?
           @foreign_type = owner.resolve_alias(reflection.foreign_type)
@@ -101,15 +106,15 @@ module ActiveRecord
       end
 
       def target_changed?
-        foreign_key.any? { |fk| owner.attribute_changed?(fk) } || (!foreign_key_present? && target&.new_record?)
+        match_key.any? { |key| owner.attribute_changed?(key) } || (!foreign_key_present? && target&.new_record?)
       end
 
       def target_previously_changed?
-        foreign_key.any? { |fk| owner.attribute_previously_changed?(fk) }
+        match_key.any? { |key| owner.attribute_previously_changed?(key) }
       end
 
       def saved_change_to_target?
-        foreign_key.any? { |fk| owner.saved_change_to_attribute?(fk) }
+        match_key.any? { |key| owner.saved_change_to_attribute?(key) }
       end
 
       private
@@ -149,6 +154,7 @@ module ActiveRecord
         def replace(record)
           if record
             raise_on_type_mismatch!(record)
+            assign_query_constraints(record)
             set_inverse_instance(record)
             @updated = true
           elsif target
@@ -217,7 +223,10 @@ module ActiveRecord
           value = foreign_key.map_value do |fk|
             owner._read_attribute!(fk)
           end
-          foreign_key.composite? ? (value if value.any?) : value
+          value = (value if value.any?) if foreign_key.composite?
+          return value if value.nil? || match_key.length == foreign_key.length
+
+          match_key.map { |key| owner._read_attribute!(key) }
         end
     end
   end

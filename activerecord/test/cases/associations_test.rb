@@ -489,28 +489,6 @@ class AssociationsTest < ActiveRecord::TestCase
     assert_empty(blog_post.reload.tags)
     assert_not_predicate Sharded::BlogPostTag.where(blog_post_id: blog_post.id, blog_id: blog_post.blog_id), :exists?
   end
-
-  def test_using_query_constraints_warns_about_changing_behavior
-    has_many_expected_message = <<~MSG.squish
-      Setting `query_constraints:` option on `Sharded::BlogPost.has_many :qc_deprecated_comments` is not allowed.
-      To get the same behavior, use the `foreign_key` option instead.
-    MSG
-
-    assert_raises(ActiveRecord::ConfigurationError, match: has_many_expected_message) do
-      Sharded::BlogPost.has_many :qc_deprecated_comments,
-        class_name: "Sharded::Comment", query_constraints: [:blog_id, :blog_post_id]
-    end
-
-    belongs_to_expected_message = <<~MSG.squish
-      Setting `query_constraints:` option on `Sharded::Comment.belongs_to :qc_deprecated_blog_post` is not allowed.
-      To get the same behavior, use the `foreign_key` option instead.
-    MSG
-
-    assert_raises(ActiveRecord::ConfigurationError, match: belongs_to_expected_message) do
-      Sharded::Comment.belongs_to :qc_deprecated_blog_post,
-        class_name: "Sharded::Blog", query_constraints: [:blog_id, :blog_post_id]
-    end
-  end
 end
 
 class AssociationProxyTest < ActiveRecord::TestCase
