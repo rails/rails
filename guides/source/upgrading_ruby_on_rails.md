@@ -97,6 +97,53 @@ Rails.application.config.action_view.erb_implementation = :erubi
 
 Applications with a custom ERB implementation should set it through `config.action_view.erb_implementation`, since the framework default replaces an `ActionView::Base.erb_implementation` assignment made in an initializer.
 
+### HTML elements must close in the branch that opens them
+
+Herb pairs HTML tags within each branch of a conditional, block or loop, not
+across them. A template that opens an element in one branch and closes it in
+another, or in a later loop iteration, compiled through Erubi, but it fails to
+compile through Herb even when the HTML it renders is balanced:
+
+```erb
+<% if open %>
+  <ul>
+<% else %>
+  </ul>
+<% end %>
+```
+
+Rendering it raises `ActionView::SyntaxErrorInTemplate` with:
+
+```
+✘ [MissingClosingTagError] Opening tag `<ul>` at (2:3) doesn't have a matching closing tag `</ul>` in the same scope.
+✘ [MissingOpeningTagError] Found closing tag `</ul>` at (4:4) without a matching opening tag in the same scope.
+```
+
+`bin/rails herb:check` lists these templates. Restructure them so that each
+element opens and closes in the same branch, for example by rendering a nested
+list through a partial that renders itself instead of tracking open tags in a
+loop. Until then, keep compiling HTML templates through Erubi with
+`config.action_view.erb_implementation = :erubi`.
+
+### `link_to`, `button_to` and `current_page?` moved to `ActionView::Helpers::NavigationHelper`
+
+`link_to`, `button_to`, `current_page?`, `link_to_if`, `link_to_unless` and
+`link_to_unless_current` are now defined in `ActionView::Helpers::NavigationHelper`
+instead of `ActionView::Helpers::UrlHelper`. Views and helpers are unaffected,
+but a class that includes `UrlHelper`, `FormTagHelper` or `FormHelper` itself no
+longer defines these methods and must also include `NavigationHelper`:
+
+```ruby
+class LinkPresenter
+  include ActionView::Helpers::UrlHelper
+  include ActionView::Helpers::NavigationHelper
+end
+```
+
+`NavigationHelper` doesn't exist before Rails 8.2, so code that also runs on
+earlier versions can add `if defined?(ActionView::Helpers::NavigationHelper)`
+to that include.
+
 ### `:controller` and `:action` may no longer be used as dynamic route segments
 
 Routes such as the "default route" that older applications still carry in
@@ -147,12 +194,70 @@ warning naming each route whose controller does not exist. Such routes used to
 go unnoticed until a request matched them. Check the boot log for
 `references a missing controller` and fix or remove the routes it lists.
 
+### `Rack::Sendfile` is omitted when `x_sendfile_header` is unset
+
+The default middleware stack now includes `Rack::Sendfile` only when
+`config.action_dispatch.x_sendfile_header` is configured. When it is unset, code
+that positions middleware relative to `Rack::Sendfile`, such as
+`config.middleware.insert_before Rack::Sendfile, Rack::ContentLength`, raises
+`No such middleware to insert before: Rack::Sendfile` on boot.
+
+To keep sending files through the web server, configure the header your server
+expects:
+
+```ruby
+config.action_dispatch.x_sendfile_header = "X-Sendfile" # or "X-Accel-Redirect" for NGINX
+```
+
+If your middleware doesn't depend on `Rack::Sendfile`, insert it relative to
+another middleware, for example `ActionDispatch::Executor`, which is always in
+the default stack. Choose the insertion point by which requests your middleware
+needs to see: `ActionDispatch::Executor` comes after `ActionDispatch::Static`,
+so a middleware inserted before it no longer wraps static file responses.
+
+```ruby
+config.middleware.insert_before ActionDispatch::Executor, Rack::ContentLength
+```
+
 ### The old Active Record 6.1 marshalling format was removed.
 
 If your application still sets `active_record.marshalling_format_version = 6.1`, which may
 be done by not calling `config.load_defaults` or calling it with a version older or equal to `6.1`,
 you MUST opt-in to the newer `7.1` marshal format before upgrading, and ensure all caches were
 either flushed or upgraded.
+
+### Loading fixtures on PostgreSQL 18.4+ acquires more locks
+
+On PostgreSQL 18.4 and later, Active Record turns off foreign key checks while it
+loads fixtures or empties tables through `truncate_tables` by switching enforced
+foreign keys on tables whose owner the connection can use, in the current
+schemas, to `NOT ENFORCED` and back, instead of disabling triggers. This no longer
+requires a superuser, but switching off drops the constraint triggers and
+switching back recreates them, and the locks this takes on the constraints,
+tables and indexes are held until the transaction ends. That can be
+substantially more locks than disabling triggers took.
+
+PostgreSQL keeps object locks in one server-wide shared table. Its capacity
+depends on `max_locks_per_transaction` (64 by default), the configured number of
+server processes (mostly `max_connections`) and prepared transactions. Parallel
+test workers that load fixtures at the same time can exhaust it, intermittently
+and more often with more workers, and fail with:
+
+```
+PG::OutOfMemory: ERROR:  out of shared memory
+HINT:  You might need to increase "max_locks_per_transaction".
+```
+
+If fixture loading fails with this error, increase the setting on the
+PostgreSQL server that runs the tests, for example in `postgresql.conf`, and
+restart the server:
+
+```
+max_locks_per_transaction = 256
+```
+
+The value you need depends on your schema and the number of concurrent workers;
+larger test suites may need more.
 
 ### The negative scopes for enums now include records with `nil` values.
 
@@ -175,6 +280,26 @@ Book.not_published # => [book2]
 
 Book.not_published # => [book2, book3]
 ```
+
+### Upgrade Sidekiq to 8.0.3 or later
+
+The `sidekiq` adapter that Rails 8.1 deprecated has been removed, so the adapter
+now comes from the `sidekiq` gem. Older Sidekiq releases can fail to load it, and
+an application that sets
+
+```ruby
+config.active_job.queue_adapter = :sidekiq
+```
+
+then raises a `NameError` for `ActiveJob::QueueAdapters::SidekiqAdapter` during
+boot or when `ActiveJob::Base` loads. Tests configured to use `:test` can miss
+this failure. Some of these releases raise it even when another adapter is
+configured. The Sidekiq 7.3.3 or later that the Rails 8.1 deprecation message
+recommends isn't enough; Sidekiq 8.0.3 and later load the adapter correctly.
+
+Sidekiq must be required before Rails initializes, normally through Bundler.
+If its Gemfile entry uses `require: false`, require `"sidekiq"` in
+`config/application.rb` before initialization.
 
 Upgrading from Rails 8.0 to Rails 8.1
 -------------------------------------
