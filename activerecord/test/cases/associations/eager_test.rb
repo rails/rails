@@ -1262,6 +1262,20 @@ class EagerAssociationTest < ActiveRecord::TestCase
     assert_equal expected, author_with_preloads.categorized_posts_desc
   end
 
+  def test_preload_customized_has_many_through_after_uncustomized_one_on_the_same_through_association
+    author = Author.create!(name: "Preload Test")
+    Categorization.create!(author: author, post: posts(:welcome), category: categories(:general))
+    Categorization.create!(author: author, post: posts(:authorless), category: categories(:general))
+
+    %i[commented_categorized_posts readonly_categorized_posts first_categorized_posts].each do |association|
+      expected = Author.preload(association).find(author.id).public_send(association).to_a
+      preloaded = Author.preload(:categorized_posts, association).find(author.id).public_send(association)
+
+      assert_equal expected, preloaded, association
+      assert_equal expected.map(&:readonly?), preloaded.map(&:readonly?), association
+    end
+  end
+
   def test_preload_has_many_through_with_default_order
     author = Author.create!(name: "Preload Test")
     [posts(:welcome), posts(:sti_post_and_comments), posts(:sti_comments), posts(:thinking)].each do |post|
