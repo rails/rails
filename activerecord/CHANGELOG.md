@@ -1,3 +1,16 @@
+*   Fix `where` and `having` not parenthesizing bound SQL literals passed as Arel nodes.
+
+    An `OR` in such a node could escape a neighbouring condition, including
+    association and STI constraints, and return extra rows.
+
+    ```ruby
+    Post.where(Arel.sql("id = ? OR id = ?", 1, 2)).where(author_id: 3)
+    # Before: WHERE id = 1 OR id = 2 AND "posts"."author_id" = 3
+    # After:  WHERE (id = 1 OR id = 2) AND "posts"."author_id" = 3
+    ```
+
+    *Thomas Klemm*
+
 *   Retry `ActiveRecord::SerializationFailure` on queries that opted into retries.
 
     A serialization failure rolls back whatever the statement was part of, so a
