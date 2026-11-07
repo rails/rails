@@ -1352,6 +1352,7 @@ module ActiveRecord
         @connection.execute("CREATE SCHEMA customschema")
         @connection.execute("CREATE EXTENSION hstore SCHEMA customschema")
         assert_includes @connection.extensions, "customschema.hstore"
+        assert_includes @connection.extensions_with_schemas, ["hstore", "customschema"]
       ensure
         @connection.execute("DROP SCHEMA IF EXISTS customschema CASCADE")
         @connection.execute("DROP EXTENSION IF EXISTS hstore")
@@ -1361,6 +1362,7 @@ module ActiveRecord
         # plpgsql is installed in every database and its control file fixes the schema to pg_catalog
         assert_includes @connection.extensions, "plpgsql"
         assert_not_includes @connection.extensions, "pg_catalog.plpgsql"
+        assert_includes @connection.extensions_with_schemas, ["plpgsql", nil]
       end
 
       def test_extensions_includes_non_current_schema_name
@@ -1683,6 +1685,63 @@ module ActiveRecord
         assert_not result.instance_variable_defined?(:@ar_pg_bytea_decoded)
       end
 
+      def test_enable_extension_with_schema
+        @connection.execute("CREATE SCHEMA custom_schema")
+        @connection.execute("DROP EXTENSION IF EXISTS hstore")
+
+        assert_not_deprecated(ActiveRecord.deprecator) do
+          @connection.enable_extension "hstore", schema: "custom_schema"
+        end
+
+        result = @connection.select_values("SELECT extname FROM pg_extension WHERE extnamespace = (SELECT oid FROM pg_namespace WHERE nspname = 'custom_schema')")
+        assert_equal ["hstore"], result
+        assert_includes @connection.extensions, "custom_schema.hstore"
+      ensure
+        @connection.execute("DROP EXTENSION IF EXISTS hstore")
+        @connection.execute("DROP SCHEMA IF EXISTS custom_schema CASCADE")
+      end
+
+      def test_enable_extension_with_schema_qualified_name_is_deprecated
+        @connection.execute("CREATE SCHEMA custom_schema")
+        @connection.execute("DROP EXTENSION IF EXISTS hstore")
+
+        assert_deprecated(/`enable_extension`.*`"hstore", schema: "custom_schema"`/, ActiveRecord.deprecator) do
+          @connection.enable_extension "custom_schema.hstore"
+        end
+
+        result = @connection.select_values("SELECT extname FROM pg_extension WHERE extnamespace = (SELECT oid FROM pg_namespace WHERE nspname = 'custom_schema')")
+        assert_equal ["hstore"], result
+      ensure
+        @connection.execute("DROP EXTENSION IF EXISTS hstore")
+        @connection.execute("DROP SCHEMA IF EXISTS custom_schema CASCADE")
+      end
+
+      def test_enable_extension_with_schema_quotes_the_schema
+        @connection.execute("DROP EXTENSION IF EXISTS hstore")
+        @connection.create_schema("OtherSchema")
+
+        @connection.enable_extension "hstore", schema: "OtherSchema"
+
+        assert_includes @connection.extensions_with_schemas, ["hstore", "OtherSchema"]
+      ensure
+        @connection.execute("DROP EXTENSION IF EXISTS hstore")
+        @connection.drop_schema("OtherSchema", if_exists: true)
+      end
+
+      def test_enable_extension_with_schema_qualified_name_and_schema_prefers_schema
+        @connection.execute("DROP EXTENSION IF EXISTS hstore")
+        @connection.execute("CREATE SCHEMA custom_schema")
+
+        assert_deprecated(/`"hstore", schema: "custom_schema"`/, ActiveRecord.deprecator) do
+          @connection.enable_extension "other_schema.hstore", schema: "custom_schema"
+        end
+
+        assert_includes @connection.extensions_with_schemas, ["hstore", "custom_schema"]
+      ensure
+        @connection.execute("DROP EXTENSION IF EXISTS hstore")
+        @connection.execute("DROP SCHEMA IF EXISTS custom_schema CASCADE")
+      end
+
       def test_disable_extension_with_schema
         @connection.execute("CREATE SCHEMA custom_schema")
         @connection.execute("DROP EXTENSION IF EXISTS hstore")
@@ -1690,7 +1749,24 @@ module ActiveRecord
         result = @connection.select_values("SELECT extname FROM pg_extension WHERE extnamespace = (SELECT oid FROM pg_namespace WHERE nspname = 'custom_schema')")
         assert_equal ["hstore"], result
 
-        @connection.disable_extension "custom_schema.hstore"
+        assert_not_deprecated(ActiveRecord.deprecator) do
+          @connection.disable_extension "hstore", schema: "custom_schema"
+        end
+        result = @connection.select_values("SELECT extname FROM pg_extension WHERE extnamespace = (SELECT oid FROM pg_namespace WHERE nspname = 'custom_schema')")
+        assert_equal [], result
+      ensure
+        @connection.execute("DROP EXTENSION IF EXISTS hstore")
+        @connection.execute("DROP SCHEMA IF EXISTS custom_schema CASCADE")
+      end
+
+      def test_disable_extension_with_schema_qualified_name_is_deprecated
+        @connection.execute("CREATE SCHEMA custom_schema")
+        @connection.execute("DROP EXTENSION IF EXISTS hstore")
+        @connection.execute("CREATE EXTENSION hstore SCHEMA custom_schema")
+
+        assert_deprecated(/`disable_extension`.*`"hstore", schema: "custom_schema"`/, ActiveRecord.deprecator) do
+          @connection.disable_extension "custom_schema.hstore"
+        end
         result = @connection.select_values("SELECT extname FROM pg_extension WHERE extnamespace = (SELECT oid FROM pg_namespace WHERE nspname = 'custom_schema')")
         assert_equal [], result
       ensure

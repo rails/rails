@@ -119,6 +119,10 @@ Please refer to the [Changelog][active-record] for detailed changes.
 
 ### Deprecations
 
+*   Deprecate passing a schema-qualified extension name to `enable_extension`
+    and `disable_extension` on PostgreSQL in favor of the `:schema` option,
+    e.g. `enable_extension "hstore", schema: "extensions"`.
+
 ### Notable changes
 
 *   PostgreSQL `DROP DATABASE` now automatically uses the `FORCE` option on
