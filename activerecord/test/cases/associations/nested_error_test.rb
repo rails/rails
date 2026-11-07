@@ -3,6 +3,8 @@
 require "cases/helper"
 require "models/guitar"
 require "models/tuning_peg"
+require "models/ship"
+require "models/pirate"
 
 class AssociationsNestedErrorInAssociationOrderTest < ActiveRecord::TestCase
   test "index in association order" do
@@ -111,6 +113,21 @@ class AssociationsNestedErrorInNestedAttributesOrderTest < ActiveRecord::TestCas
       assert_equal owner, error.base
     ensure
       ActiveRecord.index_nested_attribute_errors = old_attribute_config
+    end
+
+    test "errors still present after nested model validated" do
+      pirate = Pirate.new catchphrase: "Barely an inconvenience!", ship_attributes: { name: nil }
+
+      assert_predicate pirate, :invalid?
+
+      error = pirate.errors.first.dup
+      assert_equal ActiveRecord::Associations::NestedError, error.class
+      assert_equal pirate.ship.errors.first, error.inner_error
+
+      # Should not affect pirate's errors
+      pirate.ship.valid?
+
+      assert_equal pirate.errors.objects, [error]
     end
   end
 end
