@@ -212,8 +212,7 @@ module ActiveRecord
       end
 
       def schema_context # :nodoc:
-        return @schema_context if schema_loaded?
-        load_schema
+        load_schema unless schema_ready?
         @schema_context
       end
 
@@ -599,18 +598,22 @@ module ActiveRecord
       # Load the model's schema information either from the schema cache
       # or directly from the database.
       def load_schema
-        return if schema_loaded?
+        return if schema_ready? || finishing_schema_elsewhere? || building_schema_context?
 
         @load_schema_monitor.synchronize do
-          unless schema_loaded? || @schema_context
-            @schema_context = build_schema_context
+          unless schema_loaded?
+            @schema_context ||= build_schema_context
             @schema_context.load_schema!
-            ActiveSupport::Ractors.make_shareable(@schema_context)
-            unless @schema_hooks_loaded
-              load_schema!
-              @schema_hooks_loaded = true
-            end
           end
+
+          ActiveSupport::Ractors.make_shareable(@schema_context)
+
+          unless @schema_hooks_loaded
+            load_schema!
+            @schema_hooks_loaded = true
+          end
+
+          @ready_schema_context = @schema_context
         rescue
           reload_schema_from_cache # If the schema loading failed half way through, we must reset the state.
           raise
@@ -657,6 +660,20 @@ module ActiveRecord
         end
 
       private
+        # make_shareable freezes the context before the hooks run, so a load records the context it made ready.
+        def schema_ready?
+          @schema_context&.equal?(@ready_schema_context)
+        end
+
+        # Once the columns are loaded, don't wait for another thread's hooks. Other Ractors can't take the monitor.
+        def finishing_schema_elsewhere?
+          schema_loaded? && (!ActiveSupport::Ractors.main? || @load_schema_monitor.mon_locked?)
+        end
+
+        def building_schema_context?
+          @schema_context && @load_schema_monitor.mon_owned?
+        end
+
         def inherited(child_class)
           super
           child_class.initialize_load_schema_monitor
