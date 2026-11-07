@@ -1334,7 +1334,7 @@ $ bin/kamal deploy
 Your e-commerce store now has product reviews to help customers make more
 informed decisions about your products!
 
-Here are a few ideas to build on to this:
+Here are a few ideas to build on top of this:
 
 - Write more tests
 - Finish translating the app into another language
