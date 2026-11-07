@@ -343,6 +343,9 @@ module Arel # :nodoc: all
         def visit_Arel_Nodes_HomogeneousIn(o, collector)
           collector.preparable = false
 
+          values = o.casted_values
+          return collector << (o.type == :in ? "1=0" : "1=1") if values.empty?
+
           visit o.left, collector
 
           if o.type == :in
@@ -351,11 +354,7 @@ module Arel # :nodoc: all
             collector << " NOT IN ("
           end
 
-          values = o.casted_values
-
-          if values.empty?
-            collector << @connection.quote(nil)
-          elsif o.attribute.respond_to?(:comparison_expression)
+          if o.attribute.respond_to?(:comparison_expression)
             # Comparison values need SQL around each bind, so they cannot use
             # the collector's bulk bind path.
             binds = values.map(&o.proc_for_binds)

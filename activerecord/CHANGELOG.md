@@ -1,3 +1,11 @@
+*   Fix `where.not` returning no rows when none of the values can be cast.
+
+    `Author.where.not(id: [2**64, 2**64 + 1])` generated `NOT IN (NULL)`, which
+    matches no row. It now generates `1=1`, the same as `where.not(id: [])`.
+    The positive form now generates `1=0`.
+
+    *Bruno Costanzo*
+
 *   Retry `ActiveRecord::SerializationFailure` on queries that opted into retries.
 
     A serialization failure rolls back whatever the statement was part of, so a
