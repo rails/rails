@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require "cases/helper"
+require "active_support/core_ext/object/with"
 require "active_support/testing/ractors_assertions"
 require "models/course"
 require "models/topic"
@@ -1025,7 +1026,42 @@ module ActiveRecord
             assert_empty RactorConnectionHandler::Proxy.connections
           end
 
+          def test_checkout_respects_explicit_timeout
+            with_exhausted_main_pool do
+              message = on_ractor do
+                ActiveRecord::Base.connection_pool.checkout(0.001)
+              rescue ActiveRecord::ConnectionTimeoutError => error
+                error.message
+              end
+
+              assert_match "within 0.001 seconds", message
+            end
+          end
+
+          def test_checkout_defaults_to_main_pool_timeout
+            with_exhausted_main_pool do
+              message = on_ractor do
+                ActiveRecord::Base.connection_pool.checkout
+              rescue ActiveRecord::ConnectionTimeoutError => error
+                error.message
+              end
+
+              assert_match "within 0.020 seconds", message
+            end
+          end
+
           private
+            def with_exhausted_main_pool
+              pool = main_pool
+              connections = []
+              pool.with(checkout_timeout: 0.02) do
+                pool.max_connections.times { connections << pool.checkout }
+                yield
+              end
+            ensure
+              connections&.each { |connection| pool.checkin(connection) }
+            end
+
             def install_shareable_notifications_snapshot
               ActiveSupport::Notifications.notifier_subscriptions =
                 ActiveSupport::Notifications::Fanout::Registry.new
