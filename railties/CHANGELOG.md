@@ -1,3 +1,7 @@
+*   Add `--update` option to the `bin/bundler-audit` script.
+
+    *Julien ANNE*
+
 ## Rails 8.1.4.1 (November 03, 2026) ##
 
 *   No changes.
