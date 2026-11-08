@@ -1,3 +1,10 @@
+*   Release Ractor connection tokens when their leases become invalid.
+
+    After the main connection pool disconnects, discarding a stale worker lease
+    now removes its token so the proxy registry no longer retains the old connection.
+
+    *Lawrence Lin*
+
 *   Fix a `default_order` being ignored by a `disable_joins` through association.
 
     An explicit order in an association's scope was carried over to the

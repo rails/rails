@@ -361,6 +361,7 @@ module ActiveRecord
             leases = (ActiveSupport::IsolatedExecutionState[:active_record_ractor_connection_leases] ||= {})
             lease = leases[key] ||= Lease.new(nil, nil)
             if (connection = lease.connection) && !connection.holds_main_connection?
+              connection.release_connection
               lease.connection = nil
               lease.sticky = nil
             end
