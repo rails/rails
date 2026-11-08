@@ -82,20 +82,10 @@ module ActiveRecord
           end
 
           def composite_primary_key? # :nodoc:
-            # Read the stored definition (not the override-aware one): a composite
-            # key is established through `primary_key=` / the schema, matching the
-            # pre-`PrimaryKey`-object behavior where this did not reflect a
-            # `primary_key` method that happens to return an Array.
             stored_primary_key_definition&.composite?
           end
 
           def primary_key_definition # :nodoc:
-            # `primary_key` is documented as overridable in subclasses. The stored
-            # definition (resolved from the schema, assigned, or inherited) backs
-            # the default `primary_key` and any `super` call. When the method is
-            # overridden to a different key, build the definition from its current
-            # value so relation finders and other consumers honor the override, and
-            # re-read it if it changes, rather than using the schema-derived key.
             stored = stored_primary_key_definition
             key = primary_key
             key == stored.name ? stored : ActiveRecord::Key.for(key)
@@ -156,10 +146,6 @@ module ActiveRecord
             end
 
           private
-            # The definition resolved from the schema, assigned via
-            # `primary_key=`, or inherited. It backs the default `primary_key`
-            # method and any `super` call inside an override, so it never reflects
-            # an overridden `primary_key` method.
             def stored_primary_key_definition
               @primary_key_definition || load_primary_key_definition
             end
