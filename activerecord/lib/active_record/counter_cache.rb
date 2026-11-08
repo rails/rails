@@ -139,7 +139,7 @@ module ActiveRecord
       def update_counters(id, counters)
         pk = primary_key_definition
         id = [id] if pk.composite? && id.is_a?(Array) && !pk.expects_multiple_ids?(id)
-        all_queries_scope.where!(primary_key => id).update_counters(counters)
+        all_queries_scope._where!(primary_key => id).update_counters(counters)
       end
 
       # Increment a numeric field by one, via a direct SQL update.

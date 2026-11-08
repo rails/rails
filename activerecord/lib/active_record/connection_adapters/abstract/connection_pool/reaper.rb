@@ -43,15 +43,20 @@ module ActiveRecord
 
         @mutex = Mutex.new
         @pools = {}
-        @threads = {}
+        @deadlines = {}
+        @wakeup = Thread::Queue.new
+        @thread = nil
 
         class << self
           def register_pool(pool, frequency) # :nodoc:
             @mutex.synchronize do
-              unless @threads[frequency]&.alive?
-                @threads[frequency] = spawn_thread(frequency)
+              @thread = spawn_thread unless @thread&.alive?
+
+              unless @pools.key?(frequency)
+                @pools[frequency] = []
+                @deadlines[frequency] = Process.clock_gettime(Process::CLOCK_MONOTONIC) + frequency
+                @wakeup << true
               end
-              @pools[frequency] ||= []
               @pools[frequency] << WeakRef.new(pool)
             end
           end
@@ -65,10 +70,12 @@ module ActiveRecord
                   true
                 end
 
-                if refs.empty?
-                  @pools.delete(frequency)
-                  @threads.delete(frequency)&.tap { |t| t.kill; t.join }
-                end
+                @pools.delete(frequency) if refs.empty?
+              end
+
+              if @pools.empty?
+                @thread&.tap { |t| t.kill; t.join }
+                @thread = nil
               end
             end
           end
@@ -83,46 +90,61 @@ module ActiveRecord
           end
 
           private
-            def spawn_thread(frequency)
-              Thread.new(frequency) do |t|
+            def spawn_thread
+              Thread.new do
                 # Advise multi-threaded app servers to ignore this thread for
                 # the purposes of fork safety warnings
                 Thread.current.thread_variable_set(:fork_safe, true)
                 Thread.current.name = "AR Pool Reaper"
-                running = true
-                while running
-                  sleep t
 
-                  refs = nil
+                while (due = wait_for_due_pools)
+                  frequencies, refs = due
+
+                  pools(refs).each do |pool|
+                    pool.reaper_lock do
+                      pool.reap
+                      pool.flush
+                      pool.prepopulate
+                      pool.retire_old_connections
+                      pool.keep_alive
+                      pool.preconnect
+                    end
+                  end
 
                   @mutex.synchronize do
-                    refs = @pools[frequency]
+                    now = Process.clock_gettime(Process::CLOCK_MONOTONIC)
+                    frequencies.each { |frequency| @deadlines[frequency] = now + frequency }
+                  end
+                end
+              end
+            end
 
+            def wait_for_due_pools
+              loop do
+                timeout = @mutex.synchronize do
+                  @pools.each do |frequency, refs|
                     refs.select! do |pool|
                       pool.weakref_alive? && !pool.discarded?
                     rescue WeakRef::RefError
                     end
 
-                    if refs.empty?
-                      @pools.delete(frequency)
-                      @threads.delete(frequency)
-                      running = false
-                    end
+                    @pools.delete(frequency) if refs.empty?
                   end
 
-                  if running
-                    pools(refs).each do |pool|
-                      pool.reaper_lock do
-                        pool.reap
-                        pool.flush
-                        pool.prepopulate
-                        pool.retire_old_connections
-                        pool.keep_alive
-                        pool.preconnect
-                      end
-                    end
+                  if @pools.empty?
+                    @thread = nil
+                    return
                   end
+
+                  now = Process.clock_gettime(Process::CLOCK_MONOTONIC)
+                  due = @pools.keys.select { |frequency| @deadlines[frequency] <= now }
+
+                  return [due, @pools.values_at(*due).flatten(1)] unless due.empty?
+
+                  @deadlines.values_at(*@pools.keys).min - now
                 end
+
+                @wakeup.pop(timeout: timeout)
               end
             end
         end

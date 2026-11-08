@@ -1,6 +1,5 @@
 # frozen_string_literal: true
 
-# :markup: markdown
 require "active_job/test_helper"
 require "active_job/continuation"
 

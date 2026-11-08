@@ -47,7 +47,7 @@ module ActionView
         @raw_buffer << if value.html_safe?
           value
         else
-          ERB::Util.unwrapped_html_escape(value)
+          ERB::Escape.html_escape(value)
         end
       end
       self

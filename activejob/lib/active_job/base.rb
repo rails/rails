@@ -1,6 +1,5 @@
 # frozen_string_literal: true
 
-# :markup: markdown
 require "active_job/core"
 require "active_job/queue_adapter"
 require "active_job/queue_name"

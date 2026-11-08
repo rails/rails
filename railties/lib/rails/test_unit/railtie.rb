@@ -1,7 +1,5 @@
 # frozen_string_literal: true
 
-# :markup: markdown
-
 module Rails
   class TestUnitRailtie < Rails::Railtie
     config.app_generators do |c|

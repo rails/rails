@@ -487,9 +487,9 @@ module ActiveRecord
 
         case conditions
         when Array, Hash
-          relation.where!(conditions) unless conditions.empty?
+          relation._where!(conditions) unless conditions.empty?
         else
-          relation.where!(primary_key => conditions) unless conditions == :none
+          relation._where!(primary_key => conditions) unless conditions == :none
         end
 
         relation

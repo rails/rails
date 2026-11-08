@@ -1,6 +1,5 @@
 # frozen_string_literal: true
 
-# :markup: markdown
 require "rails/application_controller"
 
 class Rails::PwaController < Rails::ApplicationController # :nodoc:

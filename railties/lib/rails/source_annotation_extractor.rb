@@ -1,6 +1,5 @@
 # frozen_string_literal: true
 
-# :markup: markdown
 module Rails
   # Implements the logic behind `Rails::Command::NotesCommand`. See `rails notes --help` for usage information.
   #
@@ -33,8 +32,11 @@ module Rails
       def annotations(file)
         lineno = 0
 
+        # Read as binary to bypass Encoding.default_internal transcoding, which
+        # raises on invalid bytes, then treat the source as UTF-8 like Prism does.
         File.readlines(file, encoding: Encoding::BINARY).inject([]) do |list, line|
           lineno += 1
+          line.force_encoding(Encoding::UTF_8).scrub!
           next list unless line =~ pattern
           list << Annotation.new(lineno, $1, $2)
         end

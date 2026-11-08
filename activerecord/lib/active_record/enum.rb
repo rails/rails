@@ -283,7 +283,8 @@ module ActiveRecord
           end
 
           subtype = subtype.subtype if EnumType === subtype
-          EnumType.new(name, enum_values, subtype, raise_on_invalid_values: !validate)
+          enum_type = EnumType.new(name, enum_values, subtype, raise_on_invalid_values: !validate)
+          enum_values.frozen? && subtype.frozen? ? enum_type.freeze : enum_type
         end
 
         value_method_names = []

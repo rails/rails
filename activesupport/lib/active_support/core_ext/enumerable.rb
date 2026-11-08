@@ -84,11 +84,15 @@ module Enumerable
   # ```
   def index_with(default = (no_default = true))
     if block_given?
-      to_h { |elem| [elem, yield(elem)] } # rubocop:disable Rails/IndexWith
+      result = {}
+      each { |elem| result[elem] = yield(elem) }
+      result
     elsif no_default
       to_enum(:index_with) { size if respond_to?(:size) }
     else
-      to_h { |elem| [elem, default] } # rubocop:disable Rails/IndexWith
+      result = {}
+      each { |elem| result[elem] = default }
+      result
     end
   end
 
@@ -303,5 +307,32 @@ class Array # :nodoc:
   def compact_blank!
     # use delete_if rather than reject! because it always returns self even if nothing changed
     delete_if(&:blank?)
+  end
+
+  # Convert an enumerable to a hash, using the element as the key and the block
+  # result as the value.
+  #
+  # ```
+  # post = Post.new(title: "hey there", body: "what's up?")
+  #
+  # %i( title body ).index_with { |attr_name| post.public_send(attr_name) }
+  # # => { title: "hey there", body: "what's up?" }
+  # ```
+  #
+  # If an argument is passed instead of a block, it will be used as the value
+  # for all elements:
+  #
+  # ```
+  # %i( created_at updated_at ).index_with(Time.now)
+  # # => { created_at: 2020-03-09 22:31:47, updated_at: 2020-03-09 22:31:47 }
+  # ```
+  def index_with(default = (no_default = true))
+    if block_given?
+      to_h { |elem| [elem, yield(elem)] } # rubocop:disable Rails/IndexWith
+    elsif no_default
+      to_enum(:index_with) { size }
+    else
+      to_h { |elem| [elem, default] } # rubocop:disable Rails/IndexWith
+    end
   end
 end

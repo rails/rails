@@ -1,4 +1,3 @@
-# :markup: markdown
 # frozen_string_literal: true
 
 require "active_support/core_ext/object/json"
@@ -269,7 +268,7 @@ module ActiveSupport
                 if @options.fetch(:escape_html_entities, Encoding.escape_html_entities_in_json)
                   if Encoding.escape_js_separators_in_json
                     json.gsub!(FULL_ESCAPE_REGEX, ESCAPED_CHARS)
-                  else
+                  elsif json.include?(">") || json.include?("<") || json.include?("&")
                     json.gsub!(HTML_ENTITIES_REGEX, ESCAPED_CHARS)
                   end
                 elsif Encoding.escape_js_separators_in_json

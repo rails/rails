@@ -174,6 +174,15 @@ module CacheStoreBehavior
     assert @cache.write_multi({})
   end
 
+  def test_write_multi_with_unless_exist_does_not_overwrite
+    key = SecureRandom.uuid
+    other_key = SecureRandom.uuid
+    @cache.write(key, "bar")
+    @cache.write_multi({ key => "baz", other_key => "baz" }, unless_exist: true)
+    assert_equal "bar", @cache.read(key)
+    assert_equal "baz", @cache.read(other_key)
+  end
+
   def test_write_multi_expires_in
     key = SecureRandom.uuid
     @cache.write_multi({ key => 1 }, expires_in: 10)

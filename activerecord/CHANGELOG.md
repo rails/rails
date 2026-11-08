@@ -1,3 +1,51 @@
+*   Retry `ActiveRecord::SerializationFailure` on queries that opted into retries.
+
+    A serialization failure rolls back whatever the statement was part of, so a
+    statement that was not part of an open transaction can be re-run on the same
+    connection, exactly as `ActiveRecord::Deadlocked` already is.
+
+    *Adrianna Chang*
+
+*   Fix `in_order_of` modifying the receiver relation.
+
+    `in_order_of` added the referenced table to the receiver's
+    `references_values` instead of only the returned relation's, so it
+    raised `ActiveRecord::UnmodifiableRelation` on a loaded relation.
+
+    ```ruby
+    posts = Post.all.load
+    posts.in_order_of("posts.id", [3, 4, 1])
+    # => ActiveRecord::UnmodifiableRelation before, now the ordered relation
+    ```
+
+    *Ryuta Kamizono*
+
+*   Fix `merge` dropping `RECURSIVE` from a relation built with `with_recursive`.
+
+    The recursive flag is now kept with the relation's other values, so
+    `merge`, `only`, and `or` keep it, and `except(:with)` and `unscope(:with)`
+    remove it along with the CTEs.
+
+    ```ruby
+    Post.all.merge(Post.with_recursive(post_and_replies: [...])).to_sql
+    # => "WITH post_and_replies AS (...)" before, now "WITH RECURSIVE post_and_replies AS (...)"
+    ```
+
+    *Ryuta Kamizono*
+
+*   Fix `one?` and `many?` on grouped relations.
+
+    A grouped count returns a hash, so `one?` returned `false` for a single
+    group and `many?` raised a `TypeError`. They now count the groups, which
+    matches the number of records the relation loads.
+
+    ```ruby
+    Post.joins(:comments).group(:id).many?
+    # => TypeError before, now true when more than one post has comments
+    ```
+
+    *Wei-Lun Li*
+
 *   Fix `in_batches(use_ranges: true)` yielding relations that keep an ignored `default_order`.
 
     Batching ignores `default_order` like an explicit order, but the ranged

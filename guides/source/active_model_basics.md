@@ -653,7 +653,7 @@ irb> person.to_model == person
 ```
 
 If your model does not act like an Active Model object, then you should define
-`:to_model` yourself returning a proxy object that wraps your object with Active
+`to_model` yourself returning a proxy object that wraps your object with Active
 Model compliant methods.
 
 ```ruby

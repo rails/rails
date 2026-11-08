@@ -66,7 +66,26 @@ class ActionCable::Server::Socket::ClientSocketTest < ActionCable::TestCase
         .instance_variable_get("@rack_hijack_io")
         .define_singleton_method(:close) { event.set }
       connection.close
-      event.wait
+      assert event.wait(5), "hijacked i/o socket was not closed"
+    end
+  end
+
+  test "closes the connection when the event loop can't attach the socket" do
+    run_in_eventmachine do
+      @server.event_loop.send(:spawn)
+      selector = @server.event_loop.instance_variable_get(:@nio)
+
+      handshake_written = Concurrent::Event.new
+
+      selector.stub(:register, proc { handshake_written.wait(5); raise ArgumentError, "mode not supported" }) do
+        connection = open_connection
+        io = connection.env["rack.hijack_io"]
+        handshake_written.set
+
+        wait_for_async
+        Timeout.timeout(5) { sleep 0.01 until io.closed? }
+        assert_not connection.websocket.alive?
+      end
     end
   end
 

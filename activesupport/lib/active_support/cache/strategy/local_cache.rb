@@ -67,7 +67,7 @@ module ActiveSupport
 
         def initialize(...)
           super
-          @local_cache_key = "#{self.class.name.underscore}_local_cache_#{object_id}".gsub(/[\/-]/, "_").to_sym
+          @local_cache_key = "#{self.class.name.to_s.underscore}_local_cache_#{object_id}".gsub(/[\/-]/, "_").to_sym
         end
 
         # Use a local cache for the duration of block.
@@ -210,8 +210,24 @@ module ActiveSupport
             return_value
           end
 
+          # Batch writes may bypass +write_serialized_entry+.
+          def write_multi_entries(entries, **)
+            if cache = local_cache
+              entries.each_key { |key| cache.delete_entry(key) }
+            end
+            super
+          end
+
           def delete_entry(key, **)
             local_cache.delete_entry(key) if local_cache
+            super
+          end
+
+          # Batch deletes may bypass +delete_entry+.
+          def delete_multi_entries(entries, **)
+            if cache = local_cache
+              entries.each { |key| cache.delete_entry(key) }
+            end
             super
           end
 

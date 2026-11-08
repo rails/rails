@@ -645,7 +645,7 @@ end
 instance of the declaring model (`Author`) to have multiple instances of the
 associated model (`Book`).
 
-NOTE: Unlike a `has_one` and `belongs_to` association, the name of the other
+NOTE: Unlike `has_one` and `belongs_to` associations, the name of the other
 model is pluralized when declaring a `has_many` association.
 
 ![has_many Association Diagram](images/association_basics/has_many.svg)
@@ -1800,8 +1800,8 @@ class Car < Vehicle
 end
 ```
 
-This means that all behavior added to Vehicle is available for Car too, as
-associations, public methods, etc. Creating a car will save it in the `vehicles`
+This means that all behavior added to Vehicle is available for Car too,
+such as associations, public methods, etc. Creating a car will save it in the `vehicles`
 table with "Car" as the `type` field:
 
 Repeat the same process for `Motorcycle` and `Bicycle`.
@@ -1944,7 +1944,7 @@ the database, especially when setting up foreign key constraints.
 Delegated Types
 ----------------
 
-Delegated types solves the [`Single Table Inheritance
+Delegated types solve the [`Single Table Inheritance
 (STI)`](#single-table-inheritance-sti) problem of table bloat via
 `delegated_type`. This approach allows us to store shared attributes in a
 superclass table and have separate tables for subclass-specific attributes.
@@ -2006,7 +2006,7 @@ class Entry < ApplicationRecord
 end
 ```
 
-The `entryable` parameter specifies the field to use for delegation, and include
+The `entryable` parameter specifies the field to use for delegation, and includes
 the types `Message` and `Comment` as the delegate classes. The `entryable_type`
 and `entryable_id` fields store the subclass name and the record ID of the
 delegate subclass, respectively.

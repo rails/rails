@@ -22,6 +22,10 @@ class RenderersApiController < ActionController::API
     render xml: Model.new
   end
 
+  def json_and_xml
+    render json: Model.new, xml: Model.new
+  end
+
   def plain
     render plain: "Hi from plain", status: 500
   end
@@ -33,6 +37,11 @@ class RenderersApiTest < ActionController::TestCase
   def test_render_json
     get :one
     assert_response :success
+    assert_equal({ a: "b" }.to_json, @response.body)
+  end
+
+  def test_first_matching_renderer_wins
+    get :json_and_xml
     assert_equal({ a: "b" }.to_json, @response.body)
   end
 

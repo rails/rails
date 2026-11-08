@@ -1,6 +1,5 @@
 # frozen_string_literal: true
 
-# :markup: markdown
 require "rails/generators/named_base"
 
 module TestUnit # :nodoc:

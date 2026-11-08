@@ -139,13 +139,17 @@ module ActiveSupport
           private
             def available?
               return @available if defined?(@available)
-              # Check the dependency before loading the wrapper that warns if it is missing.
-              gem "msgpack", ">= 1.7.0"
-              require "msgpack"
-              require "active_support/message_pack"
-              @available = true
-            rescue LoadError
-              @available = false
+              ActiveSupport::Ractors.on_main(self) do
+                next @available if defined?(@available)
+
+                # Check the dependency before loading the wrapper that warns if it is missing.
+                gem "msgpack", ">= 1.7.0"
+                require "msgpack"
+                require "active_support/message_pack"
+                @available = true
+              rescue LoadError
+                @available = false
+              end
             end
         end
 

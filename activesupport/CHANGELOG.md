@@ -1,3 +1,37 @@
+*   Fix `FrozenError` when using a frozen `ActiveSupport::MessageVerifier` or
+    `ActiveSupport::MessageEncryptor` that had not verified or decrypted a
+    message yet, as after `Ractor.make_shareable`, and when freezing an already
+    frozen `ActiveSupport::CachingKeyGenerator`.
+
+    A `MessageVerifier` with an unknown digest now raises when it is frozen,
+    instead of when it first signs or verifies a message.
+
+    *Clément Joubert*
+
+*   `ActiveSupport::MessagePack` no longer deserializes an unsafe
+    `ActiveSupport::SafeBuffer` as `html_safe`.
+
+    A `SafeBuffer` that was no longer `html_safe?`, for example after an
+    in-place `gsub!`, was deserialized as an `html_safe` `SafeBuffer`. It is now
+    serialized with an unsafe marker and deserialized as a `String`. Earlier
+    versions of Rails cannot read an unsafe buffer serialized this way.
+
+    [GHSA-2w9f-fxwj-w2qf]
+
+    *Jean Boussier*
+
+*   `ActiveSupport::Inflector#safe_constantize` matches the constant name in a
+    `LoadError` message as a literal string instead of building a `Regexp`
+    from it.
+
+    The name's segments were interpolated unescaped into the pattern, so input
+    that reaches `safe_constantize`, such as the channel identifier in an Action
+    Cable subscribe command, chose the source passed to the regexp compiler.
+
+    [GHSA-8474-xrp6-wh69]
+
+    *Jeremy Daer*
+
 *   Write `ActiveSupport::Duration#iso8601` values as plain decimal numbers.
 
     Very small or very large float parts were written in scientific notation and

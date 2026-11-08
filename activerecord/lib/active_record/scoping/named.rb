@@ -74,12 +74,12 @@ module ActiveRecord
         end
 
         def default_extensions # :nodoc:
-          return [] unless has_default_scope?
+          return Relation::FROZEN_EMPTY_ARRAY unless has_default_scope?
 
           if scope = scope_for_association || build_default_scope
             scope.extensions
           else
-            []
+            Relation::FROZEN_EMPTY_ARRAY
           end
         end
 
@@ -215,10 +215,21 @@ module ActiveRecord
           scope_method =
             if body.respond_to?(:to_proc)
               scope_body = ActiveSupport::Ractors.try_shareable_proc(&body)
-              proc do |*args, **kwargs|
-                scope = all._exec_scope(*args, **kwargs, &scope_body)
-                scope = scope.extending(extension) if extension
-                scope
+              if scope_body.lambda? && scope_body.parameters.empty?
+                # A lambda without parameters raises ArgumentError for any
+                # argument, so the method can take none and skip allocating
+                # an empty rest Array and kwrest Hash per call.
+                proc do
+                  scope = all._exec_scope(&scope_body)
+                  scope = scope.extending(extension) if extension
+                  scope
+                end
+              else
+                proc do |*args, **kwargs|
+                  scope = all._exec_scope(*args, **kwargs, &scope_body)
+                  scope = scope.extending(extension) if extension
+                  scope
+                end
               end
             else
               callable = body

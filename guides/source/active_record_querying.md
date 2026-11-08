@@ -681,7 +681,7 @@ database and retrieving instantiated records.
 `find_by_sql` has a close relative called [`lease_connection.select_all`][].
 `select_all` will retrieve results from the database using custom SQL just like
 `find_by_sql` but will not instantiate them. This method will return an instance
-of `ActiveRecord::Result` class and calling `to_a` on it returns an array of hashes where each hash represents a row.
+of the `ActiveRecord::Result` class and calling `to_a` on it returns an array of hashes where each hash represents a row.
 
 ```irb
 store(dev)> Customer.lease_connection.select_all("SELECT first_name, created_at FROM customers WHERE id = \"1\"").to_a
@@ -793,7 +793,7 @@ store(dev)> assoc.unscope(:includes).pluck(:id)
 
 [`pick`][] can be used to pick the value(s) from the named column(s) in the
 current relation. It accepts a list of column names as an argument and returns
-the first row of the specified column values ​​with corresponding data type.
+the first row of the specified column values with the corresponding data type.
 `pick` is a short-hand for `relation.limit(1).pluck(*column_names).first`, which
 is primarily useful when you already have a relation that is limited to one row.
 
@@ -915,7 +915,7 @@ constraint violations atomically.
 ### `find_or_create_by!`
 
 You can also use [`find_or_create_by!`][] to raise an exception if the new
-record is invalid. Validations are not covered on this guide, however let's
+record is invalid. Validations are not covered in this guide, however let's
 assume that you have temporarily added the following validation to your
 `Customer` model:
 
@@ -1219,7 +1219,7 @@ end
 
 If an order is present in the relation, the behavior depends on the flag
 [`config.active_record.error_on_ignored_order`][]. If this flag is set to true,
-`ArgumentError` is raised, otherwise the order is ignored and a warning issued,
+`ArgumentError` is raised, otherwise the order is ignored and a warning is issued,
 which is the default behavior. This can be overridden with the option
 `:error_on_ignore`, explained below.
 
@@ -1268,7 +1268,7 @@ useful, for example, if you wanted to run a batch process using a subset of
 records based on `:start` and `:finish`.
 
 For example, to send newsletters only to customers with the primary key starting
-from 2000 up to including 9999:
+from 2000 up to and including 9999:
 
 ```ruby
 Customer.find_each(start: 2000, finish: 9999) do |customer|
@@ -1357,7 +1357,7 @@ end
 
 The `finish` option allows specifying the ending ID of the records to be
 retrieved. The code below shows the case of retrieving customers in batches, up
-to including the customer with ID: 7000:
+to and including the customer with ID: 7000:
 
 ```ruby
 Customer.find_in_batches(finish: 7000) do |customers|
@@ -2654,7 +2654,7 @@ books.each do |book|
 end
 ```
 
-This code looks fine at the first sight, but the problem lies within the total
+This code looks fine at first sight, but the problem lies within the total
 number of queries executed. The above code executes 1 (to find 10 books) + 10
 (one per each book to load the author) = **11** queries in total.
 
@@ -2993,7 +2993,7 @@ end
 
 However, there is one important caveat: A scope will always return an
 `ActiveRecord::Relation` object, even if the conditional evaluates to `false`,
-whereas a class method, will return `nil`. This can cause `NoMethodError` when
+whereas a class method will return `nil`. This can cause `NoMethodError` when
 chaining class methods with conditionals, if any of the conditionals return
 `false`.
 

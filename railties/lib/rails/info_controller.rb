@@ -1,6 +1,5 @@
 # frozen_string_literal: true
 
-# :markup: markdown
 require "rails/application_controller"
 require "action_dispatch/routing/inspector"
 

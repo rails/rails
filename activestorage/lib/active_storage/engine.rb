@@ -30,6 +30,7 @@ module ActiveStorage
     config.active_storage.paths = ActiveSupport::OrderedOptions.new
     config.active_storage.queues = ActiveSupport::InheritableOptions.new
     config.active_storage.precompile_assets = true
+    config.active_storage.ffmpeg_allowed_formats = ActiveStorage.ffmpeg_allowed_formats
 
     config.active_storage.variable_content_types = %w(
       image/png
@@ -96,6 +97,10 @@ module ActiveStorage
         ActiveStorage.analyzers         = app.config.active_storage.analyzers || []
         ActiveStorage.transformers      = app.config.active_storage.transformers || []
 
+        if ActiveStorage::MINIMAGICK_AVAILABLE && !ActiveStorage::MINIMAGICK_UNSECURABLE
+          ActiveStorage::ImageMagick.apply_policy
+        end
+
         begin
           ActiveStorage.variant_transformer =
             case ActiveStorage.variant_processor
@@ -135,7 +140,7 @@ module ActiveStorage
           when /mini_magick/
             ActiveStorage.logger.warn <<~WARNING.squish
               Generating image variants with ImageMagick requires the mini_magick gem.
-              Please add `gem "mini_magick", "~> 5.0"` to your Gemfile.
+              Please add `gem "mini_magick", "~> 5.1"` to your Gemfile.
             WARNING
           else
             raise
@@ -180,6 +185,7 @@ module ActiveStorage
         ActiveStorage.video_preview_arguments = app.config.active_storage.video_preview_arguments || "-y -vframes 1 -f image2"
         ActiveStorage.video_preview_input_arguments = app.config.active_storage.video_preview_input_arguments || ""
         ActiveStorage.ffprobe_arguments = app.config.active_storage.ffprobe_arguments || ""
+        ActiveStorage.ffmpeg_allowed_formats = app.config.active_storage.ffmpeg_allowed_formats
         ActiveStorage.track_variants = app.config.active_storage.track_variants || false
         ActiveStorage.s3_public_uploads_via_acl = app.config.active_storage.s3_public_uploads_via_acl != false
         ActiveStorage.analyze = app.config.active_storage.analyze || :later

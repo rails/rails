@@ -1,3 +1,12 @@
+*   Close the connection when the event loop can't attach its socket.
+
+    If `NIO::Selector#register` raised, as it does on JRuby for UNIX sockets,
+    the stream was never closed and the client hung. The socket is now closed
+    and the connection torn down. The socket is also closed when it can't be
+    removed from the event loop.
+
+    *Sampo Kuokkanen*
+
 *   Process each connection's commands in the order the client sent them.
 
     Commands were handed to the worker pool independently, so two commands from

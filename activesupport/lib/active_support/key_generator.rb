@@ -1,4 +1,3 @@
-# :markup: markdown
 # frozen_string_literal: true
 
 require "active_support/inspect_backport"
@@ -68,6 +67,8 @@ module ActiveSupport
     end
 
     def freeze
+      return self if frozen?
+
       @ractor_key = "_caching_key_generator_#{object_id}".to_sym
       ActiveSupport::Ractors[@ractor_key] = @cache_keys
       @cache_keys = nil

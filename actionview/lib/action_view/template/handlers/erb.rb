@@ -83,7 +83,8 @@ module ActionView
 
           options = {
             escape: (self.class.escape_ignore_list.include? template.type),
-            trim: (self.class.erb_trim_mode == "-")
+            trim: (self.class.erb_trim_mode == "-"),
+            filename: template.identifier
           }
 
           if ActionView::Base.annotate_rendered_view_with_filenames && template.format == :html

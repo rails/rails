@@ -1570,7 +1570,7 @@ module ActiveRecord
         if limited_ids.empty?
           relation.none!
         else
-          relation.where!(**Array(relation.primary_key).zip(limited_ids.transpose).to_h)
+          relation._where!(**Array(relation.primary_key).zip(limited_ids.transpose).to_h)
         end
 
         relation.limit_value = relation.offset_value = nil

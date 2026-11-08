@@ -238,8 +238,12 @@ module ActiveSupport
     # counters.fetch(:bar) { |key| 0 } # => 0
     # counters.fetch(:zoo)           # => KeyError: key not found: "zoo"
     # ```
-    def fetch(key, *extras)
-      super(convert_key(key), *extras)
+    def fetch(key, default = (no_default = true; nil))
+      if no_default
+        super(convert_key(key))
+      else
+        super(convert_key(key), default)
+      end
     end
 
     # Same as `Hash#dig` where the key passed as argument can be

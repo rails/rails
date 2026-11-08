@@ -28,7 +28,7 @@ class ActiveStorage::Filename
   # ActiveStorage::Filename.new(".gitignore").base  # => ".gitignore"
   # ```
   def base
-    File.basename @filename, extension_with_delimiter
+    File.basename sanitized, extension_with_delimiter
   end
 
   # Returns the extension of the filename (i.e. the substring following the last dot, excluding a dot at the
@@ -40,7 +40,7 @@ class ActiveStorage::Filename
   # ActiveStorage::Filename.new(".gitignore").extension_with_delimiter  # => ""
   # ```
   def extension_with_delimiter
-    File.extname @filename
+    File.extname sanitized
   end
 
   # Returns the extension of the filename (i.e. the substring following the last dot, excluding a dot at

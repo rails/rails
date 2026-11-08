@@ -275,7 +275,7 @@ Add a package to your application using `bin/importmap pin`:
 $ bin/importmap pin ahoy.js
 ```
 
-This will download the package into your `vendor` folder and declare them in
+This will download the package into your `vendor` folder and declare it in
 your `config/importmap.rb`. You can then import the package wherever required:
 
 ```javascript

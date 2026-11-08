@@ -60,7 +60,8 @@ module ActiveRecord
                             :with].freeze
 
     SINGLE_VALUE_METHODS = [:limit, :offset, :lock, :readonly, :reordering, :strict_loading,
-                            :reverse_order, :distinct, :create_with, :skip_query_cache].freeze
+                            :reverse_order, :distinct, :create_with, :skip_query_cache,
+                            :with_recursive].freeze
 
     CLAUSE_METHODS = [:where, :having, :from].freeze
     INVALID_METHODS_FOR_UPDATE_AND_DELETE_ALL = [:distinct, :with, :with_recursive].freeze
@@ -609,7 +610,7 @@ module ActiveRecord
 
       invalid_methods = INVALID_METHODS_FOR_UPDATE_AND_DELETE_ALL.select do |method|
         value = @values[method]
-        method == :distinct ? value : value&.any?
+        Array === value ? value.any? : value
       end
       if invalid_methods.any?
         ActiveRecord.deprecator.warn <<~MESSAGE
@@ -1082,7 +1083,7 @@ module ActiveRecord
 
       invalid_methods = INVALID_METHODS_FOR_UPDATE_AND_DELETE_ALL.select do |method|
         value = @values[method]
-        method == :distinct ? value : value&.any?
+        Array === value ? value.any? : value
       end
       if invalid_methods.any?
         raise ActiveRecordError.new("delete_all doesn't support #{invalid_methods.join(', ')}")
@@ -1345,6 +1346,11 @@ module ActiveRecord
       @values.dup
     end
 
+    # Like #values, but without the copy. The caller must not mutate it.
+    def values_for_merge # :nodoc:
+      @values
+    end
+
     def values_for_queries # :nodoc:
       @values.except(:extending, :skip_query_cache, :strict_loading)
     end
@@ -1366,7 +1372,7 @@ module ActiveRecord
       limit_value || offset_value
     end
 
-    def alias_tracker(joins = [], aliases = nil) # :nodoc:
+    def alias_tracker(joins = FROZEN_EMPTY_ARRAY, aliases = nil) # :nodoc:
       ActiveRecord::Associations::AliasTracker.create(model.connection_pool, table.name, joins, aliases)
     end
 
@@ -1512,7 +1518,7 @@ module ActiveRecord
             end
           else
             model.with_connection do |c|
-              model._query_by_sql(c, arel, async: async)
+              model._query_by_sql(c, arel, FROZEN_EMPTY_ARRAY, async: async)
             end
           end
         end
@@ -1562,7 +1568,10 @@ module ActiveRecord
       end
 
       def limited_count
-        limit_value ? count : limit(2).count
+        result = limit_value ? count(:all) : limit(2).count(:all)
+        # A grouped count returns a hash with one entry per group, and each
+        # group is one record of the relation.
+        result.is_a?(Hash) ? result.size : result
       end
   end
 end

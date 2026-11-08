@@ -490,6 +490,15 @@ class RelationTest < ActiveRecord::TestCase
     assert_equal ["id desc"], topics.default_order_values
   end
 
+  def test_order_with_table_name_does_not_modify_receiver
+    topics = Topic.all.load
+
+    assert_equal ["replies"], topics.order(:"replies.id").references_values
+    assert_equal ["replies"], topics.reorder("replies.id" => :desc).references_values
+    assert_equal ["replies"], topics.default_order(replies: { id: :desc }).references_values
+    assert_empty topics.references_values
+  end
+
   def test_finding_with_reorder_by_aliased_attributes
     topics = Topic.order("author_name").reorder(:heading)
     assert_equal 5, topics.to_a.size
@@ -1278,6 +1287,33 @@ class RelationTest < ActiveRecord::TestCase
     assert_not_predicate posts_with_limit_one, :loaded?
   end
 
+  def test_many_with_group
+    posts = Post.joins(:comments).group(:id)
+
+    assert_queries_count(1) do
+      assert_predicate posts, :many?
+    end
+    assert_not_predicate posts, :loaded?
+
+    assert_not_predicate posts.where(id: 1), :many?
+    assert_not_predicate posts.where(id: -1), :many?
+  end
+
+  def test_many_with_aggregate_select_and_group
+    posts = Post.select("posts.*, COUNT(comments.id) AS comments_count").joins(:comments).group(:id)
+
+    assert_predicate posts, :many?
+    assert_not_predicate posts.where(id: 1), :many?
+  end
+
+  def test_many_with_multiple_select_values
+    posts = Post.select("posts.*, 1 AS one")
+
+    assert_predicate posts, :many?
+    assert_predicate posts.limit(5), :many?
+    assert_not_predicate posts.where(id: 1), :many?
+  end
+
   def test_none?
     posts = Post.all
     assert_queries_count(1) do
@@ -1314,6 +1350,33 @@ class RelationTest < ActiveRecord::TestCase
     end
 
     assert_predicate posts, :loaded?
+  end
+
+  def test_one_with_group
+    posts = Post.joins(:comments).group(:id)
+
+    assert_queries_count(1) do
+      assert_not_predicate posts, :one?
+    end
+    assert_not_predicate posts, :loaded?
+
+    assert_operator Post.find(1).comments.count, :>, 1
+    assert_predicate posts.where(id: 1), :one?
+    assert_not_predicate posts.where(id: -1), :one?
+  end
+
+  def test_one_with_aggregate_select_and_group
+    posts = Post.select("posts.*, COUNT(comments.id) AS comments_count").joins(:comments).group(:id)
+
+    assert_not_predicate posts, :one?
+    assert_predicate posts.where(id: 1), :one?
+  end
+
+  def test_one_with_multiple_select_values
+    posts = Post.select("posts.*, 1 AS one")
+
+    assert_not_predicate posts, :one?
+    assert_predicate posts.where(id: 1), :one?
   end
 
   def test_one_with_destroy
@@ -2210,6 +2273,19 @@ class RelationTest < ActiveRecord::TestCase
 
   test "find_by! requires at least one argument" do
     assert_raises(ArgumentError) { Post.all.find_by! }
+  end
+
+  test "where! takes bind values" do
+    assert_equal [1], Post.all.where!("id = ?", 1).pluck(:id)
+    assert_equal [1, 2], Post.all.where!("id = ? OR id = ?", 1, 2).order(:id).pluck(:id)
+    assert_equal [1, 2], Post.all.where!("id IN (?)", [1, 2]).order(:id).pluck(:id)
+    assert_equal [1], Post.all.where!("id = :id", id: 1).pluck(:id)
+  end
+
+  test "having! takes bind values" do
+    assert_equal [1], Post.group(:id).having!("id = ?", 1).pluck(:id)
+    assert_equal [1, 2], Post.group(:id).having!("id IN (?)", [1, 2]).order(:id).pluck(:id)
+    assert_equal [1], Post.group(:id).having!("id = :id", id: 1).pluck(:id)
   end
 
   test "loaded relations cannot be mutated by multi value methods" do
