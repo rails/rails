@@ -1,3 +1,10 @@
+*   Preserve the current pool isolation level when an isolation change is rejected.
+
+    Rescuing a `TransactionIsolationError` from an attempted change inside an open
+    transaction no longer clears the existing pool setting, including in Ractors.
+
+    *Lawrence Lin*
+
 *   Fix a `default_order` being ignored by a `disable_joins` through association.
 
     An explicit order in an association's scope was carried over to the

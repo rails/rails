@@ -226,9 +226,11 @@ module ActiveRecord
             pool = proxy_pool
 
             ActiveRecord.with_transaction_isolation_level(:read_committed) do
-              pool.pool_transaction_isolation_level = :serializable
-              assert_raises(ActiveRecord::TransactionIsolationError) do
-                pool.with_pool_transaction_isolation_level(:read_committed, true) { }
+              pool.with_pool_transaction_isolation_level(:serializable, false) do
+                assert_raises(ActiveRecord::TransactionIsolationError) do
+                  pool.with_pool_transaction_isolation_level(:read_committed, true) { flunk "unexpected yield" }
+                end
+                assert_equal :serializable, pool.pool_transaction_isolation_level
               end
             end
           end

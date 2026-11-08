@@ -265,11 +265,11 @@ module ActiveRecord
 
       # Makes all transactions the current pool use the isolation level initiated within the block.
       def with_pool_transaction_isolation_level(isolation_level, &block)
+        old_level = connection_pool.pool_transaction_isolation_level
         if current_transaction.open?
           raise ActiveRecord::TransactionIsolationError, "cannot set default isolation level while transaction is open"
         end
 
-        old_level = connection_pool.pool_transaction_isolation_level
         connection_pool.pool_transaction_isolation_level = isolation_level
         yield
       ensure
