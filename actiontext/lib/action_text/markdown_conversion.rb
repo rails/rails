@@ -107,13 +107,17 @@ module ActionText
       LIST_BULLET = /\A(-|\d+\.) /
       LIST_INDENT = "  "
       ENCODE_HREF_CHARS = /[() <>\\|\n\r\t]/
+      # Block markers count at the start of a line indented by up to three spaces, so the anchor
+      # below looks past a newline inside a text node and past that much leading whitespace.
       MARKDOWN_METACHARACTERS = /
-        [\\`*_{}\[\]|~<>]     # metacharacters that should be escaped generally
-        | \A\#(?=[\s\#]|\z)   # leading hash before space or another hash: ATX heading
-        | \A=(?=[=\s]|\z)     # leading equals before space or another equals: setext heading
-        | \A-                 # leading hyphen: list item, thematic break, or setext heading
-        | \A\+(?=\s|\z)       # leading plus before space: list item
-        | \A\d+\K\.(?=\s|\z)  # leading "1." with trailing space: ordered list item (only the dot is matched)
+        [\\`*_{}\[\]|~<>]         # metacharacters that should be escaped generally
+        | ^[ ]{0,3}\K(?:
+            \#(?=[\s\#]|\z)       # leading hash before space or another hash: ATX heading
+          | =(?=[=\s]|\z)         # leading equals before space or another equals: setext heading
+          | -                     # leading hyphen: list item, thematic break, or setext heading
+          | \+(?=\s|\z)           # leading plus before space: list item
+          | \d+\K[.)](?=\s|\z)    # leading "1." or "1)" with trailing space: ordered list item (only the dot or parenthesis is matched)
+        )
       /x
       SKIP_ESCAPING_PARENTS = [ RAW_MARKDOWN_TAG_NAME, "code", "pre" ].freeze
       INLINE_ELEMENTS = [ RAW_MARKDOWN_TAG_NAME, *%w[
@@ -134,7 +138,7 @@ module ActionText
           elsif skip_markdown_escaping?(node)
             node.content
           else
-            escape_markdown_text(strip_pretty_print_indentation(node))
+            escape_markdown_text(strip_pretty_print_indentation(node, normalize_line_endings(node.content)))
           end
         elsif node.element?
           method_name = :"visit_#{node.name.tr("-", "_")}"
@@ -434,8 +438,7 @@ module ActionText
         end
       end
 
-      def strip_pretty_print_indentation(node)
-        content = node.content
+      def strip_pretty_print_indentation(node, content)
         return content unless content.include?("\n")
 
         content
