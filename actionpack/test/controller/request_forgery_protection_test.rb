@@ -2184,3 +2184,22 @@ class ProtectFromForgeryDefaultStrategyTest < ActionController::TestCase
     end
   end
 end
+
+class RequestForgeryProtectionOutsideControllerTest < ActiveSupport::TestCase
+  class TokenVerifier
+    def self.config
+      @config ||= ActiveSupport::InheritableOptions.new(ActionController::Base.config)
+    end
+
+    def config
+      self.class.config
+    end
+
+    include ActionController::RequestForgeryProtection
+  end
+
+  test "can be included in a class that responds to config" do
+    assert_equal :authenticity_token, TokenVerifier.request_forgery_protection_token
+    assert_equal :authenticity_token, TokenVerifier.new.request_forgery_protection_token
+  end
+end
