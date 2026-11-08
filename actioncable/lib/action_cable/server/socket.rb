@@ -2,6 +2,7 @@
 
 require "active_support/inspect_backport"
 require "action_dispatch"
+require "active_support/parameter_filter"
 require "concurrent/executor/serialized_execution_delegator"
 
 module ActionCable
@@ -89,10 +90,10 @@ module ActionCable
         if websocket.alive?
           @connection.handle_incoming decode(websocket_message)
         else
-          logger.error "Ignoring message processed after the WebSocket was closed: #{websocket_message.inspect})"
+          logger.error "Ignoring message processed after the WebSocket was closed: #{filtered_message(websocket_message)}"
         end
       rescue Exception => e
-        logger.error "Could not handle incoming message: #{websocket_message.inspect} [#{e.class} - #{e.message}]: #{e.backtrace.first(5).join(" | ")}"
+        logger.error "Could not handle incoming message: #{filtered_message(websocket_message)} [#{e.class} - #{e.message}]: #{e.backtrace.first(5).join(" | ")}"
       end
 
       def on_open # :nodoc:
@@ -128,6 +129,32 @@ module ActionCable
 
         def decode(websocket_message)
           @coder.decode websocket_message
+        end
+
+        def filtered_message(websocket_message)
+          message = decode(websocket_message)
+          return redacted_message(websocket_message) unless message.is_a?(Hash)
+
+          %w[ identifier data ].each do |key|
+            message[key] = decode_nested_json(message[key]) if message[key].is_a?(String)
+          end
+          parameter_filter.filter(message).inspect
+        rescue StandardError
+          redacted_message(websocket_message)
+        end
+
+        def decode_nested_json(json)
+          ActiveSupport::JSON.decode(json)
+        rescue ActiveSupport::JSON.parse_error
+          ActiveSupport::ParameterFilter::FILTERED
+        end
+
+        def redacted_message(websocket_message)
+          "#{ActiveSupport::ParameterFilter::FILTERED} (#{websocket_message.bytesize} bytes)"
+        end
+
+        def parameter_filter
+          @parameter_filter ||= ActiveSupport::ParameterFilter.new(config.filter_parameters)
         end
 
         def handle_open

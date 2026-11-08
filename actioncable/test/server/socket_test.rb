@@ -57,6 +57,12 @@ class ActionCable::Server::SocketTest < ActionCable::TestCase
     end
   end
 
+  class LoginChannel < ActionCable::Channel::Base
+    def login
+      raise "Invalid credentials"
+    end
+  end
+
   setup do
     @server = TestServer.new
     @server.config.allowed_request_origins = %w( http://rubyonrails.com )
@@ -148,6 +154,55 @@ class ActionCable::Server::SocketTest < ActionCable::TestCase
     end
   end
 
+  test "filtering parameters when logging a message that could not be handled" do
+    @server.config.filter_parameters = [:password]
+
+    log = perform_failing_login
+
+    assert_match(/Could not handle incoming message: .*alice@example\.com/, log)
+    assert_no_match "secret", log
+  end
+
+  test "redacting a message that could not be handled when filtering it fails" do
+    @server.config.filter_parameters = [:password, ->(key, value) { raise "Broken filter" if key == "command" }]
+
+    log = perform_failing_login
+
+    assert_match(/Could not handle incoming message: \[FILTERED\] \(\d+ bytes\) \[RuntimeError - Invalid credentials\]/, log)
+    assert_no_match "secret", log
+  end
+
+  test "filtering parameters when logging a message processed after the WebSocket was closed" do
+    identifier = { channel: LoginChannel.name, password: "secret" }.to_json
+    data = { email: "alice@example.com", password: "secret" }.to_json
+
+    log = log_message_after_close({ command: "message", identifier: identifier, data: data }.to_json)
+
+    assert_match(/Ignoring message processed after the WebSocket was closed: .*LoginChannel.*alice@example\.com/, log)
+    assert_no_match "secret", log
+  end
+
+  test "filtering a message whose data is not JSON" do
+    log = log_message_after_close({ command: "message", identifier: { channel: LoginChannel.name }.to_json, data: "password=secret" }.to_json)
+
+    assert_match(/LoginChannel.*#{Regexp.escape({ "data" => "[FILTERED]" }.inspect[1..-2])}/, log)
+    assert_no_match "secret", log
+  end
+
+  test "redacting a message that is not a JSON object" do
+    log = log_message_after_close([ "password", "secret" ].to_json)
+
+    assert_match "Ignoring message processed after the WebSocket was closed: [FILTERED] (21 bytes)", log
+    assert_no_match "secret", log
+  end
+
+  test "redacting a message that is not JSON" do
+    log = log_message_after_close("password=secret")
+
+    assert_match "Ignoring message processed after the WebSocket was closed: [FILTERED] (15 bytes)", log
+    assert_no_match "secret", log
+  end
+
   test "closing a connection after its earlier commands" do
     @server.config.connection_class = -> { RecordingConnection }
 
@@ -234,5 +289,41 @@ class ActionCable::Server::SocketTest < ActionCable::TestCase
         "HTTP_HOST" => "localhost", "HTTP_ORIGIN" => "http://rubyonrails.com"
 
       ActionCable::Server::Socket.new(@server, env)
+    end
+
+    def capture_log
+      log = StringIO.new
+      @server.instance_variable_set(:@logger, ActiveSupport::TaggedLogging.new(ActiveSupport::Logger.new(log)))
+      log
+    end
+
+    def log_message_after_close(message)
+      @server.config.filter_parameters = [:password]
+      log = capture_log
+
+      run_in_eventmachine do
+        open_socket.dispatch_websocket_message(message)
+      end
+
+      log.string
+    end
+
+    def perform_failing_login
+      log = capture_log
+      @server.config.connection_class = -> { ActionCable::Connection::Base }
+      identifier = { channel: LoginChannel.name }.to_json
+      data = { action: "login", email: "alice@example.com", password: "secret" }.to_json
+
+      run_in_eventmachine do
+        socket = open_socket
+        socket.process
+        wait_for_async
+
+        socket.receive({ command: "subscribe", identifier: identifier }.to_json)
+        socket.receive({ command: "message", identifier: identifier, data: data }.to_json)
+        wait_for_async
+      end
+
+      log.string
     end
 end
