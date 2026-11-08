@@ -1,3 +1,10 @@
+*   Preserve a Ractor-proxied connection's lock when pinning it again.
+
+    Nested pins now retain an existing lock until the final unpin, matching the
+    regular connection pool and preserving synchronization with other threads.
+
+    *Lawrence Lin*
+
 *   Fix a `default_order` being ignored by a `disable_joins` through association.
 
     An explicit order in an association's scope was carried over to the

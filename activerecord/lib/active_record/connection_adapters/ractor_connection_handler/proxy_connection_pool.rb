@@ -150,7 +150,9 @@ module ActiveRecord
             state.pinned_depth += 1
 
             connection = state.pinned_connection
-            connection.lock_thread = ActiveSupport::IsolatedExecutionState.context if lock_thread
+            if lock_thread && connection.lock.equal?(ActiveSupport::Concurrency::NullLock)
+              connection.lock_thread = ActiveSupport::IsolatedExecutionState.context
+            end
             connection.pinned = true
           rescue Exception
             unpin_main_connection!
