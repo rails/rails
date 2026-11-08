@@ -77,60 +77,50 @@ module ActionController # :nodoc:
     included do
       # Sets the token parameter name for RequestForgery. Calling
       # `protect_from_forgery` sets it to `:authenticity_token` by default.
-      singleton_class.delegate :request_forgery_protection_token, :request_forgery_protection_token=, to: :config
-      delegate :request_forgery_protection_token, :request_forgery_protection_token=, to: :config
+      config_delegate :request_forgery_protection_token
       self.request_forgery_protection_token ||= :authenticity_token
 
       # Holds the class which implements the request forgery protection.
-      singleton_class.delegate :forgery_protection_strategy, :forgery_protection_strategy=, to: :config
-      delegate :forgery_protection_strategy, :forgery_protection_strategy=, to: :config
+      config_delegate :forgery_protection_strategy
       self.forgery_protection_strategy = nil
 
       # Controls whether request forgery protection is turned on or not. Turned off by
       # default only in test mode.
-      singleton_class.delegate :allow_forgery_protection, :allow_forgery_protection=, to: :config
-      delegate :allow_forgery_protection, :allow_forgery_protection=, to: :config
+      config_delegate :allow_forgery_protection
       self.allow_forgery_protection = true if allow_forgery_protection.nil?
 
       # Controls whether a CSRF failure logs a warning. On by default.
-      singleton_class.delegate :log_warning_on_csrf_failure, :log_warning_on_csrf_failure=, to: :config
-      delegate :log_warning_on_csrf_failure, :log_warning_on_csrf_failure=, to: :config
+      config_delegate :log_warning_on_csrf_failure
       self.log_warning_on_csrf_failure = true
 
       # Controls whether the Origin header is checked in addition to the CSRF token.
-      singleton_class.delegate :forgery_protection_origin_check, :forgery_protection_origin_check=, to: :config
-      delegate :forgery_protection_origin_check, :forgery_protection_origin_check=, to: :config
+      config_delegate :forgery_protection_origin_check
       self.forgery_protection_origin_check = false
 
       # Controls whether form-action/method specific CSRF tokens are used.
-      singleton_class.delegate :per_form_csrf_tokens, :per_form_csrf_tokens=, to: :config
-      delegate :per_form_csrf_tokens, :per_form_csrf_tokens=, to: :config
+      config_delegate :per_form_csrf_tokens
       self.per_form_csrf_tokens = false
 
       # The strategy to use for storing and retrieving CSRF tokens.
-      singleton_class.delegate :csrf_token_storage_strategy, :csrf_token_storage_strategy=, to: :config
-      delegate :csrf_token_storage_strategy, :csrf_token_storage_strategy=, to: :config
+      config_delegate :csrf_token_storage_strategy
       self.csrf_token_storage_strategy = SessionStore.new
 
       # The strategy to use for verifying requests. Options are:
       # * :header_only - Use Sec-Fetch-Site header only (default, modern browsers)
       # * :header_or_legacy_token - Combined approach: Sec-Fetch-Site with fallback to token
-      singleton_class.delegate :forgery_protection_verification_strategy, :forgery_protection_verification_strategy=, to: :config
-      delegate :forgery_protection_verification_strategy, :forgery_protection_verification_strategy=, to: :config
+      config_delegate :forgery_protection_verification_strategy
       self.forgery_protection_verification_strategy = :header_or_legacy_token
 
       # Origins allowed for cross-site requests, such as OAuth/SSO callbacks,
       # third-party embeds, and legitimate remote form submission.
       # Example: %w[ https://accounts.google.com ]
-      singleton_class.delegate :forgery_protection_trusted_origins, :forgery_protection_trusted_origins=, to: :config
-      delegate :forgery_protection_trusted_origins, :forgery_protection_trusted_origins=, to: :config
+      config_delegate :forgery_protection_trusted_origins
       self.forgery_protection_trusted_origins = []
 
       # Controls the default strategy used when calling protect_from_forgery without arguments.
       # Defaults to :null_session for backwards compatibility, but will change to :exception
       # in a future version of Rails.
-      singleton_class.delegate :default_protect_from_forgery_with, :default_protect_from_forgery_with=, to: :config
-      delegate :default_protect_from_forgery_with, :default_protect_from_forgery_with=, to: :config
+      config_delegate :default_protect_from_forgery_with
       self.default_protect_from_forgery_with = :null_session
 
       helper_method :form_authenticity_token
