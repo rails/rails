@@ -1,3 +1,10 @@
+*   Preserve the worker connection pool in Ractor checkout errors.
+
+    Errors raised while checking out a connection now reference the worker's
+    proxy pool instead of losing their `connection_pool` across the Ractor boundary.
+
+    *Lawrence Lin*
+
 *   Fix a `default_order` being ignored by a `disable_joins` through association.
 
     An explicit order in an association's scope was carried over to the

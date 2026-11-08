@@ -381,7 +381,7 @@ module ActiveRecord
 
           def checkout_main_connection
             connection_name, role, shard = @connection_name, @role, @shard
-            main_operation do
+            main_operation(connection_pool: self) do
               connection = main_pool(connection_name, role, shard).checkout
               begin
                 profile = connection.ractor_connection_profile
