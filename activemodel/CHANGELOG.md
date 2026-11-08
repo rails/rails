@@ -1,3 +1,15 @@
+*   Fix `:integer` attributes silently truncating 64-bit integer strings.
+
+    Strings cast by `ActiveModel::Type::Integer` are cut to `limit * 4` bytes.
+    Types without a limit, such as Active Model attributes, used the default
+    limit of 4, so a 19-digit value like `"9223372036854775807"` was silently
+    truncated to 16 digits. Types without a limit now use a 32-byte window,
+    which fits any 64-bit value. Types with an explicit limit are unchanged.
+
+    Fixes #59636.
+
+    *Talaat Magdy*
+
 *   Fix subclasses missing `alias_attribute` aliases added to their parent class later.
 
     A subclass that held its own copy of the aliases, because it had defined
