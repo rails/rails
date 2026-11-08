@@ -150,6 +150,7 @@ module ActiveRecord
           supports_index_sort_order?: supports_index_sort_order?,
           supports_indexes_in_create?: supports_indexes_in_create?,
           supports_insert_conflict_target?: supports_insert_conflict_target?,
+          supports_insert_on_conflict_select?: supports_insert_on_conflict_select?,
           supports_insert_on_duplicate_skip?: supports_insert_on_duplicate_skip?,
           supports_insert_on_duplicate_update?: supports_insert_on_duplicate_update?,
           supports_insert_returning?: supports_insert_returning?,
@@ -696,6 +697,10 @@ module ActiveRecord
       end
 
       def supports_insert_conflict_target?
+        false
+      end
+
+      def supports_insert_on_conflict_select?
         false
       end
 
