@@ -625,6 +625,14 @@ module ActiveRecord
       assert_equal [authors(:bob)], Author.find_by_sql(Author.where(id: 3..9223372036854775808).to_sql)
     end
 
+    def test_where_not_with_only_large_numbers
+      large_numbers = [9223372036854775808, 9223372036854775809]
+
+      assert_equal Author.count, Author.where.not(id: large_numbers).count
+      assert_equal Author.count, Author.where.not(id: large_numbers + [nil]).count
+      assert_equal 0, Author.where(id: large_numbers).count
+    end
+
     def test_where_with_unsupported_arguments
       assert_raises(ArgumentError) { Author.where(42) }
     end
