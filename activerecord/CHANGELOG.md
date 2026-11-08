@@ -1,3 +1,10 @@
+*   Preserve existing connection leases across nested `with_connection` calls in Ractors.
+
+    Calling `with_connection(prevent_permanent_checkout: true)` no longer clears
+    a permanent lease established before the block, matching the regular pool.
+
+    *Lawrence Lin*
+
 *   Fix a `default_order` being ignored by a `disable_joins` through association.
 
     An explicit order in an association's scope was carried over to the

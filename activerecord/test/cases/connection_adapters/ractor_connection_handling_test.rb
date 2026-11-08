@@ -813,6 +813,25 @@ module ActiveRecord
             assert_equal 0, rolled_back
           end
 
+          def test_nested_with_connection_preserves_an_existing_permanent_lease
+            kept, released = on_ractor do
+              pool = ActiveRecord::Base.connection_pool
+              leased_connection = nil
+
+              pool.with_connection do
+                leased_connection = pool.lease_connection
+                pool.with_connection(prevent_permanent_checkout: true) { }
+              end
+
+              same_connection = pool.active_connection?.equal?(leased_connection)
+              pool.release_connection
+              [same_connection, !pool.active_connection?]
+            end
+
+            assert kept, "Expected the explicitly leased connection to remain checked out"
+            assert released, "Expected an explicit release to return the leased connection"
+          end
+
           def test_database_errors_cross_the_boundary_with_their_class_and_remote_cause
             driver = driver_error_namespace
 
