@@ -1,3 +1,10 @@
+*   Keep lazy routes usable after ractorizing an application.
+
+    Requests and URL helpers no longer try to recreate the routes reloader on
+    the frozen application when using `LazyRouteSet`, such as in the test environment.
+
+    *Lawrence Lin*
+
 *   Fix `/rails/info/notes` raising `Encoding::CompatibilityError` when notes
     from Ruby and non-Ruby files contain non-ASCII characters.
 
