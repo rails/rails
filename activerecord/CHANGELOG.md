@@ -1,3 +1,10 @@
+*   Reuse an existing worker lease when pinning a Ractor connection pool.
+
+    The main pool now pins the connection already leased by the worker, avoiding
+    an extra checkout that could time out when the pool is full.
+
+    *Lawrence Lin*
+
 *   Fix a `default_order` being ignored by a `disable_joins` through association.
 
     An explicit order in an association's scope was carried over to the

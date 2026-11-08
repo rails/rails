@@ -1137,6 +1137,20 @@ module ActiveRecord
         assert_same pinned_connection, @pool.checkout
       end
 
+      def test_pin_connection_uses_an_explicitly_checked_out_connection
+        with_single_connection_pool(checkout_timeout: 0.01) do |pool|
+          connection = pool.checkout
+
+          pool.pin_connection!(false, connection: connection)
+          assert_same connection, pool.checkout
+          assert_equal 1, pool.connections.size
+
+          pool.unpin_connection!
+          assert_not connection.in_use?
+          assert_same connection, pool.checkout
+        end
+      end
+
       def test_pin_connection_connected?
         skip("Can't test with in-memory dbs") if in_memory_db?
 
