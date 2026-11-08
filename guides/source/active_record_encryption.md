@@ -141,7 +141,7 @@ column defined to hold N characters may actually consume up to 4 × N bytes in
 storage.
 
 Since an encrypted payload is binary data serialized with Base64, it can be
-stored in regular a `string` column. Because it's a sequence of ASCII bytes, an
+stored in a regular `string` column. Because it's a sequence of ASCII bytes, an
 encrypted column can take up to four times its clear version size. So, even if
 the bytes stored in the database are the same, the column must be four times
 bigger.
