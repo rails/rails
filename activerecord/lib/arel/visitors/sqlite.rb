@@ -80,7 +80,7 @@ module Arel # :nodoc: all
           collector = if left.class == o.class
             infix_value_with_paren(left, collector, value, true)
           else
-            grouping_parentheses left, collector, false
+            visit left, collector
           end
 
           collector << value
@@ -89,7 +89,7 @@ module Arel # :nodoc: all
           collector = if right.class == o.class
             infix_value_with_paren(right, collector, value, true)
           else
-            grouping_parentheses right, collector, false
+            visit right, collector
           end
 
           collector << " )" unless suppress_parens
