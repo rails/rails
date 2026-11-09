@@ -642,8 +642,8 @@ module ActiveSupport
         begin
           period || @time_zone.period_for_local(@time)
         rescue ::TZInfo::PeriodNotFound
-          # time is in the "spring forward" hour gap, so we're moving the time forward one hour and trying again
-          @time += 1.hour
+          # time is in the "spring forward" gap, so we're moving the time forward by the gap's length and trying again
+          @time += @time_zone.spring_forward_gap_for_local(@time) || 1.hour
           retry
         end
       end
