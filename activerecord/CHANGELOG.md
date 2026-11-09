@@ -1,8 +1,8 @@
-*   Fix `where.not` returning no rows when none of the values can be cast.
+*   Deprecate `where.not` with only values that cannot be cast.
 
-    `Author.where.not(id: [2**64, 2**64 + 1])` generated `NOT IN (NULL)`, which
-    matches no row. It now generates `1=1`, the same as `where.not(id: [])`.
-    The positive form now generates `1=0`.
+    `Author.where.not(id: [2**64, 2**64 + 1])` generates `NOT IN (NULL)`, which
+    matches no row. `Author.where.not(id: 2**64)` matches every row. In a future
+    version of Rails, the list form will also match every row.
 
     *Bruno Costanzo*
 

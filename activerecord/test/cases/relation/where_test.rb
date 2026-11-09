@@ -618,12 +618,16 @@ module ActiveRecord
       assert_equal [authors(:bob)], Author.find_by_sql(Author.where(id: 3..9223372036854775808).to_sql)
     end
 
-    def test_where_not_with_only_large_numbers
+    def test_where_not_with_only_large_numbers_is_deprecated
       large_numbers = [9223372036854775808, 9223372036854775809]
 
-      assert_equal Author.count, Author.where.not(id: large_numbers).count
-      assert_equal Author.count, Author.where.not(id: large_numbers + [nil]).count
-      assert_equal 0, Author.where(id: large_numbers).count
+      assert_deprecated(/`where.not` with only values that cannot be cast/, ActiveRecord.deprecator) do
+        assert_equal 0, Author.where.not(id: large_numbers).count
+      end
+      assert_equal Author.count, Author.where.not(id: large_numbers.first).count
+      assert_not_deprecated(ActiveRecord.deprecator) do
+        assert_equal 0, Author.where(id: large_numbers).count
+      end
     end
 
     def test_where_with_unsupported_arguments
