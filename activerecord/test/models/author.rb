@@ -56,6 +56,28 @@ class Author < ActiveRecord::Base
     source_type: "Member",
     disable_joins: true
 
+  has_many :posts_ordered_by_default, -> { default_order(id: :desc) }, class_name: "Post"
+
+  has_many :comments_of_posts_ordered_by_default,
+    through: :posts_ordered_by_default,
+    source: :comments
+
+  has_many :no_joins_comments_of_posts_ordered_by_default,
+    through: :posts_ordered_by_default,
+    source: :comments,
+    disable_joins: true
+
+  has_many :default_ordered_comments_of_posts_ordered_by_default,
+    -> { default_order(id: :asc) },
+    through: :posts_ordered_by_default,
+    source: :comments
+
+  has_many :no_joins_default_ordered_comments_of_posts_ordered_by_default,
+    -> { default_order(id: :asc) },
+    through: :posts_ordered_by_default,
+    source: :comments,
+    disable_joins: true
+
   has_many :ratings, through: :comments
   has_many :good_ratings,
     -> { where("ratings.value > 5").order(:id) },
@@ -65,6 +87,17 @@ class Author < ActiveRecord::Base
   has_many :no_joins_ratings, through: :no_joins_comments, disable_joins: :true, source: :ratings
   has_many :no_joins_good_ratings,
     -> { where("ratings.value > 5").order(:id) },
+    through: :comments,
+    source: :ratings,
+    disable_joins: true
+
+  has_many :ratings_ordered_by_default,
+    -> { default_order(value: :desc) },
+    through: :comments,
+    source: :ratings
+
+  has_many :no_joins_ratings_ordered_by_default,
+    -> { default_order(value: :desc) },
     through: :comments,
     source: :ratings,
     disable_joins: true

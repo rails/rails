@@ -1,3 +1,19 @@
+*   Fix a `default_order` being ignored by a `disable_joins` through association.
+
+    An explicit order in an association's scope was carried over to the
+    queries the chain is split into, but a `default_order` was dropped, so the
+    records came back in whatever order the database returned them.
+
+    ```ruby
+    class Author < ApplicationRecord
+      has_many :comments, through: :posts
+      has_many :ratings, -> { default_order(value: :desc) },
+        through: :comments, disable_joins: true
+    end
+    ```
+
+    *Carlos Pohlod*
+
 *   Fix `eager_load` of associations to models without a primary key.
 
     Every parent got only the first loaded record: a `has_many` kept one
