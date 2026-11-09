@@ -79,6 +79,18 @@ class PostgresqlMoneyTest < ActiveRecord::PostgreSQLTestCase
     end
   end
 
+  def test_money_type_cast_numeric_to_scale
+    type = PostgresqlMoney.type_for_attribute("wealth")
+
+    [10.004, BigDecimal("10.004"), Rational(10_004, 1000)].each do |number|
+      assert_equal BigDecimal("10.00"), type.cast(number)
+      assert_kind_of BigDecimal, type.cast(number)
+    end
+
+    assert_equal BigDecimal("10.01"), type.cast(10.005)
+    assert_kind_of BigDecimal, type.cast(10)
+  end
+
   def test_numericality_validation_with_money_scale
     ["10.004", 10.004, BigDecimal("10.004")].each do |raw_value|
       assert_predicate PostgresqlMoneyWithLimit.new(wealth: raw_value), :valid?
