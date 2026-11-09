@@ -645,6 +645,22 @@ module ActiveSupport
       tzinfo.periods_for_local(time)
     end
 
+    # Returns the length in seconds of the "spring forward" gap that the local
+    # time falls in, or +nil+ if it isn't in one. Not every gap is one hour
+    # long, e.g. Australia/Lord_Howe's DST transition is 30 minutes.
+    def spring_forward_gap_for_local(time) # :nodoc:
+      local = time.to_i
+
+      # The gap spans from the transition's +local_end_at+ to its
+      # +local_start_at+, compared here as wall clock seconds like +time+.
+      transition = tzinfo.transitions_up_to(time + 1.day, time - 1.day).find do |t|
+        t.at.to_i + t.previous_offset.observed_utc_offset <= local &&
+          local < t.at.to_i + t.offset.observed_utc_offset
+      end
+
+      transition.offset.observed_utc_offset - transition.previous_offset.observed_utc_offset if transition
+    end
+
     def abbr(time) # :nodoc:
       tzinfo.abbr(time)
     end

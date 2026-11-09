@@ -268,6 +268,17 @@ class TimeZoneTest < ActiveSupport::TestCase
     assert_equal true, twz.dst?
   end
 
+  def test_local_enforces_spring_dst_rules_with_a_multi_hour_gap
+    zone = ActiveSupport::TimeZone["Antarctica/Troll"] # 2-hour DST
+    twz = zone.local(2025, 3, 30, 1) # 1AM does not exist because at 1AM, time springs forward to 3AM
+    assert_equal Time.utc(2025, 3, 30, 3), twz.time
+    assert_equal Time.utc(2025, 3, 30, 1), twz.utc
+    twz2 = zone.local(2025, 3, 30, 2) # 2AM does not exist either
+    assert_equal Time.utc(2025, 3, 30, 4), twz2.time
+    assert_equal Time.utc(2025, 3, 30, 2), twz2.utc
+    assert_equal true, twz2.dst?
+  end
+
   def test_local_enforces_spring_dst_rules
     zone = ActiveSupport::TimeZone["Eastern Time (US & Canada)"]
     twz = zone.local(2006, 4, 2, 1, 59, 59) # 1 second before DST start
