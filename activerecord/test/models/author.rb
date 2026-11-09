@@ -67,6 +67,17 @@ class Author < ActiveRecord::Base
     source: :comments,
     disable_joins: true
 
+  has_many :default_ordered_comments_of_posts_ordered_by_default,
+    -> { default_order(id: :asc) },
+    through: :posts_ordered_by_default,
+    source: :comments
+
+  has_many :no_joins_default_ordered_comments_of_posts_ordered_by_default,
+    -> { default_order(id: :asc) },
+    through: :posts_ordered_by_default,
+    source: :comments,
+    disable_joins: true
+
   has_many :ratings, through: :comments
   has_many :good_ratings,
     -> { where("ratings.value > 5").order(:id) },

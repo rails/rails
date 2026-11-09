@@ -148,6 +148,17 @@ class HasManyThroughDisableJoinsAssociationsTest < ActiveRecord::TestCase
     assert_equal [second_comment, first_comment], author.no_joins_comments_of_posts_ordered_by_default.to_a
   end
 
+  def test_to_a_on_disable_joins_with_a_default_order_scope_through_a_default_ordered_association
+    author = authors(:bob)
+    first_post = author.posts.create!(title: "first", body: "body")
+    second_post = author.posts.create!(title: "second", body: "body")
+    first_comment = first_post.comments.create!(body: "first")
+    second_comment = second_post.comments.create!(body: "second")
+
+    assert_equal [first_comment, second_comment], author.default_ordered_comments_of_posts_ordered_by_default.to_a
+    assert_equal [first_comment, second_comment], author.no_joins_default_ordered_comments_of_posts_ordered_by_default.to_a
+  end
+
   def test_preloading_has_many_through_disable_joins
     assert_queries_count(3) { Author.all.preload(:good_ratings).map(&:good_ratings) }
     assert_queries_count(4) { Author.all.preload(:no_joins_good_ratings).map(&:good_ratings) }
