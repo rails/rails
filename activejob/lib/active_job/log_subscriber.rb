@@ -5,6 +5,7 @@ module ActiveJob
     class_attribute :backtrace_cleaner, default: ActiveSupport::BacktraceCleaner.new
 
     self.namespace = "active_job"
+    self.needs_source_location = false
 
     def enqueued(event)
       payload = event[:payload]

@@ -3,6 +3,7 @@
 module ActionMailer
   class LogSubscriber < ActiveSupport::EventReporter::LogSubscriber # :nodoc:
     self.namespace = "action_mailer"
+    self.needs_source_location = false
 
     # An email was delivered.
     def delivered(event)

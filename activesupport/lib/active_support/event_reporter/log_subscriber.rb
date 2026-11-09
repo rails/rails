@@ -53,6 +53,10 @@ module ActiveSupport
 
       class_attribute :log_levels, default: {}.freeze # :nodoc:
 
+      # Set to `false` in subclasses that never read `event[:source_location]`, so
+      # the event reporter can skip capturing it.
+      class_attribute :needs_source_location, default: true, instance_writer: false
+
       def emit(event)
         return unless logger
         event_method = self.class.event_method_for(event[:name])

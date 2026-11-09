@@ -5,6 +5,7 @@ module ActionView
     VIEWS_PATTERN = /^app\/views\//
 
     self.namespace = "action_view"
+    self.needs_source_location = false
 
     def render_template(event)
       info do

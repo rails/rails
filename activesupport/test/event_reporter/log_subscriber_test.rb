@@ -59,6 +59,14 @@ class ActiveSupport::EventReporter::LogSubscriberTest < ActiveSupport::TestCase
     assert @log_subscriber.consumes?("test.debug_only")
   end
 
+  test "log subscribers need source_location unless they opt out" do
+    assert_predicate @log_subscriber, :needs_source_location?
+
+    opted_out = Class.new(MyLogSubscriber) { self.needs_source_location = false }
+    assert_not_predicate opted_out.new, :needs_source_location?
+    assert_predicate MyLogSubscriber.new, :needs_source_location?
+  end
+
   test "events nobody would log are not built" do
     @logger.level = Logger::ERROR
     # A dedicated reporter: the shared one may carry subscribers from other

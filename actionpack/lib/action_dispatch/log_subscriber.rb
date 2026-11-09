@@ -5,6 +5,7 @@ module ActionDispatch
     class_attribute :backtrace_cleaner, default: ActiveSupport::BacktraceCleaner.new
 
     self.namespace = "action_dispatch"
+    self.needs_source_location = false
 
     def redirect(event)
       payload = event[:payload]

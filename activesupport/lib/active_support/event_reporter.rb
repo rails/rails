@@ -135,10 +135,14 @@ module ActiveSupport
   # tags: Hash (The tags of the event)
   # context: Hash (The context of the event)
   # timestamp: Integer (The timestamp of the event, in nanoseconds)
-  # source_location: Hash (The source location of the event, containing the filepath, lineno, and label)
+  # source_location: Hash (The source location of the event, containing the filepath, lineno, and label; left out when no subscriber needs it)
   # ```
   #
   # The event hash and its payload hash are frozen. Subscribers that need to modify them should `dup` them first.
+  #
+  # Capturing the source location walks the call stack, so subscribers that never read it can define
+  # `needs_source_location?` to return `false`. When no subscriber receiving an event needs it, the
+  # `:source_location` key is left out of the event. Subscribers that don't define the method always get it.
   #
   # Subscribers are responsible for encoding events to their desired format before emitting them to their
   # target destination, such as a streaming platform, a log device, or an alerting service.
@@ -335,10 +339,14 @@ module ActiveSupport
     # tags: Hash (The tags of the event)
     # context: Hash (The context of the event)
     # timestamp: Integer (The timestamp of the event, in nanoseconds)
-    # source_location: Hash (The source location of the event, containing the filepath, lineno, and label)
+    # source_location: Hash (The source location of the event, containing the filepath, lineno, and label; left out when no subscriber needs it)
     # ```
     #
     # The event hash and its payload hash are frozen. Subscribers that need to modify them should `dup` them first.
+    #
+    # Capturing the source location walks the call stack, so subscribers that never read it can define
+    # `needs_source_location?` to return `false`. When no subscriber receiving an event needs it, the
+    # `:source_location` key is left out of the event.
     #
     # An optional filter proc can be provided to only receive a subset of events:
     #
@@ -433,12 +441,14 @@ module ActiveSupport
 
       subscribers = []
       consumed = false
+      needs_source_location = false
       @subscribers.each do |subscriber_entry|
         filter = subscriber_entry[:filter]
         if !filter || filter.call(event)
           subscriber = subscriber_entry[:subscriber]
           subscribers << subscriber
           consumed ||= subscriber_consumes?(subscriber, name)
+          needs_source_location ||= subscriber_needs_source_location?(subscriber)
         end
       end
 
@@ -456,9 +466,7 @@ module ActiveSupport
         timestamp: Process.clock_gettime(Process::CLOCK_REALTIME, :nanosecond),
       }
 
-      caller_location = caller_locations(caller_depth, 1)&.first
-
-      if caller_location
+      if needs_source_location && (caller_location = caller_locations(caller_depth, 1)&.first)
         source_location = {
           filepath: caller_location.path,
           lineno: caller_location.lineno,
@@ -638,6 +646,17 @@ module ActiveSupport
 
         subscriber.consumes?(name)
       rescue
+        true
+      end
+
+      def subscriber_needs_source_location?(subscriber)
+        return true unless subscriber.respond_to?(:needs_source_location?)
+
+        subscriber.needs_source_location?
+      rescue => error
+        raise if raise_on_error?
+
+        ActiveSupport.error_reporter.report(error, handled: true)
         true
       end
 
