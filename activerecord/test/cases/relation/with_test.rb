@@ -117,6 +117,25 @@ module ActiveRecord
         assert_match "WITH RECURSIVE", relation.to_sql
       end
 
+      # https://github.com/rails/rails/issues/59706
+      def test_with_recursive_with_ordered_term
+        skip "ORDER BY in a recursive CTE term is only supported by SQLite" unless current_adapter?(:SQLite3Adapter)
+
+        top_companies = Company.where(firm_id: nil).to_a
+        child_companies = Company.where(firm_id: top_companies).to_a
+        top_companies_and_children = (top_companies.map(&:id) + child_companies.map(&:id)).sort
+
+        relation = Company.with_recursive(
+          top_companies_and_children: [
+            Company.where(firm_id: nil),
+            Company.joins("JOIN top_companies_and_children ON companies.firm_id = top_companies_and_children.id").order(:id),
+          ]
+        ).from("top_companies_and_children AS companies")
+
+        assert_nothing_raised { relation.load }
+        assert_equal top_companies_and_children, relation.order(:id).pluck(:id)
+      end
+
       def test_with_recursive_is_kept_by_merge
         top_companies = Company.where(firm_id: nil).to_a
         child_companies = Company.where(firm_id: top_companies).to_a

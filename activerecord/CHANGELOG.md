@@ -1,3 +1,11 @@
+*   Don't wrap an ordered recursive CTE term in parentheses on SQLite.
+
+    `with_recursive` with an `ORDER BY` in the recursive term generated
+    `UNION ALL (SELECT ... ORDER BY ...)`, which SQLite rejects as invalid
+    syntax inside a compound SELECT. The term is no longer parenthesized.
+
+    *M Ibtehaj Nasar*
+
 *   Fix `eager_load` of associations to models without a primary key.
 
     Every parent got only the first loaded record: a `has_many` kept one
