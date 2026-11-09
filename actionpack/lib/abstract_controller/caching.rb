@@ -27,28 +27,25 @@ module AbstractController
     include ConfigMethods
     include AbstractController::Caching::Fragments
 
-    included do
-      extend ConfigMethods
-
-      config_delegate :default_static_extension
-      self.default_static_extension ||= ".html"
-
-      config_delegate :perform_caching
-      self.perform_caching = true if perform_caching.nil?
-
-      config_delegate :enable_fragment_cache_logging
-      self.enable_fragment_cache_logging = false
-
-      class_attribute :_view_cache_dependencies, default: [].freeze
-      helper_method :view_cache_dependencies if respond_to?(:helper_method)
-    end
-
     module ClassMethods
       def view_cache_dependency(&dependency)
         self._view_cache_dependencies = [
           *_view_cache_dependencies, ActiveSupport::Ractors.try_shareable_proc(dependency)
         ].freeze
       end
+    end
+
+    Config.generate_accessors(self, :default_static_extension, :perform_caching, :enable_fragment_cache_logging)
+
+    included do
+      extend ConfigMethods
+
+      self.default_static_extension ||= ".html"
+      self.perform_caching = true if perform_caching.nil?
+      self.enable_fragment_cache_logging = false
+
+      class_attribute :_view_cache_dependencies, default: [].freeze
+      helper_method :view_cache_dependencies if respond_to?(:helper_method)
     end
 
     def view_cache_dependencies

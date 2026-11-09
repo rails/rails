@@ -14,6 +14,7 @@ module AbstractController
   autoload :Caching
   autoload :Callbacks
   autoload :Collector
+  autoload :Config
   autoload :DoubleRenderError, "abstract_controller/rendering"
   autoload :Helpers
   autoload :Logger
