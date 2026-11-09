@@ -227,6 +227,18 @@ class EagerAssociationTest < ActiveRecord::TestCase
     end
   end
 
+  def test_eager_loaded_has_many_association_without_primary_key_with_multiple_owners
+    blackbeard, redbeard = pirates(:blackbeard), pirates(:redbeard)
+    blackbeard.mateys.create!(target: blackbeard, weight: 20)
+    redbeard.mateys.create!(target: blackbeard, weight: 30)
+
+    pirates = Pirate.where(id: [blackbeard, redbeard]).order(:id)
+    expected = pirates.map { |pirate| pirate.mateys.order(:weight).map(&:attributes) }
+    eager_loaded = pirates.eager_load(:mateys).order("mateys.weight")
+
+    assert_equal expected, eager_loaded.map { |pirate| pirate.mateys.map(&:attributes) }
+  end
+
   def test_type_cast_in_where_references_association_name
     parent = comments(:greetings)
     child = parent.children.create!(label: "child", body: "hi", post_id: parent.post_id)

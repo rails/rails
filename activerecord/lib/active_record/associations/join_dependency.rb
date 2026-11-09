@@ -270,7 +270,7 @@ module ActiveRecord
               id = keys.map { |key| row[key] }
             else
               keys = node.destination_key(parent.base_klass).map { |column| aliases.column_alias(node, column) }
-              id = keys.map { nil } # Avoid id-based model caching.
+              id = nil # Avoid id-based model caching.
             end
 
             if keys.any? { |key| row[key].nil? }
