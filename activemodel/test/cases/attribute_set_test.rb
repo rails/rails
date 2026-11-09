@@ -140,7 +140,7 @@ module ActiveModel
     end
 
     test "keys does not build the attributes of a database row" do
-      builder = AttributeSet::Builder.new({ foo: Type::Integer.new, bar: Type::Integer.new }, {}, nil)
+      builder = AttributeSet::Builder.new({ foo: Type::Integer.new, bar: Type::Integer.new }, AttributeSet.new(IndexedRow::Mutable[{}]), [:foo, :bar])
       attributes = builder.build_from_database(foo: "1", bar: "2")
 
       assert_not_called(Attribute, :from_database) do
@@ -148,20 +148,20 @@ module ActiveModel
       end
     end
 
-    test "keys lists the database row, then the types, then the assigned attributes" do
+    test "keys follow the attribute layout, then extra columns of the database row" do
       builder = AttributeSet::Builder.new(
         { foo: Type::Integer.new, bar: Type::Integer.new, baz: Type::Integer.new },
-        { baz: Attribute.from_user(:baz, 3, Type::Integer.new) },
-        nil
+        AttributeSet.new(IndexedRow::Mutable[{ baz: Attribute.from_user(:baz, 3, Type::Integer.new) }]),
+        [:foo, :bar, :baz]
       )
       attributes = builder.build_from_database(extra: "1", bar: "2")
-      attributes[:assigned] = Attribute.from_user(:assigned, 4, Type::Integer.new)
 
-      assert_equal [:extra, :bar, :baz, :assigned], attributes.keys
+      assert_equal [:baz, :bar, :extra], attributes.keys
+      assert_equal attributes.to_hash.keys, attributes.keys
     end
 
     test "keys skips attributes of a database row that are marked as uninitialized" do
-      builder = AttributeSet::Builder.new({ foo: Type::Integer.new, bar: Type::Integer.new }, {}, nil)
+      builder = AttributeSet::Builder.new({ foo: Type::Integer.new, bar: Type::Integer.new }, AttributeSet.new(IndexedRow::Mutable[{}]), [:foo, :bar])
       attributes = builder.build_from_database(foo: "1", bar: "2")
       attributes[:foo] = Attribute.uninitialized(:foo, Type::Integer.new)
 
@@ -429,14 +429,14 @@ module ActiveModel
       include ActiveSupport::Testing::RactorsAssertions
 
       test "keys on a Ractor" do
-        builder = AttributeSet::Builder.new({ foo: Type::Integer.new, bar: Type::Integer.new }, {}, nil)
+        builder = AttributeSet::Builder.new({ foo: Type::Integer.new, bar: Type::Integer.new }, AttributeSet.new(IndexedRow::Mutable[{}]), [:foo, :bar])
         assert_ractor_make_shareable builder
 
         assert_equal [:foo], on_ractor(builder) { |set_builder| set_builder.build_from_database(foo: "1").keys }
       end
 
       test "keys of a shareable set on a Ractor" do
-        builder = AttributeSet::Builder.new({ foo: Type::Integer.new, bar: Type::Integer.new }, {}, nil)
+        builder = AttributeSet::Builder.new({ foo: Type::Integer.new, bar: Type::Integer.new }, AttributeSet.new(IndexedRow::Mutable[{}]), [:foo, :bar])
         attributes = builder.build_from_database(foo: "1")
         assert_ractor_make_shareable attributes
 
