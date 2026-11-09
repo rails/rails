@@ -262,6 +262,10 @@ module ActiveRecord
       _reference_origin_key.all? { |column| !origin._read_attribute(column).nil? }
     end
 
+    def origin_fixed_values_match?(origin)
+      _origin_fixed_values.all? { |column, value| origin._read_attribute(column) == value }
+    end
+
     def reference_needs_update?(origin, destination)
       @link.reference_needs_update?(origin, destination)
     end
@@ -276,6 +280,10 @@ module ActiveRecord
 
     def origin_fixed_values
       @link.fixed_values
+    end
+
+    def _origin_fixed_values
+      @link._fixed_values
     end
 
     def destination_fixed_values
@@ -337,6 +345,10 @@ module ActiveRecord
     end
 
     def origin_fixed_values
+      EMPTY_FIXED_VALUES
+    end
+
+    def _origin_fixed_values
       EMPTY_FIXED_VALUES
     end
 

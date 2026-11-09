@@ -10,18 +10,6 @@ module ActiveRecord
         type.presence && owner.class.polymorphic_class_for(type)
       end
 
-      def target_changed?
-        super || owner.attribute_changed?(foreign_type)
-      end
-
-      def target_previously_changed?
-        super || owner.attribute_previously_changed?(foreign_type)
-      end
-
-      def saved_change_to_target?
-        super || owner.saved_change_to_attribute?(foreign_type)
-      end
-
       private
         def inverse_reflection_for(record)
           reflection.polymorphic_inverse_of(record.class)
@@ -29,12 +17,6 @@ module ActiveRecord
 
         def raise_on_type_mismatch!(record)
           # A polymorphic association cannot have a type mismatch, by definition
-        end
-
-        def stale_state
-          if foreign_key = super
-            [foreign_key, owner._read_attribute(foreign_type)]
-          end
         end
     end
   end

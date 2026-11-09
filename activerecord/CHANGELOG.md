@@ -1,3 +1,20 @@
+*   Allow `:foreign_type` on a `belongs_to` that isn't polymorphic.
+
+    ```ruby
+    class Activity < ActiveRecord::Base
+      belongs_to :item, polymorphic: true
+      belongs_to :comment, foreign_key: :item_id, foreign_type: :item_type, optional: true
+    end
+    ```
+
+    Without `foreign_type`, an activity with `item_type: "Task", item_id: 5`
+    returns comment 5. With it, `comment` only matches when `item_type` is
+    `"Comment"`, including in preloading, eager loading, joins and `where`.
+
+    Fixes #50213.
+
+    *Filip Sučić*
+
 *   Fix nested preloads under a `:through` association attaching their
     records to copies instead of the records the owners hold.
 

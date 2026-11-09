@@ -36,6 +36,7 @@ require "models/club"
 require "models/cpk"
 require "models/person"
 require "models/car"
+require "models/aircraft"
 require "models/sharded/blog"
 require "models/sharded/blog_post"
 require "models/sharded/comment"
@@ -1853,6 +1854,212 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
 
     assert_equal groucho, sponsor.sponsorable
     assert_equal groucho, sponsor.thing
+  end
+
+  def test_foreign_type_without_polymorphic_reads_only_its_type
+    assert_equal members(:groucho), sponsors(:moustache_club_sponsor_for_groucho).sponsorable_member
+
+    sponsor = sponsors(:sponsor_for_author_david)
+    assert_equal authors(:david).id, members(:groucho).id
+    assert_no_queries { assert_nil sponsor.sponsorable_member }
+  end
+
+  def test_foreign_type_without_polymorphic_preloads_only_its_type
+    sponsors = Sponsor.where(sponsorable_id: members(:groucho).id).preload(:sponsorable_member).to_a
+
+    assert_no_queries do
+      assert_equal({ "Member" => members(:groucho), "Author" => nil }, sponsors.to_h { |sponsor| [sponsor.sponsorable_type, sponsor.sponsorable_member] })
+    end
+  end
+
+  def test_foreign_type_without_polymorphic_eager_loads_only_its_type
+    sponsors = Sponsor.where(sponsorable_id: members(:groucho).id).eager_load(:sponsorable_member).to_a
+
+    assert_no_queries do
+      assert_equal({ "Member" => members(:groucho), "Author" => nil }, sponsors.to_h { |sponsor| [sponsor.sponsorable_type, sponsor.sponsorable_member] })
+    end
+  end
+
+  def test_foreign_type_without_polymorphic_joins_on_its_type
+    expected = [sponsors(:moustache_club_sponsor_for_groucho)]
+
+    assert_equal expected, Sponsor.joins(:sponsorable_member).where(sponsorable_id: members(:groucho).id)
+    assert_equal expected, Sponsor.where.associated(:sponsorable_member).where(sponsorable_id: members(:groucho).id)
+  end
+
+  def test_foreign_type_without_polymorphic_queries_its_type
+    expected = [sponsors(:moustache_club_sponsor_for_groucho)]
+
+    assert_equal expected, Sponsor.where(sponsorable_member: members(:groucho))
+    assert_equal expected, Sponsor.where(sponsorable_member: members(:groucho).id)
+  end
+
+  def test_foreign_type_without_polymorphic_queries_missing_and_not_its_type
+    sponsors = Sponsor.where(sponsorable_id: members(:groucho).id)
+    expected = [sponsors(:sponsor_for_author_david)]
+
+    assert_equal expected, sponsors.where.missing(:sponsorable_member)
+    assert_equal expected, sponsors.where.not(sponsorable_member: members(:groucho))
+  end
+
+  def test_foreign_type_without_polymorphic_builds_its_type
+    sponsor = sponsors(:sponsor_for_author_david)
+    member = sponsor.build_sponsorable_member(name: "Built")
+    sponsor.save!
+
+    assert_equal ["Member", member.id], [sponsor.sponsorable_type, sponsor.sponsorable_id]
+  end
+
+  def test_foreign_type_without_polymorphic_writes_its_type
+    sponsor = Sponsor.new(sponsorable: authors(:david))
+    sponsor.sponsorable_member = members(:some_other_guy)
+
+    assert_equal ["Member", members(:some_other_guy).id], [sponsor.sponsorable_type, sponsor.sponsorable_id]
+  end
+
+  def test_foreign_type_without_polymorphic_clears_its_type_on_nil
+    sponsor = sponsors(:moustache_club_sponsor_for_groucho)
+    sponsor.sponsorable_member = nil
+
+    assert_equal [nil, nil], [sponsor.sponsorable_type, sponsor.sponsorable_id]
+  end
+
+  def test_foreign_type_without_polymorphic_keeps_another_type_on_nil
+    sponsor = sponsors(:sponsor_for_author_david)
+    sponsor.sponsorable_member = nil
+
+    assert_equal ["Author", authors(:david).id], [sponsor.sponsorable_type, sponsor.sponsorable_id]
+    assert_equal authors(:david), sponsor.sponsorable
+  end
+
+  def test_foreign_type_without_polymorphic_resets_when_the_type_changes
+    sponsor = sponsors(:moustache_club_sponsor_for_groucho)
+    assert_equal members(:groucho), sponsor.sponsorable_member
+
+    sponsor.sponsorable = authors(:david)
+
+    assert_nil sponsor.sponsorable_member
+  end
+
+  class AliasedTypeSponsor < ActiveRecord::Base
+    self.table_name = "sponsors"
+    alias_attribute :kind, :sponsorable_type
+    belongs_to :sponsorable, polymorphic: true
+    belongs_to :member, foreign_key: :sponsorable_id, foreign_type: :kind, optional: true
+  end
+
+  def test_foreign_type_without_polymorphic_through_an_alias
+    sponsor = AliasedTypeSponsor.find(sponsors(:moustache_club_sponsor_for_groucho).id)
+    assert_equal members(:groucho), sponsor.member
+
+    sponsor.sponsorable = authors(:david)
+    assert_nil sponsor.member
+
+    sponsors = AliasedTypeSponsor.where(sponsorable_id: members(:groucho).id).preload(:member)
+    assert_equal({ "Member" => members(:groucho), "Author" => nil }, sponsors.to_h { |record| [record.kind, record.member] })
+  end
+
+  class SponsoringClub < ActiveRecord::Base
+    self.table_name = "clubs"
+    has_many :sponsors, foreign_key: :club_id
+    has_many :sponsored_members, through: :sponsors, source: :sponsorable_member
+  end
+
+  def test_foreign_type_without_polymorphic_through
+    club = SponsoringClub.create!
+    Sponsor.create!(club_id: club.id, sponsorable: members(:groucho))
+    Sponsor.create!(club_id: club.id, sponsorable: authors(:david))
+    expected = [members(:groucho)]
+
+    assert_equal expected, club.sponsored_members.to_a
+    assert_equal expected, SponsoringClub.where(id: club.id).preload(:sponsored_members).first.sponsored_members.to_a
+    assert_equal expected, SponsoringClub.where(id: club.id).eager_load(:sponsored_members).first.sponsored_members.to_a
+  end
+
+  class PostTagging < ActiveRecord::Base
+    self.table_name = "taggings"
+    belongs_to :post, foreign_key: :taggable_id, foreign_type: :taggable_type, optional: true
+  end
+
+  def test_foreign_type_without_polymorphic_writes_the_base_class_for_sti
+    post = SpecialPost.create!(title: "Special", body: "Post")
+    tagging = PostTagging.create!(post: post)
+    assert_equal "Post", tagging.taggable_type
+
+    assert_equal post, PostTagging.find(tagging.id).post
+    assert_equal post, PostTagging.where(id: tagging.id).preload(:post).first.post
+    assert_equal [tagging], PostTagging.where(post: post)
+  end
+
+  class CarWheel < ActiveRecord::Base
+    self.table_name = "wheels"
+    alias_attribute :kind, :wheelable_type
+    belongs_to :wheelable, polymorphic: true
+    belongs_to :car, foreign_key: :wheelable_id, foreign_type: :kind, optional: true,
+               counter_cache: :wheels_count, touch: :wheels_owned_at
+  end
+
+  def test_foreign_type_without_polymorphic_counts_a_change_of_type
+    car = Car.create!
+    wheel = CarWheel.create!(wheelable: Aircraft.create!(id: car.id))
+    assert_equal 0, car.reload.wheels_count
+
+    wheel.update!(wheelable_type: "Car")
+    assert_equal 1, car.reload.wheels_count
+
+    wheel.update!(wheelable_type: "Aircraft")
+    assert_equal 0, car.reload.wheels_count
+  end
+
+  def test_foreign_type_without_polymorphic_ignores_other_types_in_counters_and_touch
+    time = 1.day.ago
+    car = Car.create!(wheels_owned_at: time)
+    wheel = CarWheel.create!(wheelable: Aircraft.create!(id: car.id))
+
+    wheel.update!(wheelable: Aircraft.create!)
+
+    car.reload
+    assert_equal 0, car.wheels_count
+    assert_equal time.to_i, car.wheels_owned_at.to_i
+  end
+
+  class TouchedCarWheel < ActiveRecord::Base
+    self.table_name = "wheels"
+    belongs_to :wheelable, polymorphic: true
+    belongs_to :car, foreign_key: :wheelable_id, foreign_type: :wheelable_type, optional: true, touch: true
+  end
+
+  def test_foreign_type_without_polymorphic_touches_only_its_type
+    time = 1.day.ago
+    car = Car.create!(updated_at: time)
+    wheel = TouchedCarWheel.create!(wheelable: Aircraft.create!(id: car.id))
+
+    wheel.update!(wheelable: Aircraft.create!)
+    assert_equal time.to_i, car.reload.updated_at.to_i
+
+    wheel.update!(wheelable_type: "Car", wheelable_id: car.id)
+    Car.where(id: car.id).update_all(updated_at: time)
+
+    wheel.update!(wheelable_type: "Aircraft")
+    assert_operator car.reload.updated_at, :>, time
+  end
+
+  def test_foreign_type_without_polymorphic_validates_a_change_of_type
+    ActiveRecord.with(belongs_to_required_validates_foreign_key: false) do
+      model = Class.new(ActiveRecord::Base) do
+        self.table_name = "wheels"
+
+        def self.name; "RequiredCarWheel"; end
+
+        belongs_to :car, foreign_key: :wheelable_id, foreign_type: :wheelable_type, required: true
+      end
+
+      wheel = model.create!(car: Car.create!)
+      wheel.wheelable_type = "Aircraft"
+
+      assert_not_predicate wheel, :valid?
+      assert_includes wheel.errors[:car], "must exist"
+    end
   end
 
   class WheelPolymorphicName < ActiveRecord::Base

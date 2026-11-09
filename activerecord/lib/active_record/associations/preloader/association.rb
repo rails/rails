@@ -174,7 +174,7 @@ module ActiveRecord
           @owners_by_key ||= begin
             route = association_route
             owners.each_with_object({}) do |owner, result|
-              next unless route.origin_reference_complete?(owner)
+              next unless route.origin_reference_complete?(owner) && route.origin_fixed_values_match?(owner)
 
               (result[origin_key_value(owner)] ||= []) << owner
             end

@@ -604,6 +604,7 @@ class ReflectionTest < ActiveRecord::TestCase
   def test_foreign_type
     assert_equal "sponsorable_type", Sponsor.reflect_on_association(:sponsorable).foreign_type.to_s
     assert_equal "sponsorable_type", Sponsor.reflect_on_association(:thing).foreign_type.to_s
+    assert_equal "sponsorable_type", Sponsor.reflect_on_association(:sponsorable_member).foreign_type.to_s
     assert_nil Sponsor.reflect_on_association(:sponsor_club).foreign_type
   end
 

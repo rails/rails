@@ -76,6 +76,12 @@ module ActiveRecord
             destination_attribute.eq(origin_attribute)
           end.inject(&:and)
 
+          if reflection.typed_belongs_to?
+            route.origin_fixed_values.each do |column, value|
+              constraints = constraints.and(predicate_builder.predicate_attribute(foreign_table[column]).eq(value))
+            end
+          end
+
           route.destination_fixed_values.each do |column, value|
             scope = apply_scope(scope, table, column, value)
           end

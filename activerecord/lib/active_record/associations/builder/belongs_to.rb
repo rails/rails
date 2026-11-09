@@ -9,7 +9,7 @@ module ActiveRecord::Associations::Builder # :nodoc:
     def self.valid_options(options)
       valid = super + [:polymorphic, :counter_cache, :optional, :default]
       valid << :class_name unless options[:polymorphic]
-      valid << :foreign_type if options[:polymorphic]
+      valid << :foreign_type
       valid << :ensuring_owner_was if options[:dependent] == :destroy_async
       valid
     end
@@ -47,12 +47,15 @@ module ActiveRecord::Associations::Builder # :nodoc:
       association = o.association(name)
       foreign_key = association.foreign_key
 
-      if foreign_key.any? { |key| o.public_send(change_method, key) }
+      type_changed = association.reflection.typed_belongs_to? && o.public_send(change_method, association.foreign_type)
+
+      if foreign_key.any? { |key| o.public_send(change_method, key) } || type_changed
         read_old = lambda do |column|
           change = o.public_send(change_method, column)
           change ? change.first : o._read_attribute(column)
         end
         old_reference = foreign_key.map_value { |key| read_old.call(key) }
+        old_reference = nil unless association.foreign_type_matches?(&read_old)
 
         if old_reference
           reflection = association.reflection
@@ -153,13 +156,15 @@ module ActiveRecord::Associations::Builder # :nodoc:
           polymorphic = reflection.polymorphic?
           condition = lambda { |record|
             association = record.association(name)
+            foreign_type = association.foreign_type
 
             fk_missing_or_changed = association.foreign_key.any? do |fk|
               record._read_attribute(fk).nil? || record.attribute_changed?(fk)
             end
 
             fk_missing_or_changed ||
-              (polymorphic && (record._read_attribute(association.foreign_type).nil? || record.attribute_changed?(association.foreign_type)))
+              (polymorphic && record._read_attribute(foreign_type).nil?) ||
+              (foreign_type && record.attribute_changed?(foreign_type))
           }
 
           model.validates_presence_of reflection.name, message: :required, if: condition

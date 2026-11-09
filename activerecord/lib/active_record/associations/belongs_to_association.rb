@@ -12,10 +12,7 @@ module ActiveRecord
       def initialize(owner, reflection)
         super
         @foreign_key = reflection.association_route(origin_class: owner.class)._reference_origin_key
-        @foreign_type = nil
-        if reflection.polymorphic?
-          @foreign_type = owner.resolve_alias(reflection.foreign_type)
-        end
+        @foreign_type = reflection.foreign_type && owner.resolve_alias(reflection.foreign_type)
       end
 
       def association_route(record = nil)
@@ -88,6 +85,7 @@ module ActiveRecord
           model_type_was = owner.attribute_before_last_save(foreign_type)
           model_was = owner.class.polymorphic_class_for(model_type_was) if model_type_was
         else
+          return unless foreign_type_matches? { |column| owner.attribute_before_last_save(column) }
           model_was = klass
         end
         foreign_key_was = foreign_key.map_value { |key| owner.attribute_before_last_save(key) }
@@ -101,15 +99,26 @@ module ActiveRecord
       end
 
       def target_changed?
-        foreign_key.any? { |fk| owner.attribute_changed?(fk) } || (!foreign_key_present? && target&.new_record?)
+        foreign_key.any? { |fk| owner.attribute_changed?(fk) } ||
+          (foreign_type && owner.attribute_changed?(foreign_type)) ||
+          (!foreign_key_present? && target&.new_record?)
       end
 
       def target_previously_changed?
-        foreign_key.any? { |fk| owner.attribute_previously_changed?(fk) }
+        foreign_key.any? { |fk| owner.attribute_previously_changed?(fk) } ||
+          (foreign_type && owner.attribute_previously_changed?(foreign_type))
       end
 
       def saved_change_to_target?
-        foreign_key.any? { |fk| owner.saved_change_to_attribute?(fk) }
+        foreign_key.any? { |fk| owner.saved_change_to_attribute?(fk) } ||
+          (foreign_type && owner.saved_change_to_attribute?(foreign_type))
+      end
+
+      def foreign_type_matches?
+        return true unless reflection.typed_belongs_to?
+
+        type = block_given? ? yield(foreign_type) : owner._read_attribute(foreign_type)
+        type == klass.polymorphic_name
       end
 
       private
@@ -187,6 +196,8 @@ module ActiveRecord
         def replace_keys(record, force: false)
           if record.nil? && foreign_key_partially_overlaps_primary_key?
             clear_reference_with_shared_primary_key(force: force)
+          elsif record.nil? && reflection.typed_belongs_to?
+            association_route.clear_reference(owner, force: force) if foreign_type_matches?
           else
             route = reflection.association_route(origin_class: owner.class, destination_class: record&.class)
             route.write(owner, record, force: force)
@@ -205,7 +216,7 @@ module ActiveRecord
         end
 
         def foreign_key_present?
-          foreign_key.all? { |fk| owner._read_attribute(fk) }
+          foreign_key.all? { |fk| owner._read_attribute(fk) } && foreign_type_matches?
         end
 
         def invertible_for?(record)
@@ -217,7 +228,8 @@ module ActiveRecord
           value = foreign_key.map_value do |fk|
             owner._read_attribute!(fk)
           end
-          foreign_key.composite? ? (value if value.any?) : value
+          value = foreign_key.composite? ? (value if value.any?) : value
+          foreign_type && value ? [value, owner._read_attribute(foreign_type)] : value
         end
     end
   end

@@ -1736,6 +1736,16 @@ module ActiveRecord
         #   association. By default this is guessed to be the name of the association with a "_type"
         #   suffix. So a class that defines a <tt>belongs_to :taggable, polymorphic: true</tt>
         #   association will use "taggable_type" as the default <tt>:foreign_type</tt>.
+        #
+        #   On an association that isn't polymorphic, it reads one type out of a polymorphic
+        #   reference. The association only resolves when the column holds the associated class's
+        #   polymorphic name, and assigning a record writes that name along with the foreign key:
+        #
+        #     belongs_to :taggable, polymorphic: true
+        #     belongs_to :post, foreign_key: :taggable_id, foreign_type: :taggable_type, optional: true
+        #
+        #   +post+ is +nil+ when +taggable_type+ isn't "Post", and preloading, eager loading,
+        #   joining and querying through it match on both columns.
         # [+:primary_key+]
         #   Specify the method that returns the primary key of associated object used for the association.
         #   By default this is +id+.
