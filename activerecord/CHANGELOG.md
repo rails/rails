@@ -1,3 +1,8 @@
+*   Fix SQLite3 data loss when altering a table referenced by `ON DELETE CASCADE`
+    or `ON DELETE SET NULL` foreign keys inside a transaction, such as a migration.
+
+    *Eugene Mironichev*
+
 *   Retry `ActiveRecord::SerializationFailure` on queries that opted into retries.
 
     A serialization failure rolls back whatever the statement was part of, so a
