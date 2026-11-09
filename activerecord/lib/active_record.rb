@@ -45,7 +45,6 @@ module ActiveRecord
   extend ActiveSupport::Autoload
 
   autoload :AssociationLink, "active_record/association_route"
-  autoload :AssociationRoute
   autoload :Base
   autoload :Callbacks
   autoload :ConnectionHandling
@@ -101,6 +100,7 @@ module ActiveRecord
   eager_autoload do
     autoload :Aggregations
     autoload :AssociationRelation
+    autoload :AssociationRoute
     autoload :Associations
     autoload :AsynchronousQueriesTracker
     autoload :AttributeAssignment
