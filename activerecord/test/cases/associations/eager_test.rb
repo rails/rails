@@ -667,6 +667,29 @@ class EagerAssociationTest < ActiveRecord::TestCase
     end
   end
 
+  def test_preloading_ordered_nested_has_many_through_keeps_the_order_across_its_through_records
+    author = Author.create!(name: "alice")
+    author.posts.create!(title: "Hello", body: "World").comments.create!(body: "Nice").ratings.create!([{ value: 5 }, { value: 1 }])
+    author.posts.create!(title: "Bye", body: "World").comments.create!(body: "Great").ratings.create!([{ value: 4 }, { value: 2 }])
+
+    preloaded = Author.preload(:ratings_desc).find(author.id).ratings_desc
+
+    assert_equal [5, 4, 2, 1], preloaded.map(&:value)
+  end
+
+  def test_preloading_nested_association_under_has_many_through_with_two_objects_for_the_same_owner
+    loaded_author = Author.find(authors(:david).id)
+    loaded_author.comments.load
+    other_copy = Author.find(authors(:david).id)
+
+    ActiveRecord::Associations::Preloader.new(records: [loaded_author, other_copy], associations: { comments: :ratings }).call
+
+    assert_no_queries do
+      assert_equal 3, loaded_author.comments.sum { |comment| comment.ratings.size }
+      assert_equal 3, other_copy.comments.sum { |comment| comment.ratings.size }
+    end
+  end
+
   def test_eager_with_has_many_through_an_sti_join_model_with_conditions_on_both
     author = Author.all.merge!(includes: :special_nonexistent_post_comments, order: "authors.id").first
     assert_equal [], author.special_nonexistent_post_comments

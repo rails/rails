@@ -57,6 +57,7 @@ class Author < ActiveRecord::Base
     disable_joins: true
 
   has_many :ratings, through: :comments
+  has_many :ratings_desc, -> { order(value: :desc) }, through: :posts, source: :comment_ratings
   has_many :good_ratings,
     -> { where("ratings.value > 5").order(:id) },
     through: :comments,
