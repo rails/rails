@@ -17,11 +17,12 @@ module ActiveRecord
         end
 
         def preloaded_records
-          @preloaded_records ||= owners.flat_map { |owner| records_by_owner[owner] }
+          @preloaded_records ||= owners.flat_map { |owner| records_by_owner[owner] }.uniq(&:__id__)
         end
 
         def records_by_owner
-          @records_by_owner ||= owners.each_with_object({}) do |owner, result|
+          # Distinct objects for the same row are different owners, as in Association#load_records.
+          @records_by_owner ||= owners.each_with_object({}.compare_by_identity) do |owner, result|
             if loaded?(owner)
               result[owner] = target_for(owner)
               next
@@ -64,6 +65,15 @@ module ActiveRecord
             (through_classes + source_classes).uniq
           end
         end
+
+        protected
+          # The source records in the order their queries returned them, which
+          # sorts each owner's records when the source order applies.
+          def records_in_query_order
+            @records_in_query_order ||= source_preloaders.flat_map do |loader|
+              loader.is_a?(ThroughAssociation) ? loader.records_in_query_order : loader.preloaded_records
+            end
+          end
 
         private
           def destination_fixed_values
@@ -120,7 +130,7 @@ module ActiveRecord
           end
 
           def preload_index
-            @preload_index ||= source_preloaders.flat_map(&:preloaded_records).each_with_object({}).with_index do |(record, result), index|
+            @preload_index ||= records_in_query_order.each_with_object({}).with_index do |(record, result), index|
               result[record] = index
             end
           end
