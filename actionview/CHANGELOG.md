@@ -1,3 +1,18 @@
+*   Implement `button_to` in terms of `form_tag`.
+
+    Forms rendered by `button_to` include `[accept-charset="UTF-8"]` and
+    render their hidden fields before the button, rather than after it.
+
+    The `:form` option accepts the options supported by `form_tag`, such as
+    `:multipart`.
+
+    The `:method` option is case-insensitive, so `method: "DELETE"` renders a
+    `_method` field and `method: "GET"` renders a `GET` form. Verbs other than
+    `GET` and `POST` are passed through directly as the `_method` field's
+    value, rather than only `PATCH`, `PUT`, and `DELETE`.
+
+    *Sean Doyle*
+
 *   Skip attribute names in tag helpers that are blank once converted to a
     string.
 

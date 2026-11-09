@@ -14,16 +14,13 @@ module ActionView
     # This allows you to use the same format for links in views
     # and controllers.
     module NavigationHelper
-      BUTTON_TAG_METHOD_VERBS = %w{patch put delete}.freeze
-
       # Some methods provided here will only work in the context of a request
       # (link_to_unless_current, for instance), which must be provided as a
       # method called #request on the context.
       extend ActiveSupport::Concern
 
       include UrlHelper
-      include TagHelper
-      include ContentExfiltrationPreventionHelper
+      include FormTagHelper
 
       singleton_class.attr_accessor :button_to_generates_button_tag
       self.button_to_generates_button_tag = false
@@ -348,9 +345,9 @@ module ActionView
       #
       # ```
       # <%= button_to "New", false %>
-      # # => "<form method="post" class="button_to">
+      # # => "<form method="post" accept-charset="UTF-8" class="button_to">
+      # #      <input name="authenticity_token" type="hidden" value="10f2163b45388899ad4d5ae948988266befcb6c3d1b2451cf657a0c293d605a6" autocomplete="off"/>
       # #      <button type="submit">New</button>
-      # #      <input name="authenticity_token" type="hidden" value="10f2163b45388899ad4d5ae948988266befcb6c3d1b2451cf657a0c293d605a6"/>
       # #    </form>"
       # ```
       #
@@ -358,10 +355,13 @@ module ActionView
       # but there are a few special options:
       #
       # * `:method` - \Symbol of HTTP verb. Supported verbs are `:post`, `:get`,
-      #   `:delete`, `:patch`, and `:put`. By default it will be `:post`.
+      #   `:delete`, `:patch`, and `:put`. By default it will be `:post`. Verbs
+      #   other than `:get` and `:post` are passed through directly as the value
+      #   of a hidden `_method` field.
       # * `:disabled` - If set to true, it will generate a disabled button.
       # * `:data` - This option can be used to add custom data attributes.
-      # * `:form` - This hash will be form attributes
+      # * `:form` - This hash will be form attributes. It also accepts the
+      #   options supported by FormTagHelper#form_tag (like `:multipart`).
       # * `:form_class` - This controls the class of the form within which the submit button will
       #   be placed
       # * `:params` - \Hash of parameters to be rendered as hidden fields within the form.
@@ -370,44 +370,44 @@ module ActionView
       #
       # ```
       # <%= button_to "New", action: "new" %>
-      # # => "<form method="post" action="/controller/new" class="button_to">
-      # #      <button type="submit">New</button>
+      # # => "<form method="post" action="/controller/new" accept-charset="UTF-8" class="button_to">
       # #      <input name="authenticity_token" type="hidden" value="10f2163b45388899ad4d5ae948988266befcb6c3d1b2451cf657a0c293d605a6" autocomplete="off"/>
+      # #      <button type="submit">New</button>
       # #    </form>"
       #
       # <%= button_to "New", new_article_path %>
-      # # => "<form method="post" action="/articles/new" class="button_to">
-      # #      <button type="submit">New</button>
+      # # => "<form method="post" action="/articles/new" accept-charset="UTF-8" class="button_to">
       # #      <input name="authenticity_token" type="hidden" value="10f2163b45388899ad4d5ae948988266befcb6c3d1b2451cf657a0c293d605a6" autocomplete="off"/>
+      # #      <button type="submit">New</button>
       # #    </form>"
       #
       # <%= button_to "New", new_article_path, params: { time: Time.now  } %>
-      # # => "<form method="post" action="/articles/new" class="button_to">
+      # # => "<form method="post" action="/articles/new" accept-charset="UTF-8" class="button_to">
+      # #      <input name="authenticity_token" type="hidden" value="10f2163b45388899ad4d5ae948988266befcb6c3d1b2451cf657a0c293d605a6" autocomplete="off"/>
       # #      <button type="submit">New</button>
-      # #      <input name="authenticity_token" type="hidden" value="10f2163b45388899ad4d5ae948988266befcb6c3d1b2451cf657a0c293d605a6"/>
       # #      <input type="hidden" name="time" value="2021-04-08 14:06:09 -0500" autocomplete="off">
       # #    </form>"
       #
       # <%= button_to [:make_happy, @user] do %>
       #   Make happy <strong><%= @user.name %></strong>
       # <% end %>
-      # # => "<form method="post" action="/users/1/make_happy" class="button_to">
+      # # => "<form method="post" action="/users/1/make_happy" accept-charset="UTF-8" class="button_to">
+      # #      <input name="authenticity_token" type="hidden" value="10f2163b45388899ad4d5ae948988266befcb6c3d1b2451cf657a0c293d605a6" autocomplete="off"/>
       # #      <button type="submit">
       # #        Make happy <strong><%= @user.name %></strong>
       # #      </button>
-      # #      <input name="authenticity_token" type="hidden" value="10f2163b45388899ad4d5ae948988266befcb6c3d1b2451cf657a0c293d605a6"  autocomplete="off"/>
       # #    </form>"
       #
       # <%= button_to "New", { action: "new" }, form_class: "new-thing" %>
-      # # => "<form method="post" action="/controller/new" class="new-thing">
+      # # => "<form method="post" action="/controller/new" accept-charset="UTF-8" class="new-thing">
+      # #      <input name="authenticity_token" type="hidden" value="10f2163b45388899ad4d5ae948988266befcb6c3d1b2451cf657a0c293d605a6" autocomplete="off"/>
       # #      <button type="submit">New</button>
-      # #      <input name="authenticity_token" type="hidden" value="10f2163b45388899ad4d5ae948988266befcb6c3d1b2451cf657a0c293d605a6"  autocomplete="off"/>
       # #    </form>"
       #
       # <%= button_to "Create", { action: "create" }, form: { "data-type" => "json" } %>
-      # # => "<form method="post" action="/images/create" class="button_to" data-type="json">
+      # # => "<form method="post" action="/images/create" accept-charset="UTF-8" class="button_to" data-type="json">
+      # #      <input name="authenticity_token" type="hidden" value="10f2163b45388899ad4d5ae948988266befcb6c3d1b2451cf657a0c293d605a6" autocomplete="off"/>
       # #      <button type="submit">Create</button>
-      # #      <input name="authenticity_token" type="hidden" value="10f2163b45388899ad4d5ae948988266befcb6c3d1b2451cf657a0c293d605a6"  autocomplete="off"/>
       # #    </form>"
       # ```
       #
@@ -416,35 +416,32 @@ module ActionView
         html_options ||= {}
         html_options = html_options.stringify_keys
 
+        remote = html_options.delete("remote")
+        params = html_options.delete("params")
+        method = (html_options.delete("method").presence || method_for_options(options)).to_s
+
+        html_options = convert_options_to_data_attributes(options, html_options)
+
         url =
           case options
           when FalseClass then nil
           else url_for(options)
           end
 
-        remote = html_options.delete("remote")
-        params = html_options.delete("params")
-
         authenticity_token = html_options.delete("authenticity_token")
 
-        method     = (html_options.delete("method").presence || method_for_options(options)).to_s
-        method_tag = BUTTON_TAG_METHOD_VERBS.include?(method) ? method_tag(method) : "".html_safe
-
-        form_method  = method == "get" ? "get" : "post"
-        form_options = html_options.delete("form") || {}
-        form_options[:class] ||= html_options.delete("form_class") || "button_to"
-        form_options[:method] = form_method
-        form_options[:action] = url
-        form_options[:'data-remote'] = true if remote
-
-        request_token_tag = if form_method == "post"
-          request_method = method.empty? ? "post" : method
-          token_tag(authenticity_token, form_options: { action: url, method: request_method })
-        else
-          ""
+        if remote && authenticity_token.nil? &&
+            (!defined?(embed_authenticity_token?) || embed_authenticity_token?)
+          authenticity_token = true
         end
 
-        html_options = convert_options_to_data_attributes(options, html_options)
+        form_options = (html_options.delete("form") || {}).stringify_keys
+        form_options["class"] ||= html_options.delete("form_class") || "button_to"
+        form_options["method"] = method
+        form_options["data-remote"] = true if remote
+        form_options["enforce_utf8"] = false
+        form_options["authenticity_token"] = authenticity_token
+
         html_options["type"] = "submit"
 
         button = if block_given?
@@ -456,16 +453,13 @@ module ActionView
           tag("input", html_options)
         end
 
-        inner_tags = method_tag.safe_concat(button).safe_concat(request_token_tag)
+        inner_tags = button
         if params
           to_form_params(params).each do |param|
-            options = { type: "hidden", name: param[:name], value: param[:value] }
-            options[:autocomplete] = "off" unless ActionView::Base.remove_hidden_field_autocomplete
-            inner_tags.safe_concat tag(:input, **options)
+            inner_tags.safe_concat hidden_field_tag(param[:name], param[:value], id: nil)
           end
         end
-        html = content_tag("form", inner_tags, form_options)
-        prevent_content_exfiltration(html)
+        form_tag(url || false, form_options) { inner_tags }
       end
 
       # Creates a link tag of the given `name` using a URL created by the set of
@@ -642,24 +636,6 @@ module ActionView
         def method_not_get_method?(method)
           return false unless method
           (STRINGIFIED_COMMON_METHODS[method] || method.to_s.downcase) != "get"
-        end
-
-        def token_tag(token = nil, form_options: {})
-          if token != false && defined?(protect_against_forgery?) && protect_against_forgery? &&
-              (token || !defined?(embed_authenticity_token?) || embed_authenticity_token?)
-            token = form_authenticity_token(form_options: form_options) if token == true || token.nil?
-            options = { type: "hidden", name: request_forgery_protection_token.to_s, value: token }
-            options[:autocomplete] = "off" unless ActionView::Base.remove_hidden_field_autocomplete
-            tag(:input, options)
-          else
-            ""
-          end
-        end
-
-        def method_tag(method)
-          options = { type: "hidden", name: "_method", value: method.to_s }
-          options[:autocomplete] = "off" unless ActionView::Base.remove_hidden_field_autocomplete
-          tag("input", options)
         end
 
         # Returns an array of hashes each containing :name and :value keys

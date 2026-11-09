@@ -227,6 +227,18 @@ class EagerAssociationTest < ActiveRecord::TestCase
     end
   end
 
+  def test_eager_loaded_has_many_association_without_primary_key_with_multiple_owners
+    blackbeard, redbeard = pirates(:blackbeard), pirates(:redbeard)
+    blackbeard.mateys.create!(target: blackbeard, weight: 20)
+    redbeard.mateys.create!(target: blackbeard, weight: 30)
+
+    pirates = Pirate.where(id: [blackbeard, redbeard]).order(:id)
+    expected = pirates.map { |pirate| pirate.mateys.order(:weight).map(&:attributes) }
+    eager_loaded = pirates.eager_load(:mateys).order("mateys.weight")
+
+    assert_equal expected, eager_loaded.map { |pirate| pirate.mateys.map(&:attributes) }
+  end
+
   def test_type_cast_in_where_references_association_name
     parent = comments(:greetings)
     child = parent.children.create!(label: "child", body: "hi", post_id: parent.post_id)
@@ -642,6 +654,28 @@ class EagerAssociationTest < ActiveRecord::TestCase
     assert_no_queries do
       special_comment_authors = authors.map { |author| [author.name, author.very_special_comments.size] }
       assert_equal [["David", 1], ["Mary", 0], ["Bob", 0]], special_comment_authors
+    end
+  end
+
+  def test_preloading_nested_association_under_already_preloaded_has_many_through
+    author = Author.preload(:comments, comments: :ratings).find(authors(:david).id)
+
+    assert_no_queries do
+      assert_equal 3, author.comments.sum { |comment| comment.ratings.size }
+    end
+  end
+
+  def test_preloading_nested_association_under_ordered_has_many_through_loaded_on_some_owners
+    loaded_author = authors(:david)
+    loaded_author.comments_desc.load
+    other_author = Author.create!(name: "alice")
+    other_author.posts.create!(title: "Hello", body: "World").comments.create!([{ body: "Nice" }, { body: "Great" }])
+
+    ActiveRecord::Associations::Preloader.new(records: [loaded_author, other_author], associations: { comments_desc: :ratings }).call
+
+    assert_no_queries do
+      assert_equal 3, loaded_author.comments_desc.sum { |comment| comment.ratings.size }
+      assert_equal 0, other_author.comments_desc.sum { |comment| comment.ratings.size }
     end
   end
 
@@ -1260,6 +1294,20 @@ class EagerAssociationTest < ActiveRecord::TestCase
 
     author_with_preloads = Author.preload(:categorized_posts, :categorized_posts_desc).find(author.id)
     assert_equal expected, author_with_preloads.categorized_posts_desc
+  end
+
+  def test_preload_customized_has_many_through_after_uncustomized_one_on_the_same_through_association
+    author = Author.create!(name: "Preload Test")
+    Categorization.create!(author: author, post: posts(:welcome), category: categories(:general))
+    Categorization.create!(author: author, post: posts(:authorless), category: categories(:general))
+
+    %i[commented_categorized_posts readonly_categorized_posts first_categorized_posts].each do |association|
+      expected = Author.preload(association).find(author.id).public_send(association).to_a
+      preloaded = Author.preload(:categorized_posts, association).find(author.id).public_send(association)
+
+      assert_equal expected, preloaded, association
+      assert_equal expected.map(&:readonly?), preloaded.map(&:readonly?), association
+    end
   end
 
   def test_preload_has_many_through_with_default_order

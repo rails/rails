@@ -133,7 +133,7 @@ services](#configuring-cloud-services) in a later section.
 
 Active Storage automatically adds routes to your application for serving files.
 These routes are mounted under `/rails/active_storage` by default. For example,
-So when someone requests a file attachment in your app, the URL may look like
+when someone requests a file attachment in your app, the URL may look like
 `https://example.com/rails/active_storage/blobs/redirect/eyJf.../photo.jpg`. You can see all the routes by running:
 
 ```bash
@@ -328,7 +328,7 @@ newly uploaded files, Rails will interpret that as replacing the collection.
 
 To keep existing attachments, you can use hidden form fields with the
 [`signed_id`][ActiveStorage::Blob#signed_id] to re-submit each of the already
-attached file:
+attached files:
 
 ```erb
 <% @product.images.each do |image| %>
@@ -366,7 +366,7 @@ possible:
 ```
 
 You can also instruct Active Storage not to infer content type from the data by
-using the`identify` option:
+using the `identify` option:
 
 ```ruby
 @product.images.attach(
@@ -971,7 +971,7 @@ of choice, or when libvips is delegating to ImageMagick (run `vips -l` on your p
 #### ImageMagick Security Policy
 
 Active Storage ships an ImageMagick security policy, in
-`ActiveStorage::ImageMagick::POLICY_DIRECTORY`, that denies coders untrusted uploads must not reach.
+`ActiveStorage::ImageMagick::POLICY_DIRECTORY`, that denies coders that untrusted uploads must not reach.
 It prepends that directory to `MAGICK_CONFIGURE_PATH` through `MiniMagick.cli_env`, so every
 ImageMagick process MiniMagick spawns applies it. ImageMagick applies every `policy.xml` on its
 search path, so the shipped policy adds to your system policy rather than replacing it, and a

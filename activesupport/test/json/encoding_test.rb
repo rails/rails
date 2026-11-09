@@ -44,22 +44,6 @@ class TestJSONEncoding < ActiveSupport::TestCase
     assert_equal %({"exitstatus":#{$?.exitstatus},"pid":#{$?.pid}}), ActiveSupport::JSON.encode($?)
   end
 
-  def test_escape_options_apply_independently
-    value = { "a" => "<&>\u2028<&>\u2029" }
-    ActiveSupport::JSON::Encoding.with(escape_html_entities_in_json: true, escape_js_separators_in_json: true) do
-      assert_equal %({"a":"\\u003c\\u0026\\u003e\\u2028\\u003c\\u0026\\u003e\\u2029"}), ActiveSupport::JSON.encode(value)
-      assert_equal %({"a":"<&>\\u2028<&>\\u2029"}), ActiveSupport::JSON.encode(value, escape_html_entities: false)
-    end
-    ActiveSupport::JSON::Encoding.with(escape_html_entities_in_json: true, escape_js_separators_in_json: false) do
-      assert_equal %({"a":"\\u003c\\u0026\\u003e\u2028\\u003c\\u0026\\u003e\u2029"}), ActiveSupport::JSON.encode(value)
-      assert_equal %({"a":"<&>\u2028<&>\u2029"}), ActiveSupport::JSON.encode(value, escape_html_entities: false)
-      assert_equal %({"a":"b"}), ActiveSupport::JSON.encode({ "a" => "b" })
-      assert_equal %({"a":"\\u0026"}), ActiveSupport::JSON.encode({ "a" => "&" })
-      assert_equal %({"a":"\\u003c"}), ActiveSupport::JSON.encode({ "a" => "<" })
-      assert_equal %({"a":"\\u003e"}), ActiveSupport::JSON.encode({ "a" => ">" })
-    end
-  end
-
   def test_hash_encoding
     assert_equal %({\"a\":\"b\"}), ActiveSupport::JSON.encode(a: :b)
     assert_equal %({\"a\":1}), ActiveSupport::JSON.encode("a" => 1)

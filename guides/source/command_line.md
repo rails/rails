@@ -266,7 +266,7 @@ command starts the application listening on port 3000 by default. You can open
 your browser to [http://localhost:3000](http://localhost:3000) to see a basic
 Rails application running.
 
-INFO: Most common commands have a shortcut aliases. To start the server you can
+INFO: Most common commands have shortcut aliases. To start the server you can
 use the alias "s": `bin/rails s`.
 
 You can run the application on a different port using the `-p` option. You can
@@ -666,7 +666,7 @@ my-app(dev)> helper.link_to("Home", "/")
 => "<a href=\"/\">Home</a>"
 ```
 
-Assuming a `custom_helper` method is defined in a `app/helpers/*_helper.rb`
+Assuming a `custom_helper` method is defined in an `app/helpers/*_helper.rb`
 file:
 
 ```irb
@@ -834,7 +834,7 @@ Rails.application.executor.wrap do
 end
 ```
 
-If you have a reason to opt of this behavior, there is a `--skip-executor`
+If you have a reason to opt out of this behavior, there is a `--skip-executor`
 option.
 
 ```bash
@@ -968,7 +968,7 @@ framework initializers first and then application ones, defined in
 
 ### `bin/rails middleware`
 
-The `bin/rails middleware` shows you the entire Rack middleware stack for your
+The `bin/rails middleware` command shows you the entire Rack middleware stack for your
 Rails application, in the exact order the middlewares are run for each request.
 
 ```bash

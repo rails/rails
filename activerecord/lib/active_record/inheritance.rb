@@ -88,18 +88,33 @@ module ActiveRecord
       def descends_from_active_record?
         if self == Base
           false
-        elsif superclass.abstract_class?
-          superclass.descends_from_active_record?
+        elsif has_concrete_ancestor?
+          !columns_hash.include?(inheritance_column)
         else
-          superclass == Base || !columns_hash.include?(inheritance_column)
+          true
         end
       end
 
       def finder_needs_type_condition? # :nodoc:
-        # This is like this because benchmarking justifies the strange :false stuff
-        :true == (@finder_needs_type_condition || ActiveSupport::Ractors.on_main(self) do
-          @finder_needs_type_condition ||= descends_from_active_record? ? :false : :true
-        end)
+        source = @finder_needs_type_condition || begin
+          computed =
+            if method(:descends_from_active_record?).owner != Inheritance::ClassMethods
+              :override
+            elsif has_concrete_ancestor?
+              :column
+            else
+              :never
+            end
+          ActiveSupport::Ractors.on_main(self) { @finder_needs_type_condition ||= computed }
+        end
+
+        if source == :never
+          false
+        elsif source == :column
+          mapped_table.has_inheritance_column?
+        else
+          !descends_from_active_record?
+        end
       end
 
       # Returns the first class in the inheritance hierarchy that descends from either an
@@ -313,6 +328,14 @@ module ActiveRecord
         end
 
       private
+        def has_concrete_ancestor?
+          return false if self == Base
+
+          klass = superclass
+          klass = klass.superclass while klass.abstract_class?
+          klass != Base
+        end
+
         def optimize_new_allocation
           return if _has_attribute?(inheritance_column)
           return if method(:new).unbind != ActiveRecord::Base.method(:new).unbind

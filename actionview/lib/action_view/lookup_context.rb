@@ -158,6 +158,7 @@ module ActionView
         end
         @view_paths.find!(name, prefixes, partial, details, details_key, keys)
       end
+      alias :find_template :find!
 
       def find_all(name, prefixes = [], partial = false, keys = [], options = {})
         if options.empty?

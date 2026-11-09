@@ -34,7 +34,7 @@ module ActiveRecord
 
         return @attributes.write_from_user(name, value) unless name == "id" && @primary_key
 
-        if self.class.composite_primary_key?
+        if primary_key_is_composite?
           @attributes.write_from_user("id", value)
         else
           if @primary_key != "id"

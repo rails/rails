@@ -100,7 +100,7 @@ Generating Migration Files
 Migrations are stored as files in the `db/migrate` directory, one for each
 migration class.
 
-The name of the file is of the form `YYYYMMDDHHMMSS_create_products.rb`, it
+The name of the file is of the form `YYYYMMDDHHMMSS_create_products.rb`; it
 contains a UTC timestamp identifying the migration followed by an underscore
 followed by the name of the migration. The name of the migration class
 (CamelCased version) should match the latter part of the file name.
@@ -418,7 +418,7 @@ make to your database schema.
 
 ### Creating a Table
 
-The [`create_table`][] method is one of the most fundamental migration type, but
+The [`create_table`][] method is one of the most fundamental migration types, but
 most of the time, will be generated for you from using a model, resource, or
 scaffold generator. A typical use would be
 
@@ -1948,7 +1948,7 @@ Rails.application.configure do
 end
 ```
 
-All migrations methods will be sent to your custom strategy in production.
+All migration methods will be sent to your custom strategy in production.
 
 ### Configuring Per-Adapter Migration Strategies
 

@@ -219,7 +219,7 @@ end
 ```
 
 In this case, return value of `Rails::Command::ServerCommand#server_options` will be assigned to `options`.
-When lines inside if statement is evaluated, a couple of instance variables will be set.
+When the lines inside the if statement are evaluated, a couple of instance variables will be set.
 
 `server_options` method in `Rails::Command::ServerCommand` is defined as follows:
 

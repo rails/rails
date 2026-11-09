@@ -7,6 +7,9 @@ module ActiveRecord
         EMPTY_FIXED_VALUES = {}.freeze
         private_constant :EMPTY_FIXED_VALUES
 
+        SOURCE_REUSING_SCOPE_VALUES = [:includes, :preload, :references, :extending, :optimizer_hints, :annotate, :distinct, :create_with].freeze
+        private_constant :SOURCE_REUSING_SCOPE_VALUES
+
         def self.association_route_for(*)
         end
 
@@ -14,7 +17,7 @@ module ActiveRecord
         end
 
         def preloaded_records
-          @preloaded_records ||= source_preloaders.flat_map(&:preloaded_records)
+          @preloaded_records ||= owners.flat_map { |owner| records_by_owner[owner] }
         end
 
         def records_by_owner
@@ -117,7 +120,7 @@ module ActiveRecord
           end
 
           def preload_index
-            @preload_index ||= preloaded_records.each_with_object({}).with_index do |(record, result), index|
+            @preload_index ||= source_preloaders.flat_map(&:preloaded_records).each_with_object({}).with_index do |(record, result), index|
               result[record] = index
             end
           end
@@ -128,11 +131,12 @@ module ActiveRecord
               !reflection_scope.where_clause.empty?
           end
 
-          # When the through scope doesn't eager load the source records with the
-          # conditions or the order, the source scope filters or sorts them instead.
+          # When the through scope doesn't eager load the source records, already
+          # loaded ones are reused only if the scope can't change which records
+          # come back or how they're built.
           def source_scope_filters_source?
             !through_scope_filters_source? &&
-              (!reflection_scope.where_clause.empty? || !reflection_scope.effective_order_values.empty?)
+              !reflection_scope.values.except(*SOURCE_REUSING_SCOPE_VALUES).empty?
           end
 
           # As in SQL, an explicit order on the through association beats the

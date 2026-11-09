@@ -38,7 +38,7 @@ $ cd rails
 
 Some Rails tests depend on additional tools that you need to install before running those specific tests.
 
-Here's the list of each gems' additional dependencies:
+Here's the list of each gem's additional dependencies:
 
 * Action Cable depends on Redis
 * Active Record depends on SQLite3, MySQL and PostgreSQL
@@ -165,7 +165,7 @@ NOTE: If you are running Debian, MariaDB is the default MySQL server, so be awar
 
 ### Database Configuration
 
-There are couple of additional steps required to configure database engines
+There are a couple of additional steps required to configure database engines
 required for running Active Record tests.
 
 PostgreSQL's authentication works differently. To set up the development environment

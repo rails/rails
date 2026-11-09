@@ -30,7 +30,7 @@ NOTE: Please consult the [RDoc Markup Reference][] for help with the syntax.
 Links
 -----
 
-Rails API documentation are not meant to be viewed on GitHub and therefore links should use the [RDoc link markup][] markup relative to the current API.
+Rails API documentation is not meant to be viewed on GitHub and therefore links should use the [RDoc link markup][] markup relative to the current API.
 
 This is due to differences between GitHub Markdown and the generated RDoc that is published at [api.rubyonrails.org](https://api.rubyonrails.org) and [edgeapi.rubyonrails.org](https://edgeapi.rubyonrails.org).
 
@@ -103,7 +103,7 @@ The proper names of Rails components have a space in between the words, like "Ac
 # ActiveRecord::Base.
 ```
 
-When referencing a "Rails application", as opposed to an "engine" or "plugin", always use "application". Rails apps are not "services", unless specifically discussing about service-oriented architecture.
+When referencing a "Rails application", as opposed to an "engine" or "plugin", always use "application". Rails apps are not "services", unless specifically discussing service-oriented architecture.
 
 ```ruby
 # BAD

@@ -6,6 +6,46 @@
 
     *M Ibtehaj Nasar*
 
+*   Fix `eager_load` of associations to models without a primary key.
+
+    Every parent got only the first loaded record: a `has_many` kept one
+    record per parent, and parents after the first got the first parent's
+    record.
+
+    *Kengo Johira*
+
+*   Cast numeric values to the scale of the PostgreSQL `money` type.
+
+    `money` only rounded strings to its scale, so a numeric value was held
+    unrounded and as given, while it was rounded on save and read back as a
+    `BigDecimal`.
+
+    ```ruby
+    # t.money :wealth
+
+    record = Post.new(wealth: 10.004)
+    record.wealth # => 10.004 before, now 0.1e2
+    ```
+
+    *Ryuta Kamizono*
+
+*   Fix nested preloads under a `:through` association attaching their
+    records to copies instead of the records the owners hold.
+
+    ```ruby
+    Author.strict_loading.preload(:comments, comments: :ratings).first.comments.first.ratings
+    # => raised ActiveRecord::StrictLoadingViolationError
+    ```
+
+    When the owners already had the through association loaded, the nested
+    association was preloaded on fresh copies of its records, so it raised
+    with `strict_loading`, and without it was loaded again lazily, one query
+    per record. Nested preloads now always use the records held by the owners.
+
+    Fixes #49197.
+
+    *Clément Joubert*
+
 *   Retry `ActiveRecord::SerializationFailure` on queries that opted into retries.
 
     A serialization failure rolls back whatever the statement was part of, so a
@@ -138,8 +178,8 @@
 
     *Masaki Ozawa*
 
-*   Fix preloading an ordered `has_many :through` association reusing the
-    source records already loaded by an unordered one, ignoring its order.
+*   Fix preloading a scoped `has_many :through` association reusing the
+    source records already loaded by an unscoped one, ignoring its scope.
 
     ```ruby
     class Author < ActiveRecord::Base

@@ -378,8 +378,8 @@ above), the controller action is not run. If there are additional callbacks
 registered to run, they will be cancelled.
 
 In this example, the `before_action` is defined in `ApplicationController`
-meaning it will be run before all actions across the applications. This also
-means the user will need to be logged into access the login page, which doesn't
+meaning it will be run before all actions across the application. This also
+means the user will need to be logged in to access the login page, which doesn't
 make sense.
 
 In such cases, use [`skip_before_action`][] to allow specified controller
@@ -1127,7 +1127,7 @@ class SessionsController < ActionController::Base
 end
 ```
 
-To store data the session, assign a value to a key as you would in a Ruby Hash.
+To store data in the session, assign a value to a key as you would in a Ruby Hash.
 
 ```ruby
 class ProductsController < ApplicationController
@@ -1191,7 +1191,7 @@ session data, including the session ID, in an encrypted cookie. The
 `CookieStore` is lightweight and does not require any configuration to use in a
 new application.
 
-Cookies are limited 4 kB of data, and the cookie store is bound by this limit.
+Cookies are limited to 4 kB of data, and the cookie store is bound by this limit.
 While this is lesser than the other storage options, it is usually enough.
 Storing large amounts of data in the session is discouraged. You should
 especially avoid storing complex objects (such as model instances) in the
@@ -1289,7 +1289,7 @@ You may use different keys to assign different message types:
 
 ```ruby
 flash[:notice]  = "Your product was created!"
-flash[:alert]   = "Sorry, something when wrong while creating your product."
+flash[:alert]   = "Sorry, something went wrong while creating your product."
 flash[:warning] = "Your product was created, but there were some problems."
 ```
 
@@ -1300,7 +1300,7 @@ Set a flash message when calling `redirect_to` by including it as a parameter:
 redirect_to root_url, notice: "Your product was created!"
 
 # Equivalent to setting flash[:alert]
-redirect_to root_url, alert: "Sorry, something when wrong when creating your product."
+redirect_to root_url, alert: "Sorry, something went wrong when creating your product."
 ```
 
 Only `notice:` and `alert:` options may be used at the top-level. Storing
@@ -1312,7 +1312,7 @@ redirect_to root_url, flash: { warning: "Your product was created, but there wer
 ```
 
 The flash does not render anything in the UI — it is a short-term data storage
-mechanism. Reading flash data and rendering the appropriate HTML is left up the
+mechanism. Reading flash data and rendering the appropriate HTML is left up to
 the developer.
 
 [`ActionDispatch::Flash::FlashHash`]:
@@ -1320,7 +1320,7 @@ the developer.
 
 #### Displaying Flash Messages
 
-It is recommend to add code to render flash messages in your application layout,
+It is recommended to add code to render flash messages in your application layout,
 so messages are automatically rendered on every page without additional steps.
 
 Iterate through all the keys and values to render all set messages, and then you

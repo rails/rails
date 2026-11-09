@@ -24,7 +24,7 @@ static assets such as JavaScript, CSS, and image files.
 
 The asset pipeline takes a source file, adds a _fingerprint_ (also called a
 _digest_) to the filename, and places it in the `public/assets/` folder for
-delivery. It may also preprocess source file before fingerprinting — for
+delivery. It may also preprocess source files before fingerprinting — for
 example, CSS and JavaScript files may be transpiled and bundled.
 
 <br><br>
@@ -110,7 +110,7 @@ All files within the load paths will be processed by Propshaft and placed in the
 
 #### Modifying Load Paths
 
-You can specify additional loads paths for Propshaft:
+You can specify additional load paths for Propshaft:
 
 ```ruby
 # config/initializers/assets.rb
@@ -566,7 +566,7 @@ $ bin/rails javascript:install:[bun|esbuild|rollup|webpack]
 ```
 
 This will configure a `package.json` file and set up a `build` script within it.
-Your can now use your chosen builder to manage your JavaScript.
+You can now use your chosen builder to manage your JavaScript.
 
 TIP: Use `bin/dev` to run your server in development. This will invoke the
 `build` script with the `--watch` flag so your JavaScript updates automatically
@@ -619,14 +619,14 @@ $ bin/rails css:install:[tailwind|bootstrap|bulma|postcss|sass]
 ```
 
 This will configure a `package.json` file and set up a `build:css` script within
-it. Your can now use your chosen preprocessor to build your CSS.
+it. You can now use your chosen preprocessor to build your CSS.
 
 NOTE: Use `bin/dev` to run your server in development. This will invoke the
 `build:css` script with the `--watch` flag so your CSS updates automatically
 when you edit your files.
 
 In production, the gem hooks into Rails' `assets:precompile` task to build your
-JavaScript. This way, no extra deployment steps are required to deliver CSS
+CSS. This way, no extra deployment steps are required to deliver CSS
 using `cssbundling-rails`.
 
 #### When Should You Bundle Your CSS?
@@ -734,7 +734,7 @@ Precompiled assets are served directly by your web server. The request does not
 go through the Rails stack.
 
 As such, we need to set cache headers in the web server to get the benefit of
-fingerprinting the filenames. We can set the cache exipiry to be far in the
+fingerprinting the filenames. We can set the cache expiry to be far in the
 future because the filename will change when the asset changes, so there's no
 risk of serving stale assets.
 

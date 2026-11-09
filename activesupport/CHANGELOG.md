@@ -1,3 +1,19 @@
+*   Shift a local time in a DST spring-forward gap forward by the gap's length
+    instead of one hour.
+
+    `TimeZone#local`, `TimeZone#parse`, and `TimeWithZone#change` assumed every
+    gap was one hour long, which overshot in zones with a shorter gap and
+    collapsed distinct local times onto the same instant in zones with a longer
+    one.
+
+    ```ruby
+    ActiveSupport::TimeZone["Australia/Lord_Howe"].local(2025, 10, 5, 2, 15)
+    # Before: 2025-10-05 03:15:00 +1100
+    # After:  2025-10-05 02:45:00 +1100
+    ```
+
+    *Kenta Ishizaki*
+
 *   Fix `FrozenError` when using a frozen `ActiveSupport::MessageVerifier` or
     `ActiveSupport::MessageEncryptor` that had not verified or decrypted a
     message yet, as after `Ractor.make_shareable`, and when freezing an already

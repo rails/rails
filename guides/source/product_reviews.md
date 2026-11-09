@@ -196,10 +196,9 @@ class Products::ReviewsController < ApplicationController
   end
 
   private
-
-  def set_product
-    @product = Product.find(params[:product_id])
-  end
+    def set_product
+      @product = Product.find(params[:product_id])
+    end
 end
 ```
 
@@ -325,7 +324,7 @@ Next, we need to save reviews in the database when the form is submitted.
 
 Add the `create` action to the controller:
 
-```ruby#8-15,23-25
+```ruby#8-15,22-24
 class Products::ReviewsController < ApplicationController
   before_action :set_product
 
@@ -343,14 +342,13 @@ class Products::ReviewsController < ApplicationController
   end
 
   private
+    def set_product
+      @product = Product.find(params[:product_id])
+    end
 
-  def set_product
-    @product = Product.find(params[:product_id])
-  end
-
-  def review_params
-    params.expect(review: [ :rating, :body, images: [] ]).with_defaults(user: Current.user)
-  end
+    def review_params
+      params.expect(review: [ :rating, :body, images: [] ]).with_defaults(user: Current.user)
+    end
 end
 ```
 
@@ -437,8 +435,8 @@ alongside the reviews.
 
       <div>
         <% 5.downto(1).each do |i| %>
-          <%= link_to product_path(product, rating: i), class: "review__summary", aria: { label: "#{pluralize(i, "star")} — #{product.rating_percentage(i)}% of reviews" } do %>
-            <div aria-hidden="true">
+          <%= link_to product_path(product, rating: i), aria: { label: "#{pluralize(i, "star")} — #{product.rating_percentage(i)}% of reviews" } do %>
+            <div class="review__summary", aria-hidden="true">
               <div class="review__stars"><%= i %></div>
               <div class="gold">★</div>
               <div class="review__bars">
@@ -744,14 +742,13 @@ class Store::ReviewsController < Store::BaseController
   end
 
   private
+    def set_review
+      @review = Review.find(params[:id])
+    end
 
-  def set_review
-    @review = Review.find(params[:id])
-  end
-
-  def review_params
-    params.expect(review: [ :rating, :body, images: [] ])
-  end
+    def review_params
+      params.expect(review: [ :rating, :body, images: [] ])
+    end
 end
 ```
 
@@ -1337,7 +1334,7 @@ $ bin/kamal deploy
 Your e-commerce store now has product reviews to help customers make more
 informed decisions about your products!
 
-Here are a few ideas to build on to this:
+Here are a few ideas to build on top of this:
 
 - Write more tests
 - Finish translating the app into another language
