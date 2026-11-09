@@ -119,6 +119,8 @@ module ActiveRecord
 
       # https://github.com/rails/rails/issues/59706
       def test_with_recursive_with_ordered_term
+        skip "ORDER BY in a recursive CTE term is only supported by SQLite" unless current_adapter?(:SQLite3Adapter)
+
         top_companies = Company.where(firm_id: nil).to_a
         child_companies = Company.where(firm_id: top_companies).to_a
         top_companies_and_children = (top_companies.map(&:id) + child_companies.map(&:id)).sort
