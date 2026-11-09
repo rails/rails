@@ -62,7 +62,11 @@ module ActiveRecord
         return relation if values.equal?(relation.values_for_merge)
 
         NORMAL_VALUE_BANG_METHODS.each do |name, bang_method|
-          value = values[name]
+          value = if name == :unscope
+            other.table_name_qualified_unscope_values
+          else
+            values[name]
+          end
           # The unless clause is here mostly for performance reasons (since the `send` call might be moderately
           # expensive), most of the time the value is going to be `nil` or `.blank?`, the only catch is that
           # `false.blank?` returns `true`, so there needs to be an extra check so that explicit `false` values

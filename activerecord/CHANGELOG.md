@@ -1,3 +1,11 @@
+*   Qualify unscope values with table name when merging relations.
+
+    Fixes an issue where merging a relation with an `unscope(where: ...)`
+    clause unscoped conditions on joined or eager loaded tables that share
+    the same column name.
+
+    *Helmi Pradita*
+
 *   Fix preloading a `has_many :through` association whose scope has conditions
     and `preload` or `eager_load` not loading the nested associations.
 
