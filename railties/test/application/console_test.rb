@@ -32,7 +32,7 @@ class FullStackConsoleTest < ActiveSupport::TestCase
     teardown_app
   end
 
-  def write_prompt(command, expected_output = nil, prompt: "> ")
+  def write_prompt(command, expected_output = nil, prompt: /\d> /)
     @primary.puts command
     assert_output command, @primary
     assert_output expected_output, @primary, 100 if expected_output
