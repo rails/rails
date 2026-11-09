@@ -323,8 +323,8 @@ See [Adding a Nonce](security.html#adding-a-nonce) in the Security Guide
 
 #### `config.content_security_policy_report_only`
 
-See [Reporting Violations](security.html#reporting-violations) in the Security
-Guide
+See the [Security guide](security.html#adding-a-csp-to-legacy-content) for more
+information.
 
 #### `config.credentials.content_path`
 
