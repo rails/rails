@@ -138,9 +138,11 @@
       has_many :categorizations
       has_many :categorized_posts, through: :categorizations, source: :post
       has_many :categorized_posts_desc, -> { order(id: :desc) }, through: :categorizations, source: :post
+      has_many :commented_categorized_posts, -> { joins(:comments).distinct }, through: :categorizations, source: :post
     end
 
     Author.preload(:categorized_posts, :categorized_posts_desc).first.categorized_posts_desc # => now sorted by id desc
+    Author.preload(:categorized_posts, :commented_categorized_posts).first.commented_categorized_posts # => now only commented posts
     ```
 
     Fixes #56110.

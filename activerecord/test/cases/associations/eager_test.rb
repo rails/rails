@@ -1267,12 +1267,28 @@ class EagerAssociationTest < ActiveRecord::TestCase
     Categorization.create!(author: author, post: posts(:welcome), category: categories(:general))
     Categorization.create!(author: author, post: posts(:authorless), category: categories(:general))
 
-    %i[commented_categorized_posts readonly_categorized_posts first_categorized_posts].each do |association|
+    %i[commented_categorized_posts readonly_categorized_posts].each do |association|
       expected = Author.preload(association).find(author.id).public_send(association).to_a
       preloaded = Author.preload(:categorized_posts, association).find(author.id).public_send(association)
 
       assert_equal expected, preloaded, association
       assert_equal expected.map(&:readonly?), preloaded.map(&:readonly?), association
+    end
+
+    # Without an order, which post the limit keeps is up to the database.
+    assert_equal 1, Author.preload(:categorized_posts, :limited_categorized_posts).find(author.id).limited_categorized_posts.size
+  end
+
+  def test_preload_has_many_through_with_scoped_source_reuses_records_loaded_through_that_source
+    author = authors(:david)
+    expected = author.readonly_source_categorized_posts.to_a
+
+    author_with_preloads = assert_queries_count(3) do
+      Author.preload({ categorizations: :readonly_post }, :readonly_source_categorized_posts).find(author.id)
+    end
+    assert_no_queries do
+      assert_equal expected, author_with_preloads.readonly_source_categorized_posts
+      assert author_with_preloads.readonly_source_categorized_posts.all?(&:readonly?)
     end
   end
 

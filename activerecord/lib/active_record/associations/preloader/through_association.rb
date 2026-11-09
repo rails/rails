@@ -131,12 +131,19 @@ module ActiveRecord
               !reflection_scope.where_clause.empty?
           end
 
-          # When the through scope doesn't eager load the source records, already
-          # loaded ones are reused only if the scope can't change which records
-          # come back or how they're built.
+          # When the through scope doesn't eager load the source records with the
+          # conditions or the order, the source scope filters or sorts them instead.
+          # Records loaded through the source association already obey its own
+          # scope, so only the through association's scope can make them unusable.
           def source_scope_filters_source?
             !through_scope_filters_source? &&
-              !reflection_scope.values.except(*SOURCE_REUSING_SCOPE_VALUES).empty?
+              (!reflection_scope.where_clause.empty? ||
+                !reflection_scope.effective_order_values.empty? ||
+                !own_scope_values.except(*SOURCE_REUSING_SCOPE_VALUES).empty?)
+          end
+
+          def own_scope_values
+            reflection.scope ? reflection.scope_for(klass.unscoped).values : EMPTY_FIXED_VALUES
           end
 
           # As in SQL, an explicit order on the through association beats the
