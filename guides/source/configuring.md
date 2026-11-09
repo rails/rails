@@ -1401,7 +1401,7 @@ to get the parent every time the child record was updated, even when parent has 
 
 Define which format to use when an Active Record object is serialized with Marshal.
 
-As of Rails 8.0, only the `7.1` is supported.
+As of Rails 8.0, only the `7.1` format is supported.
 
 | Starting with version | The default value is |
 | --------------------- | -------------------- |
@@ -1558,7 +1558,7 @@ and can be the source of security vulnerabilities if not carefully employed.
 As such it is recommended to prefer stricter, more limited formats for database
 serialization.
 
-Unfortunately there isn't really any suitable defaults available in Ruby's standard
+Unfortunately there aren't really any suitable defaults available in Ruby's standard
 library. `JSON` could work as a format, but the `json` gems will cast unsupported
 types to strings which may lead to bugs.
 
@@ -1827,7 +1827,7 @@ Controls whether `ActiveRecord::Base.connection` raises an error, emits a deprec
 
 `ActiveRecord::Base.connection` checkouts a database connection from the pool and keeps it leased until the end of
 the request or job. This behavior can be undesirable in environments that use many more threads or fibers than there
-is available connections.
+are available connections.
 
 This configuration can be used to track down and eliminate code that calls `ActiveRecord::Base.connection` and
 migrate it to use `ActiveRecord::Base.with_connection` instead.
@@ -2284,7 +2284,7 @@ The default value depends on the `config.load_defaults` target version:
 
 #### `config.action_controller.action_on_path_relative_redirect`
 
-Controls how Rails handles paths relative URL redirects.
+Controls how Rails handles path-relative URL redirects.
 
 When set to `:log` (default), Rails will log a warning when a path relative URL redirect
 is detected. When set to `:notify`, Rails will publish an
@@ -2694,9 +2694,9 @@ If set to `false`, when both headers are present, both headers are checked and b
 
 #### `config.action_dispatch.always_write_cookie`
 
-Cookies will be written at the end of a request if they marked as insecure, if the request is made over SSL, or if the request is made to an onion service.
+Cookies will be written at the end of a request if they are marked as insecure, if the request is made over SSL, or if the request is made to an onion service.
 
-If set to `true`, cookies will be written even if this criteria is not met.
+If set to `true`, cookies will be written even if this criterion is not met.
 
 This defaults to `true` in `development`, and `false` in all other environments.
 
@@ -3076,7 +3076,7 @@ Specifies whether mail will actually be delivered and is `true` by default. It c
 
 #### `config.action_mailer.default_options`
 
-Configures Action Mailer defaults. Use to set options like `from` or `reply_to` for every mailer. These default to:
+Configures Action Mailer defaults. Use it to set options like `from` or `reply_to` for every mailer. These default to:
 
 ```ruby
 {
@@ -4317,7 +4317,7 @@ development:
 
 By default, Rails will automatically reconnect to the database server and retry certain queries
 if something goes wrong. Only safely retryable (idempotent) queries will be retried. The number
-of retries can be specified in your the database configuration via `connection_retries`, or disabled
+of retries can be specified in your database configuration via `connection_retries`, or disabled
 by setting the value to 0. The default number of retries is 1.
 
 ```yaml
@@ -4773,7 +4773,7 @@ Below is a comprehensive list of all the initializers found in Rails in the orde
 
 * `eager_load!`: If `config.eager_load` is `true`, runs the `config.before_eager_load` hooks and then calls `eager_load!` which will load all `config.eager_load_namespaces`.
 
-* `finisher_hook`: Provides a hook for after the initialization of process of the application is complete, as well as running all the `config.after_initialize` blocks for the application, railties, and engines.
+* `finisher_hook`: Provides a hook for after the initialization process of the application is complete, as well as running all the `config.after_initialize` blocks for the application, railties, and engines.
 
 * `set_routes_reloader_hook`: Configures Action Dispatch to reload the routes file using `ActiveSupport::Callbacks.to_run`.
 

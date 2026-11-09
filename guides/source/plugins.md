@@ -431,7 +431,7 @@ module ApiBoost
 end
 ```
 
-NOTE: The use of `write_attribute` above to write to the field in model is just
+NOTE: The use of `write_attribute` above to write to the field in the model is just
 one example of how a plugin can interact with the model, and will not always be
 the right method to use. For example, you might prefer using `send`, which calls
 the setter method

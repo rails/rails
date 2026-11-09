@@ -91,7 +91,7 @@ increase the number of threads per process until the impact on latency is deemed
 
 Users interested in optimizing for latency will want to keep the number of threads per process low.
 To optimize for latency even further, users can even set the thread per process count to `1` and run `1.5` or `1.3`
-process per CPU core to account for when processes are idle waiting for I/O operations.
+processes per CPU core to account for when processes are idle waiting for I/O operations.
 
 It is important to note that some hosting solutions may only offer a relatively small amount of memory (RAM) per CPU
 core, preventing you from running as many processes as needed to use all CPU cores.
@@ -160,8 +160,8 @@ Note however that this might make Ruby slower, so `jemalloc` is the preferred so
 Performance Testing
 --------------------
 
-Because every Rails application is different, and that every Rails user may want to optimize for different properties,
-it is impossible to offer a default configuration or guidelines that works best for everyone.
+Because every Rails application is different, and every Rails user may want to optimize for different properties,
+it is impossible to offer a default configuration or guidelines that work best for everyone.
 
 Hence, the best way to choose your application's settings is to measure the performance of your application, and adjust
 the configuration until it is satisfactory for your goals.
