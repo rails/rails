@@ -2246,10 +2246,11 @@ module ActiveRecord
       end
 
       def build_select(arel)
-        if select_values.any?
-          arel.project(*arel_columns(select_values))
-        elsif model.ignored_columns.any? || model.enumerate_columns_in_select_statements || model.only_columns.any?
-          arel.project(*model.column_names.map { |field| table[field] })
+        return arel.project(*arel_columns(select_values)) if select_values.any?
+
+        context = model.schema_context
+        if context.ignored_columns.any? || model.enumerate_columns_in_select_statements || context.only_columns.any?
+          arel.project(*context.mapped_table.column_names.map { |field| table[field] })
         else
           arel.projections << table[Arel.star]
         end

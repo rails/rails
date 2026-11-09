@@ -276,11 +276,11 @@ module ActiveRecord
       end
 
       def _default_attributes # :nodoc:
-        schema_context.attributes.defaults
+        schema_attributes.defaults
       end
 
       def attribute_types # :nodoc:
-        schema_context.attributes.types
+        schema_attributes.types
       end
 
       def type_for_column(column) # :nodoc:

@@ -497,7 +497,7 @@ module ActiveRecord
 
       def set_primary_key(table_name, id, primary_key, **options)
         if id && !as
-          pk = primary_key || Base.get_primary_key(table_name.to_s.singularize)
+          pk = primary_key || Base.primary_key_from_prefix(table_name.to_s.singularize) || "id"
 
           if id.is_a?(Hash)
             options.merge!(id.except(:type))
