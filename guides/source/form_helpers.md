@@ -237,7 +237,7 @@ Output:
 
 Hidden inputs are not shown to the user but instead hold data like any textual input. Values inside them can be changed with JavaScript.
 
-TIP: If you're using password input fields, you might want to configure your application to prevent those parameters from being logged. You can learn about how in the [Securing Rails Applications](security.html#logging) guide.
+TIP: If you're using password input fields, you might want to configure your application to prevent those parameters from being logged. You can learn about how in the [Securing Rails Applications](security.html#log-filtering) guide.
 
 Creating Forms with Model Objects
 ---------------------------------

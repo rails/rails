@@ -1409,7 +1409,7 @@ secret_key_base: 6013280bda2fcbdbeda1732859df557a067ac81c423855aedba057f7a9b1416
 ```
 
 You can learn about credentials in the [Rails Security
-Guide](security.html#custom-credentials).
+Guide](security.html#encrypted-credentials-file).
 
 TIP: Check out the detailed description for this command in the output of
 `bin/rails credentials --help`.

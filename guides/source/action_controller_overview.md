@@ -600,7 +600,8 @@ values are always strings, Rails does not attempt to guess or cast the type.
 
 NOTE: Values such as `[nil]` or `[nil, nil, ...]` in `params` are replaced with
 `[]` for security reasons by default. See
-[Security Guide](security.html#unsafe-query-generation) for more information.
+[Configuration Guide](configuring.html#config-action-dispatch-perform-deep-munge)
+for more information.
 
 To send a hash, you include the key name inside the brackets:
 
@@ -1245,7 +1246,7 @@ store, are signed using the `secret_key_base` generated for all new Rails
 applications. It is usually stored in the encrypted credentials file:
 `config/credentials.yml.enc`. Changing the `secret_key_base` will render all
 signed and encrypted cookies unreadable. Refer to the
-[security guide](security.html#custom-credentials) for further information.
+[security guide](security.html#encrypted-credentials-file) for further information.
 
 [`ActionDispatch::Session::CookieStore`]:
   https://api.rubyonrails.org/classes/ActionDispatch/Session/CookieStore.html
