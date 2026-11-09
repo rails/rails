@@ -1855,6 +1855,57 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
     assert_equal groucho, sponsor.thing
   end
 
+  def test_foreign_type_without_polymorphic_reads_only_its_type
+    assert_equal members(:groucho), sponsors(:moustache_club_sponsor_for_groucho).sponsorable_member
+
+    sponsor = sponsors(:sponsor_for_author_david)
+    assert_equal authors(:david).id, members(:groucho).id
+    assert_no_queries { assert_nil sponsor.sponsorable_member }
+  end
+
+  def test_foreign_type_without_polymorphic_preloads_only_its_type
+    sponsors = Sponsor.where(sponsorable_id: members(:groucho).id).preload(:sponsorable_member).to_a
+
+    assert_no_queries do
+      assert_equal({ "Member" => members(:groucho), "Author" => nil }, sponsors.to_h { |sponsor| [sponsor.sponsorable_type, sponsor.sponsorable_member] })
+    end
+  end
+
+  def test_foreign_type_without_polymorphic_eager_loads_only_its_type
+    sponsors = Sponsor.where(sponsorable_id: members(:groucho).id).eager_load(:sponsorable_member).to_a
+
+    assert_no_queries do
+      assert_equal({ "Member" => members(:groucho), "Author" => nil }, sponsors.to_h { |sponsor| [sponsor.sponsorable_type, sponsor.sponsorable_member] })
+    end
+  end
+
+  def test_foreign_type_without_polymorphic_joins_on_its_type
+    assert_equal [sponsors(:moustache_club_sponsor_for_groucho)], Sponsor.joins(:sponsorable_member).where(sponsorable_id: members(:groucho).id)
+  end
+
+  def test_foreign_type_without_polymorphic_queries_its_type
+    expected = [sponsors(:moustache_club_sponsor_for_groucho)]
+
+    assert_equal expected, Sponsor.where(sponsorable_member: members(:groucho))
+    assert_equal expected, Sponsor.where(sponsorable_member: members(:groucho).id)
+  end
+
+  def test_foreign_type_without_polymorphic_writes_its_type
+    sponsor = Sponsor.new(sponsorable: authors(:david))
+    sponsor.sponsorable_member = members(:some_other_guy)
+
+    assert_equal ["Member", members(:some_other_guy).id], [sponsor.sponsorable_type, sponsor.sponsorable_id]
+  end
+
+  def test_foreign_type_without_polymorphic_resets_when_the_type_changes
+    sponsor = sponsors(:moustache_club_sponsor_for_groucho)
+    assert_equal members(:groucho), sponsor.sponsorable_member
+
+    sponsor.sponsorable = authors(:david)
+
+    assert_nil sponsor.sponsorable_member
+  end
+
   class WheelPolymorphicName < ActiveRecord::Base
     self.table_name = "wheels"
     belongs_to :wheelable, polymorphic: true, counter_cache: :wheels_count, touch: :wheels_owned_at
