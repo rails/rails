@@ -245,7 +245,17 @@ module ActiveRecord
           klass_scope._where!(klass.send(:type_condition, table))
         end
 
+        if typed_belongs_to?
+          route.origin_fixed_values.each do |column, value|
+            klass_scope.where!(foreign_table[column].eq(value))
+          end
+        end
+
         klass_scope
+      end
+
+      def typed_belongs_to?
+        false
       end
 
       def association_scope_cache(klass, routes, &block)
@@ -590,7 +600,11 @@ module ActiveRecord
 
         @validated = false
         @type = -(options[:foreign_type]&.to_s || "#{options[:as]}_type") if options[:as]
-        @foreign_type = -(options[:foreign_type]&.to_s || "#{name}_type") if options[:polymorphic]
+        if options[:polymorphic]
+          @foreign_type = -(options[:foreign_type]&.to_s || "#{name}_type")
+        elsif options[:foreign_type] && belongs_to?
+          @foreign_type = -options[:foreign_type].to_s
+        end
         @join_table = nil
         @foreign_key_definition = nil
         @association_foreign_key_definition = nil
@@ -1118,6 +1132,10 @@ module ActiveRecord
 
       def belongs_to?; true; end
 
+      def typed_belongs_to?
+        !polymorphic? && !foreign_type.nil?
+      end
+
       def association_class
         if polymorphic?
           Associations::BelongsToPolymorphicAssociation
@@ -1166,6 +1184,8 @@ module ActiveRecord
               return AssociationRoute.new(link: AssociationLink.for(reference_key: foreign_key_definition, fixed_values: { foreign_type => nil }, reference_class: origin_class))
             end
             fixed_values = { foreign_type => -destination_class.polymorphic_name }
+          elsif foreign_type
+            fixed_values = { foreign_type => -(destination_class || klass).polymorphic_name }
           else
             fixed_values = {}
           end

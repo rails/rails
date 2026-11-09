@@ -262,6 +262,10 @@ module ActiveRecord
       _reference_origin_key.all? { |column| !origin._read_attribute(column).nil? }
     end
 
+    def origin_fixed_values_match?(origin)
+      origin_fixed_values.all? { |column, value| origin.read_attr(column) == value }
+    end
+
     def reference_needs_update?(origin, destination)
       @link.reference_needs_update?(origin, destination)
     end

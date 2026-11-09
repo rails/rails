@@ -205,7 +205,13 @@ module ActiveRecord
         end
 
         def foreign_key_present?
-          foreign_key.all? { |fk| owner._read_attribute(fk) }
+          foreign_key.all? { |fk| owner._read_attribute(fk) } && foreign_type_matches?
+        end
+
+        def foreign_type_matches?
+          return true unless reflection.typed_belongs_to?
+
+          association_route.origin_fixed_values_match?(owner)
         end
 
         def invertible_for?(record)
@@ -217,7 +223,8 @@ module ActiveRecord
           value = foreign_key.map_value do |fk|
             owner._read_attribute!(fk)
           end
-          foreign_key.composite? ? (value if value.any?) : value
+          value = foreign_key.composite? ? (value if value.any?) : value
+          reflection.typed_belongs_to? ? [value, owner.read_attr(reflection.foreign_type)] : value
         end
     end
   end

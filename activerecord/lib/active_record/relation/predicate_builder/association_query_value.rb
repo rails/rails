@@ -50,7 +50,10 @@ module ActiveRecord
           id_list = ids(query_value, route)
           id_list = id_list.pluck(route.destination_key.name) if route.origin_key.composite? && id_list.is_a?(Relation)
 
-          route.origin_key.where_clauses(id_list)
+          clauses = route.origin_key.where_clauses(id_list)
+          return clauses unless reflection.typed_belongs_to?
+
+          clauses.map { |clause| clause.merge(route.origin_fixed_values) }
         end
 
         def nil_query
