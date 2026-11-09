@@ -132,20 +132,6 @@ module AbstractController
         action_methods
         nil
       end
-
-      private
-        # Calling custom methods on the config instance goes through method_missing, which is slow.
-        # Using config#[] is faster and call-caches can cache it.
-        def config_delegate(*keys) # :nodoc:
-          keys.each do |key|
-            methods = <<~RUBY
-              def #{key}; config[#{key.inspect}]; end
-              def #{key}=(value); config[#{key.inspect}] = value; end
-            RUBY
-            singleton_class.class_eval methods, __FILE__, __LINE__ - 3
-            class_eval methods, __FILE__, __LINE__ - 4
-          end
-        end
     end
 
     abstract!

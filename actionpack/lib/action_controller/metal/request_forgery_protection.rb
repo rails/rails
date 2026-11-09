@@ -77,50 +77,40 @@ module ActionController # :nodoc:
     included do
       # Sets the token parameter name for RequestForgery. Calling
       # `protect_from_forgery` sets it to `:authenticity_token` by default.
-      config_delegate :request_forgery_protection_token
       self.request_forgery_protection_token ||= :authenticity_token
 
       # Holds the class which implements the request forgery protection.
-      config_delegate :forgery_protection_strategy
       self.forgery_protection_strategy = nil
 
       # Controls whether request forgery protection is turned on or not. Turned off by
       # default only in test mode.
-      config_delegate :allow_forgery_protection
       self.allow_forgery_protection = true if allow_forgery_protection.nil?
 
       # Controls whether a CSRF failure logs a warning. On by default.
-      config_delegate :log_warning_on_csrf_failure
       self.log_warning_on_csrf_failure = true
 
       # Controls whether the Origin header is checked in addition to the CSRF token.
-      config_delegate :forgery_protection_origin_check
       self.forgery_protection_origin_check = false
 
       # Controls whether form-action/method specific CSRF tokens are used.
-      config_delegate :per_form_csrf_tokens
       self.per_form_csrf_tokens = false
 
       # The strategy to use for storing and retrieving CSRF tokens.
-      config_delegate :csrf_token_storage_strategy
       self.csrf_token_storage_strategy = SessionStore.new
 
       # The strategy to use for verifying requests. Options are:
       # * :header_only - Use Sec-Fetch-Site header only (default, modern browsers)
       # * :header_or_legacy_token - Combined approach: Sec-Fetch-Site with fallback to token
-      config_delegate :forgery_protection_verification_strategy
       self.forgery_protection_verification_strategy = :header_or_legacy_token
 
       # Origins allowed for cross-site requests, such as OAuth/SSO callbacks,
       # third-party embeds, and legitimate remote form submission.
       # Example: %w[ https://accounts.google.com ]
-      config_delegate :forgery_protection_trusted_origins
       self.forgery_protection_trusted_origins = []
 
       # Controls the default strategy used when calling protect_from_forgery without arguments.
       # Defaults to :null_session for backwards compatibility, but will change to :exception
       # in a future version of Rails.
-      config_delegate :default_protect_from_forgery_with
       self.default_protect_from_forgery_with = :null_session
 
       helper_method :form_authenticity_token
@@ -353,6 +343,20 @@ module ActionController # :nodoc:
           end
         end
     end
+
+    AbstractController::Config.generate_accessors(
+      self,
+      :request_forgery_protection_token,
+      :forgery_protection_strategy,
+      :allow_forgery_protection,
+      :log_warning_on_csrf_failure,
+      :forgery_protection_origin_check,
+      :per_form_csrf_tokens,
+      :csrf_token_storage_strategy,
+      :forgery_protection_verification_strategy,
+      :forgery_protection_trusted_origins,
+      :default_protect_from_forgery_with,
+    )
 
     module ProtectionMethods
       class NullSession
