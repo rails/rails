@@ -1,3 +1,18 @@
+*   Cast numeric values to the scale of the PostgreSQL `money` type.
+
+    `money` only rounded strings to its scale, so a numeric value was held
+    unrounded and as given, while it was rounded on save and read back as a
+    `BigDecimal`.
+
+    ```ruby
+    # t.money :wealth
+
+    record = Post.new(wealth: 10.004)
+    record.wealth # => 10.004 before, now 0.1e2
+    ```
+
+    *Ryuta Kamizono*
+
 *   Fix nested preloads under a `:through` association attaching their
     records to copies instead of the records the owners hold.
 
