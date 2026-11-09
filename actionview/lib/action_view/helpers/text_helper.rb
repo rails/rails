@@ -144,6 +144,12 @@ module ActionView
       # expressions. The result will be marked HTML safe. By default, `text` is
       # sanitized before highlighting to prevent possible XSS attacks.
       #
+      # The return value is HTML markup. It is safe only as element content
+      # where the HTML parser applies the "in body" insertion mode rules, such
+      # as inside a `<p>`, `<div>` or `<td>` element. Anywhere else it is unsafe
+      # or incorrect, including in an attribute value and inside a `<script>`,
+      # `<style>`, `<textarea>` or `<title>` element.
+      #
       # If a block is specified, it will be used instead of the highlighter
       # string. Each occurrence of a phrase will be passed to the block, and its
       # return value will be inserted into the final result.

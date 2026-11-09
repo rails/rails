@@ -35,8 +35,11 @@ module ActionView
       # Please note that sanitizing user-provided text does not guarantee that the
       # resulting markup is valid or even well-formed.
       #
-      # The output is markup, which is safe only as element content. Do not use it in an attribute
-      # value; use `strip_tags` or a tag helper such as `tag.a(title: ...)` instead.
+      # The return value is HTML markup. It is safe only as element content where the HTML parser
+      # applies the "in body" insertion mode rules, such as inside a `<p>`, `<div>` or `<td>`
+      # element. Anywhere else it is unsafe or incorrect, including in an attribute value and inside
+      # a `<script>`, `<style>`, `<textarea>` or `<title>` element. For text in a quoted attribute
+      # value, use `strip_tags`.
       #
       # #### Options
       #
