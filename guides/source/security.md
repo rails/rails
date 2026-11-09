@@ -1722,6 +1722,17 @@ The common admin interface works like this: it's located at www.example.com/admi
 
 * _Put the admin interface to a special subdomain_ such as admin.application.com and make it a separate application with its own user management. This makes stealing an admin cookie from the usual domain, www.application.com, impossible. This is because of the same origin policy in your browser: An injected (XSS) script on www.application.com may not read the cookie for admin.application.com and vice-versa.
 
+Ruby Runtime Security
+---------------------
+
+The security of a Rails application relies on the security of the underlying Ruby interpreter and runtime. Please ensure your application is using an up-to-date version of Ruby with all security patches applied to the interpreter as well as the [default and bundled gems](https://guides.rubygems.org/default-gems-and-bundled-gems/).
+
+### GMP Support (CRuby)
+
+Production applications should be run on a Ruby built with [GMP](https://gmplib.org/), the GNU Multiple Precision Arithmetic Library. GMP mitigates a class of denial-of-service attack vectors related to large numerical inputs.
+
+Ruby links GMP only when the GMP development headers are present at build time, so a Ruby compiled from source may lack it. The official `ruby` Docker images, which the `Dockerfile` that Rails generates is based on, include it. To check a Ruby, run `ruby -e 'p Integer::GMP_VERSION'`, which raises `NameError` when Ruby was built without GMP.
+
 Environmental Security
 ----------------------
 
