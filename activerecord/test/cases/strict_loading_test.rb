@@ -13,6 +13,10 @@ require "models/strict_zine"
 require "models/interest"
 require "models/treasure"
 require "models/pirate"
+require "models/author"
+require "models/post"
+require "models/comment"
+require "models/rating"
 
 class StrictLoadingTest < ActiveRecord::TestCase
   fixtures :developers, :developers_projects, :projects, :ships
@@ -341,6 +345,16 @@ class StrictLoadingTest < ActiveRecord::TestCase
         block.call
       end
     end
+  end
+
+  def test_strict_loading_with_has_many_through_preloaded_alone_and_with_nested_association
+    author = Author.create!(name: "alice")
+    comment = author.posts.create!(title: "Hello", body: "World").comments.create!(body: "Nice")
+    rating = comment.ratings.create!(value: 5)
+
+    author = Author.strict_loading.preload(:comments, comments: :ratings).find(author.id)
+
+    assert_equal [rating], author.comments.first.ratings
   end
 
   def test_strict_loading_with_has_one_through_does_not_prevent_creation_of_association
