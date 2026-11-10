@@ -147,9 +147,15 @@ module ActiveModel
     # Like #fetch_value, but looks the attribute up by its +index+ in
     # #indexes rather than by name. Returns +nil+ for a missing attribute,
     # as Attribute::Null does.
+    #
+    # Raises LazyAttributeSet::NotLaidOut for a set loaded from a Rails 6.1
+    # Marshal dump, whose attributes are a Hash by name (see
+    # #raise_unless_laid_out).
     #: (Integer) ?{ (String) -> untyped } -> untyped
     def fetch_value_at(index, &block)
       attributes.at(index)&.value(&block)
+    rescue NoMethodError
+      raise_unless_laid_out
     end
 
     # Like #fetch_value!, but looks the attribute up by its +index+ (see
@@ -157,6 +163,8 @@ module ActiveModel
     #: (Integer) -> untyped
     def fetch_value_at!(index)
       attributes.at(index)&.value!
+    rescue NoMethodError
+      raise_unless_laid_out
     end
 
     # The name of the attribute at +index+. Searches #indexes, so it's for
@@ -253,6 +261,20 @@ module ActiveModel
 
       def default_attribute(name)
         Attribute.null(name)
+      end
+
+      # Records marshaled in the Rails 6.1 format have their instance
+      # variables dumped directly. A new record's attribute set was an
+      # AttributeSet then too, so it loads as one, but with its attributes
+      # in a Hash by name, which can't be read by slot. Like
+      # LazyAttributeSet, it raises NotLaidOut so the record lays it out
+      # like the model's first (see
+      # ActiveRecord::AttributeMethods::Read#_read_attribute_at!). Called
+      # from a NoMethodError rescue, so laid-out sets pay nothing for it.
+      #: () -> bot
+      def raise_unless_laid_out
+        raise LazyAttributeSet::NotLaidOut if @attributes.is_a?(Hash)
+        raise
       end
   end
 

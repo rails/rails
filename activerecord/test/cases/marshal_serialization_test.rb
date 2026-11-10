@@ -28,6 +28,25 @@ class MarshalSerializationTest < ActiveRecord::TestCase
     assert_predicate topic.replies.first.association(:topic), :loaded?
   end
 
+  def test_deserializing_rails_6_1_marshal_new_record
+    # The generated readers read by slot, which is what a new record's
+    # attribute set (a Hash by name in 6.1) can't do until it's laid out.
+    Topic.define_attribute_methods
+    topic = Marshal.load(marshal_fixture("rails_6_1_new_topic"))
+
+    assert_predicate topic, :new_record?
+    assert_nil topic.id
+    assert_equal "A new topic", topic.title
+    assert_equal "Brand new", topic.content
+
+    topic.title = "Renamed"
+    assert_equal "Renamed", topic.title
+    assert_equal "Renamed", topic.changes["title"].last
+
+    assert topic.save
+    assert_equal "Renamed", Topic.find(topic.id).title
+  end
+
   def test_deserializing_rails_7_1_marshal_basic
     Topic.undefine_attribute_methods
     topic = Marshal.load(marshal_fixture("rails_7_1_topic"))
