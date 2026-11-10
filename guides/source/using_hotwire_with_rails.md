@@ -750,10 +750,10 @@ The above snippets are equivalent to:
 
 ```ruby
 class Product < ApplicationRecord
-  after_create_commit  -> {
+  after_create_commit -> {
     broadcast_append_later_to("product_stream", target: "products", partial: "products/product")
   }
-  after_update_commit  -> {
+  after_update_commit -> {
     broadcast_replace_later_to("product_stream", target: ActionView::RecordIdentifier.dom_id(self), partial: "products/product")
   }
   after_destroy_commit -> {
@@ -793,10 +793,10 @@ This can be expanded as:
 
 ```ruby
 class Product < ApplicationRecord
-  after_create_commit  -> {
+  after_create_commit -> {
     broadcast_append_later_to("products", target: "products", partial: "products/product")
   }
-  after_update_commit  -> {
+  after_update_commit -> {
     broadcast_replace_later_to(self, target: ActionView::RecordIdentifier.dom_id(self), partial: "products/product")
   }
   after_destroy_commit -> {
