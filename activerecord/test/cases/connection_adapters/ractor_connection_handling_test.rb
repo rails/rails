@@ -787,6 +787,50 @@ module ActiveRecord
             assert_equal 1, seen
           end
 
+          def test_nested_pins_preserve_the_worker_connection_lock
+            same_lock, retained_lock, unlocked = on_ractor do
+              pool = ActiveRecord::Base.connection_pool
+              pool.pin_connection!(true)
+              connection = pool.checkout
+              original_lock = connection.lock
+
+              pool.pin_connection!(true)
+              preserved = connection.lock.equal?(original_lock)
+              pool.unpin_connection!
+              retained = connection.lock.equal?(original_lock)
+              pool.unpin_connection!
+
+              [preserved, retained, connection.lock.equal?(ActiveSupport::Concurrency::NullLock)]
+            end
+
+            assert same_lock, "Expected a nested pin to keep the existing lock"
+            assert retained_lock, "Expected the lock to remain until the last pin is released"
+            assert unlocked, "Expected the final unpin to remove the lock"
+          end
+
+          def test_nested_pins_can_lock_an_unlocked_worker_connection
+            initially_unlocked, acquired_lock, retained_lock, unlocked = on_ractor do
+              pool = ActiveRecord::Base.connection_pool
+              pool.pin_connection!(false)
+              connection = pool.checkout
+              was_unlocked = connection.lock.equal?(ActiveSupport::Concurrency::NullLock)
+
+              pool.pin_connection!(true)
+              installed_lock = connection.lock
+              pool.unpin_connection!
+              retained = connection.lock.equal?(installed_lock)
+              pool.unpin_connection!
+
+              [was_unlocked, !installed_lock.equal?(ActiveSupport::Concurrency::NullLock),
+                retained, connection.lock.equal?(ActiveSupport::Concurrency::NullLock)]
+            end
+
+            assert initially_unlocked
+            assert acquired_lock, "Expected a nested pin to install a lock when requested"
+            assert retained_lock, "Expected the lock to remain until the last pin is released"
+            assert unlocked, "Expected the final unpin to remove the lock"
+          end
+
           def test_transaction_commit_rollback_and_generated_id
             table = widgets_table
             kept_id, committed, rolled_back = on_ractor(table) do |widgets|
