@@ -2488,6 +2488,14 @@ class RelationTest < ActiveRecord::TestCase
     assert_equal p1.first.comments, comments
   end
 
+  def test_unscope_merge_does_not_unscope_joined_table_column
+    expected = Post.joins(:comments).where(comments: { body: "test" })
+    relation = Post.joins(:comments).where(body: "post", comments: { body: "test" }).merge(Post.unscope(where: :body))
+
+    assert_equal expected.where_clause, relation.where_clause
+    assert_equal expected.to_sql, relation.to_sql
+  end
+
   def test_unscope_with_unknown_column
     comment = comments(:greetings)
     comment.update!(comments: 1)
