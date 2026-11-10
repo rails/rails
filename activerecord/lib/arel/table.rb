@@ -1,5 +1,8 @@
 # frozen_string_literal: true
 
+require "active_support/deprecation"
+require "active_record/deprecator"
+
 module Arel # :nodoc: all
   class Table
     include Arel::FactoryMethods
@@ -10,7 +13,22 @@ module Arel # :nodoc: all
 
     attr_reader :table_alias, :klass
 
-    def initialize(name: nil, as: nil, klass: nil, type_caster: klass&.type_caster)
+    NOT_GIVEN = Object.new.freeze # :nodoc:
+    private_constant :NOT_GIVEN
+
+    def initialize(positional_name = NOT_GIVEN, name: NOT_GIVEN, as: nil, klass: nil, type_caster: klass&.type_caster)
+      if NOT_GIVEN.equal?(positional_name)
+        name = nil if NOT_GIVEN.equal?(name)
+      else
+        raise ArgumentError, "Pass the table name either positionally or as name:, not both." unless NOT_GIVEN.equal?(name)
+
+        ActiveRecord.deprecator.warn(
+          "Passing the table name to Arel::Table.new as a positional argument is deprecated " \
+          "and will be removed in Rails 9.0. Use Arel::Table.new(name: table_name) instead."
+        )
+        name = positional_name
+      end
+
       raise ArgumentError, "A name or klass is required." unless klass || name
       name = name.name if name.is_a?(Symbol)
 

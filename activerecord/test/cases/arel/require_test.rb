@@ -18,5 +18,19 @@ module Arel
 
       assert_predicate $?, :success?, "Expected `require \"arel\"` to succeed on its own, but got:\n#{output}"
     end
+
+    def test_deprecated_positional_table_name_works_with_arel_required_on_its_own
+      arel_load_path = $LOAD_PATH.find { |path| File.exist?(File.join(path, "arel.rb")) }
+      active_support_load_path = $LOAD_PATH.find { |path| File.exist?(File.join(path, "active_support/ractors.rb")) }
+
+      output = IO.popen(
+        [Gem.ruby, "-I", arel_load_path, "-I", active_support_load_path, "-e", 'require "arel"; print Arel::Table.new(:users).name'],
+        err: File::NULL,
+        &:read
+      )
+
+      assert_predicate $?, :success?
+      assert_equal "users", output
+    end
   end
 end
