@@ -1,9 +1,5 @@
 # frozen_string_literal: true
 
-# :markup: markdown
-
-require "active_support/core_ext/module/attribute_accessors"
-
 module ActionDispatch
   module Http
     module URL
@@ -109,9 +105,10 @@ module ActionDispatch
         end
       end
 
-      mattr_accessor :secure_protocol, default: false
-      mattr_accessor :tld_length, default: 1
-      mattr_accessor :domain_extractor, default: DomainExtractor
+      singleton_class.attr_accessor :secure_protocol, :tld_length, :domain_extractor
+      self.secure_protocol = false
+      self.tld_length = 1
+      self.domain_extractor = DomainExtractor
 
       class << self
         # Returns the domain part of a host given the domain level.
@@ -203,7 +200,11 @@ module ActionDispatch
           end
 
           def build_host_url(host, port, protocol, options, path)
-            if match = host.match(HOST_REGEXP)
+            # Keep regexp encoding validation while avoiding captures for ordinary Strings.
+            if String === host && host.instance_of?(String) && !host.empty? && !host.match?(/[:\[]/)
+              host = host.dup
+              port = nil unless options.key?(:port)
+            elsif match = host.match(HOST_REGEXP)
               protocol_from_host = match[1] if protocol.nil?
               host               = match[2]
               port               = match[3] unless options.key? :port
@@ -231,6 +232,16 @@ module ActionDispatch
           end
 
           def normalize_protocol(protocol)
+            # Preserve the generic path's encoding behavior for other inputs.
+            if String === protocol && protocol.instance_of?(String) && protocol.encoding == Encoding::UTF_8
+              case protocol
+              when "http", "http:", "http://"
+                return "http://"
+              when "https", "https:", "https://"
+                return "https://"
+              end
+            end
+
             case protocol
             when nil
               secure_protocol ? "https://" : "http://"
@@ -246,14 +257,15 @@ module ActionDispatch
           def normalize_host(_host, options)
             return _host unless named_host?(_host)
 
-            tld_length = options[:tld_length] || @@tld_length
+            tld_length = options[:tld_length] || self.tld_length
             subdomain  = options.fetch :subdomain, true
             domain     = options[:domain]
+            subdomain_from_host = subdomain == true
+
+            return _host if subdomain_from_host && domain.nil?
 
             host = +""
-            if subdomain == true
-              return _host if domain.nil?
-
+            if subdomain_from_host
               host << extract_subdomains_from(_host, tld_length).join(".")
             elsif subdomain
               host << subdomain.to_param
@@ -312,8 +324,8 @@ module ActionDispatch
       #     req = ActionDispatch::Request.new 'HTTP_HOST' => 'example.com:8080'
       #     req.raw_host_with_port # => "example.com:8080"
       def raw_host_with_port
-        if forwarded = x_forwarded_host.presence
-          forwarded.split(/,\s?/).last
+        @raw_host_with_port ||= if forwarded = x_forwarded_host&.split(/,\s?/)&.last.presence
+          forwarded
         else
           get_header("HTTP_HOST") || "#{server_name}:#{get_header('SERVER_PORT')}"
         end
@@ -324,7 +336,13 @@ module ActionDispatch
       #     req = ActionDispatch::Request.new 'HTTP_HOST' => 'example.com:8080'
       #     req.host # => "example.com"
       def host
-        raw_host_with_port.sub(/:\d+$/, "")
+        @host ||= begin
+          raw = raw_host_with_port
+          # Only strip a port when there could be one: a host without a colon
+          # is the common case in production, and the regexp substitution
+          # allocates a String and a MatchData even when nothing matches.
+          raw.include?(":") ? raw.sub(/:\d+$/, "") : raw
+        end
       end
 
       # Returns a host:port string for this request, such as "example.com" or
@@ -419,7 +437,7 @@ module ActionDispatch
       # Returns the domain part of a host, such as "rubyonrails.org" in
       # "www.rubyonrails.org". You can specify a different `tld_length`, such as 2 to
       # catch rubyonrails.co.uk in "www.rubyonrails.co.uk".
-      def domain(tld_length = @@tld_length)
+      def domain(tld_length = ActionDispatch::Http::URL.tld_length)
         ActionDispatch::Http::URL.extract_domain(host, tld_length)
       end
 
@@ -427,14 +445,14 @@ module ActionDispatch
       # for "dev.www.rubyonrails.org". You can specify a different `tld_length`, such
       # as 2 to catch `["www"]` instead of `["www", "rubyonrails"]` in
       # "www.rubyonrails.co.uk".
-      def subdomains(tld_length = @@tld_length)
+      def subdomains(tld_length = ActionDispatch::Http::URL.tld_length)
         ActionDispatch::Http::URL.extract_subdomains(host, tld_length)
       end
 
       # Returns all the subdomains as a string, so `"dev.www"` would be returned for
       # "dev.www.rubyonrails.org". You can specify a different `tld_length`, such as 2
       # to catch `"www"` instead of `"www.rubyonrails"` in "www.rubyonrails.co.uk".
-      def subdomain(tld_length = @@tld_length)
+      def subdomain(tld_length = ActionDispatch::Http::URL.tld_length)
         ActionDispatch::Http::URL.extract_subdomain(host, tld_length)
       end
     end

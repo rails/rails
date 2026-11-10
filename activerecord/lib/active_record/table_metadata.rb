@@ -7,6 +7,10 @@ module ActiveRecord
       @arel_table = arel_table
     end
 
+    def model
+      klass
+    end
+
     def primary_key
       klass&.primary_key
     end

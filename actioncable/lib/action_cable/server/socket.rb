@@ -2,6 +2,8 @@
 
 require "active_support/inspect_backport"
 require "action_dispatch"
+require "active_support/parameter_filter"
+require "concurrent/executor/serialized_execution_delegator"
 
 module ActionCable
   module Server
@@ -19,6 +21,9 @@ module ActionCable
         @server, @env, @coder = server, env, coder
 
         @worker_pool = server.worker_pool
+        # Runs this socket's work on the worker pool's threads, one job at a time,
+        # in the order it was posted.
+        @serial_executor = Concurrent::SerializedExecutionDelegator.new(worker_pool.executor)
         @logger = server.new_tagged_logger { request }
 
         @websocket      = WebSocket.new(env, self, event_loop)
@@ -54,12 +59,17 @@ module ActionCable
       end
 
       # Invoke a method on the connection asynchronously through the pool of thread workers.
+      # Like the connection's commands, these calls run one at a time, in the order they
+      # were made.
       def perform_work(receiver, method, *args)
-        worker_pool.async_invoke(receiver, method, *args, connection: self)
+        worker_pool.async_invoke(receiver, method, *args, connection: self, executor: @serial_executor)
       end
 
+      # Invoke a method on this socket through the pool of thread workers. These calls
+      # run one at a time, in the order they were made, so a client's commands are
+      # handled in the order it sent them.
       def send_async(method, *arguments)
-        worker_pool.async_invoke(self, method, *arguments)
+        worker_pool.async_invoke(self, method, *arguments, executor: @serial_executor)
       end
 
       # The request that initiated the WebSocket connection is available here. This gives access to the environment, cookies, etc.
@@ -80,10 +90,10 @@ module ActionCable
         if websocket.alive?
           @connection.handle_incoming decode(websocket_message)
         else
-          logger.error "Ignoring message processed after the WebSocket was closed: #{websocket_message.inspect})"
+          logger.error "Ignoring message processed after the WebSocket was closed: #{filtered_message(websocket_message)}"
         end
       rescue Exception => e
-        logger.error "Could not handle incoming message: #{websocket_message.inspect} [#{e.class} - #{e.message}]: #{e.backtrace.first(5).join(" | ")}"
+        logger.error "Could not handle incoming message: #{filtered_message(websocket_message)} [#{e.class} - #{e.message}]: #{e.backtrace.first(5).join(" | ")}"
       end
 
       def on_open # :nodoc:
@@ -119,6 +129,32 @@ module ActionCable
 
         def decode(websocket_message)
           @coder.decode websocket_message
+        end
+
+        def filtered_message(websocket_message)
+          message = decode(websocket_message)
+          return redacted_message(websocket_message) unless message.is_a?(Hash)
+
+          %w[ identifier data ].each do |key|
+            message[key] = decode_nested_json(message[key]) if message[key].is_a?(String)
+          end
+          parameter_filter.filter(message).inspect
+        rescue StandardError
+          redacted_message(websocket_message)
+        end
+
+        def decode_nested_json(json)
+          ActiveSupport::JSON.decode(json)
+        rescue ActiveSupport::JSON.parse_error
+          ActiveSupport::ParameterFilter::FILTERED
+        end
+
+        def redacted_message(websocket_message)
+          "#{ActiveSupport::ParameterFilter::FILTERED} (#{websocket_message.bytesize} bytes)"
+        end
+
+        def parameter_filter
+          @parameter_filter ||= ActiveSupport::ParameterFilter.new(config.filter_parameters)
         end
 
         def handle_open

@@ -61,6 +61,25 @@ module ActiveSupport
       assert_equal("-$10.00", number_to_currency(-10, locale: "empty"))
     end
 
+    def test_nested_converters_look_up_only_their_own_namespace
+      assert_called(I18n, :translate, times: 3, returns: {}) do
+        assert_equal("$1,234.57", number_to_currency(1234.567))
+      end
+
+      assert_called(I18n, :translate, times: 3, returns: {}) do
+        assert_equal("12.346%", number_to_percentage(12.3456))
+      end
+    end
+
+    def test_nested_converters_use_the_locale_precision_format
+      I18n.backend.store_translations "precision_only",
+        number: { precision: { format: { round_mode: :down, delimiter_pattern: /(\d)(?=(\d{2})+(?!\d))/ } } }
+
+      assert_equal("$1,23,45,67.89", number_to_currency(1234567.899, locale: "precision_only"))
+      assert_equal("123456.789%", number_to_percentage(123456.7899, locale: "precision_only"))
+      assert_equal("1.26 KB", number_to_human_size(1300, locale: "precision_only"))
+    end
+
     def test_locale_default_format_has_precedence_over_helper_defaults
       I18n.backend.store_translations "ts",
         number: { format: { separator: ";" } }

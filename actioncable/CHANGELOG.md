@@ -1,3 +1,36 @@
+*   Filter parameters from the message logged when a command can't be handled.
+
+    When a channel action raised, the error log included the raw WebSocket message,
+    so values hidden by `filter_parameters` in the action's debug log were written
+    in clear at the error level. The message, its identifier and its data are now
+    filtered, and a message that can't be decoded or filtered is replaced by
+    `[FILTERED]` and its size. The identifier and command quoted by subscription
+    errors, and the identifier in the "Unsubscribing from channel" log, are
+    filtered too.
+
+    *Clément Joubert*
+
+*   Close the connection when the event loop can't attach its socket.
+
+    If `NIO::Selector#register` raised, as it does on JRuby for UNIX sockets,
+    the stream was never closed and the client hung. The socket is now closed
+    and the connection torn down. The socket is also closed when it can't be
+    removed from the event loop.
+
+    *Sampo Kuokkanen*
+
+*   Process each connection's commands in the order the client sent them.
+
+    Commands were handed to the worker pool independently, so two commands from
+    one connection could run at the same time or out of order. When a client
+    unsubscribed from a channel and subscribed to it again, as page navigations
+    do, the subscribe could run first and be rejected as a duplicate, leaving the
+    client without a subscription until it re-sent the command. A connection's
+    work (opening, commands, stream callbacks, periodic timers and closing) now
+    runs one at a time, in order, still on the worker pool's threads.
+
+    *Sam Ruby*
+
 *   Move `ActionCable::Server::Configuration` to `ActionCable::Configuration`.
 
     The old constant remains available as an alias.

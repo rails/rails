@@ -8,9 +8,11 @@ module AbstractController
       class W
         include ActionDispatch::Routing::RouteSet.new.tap { |r|
           r.draw {
-            ActionDispatch.deprecator.silence {
-              get ":controller(/:action(/:id(.:format)))"
-            }
+            get "/c(/:id(.:format))",       controller: "c",    action: "index"
+            get "/c/a(/:id(.:format))",     controller: "c",    action: "a"
+            get "/foo(/:id(.:format))",     controller: "foo",  action: "index"
+            get "/foo/bar(/:id(.:format))", controller: "foo",  action: "bar"
+            get "/cont/act(/:id(.:format))", controller: "cont", action: "act"
           }
         }.url_helpers
       end
@@ -205,15 +207,65 @@ module AbstractController
 
       def test_protocol_with_and_without_separators
         add_host!
-        assert_equal("https://www.basecamphq.com/c/a/i",
-          W.new.url_for(controller: "c", action: "a", id: "i", protocol: "https")
-        )
-        assert_equal("https://www.basecamphq.com/c/a/i",
-          W.new.url_for(controller: "c", action: "a", id: "i", protocol: "https:")
-        )
-        assert_equal("https://www.basecamphq.com/c/a/i",
-          W.new.url_for(controller: "c", action: "a", id: "i", protocol: "https://")
-        )
+        %w[http https].each do |protocol|
+          [protocol, "#{protocol}:", "#{protocol}://"].each do |value|
+            assert_equal("#{protocol}://www.basecamphq.com/c/a/i",
+              W.new.url_for(controller: "c", action: "a", id: "i", protocol: value)
+            )
+          end
+        end
+      end
+
+      def test_protocol_encoding_is_preserved
+        add_host!
+        [Encoding::ISO_8859_1, Encoding::BINARY].each do |encoding|
+          url = W.new.url_for(controller: "c", action: "a", id: "i", protocol: "https".encode(encoding))
+          assert_equal "https://www.basecamphq.com/c/a/i", url
+          assert_equal encoding, url.encoding
+        end
+      end
+
+      def test_invalid_host_encoding_is_rejected_before_protocol
+        error = assert_raises(ArgumentError) do
+          W.new.url_for(controller: "c", action: "a", host: "\xFF", protocol: true)
+        end
+
+        assert_match(/invalid byte sequence in UTF-8/, error.message)
+      end
+
+      def test_host_string_subclasses_use_their_matcher
+        host = Class.new(String) do
+          def match(pattern)
+            "https://www.basecamphq.com:8443".match(pattern)
+          end
+        end.new("original.example.com")
+
+        assert_equal "https://www.basecamphq.com:8443/c/a/i",
+          W.new.url_for(controller: "c", action: "a", id: "i", host: host)
+      end
+
+      def test_host_and_protocol_string_proxies
+        proxy = Class.new(BasicObject) do
+          def initialize(value)
+            @value = value
+          end
+
+          def nil?
+            false
+          end
+
+          def to_str
+            @value
+          end
+
+          def match(pattern)
+            @value.match(pattern)
+          end
+        end
+
+        assert_equal "https://www.basecamphq.com/c/a/i",
+          W.new.url_for(controller: "c", action: "a", id: "i",
+            host: proxy.new("www.basecamphq.com"), protocol: proxy.new("https"))
       end
 
       def test_without_protocol
@@ -300,7 +352,7 @@ module AbstractController
         w = Class.new {
           config = ActionDispatch::Routing::RouteSet::Config.new "/subdir"
           r = ActionDispatch::Routing::RouteSet.new(config)
-          r.draw { ActionDispatch.deprecator.silence { get ":controller(/:action(/:id(.:format)))" } }
+          r.draw { get "/c/a(/:id(.:format))", controller: "c", action: "a" }
           include r.url_helpers
         }
         add_host!(w)
@@ -407,10 +459,7 @@ module AbstractController
         with_routing do |set|
           set.draw do
             get "home/sweet/home/:user", to: "home#index", as: :home
-
-            ActionDispatch.deprecator.silence do
-              get ":controller/:action/:id"
-            end
+            get "brave/new/:id", to: "brave#new"
           end
 
           # We need to create a new class in order to install the new named route.
@@ -502,7 +551,13 @@ module AbstractController
       end
 
       def test_path_generation_for_symbol_parameter_keys
-        assert_generates("/image", controller: :image)
+        with_routing do |set|
+          set.draw do
+            get "/image", to: "image#index"
+          end
+
+          assert_generates("/image", controller: :image)
+        end
       end
 
       def test_named_routes_with_nil_keys

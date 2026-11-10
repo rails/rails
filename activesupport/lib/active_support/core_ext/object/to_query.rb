@@ -1,4 +1,3 @@
-# :markup: markdown
 # frozen_string_literal: true
 
 require "cgi/escape"
@@ -14,6 +13,14 @@ class Object
   # using the given `key` as the param name.
   def to_query(key)
     "#{CGI.escape(key.to_param)}=#{CGI.escape(to_param.to_s)}"
+  end
+end
+
+class Symbol
+  # Returns the name of the symbol as a frozen String, the same object
+  # `Symbol#name` returns.
+  def to_param
+    name
   end
 end
 
@@ -64,7 +71,8 @@ class Array
     else
       filter_map { |value|
         next if (value.is_a?(Hash) || value.is_a?(Array)) && value.empty?
-        value.to_query(prefix)
+        query = value.to_query(prefix)
+        query unless query.empty?
       }.join "&"
     end
   end
@@ -91,7 +99,8 @@ class Hash
   def to_query(namespace = nil)
     query = filter_map do |key, value|
       next if (value.is_a?(Hash) || value.is_a?(Array)) && value.empty?
-      value.to_query(namespace ? "#{namespace}[#{key}]" : key)
+      pair = value.to_query(namespace ? "#{namespace}[#{key}]" : key)
+      pair unless pair.empty?
     end
 
     query.sort! unless namespace.to_s.include?("[]")

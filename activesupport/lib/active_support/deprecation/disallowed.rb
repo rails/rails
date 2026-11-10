@@ -1,4 +1,3 @@
-# :markup: markdown
 # frozen_string_literal: true
 
 module ActiveSupport
@@ -38,7 +37,7 @@ module ActiveSupport
         end
 
         def explicitly_allowed?(message)
-          allowances = @explicitly_allowed_warnings.value
+          allowances = explicitly_allowed_warnings
           return false unless allowances
           return true if allowances == :all
           message && Array(allowances).any? do |rule|

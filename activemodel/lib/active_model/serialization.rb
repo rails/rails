@@ -3,142 +3,157 @@
 require "active_support/core_ext/enumerable"
 
 module ActiveModel
-  # = Active \Model \Serialization
+  # Active \Model \Serialization
+  # ============================
   #
   # Provides a basic serialization to a serializable_hash for your objects.
   #
   # A minimal implementation could be:
   #
-  #   class Person
-  #     include ActiveModel::Serialization
+  # ```
+  # class Person
+  #   include ActiveModel::Serialization
   #
-  #     attr_accessor :name
+  #   attr_accessor :name
   #
-  #     def attributes
-  #       {'name' => nil}
-  #     end
+  #   def attributes
+  #     {'name' => nil}
   #   end
+  # end
+  # ```
   #
   # Which would provide you with:
   #
-  #   person = Person.new
-  #   person.serializable_hash   # => {"name"=>nil}
-  #   person.name = "Bob"
-  #   person.serializable_hash   # => {"name"=>"Bob"}
+  # ```
+  # person = Person.new
+  # person.serializable_hash   # => {"name"=>nil}
+  # person.name = "Bob"
+  # person.serializable_hash   # => {"name"=>"Bob"}
+  # ```
   #
-  # An +attributes+ hash must be defined and should contain any attributes you
+  # An `attributes` hash must be defined and should contain any attributes you
   # need to be serialized. Attributes must be strings, not symbols.
   # When called, serializable hash will use instance methods that match the name
   # of the attributes hash's keys. In order to override this behavior, override
-  # the +read_attribute_for_serialization+ method.
+  # the `read_attribute_for_serialization` method.
   #
   # ActiveModel::Serializers::JSON module automatically includes
-  # the +ActiveModel::Serialization+ module, so there is no need to
-  # explicitly include +ActiveModel::Serialization+.
+  # the `ActiveModel::Serialization` module, so there is no need to
+  # explicitly include `ActiveModel::Serialization`.
   #
   # A minimal implementation including JSON would be:
   #
-  #   class Person
-  #     include ActiveModel::Serializers::JSON
+  # ```
+  # class Person
+  #   include ActiveModel::Serializers::JSON
   #
-  #     attr_accessor :name
+  #   attr_accessor :name
   #
-  #     def attributes
-  #       {'name' => nil}
-  #     end
+  #   def attributes
+  #     {'name' => nil}
   #   end
+  # end
+  # ```
   #
   # Which would provide you with:
   #
-  #   person = Person.new
-  #   person.serializable_hash   # => {"name"=>nil}
-  #   person.as_json             # => {"name"=>nil}
-  #   person.to_json             # => "{\"name\":null}"
+  # ```
+  # person = Person.new
+  # person.serializable_hash   # => {"name"=>nil}
+  # person.as_json             # => {"name"=>nil}
+  # person.to_json             # => "{\"name\":null}"
   #
-  #   person.name = "Bob"
-  #   person.serializable_hash   # => {"name"=>"Bob"}
-  #   person.as_json             # => {"name"=>"Bob"}
-  #   person.to_json             # => "{\"name\":\"Bob\"}"
+  # person.name = "Bob"
+  # person.serializable_hash   # => {"name"=>"Bob"}
+  # person.as_json             # => {"name"=>"Bob"}
+  # person.to_json             # => "{\"name\":\"Bob\"}"
+  # ```
   #
-  # Valid options are <tt>:only</tt>, <tt>:except</tt>, <tt>:methods</tt> and
-  # <tt>:include</tt>. The following are all valid examples:
+  # Valid options are `:only`, `:except`, `:methods` and
+  # `:include`. The following are all valid examples:
   #
-  #   person.serializable_hash(only: 'name')
-  #   person.serializable_hash(include: :address)
-  #   person.serializable_hash(include: { address: { only: 'city' }})
+  # ```
+  # person.serializable_hash(only: 'name')
+  # person.serializable_hash(include: :address)
+  # person.serializable_hash(include: { address: { only: 'city' }})
+  # ```
   module Serialization
     # Returns a serialized hash of your object.
     #
-    #   class Person
-    #     include ActiveModel::Serialization
+    # ```
+    # class Person
+    #   include ActiveModel::Serialization
     #
-    #     attr_accessor :name, :age
+    #   attr_accessor :name, :age
     #
-    #     def attributes
-    #       {'name' => nil, 'age' => nil}
-    #     end
-    #
-    #     def capitalized_name
-    #       name.capitalize
-    #     end
+    #   def attributes
+    #     {'name' => nil, 'age' => nil}
     #   end
     #
-    #   person = Person.new
-    #   person.name = 'bob'
-    #   person.age  = 22
-    #   person.serializable_hash                # => {"name"=>"bob", "age"=>22}
-    #   person.serializable_hash(only: :name)   # => {"name"=>"bob"}
-    #   person.serializable_hash(except: :name) # => {"age"=>22}
-    #   person.serializable_hash(methods: :capitalized_name)
-    #   # => {"name"=>"bob", "age"=>22, "capitalized_name"=>"Bob"}
-    #
-    # Example with <tt>:include</tt> option
-    #
-    #   class User
-    #     include ActiveModel::Serializers::JSON
-    #     attr_accessor :name, :notes # Emulate has_many :notes
-    #     def attributes
-    #       {'name' => nil}
-    #     end
+    #   def capitalized_name
+    #     name.capitalize
     #   end
+    # end
     #
-    #   class Note
-    #     include ActiveModel::Serializers::JSON
-    #     attr_accessor :title, :text
-    #     def attributes
-    #       {'title' => nil, 'text' => nil}
-    #     end
+    # person = Person.new
+    # person.name = 'bob'
+    # person.age  = 22
+    # person.serializable_hash                # => {"name"=>"bob", "age"=>22}
+    # person.serializable_hash(only: :name)   # => {"name"=>"bob"}
+    # person.serializable_hash(except: :name) # => {"age"=>22}
+    # person.serializable_hash(methods: :capitalized_name)
+    # # => {"name"=>"bob", "age"=>22, "capitalized_name"=>"Bob"}
+    # ```
+    #
+    # Example with `:include` option
+    #
+    # ```
+    # class User
+    #   include ActiveModel::Serializers::JSON
+    #   attr_accessor :name, :notes # Emulate has_many :notes
+    #   def attributes
+    #     {'name' => nil}
     #   end
+    # end
     #
-    #   note = Note.new
-    #   note.title = 'Battle of Austerlitz'
-    #   note.text = 'Some text here'
+    # class Note
+    #   include ActiveModel::Serializers::JSON
+    #   attr_accessor :title, :text
+    #   def attributes
+    #     {'title' => nil, 'text' => nil}
+    #   end
+    # end
     #
-    #   user = User.new
-    #   user.name = 'Napoleon'
-    #   user.notes = [note]
+    # note = Note.new
+    # note.title = 'Battle of Austerlitz'
+    # note.text = 'Some text here'
     #
-    #   user.serializable_hash
-    #   # => {"name" => "Napoleon"}
-    #   user.serializable_hash(include: { notes: { only: 'title' }})
-    #   # => {"name" => "Napoleon", "notes" => [{"title"=>"Battle of Austerlitz"}]}
+    # user = User.new
+    # user.name = 'Napoleon'
+    # user.notes = [note]
+    #
+    # user.serializable_hash
+    # # => {"name" => "Napoleon"}
+    # user.serializable_hash(include: { notes: { only: 'title' }})
+    # # => {"name" => "Napoleon", "notes" => [{"title"=>"Battle of Austerlitz"}]}
+    # ```
     def serializable_hash(options = nil)
       attribute_names = attribute_names_for_serialization
 
       return serializable_attributes(attribute_names) if options.blank?
 
       if only = options[:only]
-        attribute_names = Array(only).map(&:to_s) & attribute_names
+        attribute_names = Array(only).map { |name| serialization_key(name) } & attribute_names
       elsif except = options[:except]
-        attribute_names -= Array(except).map(&:to_s)
+        attribute_names -= Array(except).map { |name| serialization_key(name) }
       end
 
       hash = serializable_attributes(attribute_names)
 
-      Array(options[:methods]).each { |m| hash[m.to_s] = send(m) }
+      Array(options[:methods]).each { |m| hash[serialization_key(m)] = send(m) }
 
       serializable_add_includes(options) do |association, records, opts|
-        hash[association.to_s] = if records.respond_to?(:to_ary)
+        hash[serialization_key(association)] = if records.respond_to?(:to_ary)
           records.to_ary.map { |a| a.serializable_hash(opts) }
         else
           records.serializable_hash(opts)
@@ -153,22 +168,28 @@ module ActiveModel
     # the attribute. Override this method in subclasses should you need to
     # retrieve the value for a given attribute differently:
     #
-    #   class MyClass
-    #     include ActiveModel::Serialization
+    # ```
+    # class MyClass
+    #   include ActiveModel::Serialization
     #
-    #     def initialize(data = {})
-    #       @data = data
-    #     end
-    #
-    #     def read_attribute_for_serialization(key)
-    #       @data[key]
-    #     end
+    #   def initialize(data = {})
+    #     @data = data
     #   end
+    #
+    #   def read_attribute_for_serialization(key)
+    #     @data[key]
+    #   end
+    # end
+    # ```
     def read_attribute_for_serialization(key)
       send(key)
     end
 
     private
+      def serialization_key(name)
+        Symbol === name ? name.name : name.to_s
+      end
+
       def attribute_names_for_serialization
         attributes.keys
       end
@@ -177,12 +198,15 @@ module ActiveModel
         attribute_names.index_with { |n| read_attribute_for_serialization(n) }
       end
 
-      # Add associations specified via the <tt>:include</tt> option.
+      # Add associations specified via the `:include` option.
       #
       # Expects a block that takes as arguments:
-      #   +association+ - name of the association
-      #   +records+     - the association record(s) to be serialized
-      #   +opts+        - options for the association records
+      #
+      # ```
+      # +association+ - name of the association
+      # +records+     - the association record(s) to be serialized
+      # +opts+        - options for the association records
+      # ```
       def serializable_add_includes(options = {}) # :nodoc:
         return unless includes = options[:include]
 

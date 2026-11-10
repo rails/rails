@@ -1,7 +1,5 @@
 # frozen_string_literal: true
 
-# :markup: markdown
-
 require "action_pack"
 require "active_support"
 require "active_support/rails"
@@ -16,6 +14,7 @@ module AbstractController
   autoload :Caching
   autoload :Callbacks
   autoload :Collector
+  autoload :Config
   autoload :DoubleRenderError, "abstract_controller/rendering"
   autoload :Helpers
   autoload :Logger

@@ -341,11 +341,18 @@ class ApplicationMailbox < ActionMailbox::Base
 end
 ```
 
-The regular expression matches the incoming email's `to`, `cc`, or `bcc` fields.
-For example, the above will match any email sent to `save@` to a "forwards"
-mailbox. There are other ways to route an email, see
+The regular expression matches the addresses in the incoming email's `To`,
+`Cc`, `Bcc`, `X-Original-To`, and `X-Forwarded-To` headers. For example, the
+above will match any email sent to `save@` to a "forwards" mailbox. There are
+other ways to route an email, see
 [`ActionMailbox::Base`](https://api.rubyonrails.org/classes/ActionMailbox/Base.html)
 for more.
+
+WARNING: Routing is not authentication. The sender of an email can set every
+header that string and regular expression routes match, so a route does not
+establish who sent an email or where it was delivered. A mailbox that acts on
+behalf of a user or an account must check that the email is allowed to do so
+before processing it.
 
 We need to create that "forwards" mailbox next.
 
@@ -412,7 +419,7 @@ Here is an example of an Action Mailbox that processes emails to create
 "forwards" for the user's project.
 
 The `before_processing` callback is used to ensure that certain conditions are
-met before `process` method is called. In this case, `before_processing` checks
+met before the `process` method is called. In this case, `before_processing` checks
 that the user has at least one project. Other supported [Action Mailbox
 callbacks](https://api.rubyonrails.org/classes/ActionMailbox/Callbacks.html) are
 `after_processing` and `around_processing`.

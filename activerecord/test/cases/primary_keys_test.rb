@@ -12,30 +12,12 @@ require "models/mixed_case_monkey"
 require "models/dashboard"
 require "models/non_primary_key"
 require "models/cpk"
+require "models/auto_id"
 
 class PrimaryKeysTest < ActiveRecord::TestCase
   include ActiveSupport::Testing::RactorsAssertions
 
   fixtures :topics, :subscribers, :movies, :mixed_case_monkeys
-
-  def test_primary_key_can_be_read_from_a_ractor_when_single
-    Topic.primary_key
-    assert_equal "id", on_ractor { Topic.primary_key }
-  end
-
-  def test_primary_key_can_be_read_from_a_ractor_when_composite
-    Cpk::Order.primary_key
-    assert_equal ["shop_id", "id"], on_ractor { Cpk::Order.primary_key }
-  end
-
-  def test_primary_key_can_be_read_from_a_ractor_when_absent
-    NonPrimaryKey.primary_key
-    assert_nil on_ractor { NonPrimaryKey.primary_key }
-  end
-
-  def test_primary_key_can_be_reset_from_a_ractor
-    assert_equal "id", on_ractor { Topic.reset_primary_key }
-  end
 
   def test_query_constraints_list_is_ractor_shareable
     assert_ractor_shareable Topic.query_constraints_list
@@ -48,6 +30,16 @@ class PrimaryKeysTest < ActiveRecord::TestCase
   def test_returning_columns_for_insert_is_ractor_shareable
     columns = Topic._returning_columns_for_insert(ActiveRecord::Base.lease_connection)
     assert_ractor_shareable columns
+  end
+
+  def test_returning_columns_for_insert_are_decided_by_the_inserting_connection
+    auto_id_only = Object.new
+    def auto_id_only.return_value_after_insert?(column) = column.name == "auto_id"
+    value_only = Object.new
+    def value_only.return_value_after_insert?(column) = column.name == "value"
+
+    assert_equal ["auto_id"], AutoId._returning_columns_for_insert(auto_id_only)
+    assert_equal ["value"], AutoId._returning_columns_for_insert(value_only)
   end
 
   def test_to_key_with_default_primary_key
@@ -294,8 +286,190 @@ class PrimaryKeysTest < ActiveRecord::TestCase
     k.primary_key = "foo"
     subclass = Class.new(k)
 
-    assert_equal "foo", k._primary_key_definition&.name
-    assert_equal "foo", subclass._primary_key_definition&.name
+    assert_equal "foo", k.primary_key
+    assert_equal "foo", subclass.primary_key
+  end
+
+  def test_primary_key_inherited_when_assigned_after_subclass_is_defined
+    k = Class.new(ActiveRecord::Base) { self.table_name = "topics" }
+    subclass = Class.new(k)
+    assert_equal "id", subclass.primary_key
+
+    k.primary_key = "title"
+    assert_equal "title", subclass.primary_key
+  end
+
+  def test_primary_key_assigned_on_subclass_is_not_overridden_by_parent
+    k = Class.new(ActiveRecord::Base) { self.table_name = "topics" }
+    subclass = Class.new(k) { self.primary_key = "title" }
+
+    k.primary_key = "author_name"
+    assert_equal "author_name", k.primary_key
+    assert_equal "title", subclass.primary_key
+  end
+
+  def test_abstract_class_descendant_infers_primary_key_from_its_own_table
+    parent = Class.new(ActiveRecord::Base) do
+      self.abstract_class = true
+      self.table_name = "topics"
+    end
+    assert_equal "id", parent.primary_key
+
+    child = Class.new(parent) do
+      self.table_name = "movies"
+    end
+    assert_equal "movieid", child.primary_key
+  end
+
+  def test_schema_metadata_honors_primary_key_reader_override
+    model = Class.new(ActiveRecord::Base) do
+      self.table_name = "topics"
+
+      def self.primary_key
+        "title"
+      end
+    end
+
+    assert_not_includes model.content_columns.map(&:name), "title"
+    assert_includes model.content_columns.map(&:name), "id"
+    assert_equal ["title"], model.composite_query_constraints_list
+    assert_nil model.instantiate("id" => 1).title
+  end
+
+  def test_primary_key_reader_override_takes_precedence_over_a_declared_key
+    model = Class.new(ActiveRecord::Base) do
+      self.table_name = "topics"
+      self.primary_key = "id"
+
+      def self.primary_key
+        "title"
+      end
+    end
+
+    assert_equal "title", model.primary_key_definition.name
+    assert_not_includes model.content_columns.map(&:name), "title"
+  end
+
+  def test_primary_key_reader_override_can_extend_the_default_key
+    model = Class.new(ActiveRecord::Base) do
+      self.table_name = "topics"
+
+      def self.primary_key
+        [super, "title"]
+      end
+    end
+
+    assert_equal ["id", "title"], model.primary_key
+    assert_equal ["id", "title"], model.query_constraints_list
+    assert_predicate model, :composite_primary_key?
+    assert_equal [1, "Title"], model.instantiate("id" => 1, "title" => "Title").id
+  end
+
+  def test_find_through_a_subclass_honors_its_parents_primary_key_reader_override
+    parent = Class.new(ActiveRecord::Base) do
+      self.table_name = "movies"
+
+      def self.primary_key
+        "name"
+      end
+    end
+    child = Class.new(parent)
+    movie = movies(:first)
+
+    assert_equal movie.name, child.all.find(movie.name).id
+  end
+
+  def test_primary_key_assignment_reloads_schema
+    klass = Class.new(ActiveRecord::Base) do
+      self.table_name = "topics"
+    end
+    assert_equal ["id"], klass.composite_query_constraints_list
+    context = klass.schema_context
+
+    klass.primary_key = ["title", "id"]
+
+    assert_not_same context, klass.schema_context
+    assert_equal ["title", "id"], klass.query_constraints_list
+    assert_equal ["title", "id"], klass.composite_query_constraints_list
+  end
+
+  def test_record_keeps_its_composite_key_after_the_model_key_becomes_scalar
+    model = Class.new(ActiveRecord::Base) do
+      self.table_name = "topics"
+      self.primary_key = ["title", "id"]
+    end
+    record = model.instantiate("title" => "Composite", "id" => 42)
+    model.primary_key = "title"
+
+    assert_equal ["Composite", 42], record.id
+    record.id = ["Changed", 44]
+    assert_equal ["Composite", 42], record.id_was
+    assert_equal [model, ["Changed", 44]].hash, record.hash
+    record.write_attribute(:id, 45)
+    assert_equal ["Changed", 45], record.id
+    error = assert_raises(TypeError) { record.id = 46 }
+    assert_equal 'Expected value matching ["title", "id"], got 46.', error.message
+  end
+
+  def test_record_keeps_its_scalar_key_after_the_model_key_becomes_composite
+    model = Class.new(ActiveRecord::Base) do
+      self.table_name = "topics"
+      self.primary_key = "title"
+    end
+    record = model.instantiate("title" => "Scalar", "id" => 43)
+    model.primary_key = ["title", "id"]
+
+    record.id = "Changed"
+    assert_equal "Changed", record.id
+    assert_equal [model, "Changed"].hash, record.hash
+    assert_deprecated(ActiveRecord.deprecator) { record.write_attribute(:id, "Written") }
+    assert_equal "Written", record.id
+    assert_equal 43, record.read_attribute(:id)
+  end
+
+  def test_primary_key_assignment_reloads_descendant_schema
+    klass = Class.new(ActiveRecord::Base) do
+      self.table_name = "topics"
+      self.primary_key = "id"
+    end
+    child = Class.new(klass)
+    assert_equal ["id"], child.composite_query_constraints_list
+    context = child.schema_context
+
+    klass.primary_key = ["title", "id"]
+
+    assert_not_same context, child.schema_context
+    assert_equal ["title", "id"], child.query_constraints_list
+    assert_equal ["title", "id"], child.composite_query_constraints_list
+  end
+
+  def test_attributes_builder_is_reused_until_the_schema_is_reloaded
+    klass = Class.new(ActiveRecord::Base) do
+      self.table_name = "topics"
+    end
+    builder = klass.attributes_builder
+
+    assert_same builder, klass.attributes_builder
+    assert builder.default_keys.include?("id")
+    assert_not builder.default_keys.include?("title")
+
+    klass.reset_column_information
+
+    assert_not_same builder, klass.attributes_builder
+  end
+
+  def test_primary_key_assignment_rebuilds_the_attributes_builder
+    klass = Class.new(ActiveRecord::Base) do
+      self.table_name = "topics"
+    end
+    child = Class.new(klass)
+    builder = child.attributes_builder
+
+    klass.primary_key = "title"
+
+    assert_not_same builder, child.attributes_builder
+    assert child.attributes_builder.default_keys.include?("title")
+    assert_not child.attributes_builder.default_keys.include?("id")
   end
 
   def test_auto_detect_primary_key_from_schema
@@ -363,9 +537,37 @@ class PrimaryKeysTest < ActiveRecord::TestCase
       assert_predicate column, :serial?
     end
   end
+
+  if RUBY_VERSION >= "4.0" && !in_memory_db?
+    class PrimaryKeysRactorTest < ActiveRecord::TestCase
+      include ActiveSupport::Testing::Isolation
+      include ActiveSupport::Testing::RactorsAssertions
+
+      def test_primary_key_can_be_read_from_a_ractor_when_single
+        Topic.primary_key
+        assert_equal "id", on_ractor { Topic.primary_key }
+      end
+
+      def test_primary_key_can_be_read_from_a_ractor_when_composite
+        Cpk::Order.primary_key
+        assert_equal ["shop_id", "id"], on_ractor { Cpk::Order.primary_key }
+      end
+
+      def test_primary_key_can_be_read_from_a_ractor_when_absent
+        NonPrimaryKey.primary_key
+        assert_nil on_ractor { NonPrimaryKey.primary_key }
+      end
+
+      def test_primary_key_can_be_reset_from_a_ractor
+        assert_equal "id", on_ractor { Topic.reset_primary_key }
+      end
+    end
+  end
 end
 
 class PrimaryKeyWithAutoIncrementTest < ActiveRecord::TestCase
+  skip_under_ractor_proxy
+
   self.use_transactional_tests = false
 
   class AutoIncrement < ActiveRecord::Base
@@ -403,6 +605,8 @@ class PrimaryKeyWithAutoIncrementTest < ActiveRecord::TestCase
 end
 
 class PrimaryKeyAnyTypeTest < ActiveRecord::TestCase
+  skip_under_ractor_proxy
+
   include SchemaDumpingHelper
 
   class Barcode < ActiveRecord::Base
@@ -444,6 +648,8 @@ class PrimaryKeyAnyTypeTest < ActiveRecord::TestCase
 end
 
 class CompositePrimaryKeyTest < ActiveRecord::TestCase
+  skip_under_ractor_proxy
+
   include SchemaDumpingHelper
 
   self.use_transactional_tests = false
@@ -585,6 +791,8 @@ class CompositePrimaryKeyTest < ActiveRecord::TestCase
 end
 
 class PrimaryKeyIntegerNilDefaultTest < ActiveRecord::TestCase
+  skip_under_ractor_proxy
+
   include SchemaDumpingHelper
 
   def setup

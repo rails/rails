@@ -14,7 +14,7 @@ module ActiveRecord
           end
 
           def cast_value(value)
-            return value unless ::String === value
+            return super unless ::String === value
 
             # Because money output is formatted according to the locale, there are two
             # cases to consider (note the decimal separators):

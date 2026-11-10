@@ -68,7 +68,7 @@ module ApplicationTests
 
     private
       def spawn_dbconsole(fd, options = nil)
-        Process.spawn("#{app_path}/bin/rails dbconsole #{options}", in: fd, out: fd, err: fd)
+        Process.spawn({ "SQLITE_PS1" => "sqlite> " }, "#{app_path}/bin/rails dbconsole #{options}", in: fd, out: fd, err: fd)
       end
   end
 end

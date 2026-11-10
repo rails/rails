@@ -87,7 +87,120 @@ module ApplicationTests
       assert_includes(output, "Unknown variant processor :nope")
     end
 
+    def test_mini_magick_transformer_boots_with_unsecurable_vips
+      add_to_config "config.active_storage.variant_processor = :mini_magick"
+      add_ruby_vips_stub "module Vips; end"
+
+      output = run_command("puts :booted")
+
+      assert_includes(output, "booted")
+    end
+
+    def test_vips_transformer_raises_at_boot_with_unsecurable_vips
+      add_to_config "config.active_storage.variant_processor = :vips"
+      add_ruby_vips_stub "module Vips; end"
+
+      output = run_command("puts :booted")
+
+      assert_not_includes(output, "booted")
+      assert_includes(output, "remove the ruby-vips gem from your Gemfile. (RuntimeError)")
+    end
+
+    def test_mini_magick_transformer_raises_at_boot_with_unsecurable_mini_magick
+      add_to_config "config.active_storage.variant_processor = :mini_magick"
+      add_gem_stub "mini_magick", "5.0.1", "module MiniMagick; end"
+
+      output = run_command("puts :booted")
+
+      assert_not_includes(output, "booted")
+      assert_includes(output, "requires mini_magick 5.1 or later")
+    end
+
+    def test_vips_transformer_boots_with_unsecurable_mini_magick
+      add_to_config "config.active_storage.variant_processor = :vips"
+      add_gem_stub "mini_magick", "5.0.1", "module MiniMagick; end"
+
+      output = run_command("puts :booted")
+
+      assert_includes(output, "booted")
+    end
+
+    def test_image_magick_policy_is_applied_after_an_initializer_replaces_mini_magick_cli_env
+      File.open("#{app_path}/Gemfile", "a") { |f| f.puts 'gem "mini_magick", "~> 5.1"' }
+      app_file "config/initializers/mini_magick.rb", 'MiniMagick.cli_env = { "OMP_NUM_THREADS" => "1" }'
+
+      output = run_command("puts MiniMagick.cli_env.inspect; puts ActiveStorage::ImageMagick::POLICY_DIRECTORY")
+      cli_env, policy_directory = output.lines.last(2).map(&:chomp)
+
+      assert_equal({ "OMP_NUM_THREADS" => "1", "MAGICK_CONFIGURE_PATH" => policy_directory }.inspect, cli_env)
+    end
+
+    def test_block_untrusted_runs_before_initializers_without_vips_transformer
+      add_to_config "config.active_storage.variant_processor = :mini_magick"
+      add_ruby_vips_stub <<~'RUBY'
+        module Vips
+          def self.block_untrusted(state) = puts("block_untrusted(#{state})")
+        end
+      RUBY
+      app_file "config/initializers/probe.rb", 'puts "initializer"'
+
+      output = run_command("puts :booted")
+
+      assert_equal %w[block_untrusted(true) initializer booted], output.lines.map(&:chomp).grep(/^(block_untrusted|initializer|booted)/)
+    end
+
+    def test_boots_when_ruby_vips_cannot_load_its_libraries
+      File.open("#{app_path}/Gemfile", "a") { |f| f.puts 'gem "image_processing", "~> 2.0"' }
+      add_ruby_vips_stub 'require "vips"'
+      File.write app_path("ruby-vips", "lib", "vips.rb"), <<~'RUBY'
+        raise LoadError, "Could not open library 'glib-2.0.0': dlopen(glib-2.0.0, 0x0005): tried: 'glib-2.0.0' (no such file)."
+      RUBY
+
+      output = run_command("puts :booted")
+
+      assert_includes(output, "booted")
+    end
+
+    def test_does_not_require_ruby_vips_again_after_it_fails_to_load
+      File.open("#{app_path}/Gemfile", "a") { |f| f.puts 'gem "image_processing", "~> 2.0"' }
+      add_ruby_vips_stub 'require "vips"'
+      File.write app_path("ruby-vips", "lib", "vips.rb"), <<~'RUBY'
+        raise "ruby-vips was required again after it failed to load" if $vips_required
+        $vips_required = true
+        raise LoadError, "Could not open library 'glib-2.0.0': dlopen(glib-2.0.0, 0x0005): tried: 'glib-2.0.0' (no such file)."
+      RUBY
+
+      output = run_command("puts :booted")
+
+      assert_includes(output, "Using vips to process variants requires the libvips library")
+      assert_includes(output, "booted")
+    end
+
     private
+      def add_ruby_vips_stub(source)
+        add_gem_stub "ruby-vips", "2.3.0", source
+      end
+
+      def add_gem_stub(name, version, source)
+        FileUtils.mkdir_p app_path(name, "lib")
+
+        File.write app_path(name, "#{name}.gemspec"), <<~RUBY
+          Gem::Specification.new do |spec|
+            spec.name = "#{name}"
+            spec.version = "#{version}"
+            spec.summary = "#{name} stub"
+            spec.authors = [ "Rails test" ]
+            spec.files = [ "lib/#{name}.rb" ]
+          end
+        RUBY
+
+        File.write app_path(name, "lib", "#{name}.rb"), source
+
+        File.open app_path("Gemfile"), "a" do |f|
+          f.puts %(gem "#{name}", path: "#{app_path(name)}")
+        end
+      end
+
       def run_command(cmd)
         Dir.chdir(app_path) do
           Bundler.with_original_env do

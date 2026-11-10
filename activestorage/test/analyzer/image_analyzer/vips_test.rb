@@ -6,6 +6,16 @@ require "database/setup"
 require "active_storage/analyzer/image_analyzer"
 
 class ActiveStorage::Analyzer::ImageAnalyzer::VipsTest < ActiveSupport::TestCase
+  test "analyzing raises when libvips cannot block its unfuzzed loaders" do
+    analyze_with_vips do
+      blob = create_file_blob(filename: "racecar.jpg", content_type: "image/jpeg")
+
+      stub_const(ActiveStorage, :VIPS_UNSECURABLE, true) do
+        assert_raises(RuntimeError, match: /Active Storage cannot disable them/) { extract_metadata_from(blob) }
+      end
+    end
+  end
+
   test "analyzing a JPEG image" do
     analyze_with_vips do
       blob = create_file_blob(filename: "racecar.jpg", content_type: "image/jpeg")
@@ -43,6 +53,24 @@ class ActiveStorage::Analyzer::ImageAnalyzer::VipsTest < ActiveSupport::TestCase
 
       assert_equal 2736, metadata[:width]
       assert_equal 4104, metadata[:height]
+    end
+  end
+
+  test "analyzing images with every orientation" do
+    analyze_with_vips do
+      # JPEG carries the orientation in an EXIF block, TIFF in a format-native tag with no EXIF.
+      { ".jpg" => "image/jpeg", ".tif" => "image/tiff" }.each do |extension, content_type|
+        (1..8).each do |orientation|
+          data = ::Vips::Image.black(400, 300)
+            .mutate { |mutable| mutable.set_type!(GObject::GINT_TYPE, "orientation", orientation) }
+            .write_to_buffer(extension)
+          blob = create_blob(data: data, filename: "orientation_#{orientation}#{extension}", content_type: content_type)
+          metadata = extract_metadata_from(blob)
+
+          expected = orientation >= 5 ? [300, 400] : [400, 300]
+          assert_equal expected, [metadata[:width], metadata[:height]], "#{extension} orientation #{orientation}"
+        end
+      end
     end
   end
 

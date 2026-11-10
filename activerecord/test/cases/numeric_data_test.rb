@@ -69,6 +69,16 @@ class NumericDataTest < ActiveRecord::TestCase
     assert_equal BigDecimal("234000567.95"), m1.big_bank_balance
   end
 
+  def test_numeric_fields_without_scale_cast_long_strings
+    m = NumericData.new(
+      world_population: "18446744073709551615",
+      atoms_in_universe: "1" * 55
+    )
+
+    assert_equal 18446744073709551615, m.world_population
+    assert_equal ("1" * 55).to_i, m.atoms_in_universe
+  end
+
   if current_adapter?(:PostgreSQLAdapter)
     def test_numeric_fields_with_nan
       m = NumericData.new(

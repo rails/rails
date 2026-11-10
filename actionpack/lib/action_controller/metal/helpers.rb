@@ -1,7 +1,5 @@
 # frozen_string_literal: true
 
-# :markup: markdown
-
 module ActionController
   # # Action Controller Helpers
   #
@@ -91,6 +89,7 @@ module ActionController
       # incorrect behavior with capture methods. Consider using
       # [helper](rdoc-ref:AbstractController::Helpers::ClassMethods#helper) instead
       # when using `capture`.
+      #: () -> ActionView::Base
       def helpers
         @helper_proxy ||= begin
           proxy = ActionView::Base.empty

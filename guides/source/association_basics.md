@@ -645,7 +645,7 @@ end
 instance of the declaring model (`Author`) to have multiple instances of the
 associated model (`Book`).
 
-NOTE: Unlike a `has_one` and `belongs_to` association, the name of the other
+NOTE: Unlike `has_one` and `belongs_to` associations, the name of the other
 model is pluralized when declaring a `has_many` association.
 
 ![has_many Association Diagram](images/association_basics/has_many.svg)
@@ -1675,7 +1675,7 @@ instructed otherwise.
 If you're working with composite primary keys in your Rails models and need to
 ensure the correct handling of associations, please refer to the [Associations
 section of the Composite Primary Keys
-guide](active_record_composite_primary_keys.html#associations-between-models-with-composite-primary-keys).
+guide](active_record_composite_primary_keys.html#associations).
 This section provides comprehensive guidance on setting up and using
 associations with composite primary keys in Rails, including how to specify
 composite foreign keys when necessary.
@@ -1800,8 +1800,8 @@ class Car < Vehicle
 end
 ```
 
-This means that all behavior added to Vehicle is available for Car too, as
-associations, public methods, etc. Creating a car will save it in the `vehicles`
+This means that all behavior added to Vehicle is available for Car too,
+such as associations, public methods, etc. Creating a car will save it in the `vehicles`
 table with "Car" as the `type` field:
 
 Repeat the same process for `Motorcycle` and `Bicycle`.
@@ -1944,7 +1944,7 @@ the database, especially when setting up foreign key constraints.
 Delegated Types
 ----------------
 
-Delegated types solves the [`Single Table Inheritance
+Delegated types solve the [`Single Table Inheritance
 (STI)`](#single-table-inheritance-sti) problem of table bloat via
 `delegated_type`. This approach allows us to store shared attributes in a
 superclass table and have separate tables for subclass-specific attributes.
@@ -2006,7 +2006,7 @@ class Entry < ApplicationRecord
 end
 ```
 
-The `entryable` parameter specifies the field to use for delegation, and include
+The `entryable` parameter specifies the field to use for delegation, and includes
 the types `Message` and `Comment` as the delegate classes. The `entryable_type`
 and `entryable_id` fields store the subclass name and the record ID of the
 delegate subclass, respectively.
@@ -2733,13 +2733,12 @@ association, you can achieve similar functionality by using a join table with
 #### `:validate`
 
 If you set the `:validate` option to `true`, then new associated objects will be
-validated whenever you save this object. By default, this is `false`: new
+validated whenever you save this object. If you set it to `false`, new
 associated objects will not be validated when this object is saved.
 
-`has_and_belongs_to_many` does not support the `:validate` option. For this type
-of association, you can achieve similar functionality by using a join table with
-has_many `:through` association. You can read more about this in the
-[`has_many :through` section](#has-many-through).
+The default depends on the type of association. For `has_many` and
+`has_and_belongs_to_many`, it is `true`. For `belongs_to` and `has_one`, it is
+`false`, unless the `:autosave` option is set to `true`.
 
 
 #### `:inverse_of`
@@ -2998,18 +2997,18 @@ fetched through an association.
 ```ruby
 class Parts < ApplicationRecord
   has_and_belongs_to_many :assemblies,
-    -> { order("created_at DESC").limit(50) }
+    -> { order(created_at: :desc).limit(50) }
 end
 ```
 
 ##### `order`
 
 The `order` method dictates the order in which associated objects will be
-received (in the syntax used by an SQL `ORDER BY` clause).
+received.
 
 ```ruby
 class Author < ApplicationRecord
-  has_many :books, -> { order "date_confirmed DESC" }
+  has_many :books, -> { order(date_confirmed: :desc) }
 end
 ```
 

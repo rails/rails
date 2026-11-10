@@ -11,13 +11,15 @@ module ActiveRecord
 
       def create(connection_already_established = false)
         establish_connection(public_schema_config) unless connection_already_established
-        connection.create_database(db_config.database, configuration_hash.merge(encoding: encoding))
+        translating_maintenance_database_errors do
+          connection.create_database(db_config.database, configuration_hash.merge(encoding: encoding))
+        end
         establish_connection
       end
 
       def drop
         establish_connection(public_schema_config)
-        connection.drop_database(db_config.database)
+        translating_maintenance_database_errors { connection.drop_database(db_config.database) }
       end
 
       def purge
@@ -49,15 +51,21 @@ module ActiveRecord
         end
 
         ignore_tables = ActiveRecord.schema_ignored_tables
-        if ignore_tables.any?
-          ignore_tables = connection.data_sources.select { |table| ignore_tables.any? { |pattern| pattern === table } }
-          args += ignore_tables.flat_map { |table| ["-T", table] }
+        dumped_search_path = nil
+
+        with_target_connection do |conn|
+          if ignore_tables.any?
+            ignored = conn.data_sources.select { |table| ignore_tables.any? { |pattern| pattern === table } }
+            args += ignored.flat_map { |table| ["-T", table] }
+          end
+
+          dumped_search_path = conn.schema_search_path
         end
 
         args << db_config.database
         run_cmd("pg_dump", *args)
         remove_sql_header_comments(filename)
-        File.open(filename, "a") { |f| f << "SET search_path TO #{connection.schema_search_path};\n\n" }
+        File.open(filename, "a") { |f| f << "SET search_path TO #{dumped_search_path};\n\n" }
       end
 
       def structure_load(filename, extra_flags)
@@ -74,7 +82,17 @@ module ActiveRecord
         end
 
         def public_schema_config
-          configuration_hash.merge(database: "postgres", schema_search_path: "public")
+          configuration_hash.except(:maintenance_database).merge(database: maintenance_database, schema_search_path: "public")
+        end
+
+        def maintenance_database
+          configuration_hash[:maintenance_database] || "postgres"
+        end
+
+        def translating_maintenance_database_errors
+          yield
+        rescue NoDatabaseError => error
+          raise ConnectionNotEstablished, (error.cause || error).message
         end
 
         def psql_env
@@ -91,7 +109,7 @@ module ActiveRecord
         end
 
         def run_cmd(cmd, *args, **opts)
-          fail run_cmd_error(cmd, args) unless Kernel.system(psql_env, cmd, *args, **opts)
+          fail run_cmd_error(cmd, args, opts) unless Kernel.system(psql_env, cmd, *args, **opts)
         end
 
         def remove_sql_header_comments(filename)

@@ -47,6 +47,23 @@ class DelegatedTypeTest < ActiveRecord::TestCase
     assert_predicate @entry_with_comment.entryable_name, :comment?
   end
 
+  test "delegated type name with custom foreign_type" do
+    assert_equal "message", @entry_with_message.thing_name
+    assert_equal "post", @entry_with_post.thing_name
+    assert_predicate @entry_with_post.thing_name, :post?
+  end
+
+  test "delegated type name uses the current delegated class" do
+    @entry_with_message.entryable_type = "Comment"
+    assert_equal "comment", @entry_with_message.entryable_name
+
+    def @entry_with_message.entryable_class
+      Post
+    end
+    assert_equal "post", @entry_with_message.entryable_name
+    assert_equal "comment", @entry_with_message.thing_name
+  end
+
   test "delegated type predicates" do
     assert_predicate @entry_with_message, :message?
     assert_not @entry_with_message.comment?
@@ -113,5 +130,15 @@ class DelegatedTypeTest < ActiveRecord::TestCase
   test "builder method" do
     assert_respond_to Entry.new, :build_entryable
     assert_equal Message, Entry.new(entryable_type: "Message").build_entryable.class
+
+    entry = Entry.new(entryable_type: "Message")
+    def entry.entryable_class
+      Comment
+    end
+
+    comment = entry.build_entryable(body: "Hello world!")
+    assert_instance_of Comment, comment
+    assert_equal "Hello world!", comment.body
+    assert_same comment, entry.entryable
   end
 end

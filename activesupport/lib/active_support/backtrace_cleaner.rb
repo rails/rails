@@ -1,4 +1,3 @@
-# :markup: markdown
 # frozen_string_literal: true
 
 module ActiveSupport
@@ -214,7 +213,8 @@ module ActiveSupport
       end
 
       def add_stdlib_silencer
-        add_silencer(&Ractors.shareable_proc  { |line| line.start_with?(RbConfig::CONFIG["rubylibdir"]) })
+        rubylibdir = -RbConfig::CONFIG["rubylibdir"]
+        add_silencer(&Ractors.shareable_proc { |line| line.start_with?(rubylibdir) })
       end
 
       def filter_backtrace(backtrace)

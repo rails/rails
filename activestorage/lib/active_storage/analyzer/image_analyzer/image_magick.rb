@@ -1,17 +1,10 @@
 # frozen_string_literal: true
 
-begin
-  gem "mini_magick"
-  require "mini_magick"
-  ActiveStorage::MINIMAGICK_AVAILABLE = true # :nodoc:
-rescue LoadError => error
-  ActiveStorage::MINIMAGICK_AVAILABLE = false # :nodoc:
-  raise error unless error.message.include?("mini_magick")
-end
+require "active_storage/image_magick"
 
 module ActiveStorage
-  # This analyzer relies on the third-party {MiniMagick}[https://github.com/minimagick/minimagick] gem. MiniMagick requires
-  # the {ImageMagick}[http://www.imagemagick.org] system library.
+  # This analyzer relies on the third-party [MiniMagick](https://github.com/minimagick/minimagick) gem. MiniMagick requires
+  # the [ImageMagick](http://www.imagemagick.org) system library.
   class Analyzer::ImageAnalyzer::ImageMagick < Analyzer::ImageAnalyzer
     def self.accept?(blob)
       super && ActiveStorage.variant_processor == :mini_magick
@@ -23,6 +16,8 @@ module ActiveStorage
           logger.error "Skipping image analysis because the mini_magick gem isn't installed"
           return {}
         end
+
+        ActiveStorage.require_securable_mini_magick!
 
         download_blob_to_tempfile do |file|
           image = instrument("mini_magick") do

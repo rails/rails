@@ -78,7 +78,7 @@ module ActiveJob
         job_id: job.job_id,
         queue: job.queue_name,
         adapter: ActiveJob.adapter_name(adapter),
-        enqueued_at: job.enqueued_at&.utc&.iso8601(9),
+        enqueued_at: job.enqueued_at&.getutc&.iso8601(9),
       }
       if job.class.log_arguments?
         payload[:arguments] = job.arguments

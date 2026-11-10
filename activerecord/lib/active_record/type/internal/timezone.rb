@@ -21,6 +21,17 @@ module ActiveRecord
           super(other) && timezone == other.timezone
         end
 
+        def as_schema_json
+          json = super
+          json["timezone"] = @timezone
+          json
+        end
+
+        def init_from_schema_json(coder, references)
+          @timezone = coder["timezone"]&.to_sym
+          super
+        end
+
         protected
           attr_reader :timezone
       end

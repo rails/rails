@@ -60,10 +60,12 @@ module ActiveStorage
           attachment_reflections.values
         end
 
-        # Returns the reflection object for the named +attachment+.
+        # Returns the reflection object for the named `attachment`.
         #
-        #    User.reflect_on_attachment(:avatar)
-        #    # => the avatar reflection
+        # ```
+        # User.reflect_on_attachment(:avatar)
+        # # => the avatar reflection
+        # ```
         #
         def reflect_on_attachment(attachment)
           attachment_reflections[attachment.to_s]

@@ -227,6 +227,18 @@ class EagerAssociationTest < ActiveRecord::TestCase
     end
   end
 
+  def test_eager_loaded_has_many_association_without_primary_key_with_multiple_owners
+    blackbeard, redbeard = pirates(:blackbeard), pirates(:redbeard)
+    blackbeard.mateys.create!(target: blackbeard, weight: 20)
+    redbeard.mateys.create!(target: blackbeard, weight: 30)
+
+    pirates = Pirate.where(id: [blackbeard, redbeard]).order(:id)
+    expected = pirates.map { |pirate| pirate.mateys.order(:weight).map(&:attributes) }
+    eager_loaded = pirates.eager_load(:mateys).order("mateys.weight")
+
+    assert_equal expected, eager_loaded.map { |pirate| pirate.mateys.map(&:attributes) }
+  end
+
   def test_type_cast_in_where_references_association_name
     parent = comments(:greetings)
     child = parent.children.create!(label: "child", body: "hi", post_id: parent.post_id)
@@ -645,6 +657,51 @@ class EagerAssociationTest < ActiveRecord::TestCase
     end
   end
 
+  def test_preloading_nested_association_under_already_preloaded_has_many_through
+    author = Author.preload(:comments, comments: :ratings).find(authors(:david).id)
+
+    assert_no_queries do
+      assert_equal 3, author.comments.sum { |comment| comment.ratings.size }
+    end
+  end
+
+  def test_preloading_nested_association_under_ordered_has_many_through_loaded_on_some_owners
+    loaded_author = authors(:david)
+    loaded_author.comments_desc.load
+    other_author = Author.create!(name: "alice")
+    other_author.posts.create!(title: "Hello", body: "World").comments.create!([{ body: "Nice" }, { body: "Great" }])
+
+    ActiveRecord::Associations::Preloader.new(records: [loaded_author, other_author], associations: { comments_desc: :ratings }).call
+
+    assert_no_queries do
+      assert_equal 3, loaded_author.comments_desc.sum { |comment| comment.ratings.size }
+      assert_equal 0, other_author.comments_desc.sum { |comment| comment.ratings.size }
+    end
+  end
+
+  def test_preloading_ordered_nested_has_many_through_keeps_the_order_across_its_through_records
+    author = Author.create!(name: "alice")
+    author.posts.create!(title: "Hello", body: "World").comments.create!(body: "Nice").ratings.create!([{ value: 5 }, { value: 1 }])
+    author.posts.create!(title: "Bye", body: "World").comments.create!(body: "Great").ratings.create!([{ value: 4 }, { value: 2 }])
+
+    preloaded = Author.preload(:ratings_desc).find(author.id).ratings_desc
+
+    assert_equal [5, 4, 2, 1], preloaded.map(&:value)
+  end
+
+  def test_preloading_nested_association_under_has_many_through_with_two_objects_for_the_same_owner
+    loaded_author = Author.find(authors(:david).id)
+    loaded_author.comments.load
+    other_copy = Author.find(authors(:david).id)
+
+    ActiveRecord::Associations::Preloader.new(records: [loaded_author, other_copy], associations: { comments: :ratings }).call
+
+    assert_no_queries do
+      assert_equal 3, loaded_author.comments.sum { |comment| comment.ratings.size }
+      assert_equal 3, other_copy.comments.sum { |comment| comment.ratings.size }
+    end
+  end
+
   def test_eager_with_has_many_through_an_sti_join_model_with_conditions_on_both
     author = Author.all.merge!(includes: :special_nonexistent_post_comments, order: "authors.id").first
     assert_equal [], author.special_nonexistent_post_comments
@@ -664,6 +721,19 @@ class EagerAssociationTest < ActiveRecord::TestCase
     author_comments = Author.all.merge!(includes: :comments_with_include).find(authors(:david).id).comments_with_include.to_a
     assert_no_queries do
       author_comments.first.post.title
+    end
+  end
+
+  def test_preload_has_many_through_with_conditions_and_preload_or_eager_load_in_scope
+    expected = authors(:david).comments_with_include.map { |comment| [comment.id, comment.ratings.map(&:id).sort] }.sort
+    assert expected.any? { |_, ratings| ratings.any? }
+
+    [:comments_with_preload, :comments_with_eager_load].each do |association|
+      comments = Author.preload(association).find(authors(:david).id).public_send(association).to_a
+      assert comments.all? { |comment| comment.association(:ratings).loaded? }
+      assert_no_queries do
+        assert_equal expected, comments.map { |comment| [comment.id, comment.ratings.map(&:id).sort] }.sort
+      end
     end
   end
 
@@ -999,6 +1069,13 @@ class EagerAssociationTest < ActiveRecord::TestCase
     )
   end
 
+  def test_limited_eager_with_default_order
+    posts = Post.includes(:author, :comments).where("authors.name" => "David").limit(2).offset(1)
+
+    assert_equal posts(:thinking, :sti_comments), posts.default_order("UPPER(posts.title)").to_a
+    assert_equal posts(:sti_post_and_comments, :sti_comments), posts.default_order("UPPER(posts.title) DESC").to_a
+  end
+
   def test_limited_eager_with_multiple_order_columns
     assert_equal(
       posts(:thinking, :sti_comments),
@@ -1206,6 +1283,175 @@ class EagerAssociationTest < ActiveRecord::TestCase
     assert_equal posts(:welcome, :thinking), posts
   end
 
+  def test_preload_unscoped_and_scoped_has_many_through_on_the_same_through_association
+    author = Author.create!(name: "Preload Test")
+    Categorization.create!(author: author, post: posts(:thinking), category: categories(:general))
+    Categorization.create!(author: author, post: posts(:welcome), category: categories(:technology))
+    Categorization.create!(author: author, post: posts(:welcome), category: categories(:cooking))
+
+    author_with_preloads = Author.preload(:categories, :categories_like_general).find(author.id)
+    assert_equal 3, author_with_preloads.categories.size
+    assert_equal [categories(:general)], author_with_preloads.categories_like_general
+
+    author_with_preloads = Author.preload(:categories_like_general, :categories).find(author.id)
+    assert_equal [categories(:general)], author_with_preloads.categories_like_general
+    assert_equal 3, author_with_preloads.categories.size
+  end
+
+  def test_preload_scoped_has_many_through_reuses_eager_loaded_source_records
+    author = Author.create!(name: "Preload Test")
+    Categorization.create!(author: author, post: posts(:thinking), category: categories(:general))
+
+    author_with_preloads = assert_queries_count(2) do
+      Author.preload(:categories_like_general).find(author.id)
+    end
+    assert_no_queries do
+      assert_equal [categories(:general)], author_with_preloads.categories_like_general
+    end
+  end
+
+  def test_preload_scoped_has_many_through_without_conditions_reuses_loaded_source_records
+    author = authors(:david)
+    expected = author.unique_categorized_posts.to_a
+
+    author_with_preloads = assert_queries_count(3) do
+      Author.preload(:categorized_posts, :unique_categorized_posts).find(author.id)
+    end
+    assert_no_queries do
+      assert_equal expected, author_with_preloads.unique_categorized_posts
+    end
+  end
+
+  def test_preload_ordered_has_many_through_after_unordered_one_on_the_same_through_association
+    author = Author.create!(name: "Preload Test")
+    Categorization.create!(author: author, post: posts(:thinking), category: categories(:general))
+    Categorization.create!(author: author, post: posts(:welcome), category: categories(:general))
+    expected = [posts(:thinking), posts(:welcome)]
+
+    author_with_preloads = Author.preload(:categorized_posts, :categorized_posts_desc).find(author.id)
+    assert_equal expected, author_with_preloads.categorized_posts_desc
+  end
+
+  def test_preload_customized_has_many_through_after_uncustomized_one_on_the_same_through_association
+    author = Author.create!(name: "Preload Test")
+    Categorization.create!(author: author, post: posts(:welcome), category: categories(:general))
+    Categorization.create!(author: author, post: posts(:authorless), category: categories(:general))
+
+    %i[commented_categorized_posts readonly_categorized_posts first_categorized_posts].each do |association|
+      expected = Author.preload(association).find(author.id).public_send(association).to_a
+      preloaded = Author.preload(:categorized_posts, association).find(author.id).public_send(association)
+
+      assert_equal expected, preloaded, association
+      assert_equal expected.map(&:readonly?), preloaded.map(&:readonly?), association
+    end
+  end
+
+  def test_preload_has_many_through_with_default_order
+    author = Author.create!(name: "Preload Test")
+    [posts(:welcome), posts(:sti_post_and_comments), posts(:sti_comments), posts(:thinking)].each do |post|
+      Categorization.create!(author: author, post: post, category: categories(:general))
+    end
+    expected = [posts(:sti_post_and_comments), posts(:sti_comments), posts(:thinking), posts(:welcome)]
+
+    assert_equal expected, Author.preload(:categorized_posts_by_default_desc).find(author.id).categorized_posts_by_default_desc
+    assert_equal expected, Author.preload(:categorized_posts, :categorized_posts_by_default_desc).find(author.id).categorized_posts_by_default_desc
+    assert_equal expected.map(&:id), Author.preload(:categorized_posts_with_default_order_scope).find(author.id).categorized_posts_with_default_order_scope.map(&:id)
+
+    expected = [posts(:sti_post_and_comments), posts(:sti_comments), posts(:welcome)]
+    assert_equal expected, Author.preload(:popular_categorized_posts_by_default_desc).find(author.id).popular_categorized_posts_by_default_desc
+    assert_equal expected, Author.preload(:popular_categorized_posts_reordered_by_default_desc).find(author.id).popular_categorized_posts_reordered_by_default_desc
+  end
+
+  def test_preload_has_many_through_with_default_order_keeps_the_explicit_order_of_the_through_association
+    author = Author.create!(name: "Preload Test")
+    expected = [posts(:welcome), posts(:sti_comments), posts(:thinking)]
+    expected.each do |post|
+      Categorization.create!(author: author, post: post, category: categories(:general))
+    end
+
+    assert_equal expected, author.ordered_categorized_posts_by_default_desc.to_a
+    assert_equal expected, Author.preload(:ordered_categorized_posts_by_default_desc).find(author.id).ordered_categorized_posts_by_default_desc
+  end
+
+  def test_preload_has_many_through_with_source_type_ignores_other_types_in_loaded_through_records
+    tag = tags(:general)
+    expected = tag.tagged_posts.sort_by(&:id)
+    assert tag.taggings.any? { |tagging| tagging.taggable_type == "FakeModel" }
+
+    tag_with_preloads = assert_queries_count(3) do
+      Tag.preload(:taggings, :tagged_posts).find(tag.id)
+    end
+    assert_no_queries do
+      assert_equal expected, tag_with_preloads.tagged_posts.sort_by(&:id)
+    end
+  end
+
+  def test_preload_has_one_through_with_symbol_source_type_and_loaded_through_record
+    club = clubs(:moustache_club)
+    expected = club.sponsored_member
+    assert_not_nil expected
+
+    club_with_preloads = Club.preload(:sponsor, :sponsored_member).find(club.id)
+    assert_no_queries do
+      assert_equal expected, club_with_preloads.sponsored_member
+    end
+  end
+
+  def test_preload_has_many_through_with_source_type_and_conditions_ignores_loaded_source_records
+    tag = tags(:blue)
+    expected = tag.tagged_posts_by_bob.to_a
+    assert_not_equal tag.tagged_posts.to_a, expected
+
+    tag_with_preloads = Tag.preload(taggings: :taggable).preload(:tagged_posts_by_bob).find(tag.id)
+    assert_no_queries do
+      assert_equal expected, tag_with_preloads.tagged_posts_by_bob
+    end
+  end
+
+  def test_preload_has_many_through_with_source_type_and_conditions_on_through_table
+    tags = Tag.where(id: [tags(:misc).id, tags(:blue).id]).order(:id).to_a
+    assert_equal [[], [posts(:misc_by_bob)]], tags.map { |tag| tag.second_tagged_posts.to_a }
+
+    tags_with_preloads = Tag.where(id: tags.map(&:id)).order(:id)
+    assert_queries_count(2) do
+      assert_equal [[], [posts(:misc_by_bob)]], tags_with_preloads.preload(:second_tagged_posts).map { |tag| tag.second_tagged_posts.to_a }
+    end
+  end
+
+  def test_preload_has_many_through_with_source_type_and_conditions_and_preload_in_scope
+    post = posts(:misc_by_bob)
+    expected = post.taggings.map { |tagging| [tagging.id, tagging.taggable] }.sort_by(&:first)
+    assert_not_empty expected
+
+    posts = Tag.preload(:second_tagged_posts_with_taggings).find(tags(:blue).id).second_tagged_posts_with_taggings.to_a
+    assert_equal [post], posts
+    assert_no_queries do
+      assert_equal expected, posts.first.taggings.map { |tagging| [tagging.id, tagging.taggable] }.sort_by(&:first)
+    end
+  end
+
+  def test_preload_has_many_through_with_source_type_and_conditions_on_through_and_source_tables_ignores_loaded_through_records
+    tag = tags(:blue)
+    expected = [posts(:misc_by_bob), posts(:other_by_bob)]
+    assert_equal expected, tag.first_tagged_posts_by_bob.sort_by(&:id)
+
+    tag_with_preloads = Tag.preload(taggings: :taggable).preload(:first_tagged_posts_by_bob).find(tag.id)
+    assert_no_queries do
+      assert_equal expected, tag_with_preloads.first_tagged_posts_by_bob.sort_by(&:id)
+    end
+  end
+
+  def test_preload_has_many_through_with_disable_joins_and_conditions_ignores_loaded_source_records
+    author = authors(:david)
+    expected = author.no_joins_good_ratings.to_a
+    assert_not_equal author.ratings.to_a, expected
+
+    author_with_preloads = Author.preload(comments: :ratings).preload(:no_joins_good_ratings).find(author.id)
+    assert_no_queries do
+      assert_equal expected, author_with_preloads.no_joins_good_ratings
+    end
+  end
+
   def test_preload_has_many_with_association_condition_and_default_scope
     post = Post.create!(title: "Beaches", body: "I like beaches!")
     Reader.create! person: people(:david), post: post
@@ -1271,6 +1517,12 @@ class EagerAssociationTest < ActiveRecord::TestCase
     assert_no_queries do
       assert_equal expected, firm.clients_using_primary_key.sort_by(&:id)
     end
+  end
+
+  def test_preloading_has_many_without_selecting_the_owner_key
+    firm = Firm.select(:id).preload(:clients_using_primary_key).find(companies(:first_firm).id)
+
+    assert_no_queries { assert_empty firm.clients_using_primary_key }
   end
 
   def test_include_has_many_using_primary_key

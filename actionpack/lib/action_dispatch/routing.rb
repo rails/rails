@@ -1,7 +1,5 @@
 # frozen_string_literal: true
 
-# :markup: markdown
-
 module ActionDispatch
   # The routing module provides URL rewriting in native Ruby. It's a way to
   # redirect incoming requests to controllers and actions. This replaces
@@ -17,12 +15,15 @@ module ActionDispatch
   #       ...
   #     end
   #
-  # The following symbols are special:
+  # Every route names its controller and action up front, either with the
+  # `controller#action` shorthand or with the `:controller` and `:action` options:
   #
-  #     :controller maps to your controller name
-  #     :action     maps to an action with your controllers
+  #     get "/photos/:id", to: "photos#show"
+  #     get "/photos/:id", controller: "photos", action: "show"
   #
-  # Other names simply map to a parameter as in the case of `:id`.
+  # `:controller` and `:action` may not be used as dynamic segments of the path
+  # itself. Every other name in the path simply maps to a parameter, as in the case
+  # of `:id` above.
   #
   # ## Resources
   #

@@ -3,6 +3,8 @@
 require "cases/helper"
 
 class CopyTableTest < ActiveRecord::SQLite3TestCase
+  skip_under_ractor_proxy
+
   fixtures :customers
 
   def setup
@@ -29,15 +31,6 @@ class CopyTableTest < ActiveRecord::SQLite3TestCase
         column = @connection.columns("comments_with_default2").find { |col| col.name == "options" }
         assert_equal "{}", column.default
       end
-    end
-  end
-
-  def test_copy_table_renaming_column
-    test_copy_table("customers", "customers2",
-        rename: { "name" => "person_name" }) do |from, to, options|
-      expected = column_values(from, "name")
-      assert_equal expected, column_values(to, "person_name")
-      assert_predicate expected, :any?, "No values in table: #{expected.inspect}"
     end
   end
 
@@ -106,10 +99,6 @@ private
 
   def column_names(table)
     @connection.send(:table_structure, table).map { |column| column["name"] }
-  end
-
-  def column_values(table, column)
-    @connection.select_all("SELECT #{column} FROM #{table} ORDER BY id").map { |row| row[column] }
   end
 
   def table_indexes_without_name(table)

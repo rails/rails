@@ -1,4 +1,3 @@
-# :markup: markdown
 # frozen_string_literal: true
 
 class String
@@ -13,6 +12,7 @@ class String
   #    string }.squish                   # => "Multi-line string"
   # " foo   bar    \n   \t   boo".squish # => "foo bar boo"
   # ```
+  #: () -> String
   def squish
     dup.squish!
   end
@@ -24,6 +24,7 @@ class String
   # str.squish!                         # => "foo bar boo"
   # str                                 # => "foo bar boo"
   # ```
+  #: () -> self
   def squish!
     # Search for two or more `[[:space:]]` OR a single
     # [[:space:]] that isn't `" "`.
@@ -40,6 +41,7 @@ class String
   # str.remove(" test", /bar/)          # => "foo "
   # str                                 # => "foo bar test"
   # ```
+  #: (*String | Regexp) -> String
   def remove(*patterns)
     dup.remove!(*patterns)
   end
@@ -51,6 +53,7 @@ class String
   # str.remove!(" test", /bar/)         # => "foo "
   # str                                 # => "foo "
   # ```
+  #: (*String | Regexp) -> self
   def remove!(*patterns)
     patterns.each do |pattern|
       gsub! pattern, ""
@@ -87,6 +90,7 @@ class String
   # 'And they found that many people were sleeping better.'.truncate(4, omission: '... (continued)')
   # # => "... (continued)"
   # ```
+  #: (Integer, ?Hash[Symbol, top]) -> String
   def truncate(truncate_to, options = {})
     return dup unless length > truncate_to
 
@@ -101,7 +105,10 @@ class String
         length_with_room_for_omission
       end
 
-    +"#{self[0, stop]}#{omission}"
+    # Slice to_str, not self, so a SafeBuffer gives a plain String: the cut
+    # can split an HTML tag, so the result must not be html_safe. The slice is
+    # a fresh, mutable string, so append the omission to it.
+    to_str[0, stop] << omission
   end
 
   # Truncates `text` to at most `truncate_to` bytes in length without
@@ -122,6 +129,7 @@ class String
   # to "…", for a total length not exceeding `truncate_to`.
   #
   # Raises `ArgumentError` when the bytesize of `:omission` exceeds `truncate_to`.
+  #: (Integer, ?omission: String?) -> String
   def truncate_bytes(truncate_to, omission: "…")
     omission ||= ""
 
@@ -169,6 +177,7 @@ class String
   # 'And they found that many people were sleeping better.'.truncate_words(5, omission: '... (continued)')
   # # => "And they found that many... (continued)"
   # ```
+  #: (Integer, ?Hash[Symbol, top]) -> String
   def truncate_words(words_count, options = {})
     sep = options[:separator] || /\s+/
     sep = Regexp.escape(sep.to_s) unless Regexp === sep

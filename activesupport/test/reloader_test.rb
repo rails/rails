@@ -1,8 +1,11 @@
 # frozen_string_literal: true
 
 require_relative "abstract_unit"
+require "active_support/testing/ractors_assertions"
 
 class ReloaderTest < ActiveSupport::TestCase
+  include ActiveSupport::Testing::RactorsAssertions
+
   def test_prepare_callback
     prepared = completed = false
     reloader.to_prepare { prepared = true }
@@ -94,6 +97,24 @@ class ReloaderTest < ActiveSupport::TestCase
       end
     end
     assert_equal 1, reports.size
+  end
+
+  def test_check_does_not_write_to_the_class_when_there_is_nothing_to_reload
+    reloader = new_reloader { false }
+
+    assert_not reloader.check!
+    assert_not reloader.instance_variable_defined?(:@should_reload)
+
+    reloader.check = lambda { true }
+
+    assert reloader.check!
+    assert reloader.instance_variable_get(:@should_reload)
+  end
+
+  def test_run_on_a_non_main_ractor_with_the_default_check
+    reloader = Class.new(ActiveSupport::Reloader)
+
+    assert on_ractor(reloader) { |r| r.run!.equal?(ActiveSupport::ExecutionWrapper::Null) }
   end
 
   private

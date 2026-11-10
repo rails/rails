@@ -141,7 +141,7 @@ column defined to hold N characters may actually consume up to 4 × N bytes in
 storage.
 
 Since an encrypted payload is binary data serialized with Base64, it can be
-stored in regular a `string` column. Because it's a sequence of ASCII bytes, an
+stored in a regular `string` column. Because it's a sequence of ASCII bytes, an
 encrypted column can take up to four times its clear version size. So, even if
 the bytes stored in the database are the same, the column must be four times
 bigger.
@@ -527,7 +527,7 @@ When enabled:
   errors.
 
 * Queries on deterministically encrypted attributes can match both encrypted and
-  cleartext values, if you also enable `extended_queries`:
+  cleartext values, if you also enable `extend_queries`:
 
 ```ruby
 config.active_record.encryption.extend_queries = true
@@ -557,7 +557,7 @@ Once you configure the previous scheme, the following will be supported:
   schemes so that queries work seamlessly with data encrypted with different
   schemes.
 
-You need to enable `extended_queries` configuration for this to work:
+You need to enable `extend_queries` configuration for this to work:
 
 ```ruby
 config.active_record.encryption.extend_queries = true

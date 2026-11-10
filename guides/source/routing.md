@@ -686,6 +686,8 @@ This route will respond to paths such as `/photos/1/2`. The `params` hash will b
 
 TIP: By default, dynamic segments don't accept dots - this is because the dot is used as a separator for formatted routes. If you need to use a dot within a dynamic segment, add a constraint that overrides this – for example, `id: /[^\/]+/` allows anything except a slash.
 
+NOTE: `:controller` and `:action` may not be used as dynamic segments. A route's controller and action are fixed when the route is drawn, so `get ":controller(/:action)"` raises an `ArgumentError`. Write out the routes you want to expose instead, e.g. `get "photos/show", to: "photos#show"`.
+
 ### Static Segments
 
 You can specify static segments when creating a route by not prepending a colon to a segment:

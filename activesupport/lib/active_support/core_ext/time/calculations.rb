@@ -1,4 +1,3 @@
-# :markup: markdown
 # frozen_string_literal: true
 
 require "time"
@@ -15,6 +14,8 @@ class Time
   include DateAndTime::Calculations
 
   COMMON_YEAR_DAYS_IN_MONTH = [nil, 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31].freeze
+  NOT_GIVEN = Object.new.freeze
+  private_constant :NOT_GIVEN
 
   class << self
     # Overriding case equality method so that it returns true for ActiveSupport::TimeWithZone instances
@@ -24,8 +25,8 @@ class Time
 
     # Returns the number of days in the given month.
     # If no year is specified, it will use the current year.
-    def days_in_month(month, year = current.year)
-      if month == 2 && ::Date.gregorian_leap?(year)
+    def days_in_month(month, year = NOT_GIVEN)
+      if month == 2 && ::Date.gregorian_leap?(NOT_GIVEN.equal?(year) ? current.year : year)
         29
       else
         COMMON_YEAR_DAYS_IN_MONTH[month]
@@ -39,6 +40,7 @@ class Time
     end
 
     # Returns `Time.zone.now` when `Time.zone` or `config.time_zone` are set, otherwise just returns `Time.now`.
+    #: () -> (ActiveSupport::TimeWithZone | ::Time)
     def current
       ::Time.zone ? ::Time.zone.now : ::Time.now
     end
@@ -64,7 +66,7 @@ class Time
       # Creates a `Time` instance from an RFC 3339 string.
       #
       # ```
-      # Time.rfc3339('1999-12-31T14:00:00-10:00') # => 2000-01-01 00:00:00 -1000
+      # Time.rfc3339('1999-12-31T14:00:00-10:00') # => 1999-12-31 14:00:00 -1000
       # ```
       #
       # If the time or offset components are missing then an `ArgumentError` will be raised.
@@ -163,7 +165,7 @@ class Time
 
     raise ArgumentError, "argument out of range" if new_usec >= 1000000
 
-    new_sec += Rational(new_usec, 1000000)
+    new_sec += Rational(new_usec, 1000000) unless new_usec == 0
 
     if new_offset
       ::Time.new(new_year, new_month, new_day, new_hour, new_min, new_sec, new_offset)
@@ -171,13 +173,6 @@ class Time
       ::Time.utc(new_year, new_month, new_day, new_hour, new_min, new_sec)
     elsif zone.respond_to?(:utc_to_local)
       new_time = ::Time.new(new_year, new_month, new_day, new_hour, new_min, new_sec, zone)
-
-      # Some versions of Ruby have a bug where Time.new with a zone object and
-      # fractional seconds will end up with a broken utc_offset.
-      # This is fixed in Ruby 3.3.1 and 3.2.4
-      unless new_time.utc_offset.integer?
-        new_time += 0
-      end
 
       # When there are two occurrences of a nominal time due to DST ending,
       # `Time.new` chooses the first chronological occurrence (the one with a

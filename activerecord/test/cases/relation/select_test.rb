@@ -215,5 +215,12 @@ module ActiveRecord
 
       assert_equal "`select' with block doesn't take arguments.", error.message
     end
+
+    def test_select_with_duplicated_column
+      post = Post.select("posts.id, posts.title, posts.id").find(1)
+
+      assert_equal 1, post.id
+      assert_equal "Welcome to the weblog", post.title
+    end
   end
 end

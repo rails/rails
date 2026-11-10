@@ -42,6 +42,10 @@ class Money
   def exchange_to(other_currency)
     Money.new((amount * EXCHANGE_RATES["#{currency}_TO_#{other_currency}"]).floor, other_currency)
   end
+
+  def <=>(other)
+    amount <=> other.amount if other.is_a?(Money)
+  end
 end
 
 class GpsLocation

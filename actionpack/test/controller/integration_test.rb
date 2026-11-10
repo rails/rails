@@ -213,6 +213,16 @@ class IntegrationTestUsesCorrectClass < ActionDispatch::IntegrationTest
   end
 end
 
+class IntegrationRunnerTest < ActiveSupport::TestCase
+  def test_runner_defines_every_request_helper
+    runner_methods = ActionDispatch::Integration::Runner.public_instance_methods(false)
+
+    ActionDispatch::Integration::RequestHelpers.public_instance_methods(false).each do |method|
+      assert_includes runner_methods, method
+    end
+  end
+end
+
 class IntegrationProcessTest < ActionDispatch::IntegrationTest
   class IntegrationController < ActionController::Base
     def get
@@ -226,13 +236,9 @@ class IntegrationProcessTest < ActionDispatch::IntegrationTest
       end
     end
 
-    def get_with_vary_set_x_requested_with
-      respond_to do |format|
-        format.json do
-          response.headers["Vary"] = "X-Requested-With"
-          render json: "JSON OK", status: 200
-        end
-      end
+    def get_with_vary
+      response.headers["Vary"] = params[:vary]
+      get
     end
 
     def get_with_params
@@ -263,19 +269,19 @@ class IntegrationProcessTest < ActionDispatch::IntegrationTest
     end
 
     def redirect
-      redirect_to action_url("get")
+      redirect_to get_action_url
     end
 
     def redirect_307
-      redirect_to action_url("post"), status: 307
+      redirect_to post_action_url, status: 307
     end
 
     def redirect_308
-      redirect_to action_url("post"), status: 308
+      redirect_to post_action_url, status: 308
     end
 
     def redirect_303
-      redirect_to action_url("get"), status: 303
+      redirect_to get_action_url, status: 303
     end
 
     def query_params
@@ -439,6 +445,17 @@ class IntegrationProcessTest < ActionDispatch::IntegrationTest
     end
   end
 
+  def test_options_resets_html_document
+    with_test_route_set do
+      get "/get"
+      previous_html_document = html_document
+
+      options "/get"
+
+      assert_not_same previous_html_document, html_document
+    end
+  end
+
   def test_redirect_with_arguments
     with_test_route_set do
       get "/redirect"
@@ -584,7 +601,10 @@ class IntegrationProcessTest < ActionDispatch::IntegrationTest
   end
 
   def test_generate_url_with_controller
-    assert_equal "http://www.example.com/foo", url_for(controller: "foo")
+    with_routing do |set|
+      set.draw { get "/foo", to: "foo#index" }
+      assert_equal "http://www.example.com/foo", url_for(controller: "foo")
+    end
   end
 
   def test_port_via_host!
@@ -651,6 +671,18 @@ class IntegrationProcessTest < ActionDispatch::IntegrationTest
     assert_includes @response.headers, "c"
   end
 
+  def test_default_headers_for_live_request
+    with_test_route_set do |controller|
+      with_live_controller(controller) do
+        with_default_headers "a" => "1", "b" => "2" do
+          get "/get", env: { "SERVER_PROTOCOL" => "HTTP/1.1" }
+        end
+      end
+    end
+
+    assert_includes @response.headers, "a"
+  end
+
   def test_accept_not_overridden_when_xhr_true
     with_test_route_set do
       get "/get", headers: { "Accept" => "application/json" }, xhr: true
@@ -666,7 +698,37 @@ class IntegrationProcessTest < ActionDispatch::IntegrationTest
   def test_setting_vary_header_when_request_is_xhr_with_accept_header
     with_test_route_set do
       get "/get", headers: { "Accept" => "application/json" }, xhr: true
-      assert_equal "Accept", response.headers["Vary"]
+      assert_equal "Accept, X-Requested-With", response.headers["Vary"]
+    end
+  end
+
+  def test_setting_vary_header_when_request_has_no_accept_header
+    with_test_route_set do
+      get "/get", headers: { "Accept" => nil }
+      assert_equal "text/html", response.media_type
+      assert_equal "Accept, X-Requested-With", response.headers["Vary"]
+
+      get "/get", headers: { "Accept" => nil, "X-Requested-With" => "XMLHttpRequest" }
+      assert_equal "text/javascript", response.media_type
+      assert_equal "Accept, Content-Type, X-Requested-With", response.headers["Vary"]
+    end
+  end
+
+  def test_setting_vary_header_when_xhr_format_depends_on_content_type
+    with_test_route_set do
+      get "/get", headers: { "Accept" => nil, "Content-Type" => "application/xml", "X-Requested-With" => "XMLHttpRequest" }
+      assert_equal "application/xml", response.media_type
+      assert_equal "Accept, Content-Type, X-Requested-With", response.headers["Vary"]
+    end
+  end
+
+  def test_setting_vary_header_when_request_has_a_browser_like_accept_header
+    ActionDispatch::Request.with(strict_accept_header: false) do
+      with_test_route_set do
+        get "/get", headers: { "Accept" => "application/json, */*" }
+        assert_equal "text/html", response.media_type
+        assert_equal "Accept, X-Requested-With", response.headers["Vary"]
+      end
     end
   end
 
@@ -677,23 +739,42 @@ class IntegrationProcessTest < ActionDispatch::IntegrationTest
     end
   end
 
-  def test_not_setting_vary_header_when_it_has_already_been_set
+  def test_appending_to_vary_header_when_it_has_already_been_set
     with_test_route_set do
-      get "/get_with_vary_set_x_requested_with", headers: { "Accept" => "application/json" }, xhr: true
-      assert_equal "X-Requested-With", response.headers["Vary"]
+      get "/get_with_vary", params: { vary: "Accept-Language" }, headers: { "Accept" => "application/json" }
+      assert_equal "Accept-Language, Accept, X-Requested-With", response.headers["Vary"]
     end
   end
 
-  def test_not_setting_vary_header_when_ignore_accept_header_is_set
-    original_ignore_accept_header = ActionDispatch::Request.ignore_accept_header
-    ActionDispatch::Request.ignore_accept_header = true
-
+  def test_not_appending_fields_already_in_vary_header_case_insensitively
     with_test_route_set do
-      get "/get", headers: { "Accept" => "application/json" }, xhr: true
-      assert_nil response.headers["Vary"]
+      existing = "accept, CONTENT-type, x-requested-with"
+      get "/get_with_vary", params: { vary: existing }, headers: { "Accept" => nil, "Content-Type" => "application/xml", "X-Requested-With" => "XMLHttpRequest" }
+      assert_equal "application/xml", response.media_type
+      assert_equal existing, response.headers["Vary"]
     end
-  ensure
-    ActionDispatch::Request.ignore_accept_header = original_ignore_accept_header
+  end
+
+  def test_not_appending_to_wildcard_vary_header
+    with_test_route_set do
+      get "/get_with_vary", params: { vary: "*" }, headers: { "Accept" => nil, "Content-Type" => "application/xml", "X-Requested-With" => "XMLHttpRequest" }
+      assert_equal "application/xml", response.media_type
+      assert_equal "*", response.headers["Vary"]
+    end
+  end
+
+  def test_not_setting_accept_in_vary_header_when_ignore_accept_header_is_set
+    ActionDispatch::Request.with(ignore_accept_header: true) do
+      with_test_route_set do
+        get "/get", headers: { "Accept" => "application/json" }
+        assert_equal "text/html", response.media_type
+        assert_equal "X-Requested-With", response.headers["Vary"]
+
+        get "/get", headers: { "Accept" => "application/json" }, xhr: true
+        assert_equal "text/javascript", response.media_type
+        assert_equal "X-Requested-With", response.headers["Vary"]
+      end
+    end
   end
 
   private
@@ -707,6 +788,10 @@ class IntegrationProcessTest < ActionDispatch::IntegrationTest
 
     def with_test_route_set
       with_routing do |set|
+        # Read the actions off the original controller: the clone gets the url
+        # helpers mixed into it, and those are public instance methods too.
+        actions = ::IntegrationProcessTest::IntegrationController.action_methods.to_a
+
         controller = ::IntegrationProcessTest::IntegrationController.clone
         controller.class_eval do
           include set.url_helpers
@@ -715,17 +800,32 @@ class IntegrationProcessTest < ActionDispatch::IntegrationTest
         set.draw do
           get "moved" => redirect("/method")
 
-          ActionDispatch.deprecator.silence do
-            match ":action", to: controller, via: [:get, :post, :query], as: :action
-            get "get/:action", to: controller, as: :get_action
+          actions.each do |action|
+            match "/#{action}", to: controller, action: action,
+              via: [:get, :post, :query], as: "#{action}_action"
+            get "get/#{action}", to: controller, action: action, as: "get_#{action}_action"
           end
         end
 
         singleton_class.include(set.url_helpers)
 
-        yield
+        yield controller
       end
     end
+
+    def with_live_controller(controller)
+      controller.class_eval do
+        include ActionController::Live
+      end
+
+      yield
+    end
+end
+
+# `url_for(controller: "foo")` in MetalIntegrationTest generates through the
+# shared route set.
+append_routes(SharedTestRoutes) do
+  get "/foo", to: "foo#index"
 end
 
 class MetalIntegrationTest < ActionDispatch::IntegrationTest
@@ -1130,9 +1230,7 @@ class IntegrationRequestsWithoutSetup < ActionDispatch::IntegrationTest
   def test_request
     with_routing do |routes|
       routes.draw do
-        ActionDispatch.deprecator.silence do
-          get ":action" => FooController
-        end
+        get "/ok", to: FooController, action: "ok"
       end
 
       get "/ok"
@@ -1181,11 +1279,13 @@ class IntegrationRequestEncodersTest < ActionDispatch::IntegrationTest
     end
   end
 
+  FOO_ACTIONS = FooController.action_methods.to_a
+
   def test_standard_json_encoding_works
     with_routing do |routes|
       routes.draw do
-        ActionDispatch.deprecator.silence do
-          post ":action" => FooController
+        FOO_ACTIONS.each do |action|
+          post "/#{action}", to: FooController, action: action
         end
       end
 
@@ -1222,8 +1322,8 @@ class IntegrationRequestEncodersTest < ActionDispatch::IntegrationTest
   def test_doesnt_mangle_request_path
     with_routing do |routes|
       routes.draw do
-        ActionDispatch.deprecator.silence do
-          post ":action" => FooController
+        FOO_ACTIONS.each do |action|
+          post "/#{action}", to: FooController, action: action
         end
       end
 
@@ -1283,8 +1383,8 @@ class IntegrationRequestEncodersTest < ActionDispatch::IntegrationTest
   def test_parsed_body_without_as_option
     with_routing do |routes|
       routes.draw do
-        ActionDispatch.deprecator.silence do
-          get ":action" => FooController
+        FOO_ACTIONS.each do |action|
+          get "/#{action}", to: FooController, action: action
         end
       end
 
@@ -1297,8 +1397,8 @@ class IntegrationRequestEncodersTest < ActionDispatch::IntegrationTest
   def test_get_parameters_with_as_option
     with_routing do |routes|
       routes.draw do
-        ActionDispatch.deprecator.silence do
-          get ":action" => FooController
+        FOO_ACTIONS.each do |action|
+          get "/#{action}", to: FooController, action: action
         end
       end
 
@@ -1311,8 +1411,8 @@ class IntegrationRequestEncodersTest < ActionDispatch::IntegrationTest
   def test_get_with_json_and_params_sends_as_query_string
     with_routing do |routes|
       routes.draw do
-        ActionDispatch.deprecator.silence do
-          get ":action" => FooController
+        FOO_ACTIONS.each do |action|
+          get "/#{action}", to: FooController, action: action
         end
       end
 
@@ -1327,8 +1427,8 @@ class IntegrationRequestEncodersTest < ActionDispatch::IntegrationTest
   def test_get_request_with_json_excludes_null_query_string
     with_routing do |routes|
       routes.draw do
-        ActionDispatch.deprecator.silence do
-          get ":action" => FooController
+        FOO_ACTIONS.each do |action|
+          get "/#{action}", to: FooController, action: action
         end
       end
 
@@ -1341,8 +1441,8 @@ class IntegrationRequestEncodersTest < ActionDispatch::IntegrationTest
   def test_get_with_explicit_query_kwarg
     with_routing do |routes|
       routes.draw do
-        ActionDispatch.deprecator.silence do
-          get ":action" => FooController
+        FOO_ACTIONS.each do |action|
+          get "/#{action}", to: FooController, action: action
         end
       end
 
@@ -1357,8 +1457,8 @@ class IntegrationRequestEncodersTest < ActionDispatch::IntegrationTest
   def test_post_with_explicit_query_kwarg_appends_to_url
     with_routing do |routes|
       routes.draw do
-        ActionDispatch.deprecator.silence do
-          post ":action" => FooController
+        FOO_ACTIONS.each do |action|
+          post "/#{action}", to: FooController, action: action
         end
       end
 
@@ -1372,8 +1472,8 @@ class IntegrationRequestEncodersTest < ActionDispatch::IntegrationTest
   def test_post_with_explicit_body_kwarg
     with_routing do |routes|
       routes.draw do
-        ActionDispatch.deprecator.silence do
-          post ":action" => FooController
+        FOO_ACTIONS.each do |action|
+          post "/#{action}", to: FooController, action: action
         end
       end
 
@@ -1387,8 +1487,8 @@ class IntegrationRequestEncodersTest < ActionDispatch::IntegrationTest
   def test_post_with_query_and_body_kwargs
     with_routing do |routes|
       routes.draw do
-        ActionDispatch.deprecator.silence do
-          post ":action" => FooController
+        FOO_ACTIONS.each do |action|
+          post "/#{action}", to: FooController, action: action
         end
       end
 
@@ -1403,8 +1503,8 @@ class IntegrationRequestEncodersTest < ActionDispatch::IntegrationTest
     def post_to_foos(as:)
       with_routing do |routes|
         routes.draw do
-          ActionDispatch.deprecator.silence do
-            post ":action" => FooController
+          FOO_ACTIONS.each do |action|
+            post "/#{action}", to: FooController, action: action
           end
         end
 
@@ -1503,6 +1603,9 @@ class PageDumpIntegrationTest < ActionDispatch::IntegrationTest
     get "/" => "page_dump_integration_test/foo#index"
     get "/redirect" => "page_dump_integration_test/foo#redirect"
   end
+
+  # +redirect+ computes its target through the controller's own route set.
+  draw_controller_routes(SharedTestRoutes, FooController)
 
   test "save_and_open_page saves a copy of the page and call to Launchy" do
     launchy_called = false

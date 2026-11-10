@@ -1,3 +1,980 @@
+*   Qualify unscope values with table name when merging relations.
+
+    Fixes an issue where merging a relation with an `unscope(where: ...)`
+    clause unscoped conditions on joined or eager loaded tables that share
+    the same column name.
+
+    *Helmi Pradita*
+
+*   Fix preloading a `has_many :through` association whose scope has conditions
+    and `preload` or `eager_load` not loading the nested associations.
+
+    Only `includes` in the scope was applied, so the nested association was
+    loaded with a query per record, or raised under `strict_loading`.
+
+    ```ruby
+    class Tagging < ActiveRecord::Base
+      belongs_to :post
+    end
+
+    class Tag < ActiveRecord::Base
+      has_many :taggings
+      has_many :active_posts, -> { preload(:comments).where(taggings: { active: true }) },
+        through: :taggings, source: :post
+    end
+
+    posts = Tag.preload(:active_posts).first.active_posts
+    posts.map { |post| post.comments.to_a }
+    # => no longer runs a query per post
+    ```
+
+    *Kengo Johira*
+
+*   Fix a `default_order` being ignored by a `disable_joins` through association.
+
+    An explicit order in an association's scope was carried over to the
+    queries the chain is split into, but a `default_order` was dropped, so the
+    records came back in whatever order the database returned them.
+
+    ```ruby
+    class Author < ApplicationRecord
+      has_many :comments, through: :posts
+      has_many :ratings, -> { default_order(value: :desc) },
+        through: :comments, disable_joins: true
+    end
+    ```
+
+    *Carlos Pohlod*
+
+*   Fix `eager_load` of associations to models without a primary key.
+
+    Every parent got only the first loaded record: a `has_many` kept one
+    record per parent, and parents after the first got the first parent's
+    record.
+
+    *Kengo Johira*
+
+*   Cast numeric values to the scale of the PostgreSQL `money` type.
+
+    `money` only rounded strings to its scale, so a numeric value was held
+    unrounded and as given, while it was rounded on save and read back as a
+    `BigDecimal`.
+
+    ```ruby
+    # t.money :wealth
+
+    record = Post.new(wealth: 10.004)
+    record.wealth # => 10.004 before, now 0.1e2
+    ```
+
+    *Ryuta Kamizono*
+
+*   Fix nested preloads under a `:through` association attaching their
+    records to copies instead of the records the owners hold.
+
+    ```ruby
+    Author.strict_loading.preload(:comments, comments: :ratings).first.comments.first.ratings
+    # => raised ActiveRecord::StrictLoadingViolationError
+    ```
+
+    When the owners already had the through association loaded, the nested
+    association was preloaded on fresh copies of its records, so it raised
+    with `strict_loading`, and without it was loaded again lazily, one query
+    per record. Nested preloads now always use the records held by the owners.
+
+    Fixes #49197.
+
+    *Clément Joubert*
+
+*   Retry `ActiveRecord::SerializationFailure` on queries that opted into retries.
+
+    A serialization failure rolls back whatever the statement was part of, so a
+    statement that was not part of an open transaction can be re-run on the same
+    connection, exactly as `ActiveRecord::Deadlocked` already is.
+
+    *Adrianna Chang*
+
+*   Fix `in_order_of` modifying the receiver relation.
+
+    `in_order_of` added the referenced table to the receiver's
+    `references_values` instead of only the returned relation's, so it
+    raised `ActiveRecord::UnmodifiableRelation` on a loaded relation.
+
+    ```ruby
+    posts = Post.all.load
+    posts.in_order_of("posts.id", [3, 4, 1])
+    # => ActiveRecord::UnmodifiableRelation before, now the ordered relation
+    ```
+
+    *Ryuta Kamizono*
+
+*   Fix `merge` dropping `RECURSIVE` from a relation built with `with_recursive`.
+
+    The recursive flag is now kept with the relation's other values, so
+    `merge`, `only`, and `or` keep it, and `except(:with)` and `unscope(:with)`
+    remove it along with the CTEs.
+
+    ```ruby
+    Post.all.merge(Post.with_recursive(post_and_replies: [...])).to_sql
+    # => "WITH post_and_replies AS (...)" before, now "WITH RECURSIVE post_and_replies AS (...)"
+    ```
+
+    *Ryuta Kamizono*
+
+*   Fix `one?` and `many?` on grouped relations.
+
+    A grouped count returns a hash, so `one?` returned `false` for a single
+    group and `many?` raised a `TypeError`. They now count the groups, which
+    matches the number of records the relation loads.
+
+    ```ruby
+    Post.joins(:comments).group(:id).many?
+    # => TypeError before, now true when more than one post has comments
+    ```
+
+    *Wei-Lun Li*
+
+*   Fix `in_batches(use_ranges: true)` yielding relations that keep an ignored `default_order`.
+
+    Batching ignores `default_order` like an explicit order, but the ranged
+    relations still carried it, adding a needless `ORDER BY` to each batch.
+
+    *Clément Joubert*
+
+*   Support `unscope(:default_order)`.
+
+    Previously, `unscope(:default_order)` raised an `ArgumentError`. It now
+    removes default ordering while keeping explicit ordering, just like
+    `unscope(:order)` removes explicit ordering while keeping default ordering.
+
+    ```ruby
+    Post.order(:id).default_order(:title).unscope(:default_order)
+    # SELECT "posts".* FROM "posts" ORDER BY "posts"."id" ASC
+    ```
+
+    *Kengo Johira*
+
+*   Fix eager loading with `limit` or `offset` on a relation with a `default_order`.
+
+    The `SELECT DISTINCT` of primary keys ignored `default_order`, which raised
+    on PostgreSQL and MySQL because the `ORDER BY` columns were missing from
+    its select list.
+
+    ```ruby
+    Post.eager_load(:comments).default_order(:title).limit(2).offset(1)
+    # => PG::InvalidColumnReference before, now loads the records
+    ```
+
+    *Clément Joubert*
+
+*   Fix subclasses missing `enum` definitions added to their parent class later.
+
+    `defined_enums` on a subclass that already existed did not include an enum
+    added to its parent afterwards.
+
+    *Ryuta Kamizono*
+
+*   Fix assigning an `attr_readonly` attribute added to a parent class not raising
+    on a subclass whose attribute methods were already generated.
+
+    *Ryuta Kamizono*
+
+*   Fix subclasses missing `attr_readonly` attributes added to their parent class later.
+
+    A subclass that had already declared readonly attributes of its own did
+    not see attributes declared readonly on its parent afterwards, so they
+    could be changed and saved on the subclass.
+
+    *Kengo Johira*
+
+*   Fix subclasses missing `composed_of` aggregations added to their parent class later.
+
+    A subclass that had already defined an aggregation of its own did not see
+    aggregations added to its parent afterwards, so `reflect_on_aggregation`
+    returned `nil` and `where` could not expand the value object.
+
+    *Kengo Johira*
+
+*   Fix preloading a `has_one :through` or `has_many :through` association when
+    its through and source models share a table, such as STI subclasses.
+
+    Source conditions, including the STI type condition, were merged into the
+    through model's query, where they filtered the through records instead of
+    the source records. They are now applied by the source preloader.
+
+    Fixes #43657.
+
+    *Masaki Ozawa*
+
+*   Fix counter caches being incremented twice when creating a new record with
+    a `has_many :through` association and `partial_inserts` disabled.
+
+    The counter incremented in memory on the unsaved owner was written by the
+    `INSERT`, and then incremented again by the join model's `belongs_to`
+    counter cache. Unchanged counter cache columns are now omitted from the
+    `INSERT`, as they already are when `partial_inserts` is enabled.
+
+    Fixes #47555.
+
+    *Masaki Ozawa*
+
+*   Fix preloading a scoped `has_many :through` association reusing the
+    source records already loaded by an unscoped one, ignoring its scope.
+
+    ```ruby
+    class Author < ActiveRecord::Base
+      has_many :categorizations
+      has_many :categorized_posts, through: :categorizations, source: :post
+      has_many :categorized_posts_desc, -> { order(id: :desc) }, through: :categorizations, source: :post
+    end
+
+    Author.preload(:categorized_posts, :categorized_posts_desc).first.categorized_posts_desc # => now sorted by id desc
+    ```
+
+    Fixes #56110.
+
+    *Clément Joubert*
+
+*   Add a `checkout_wait.active_record` notification.
+
+    It is emitted when a connection checkout waits because the pool is full,
+    and its duration is the time spent waiting, so pool saturation can be
+    measured without patching `ConnectionPool`.
+
+    *Andrew Fader*
+
+*   Pass the association's human name unchanged to `restrict_with_error` messages.
+
+    The `restrict_dependent_destroy` messages interpolate `%{record}`, which is
+    always downcased. That reads well in English, but locales that capitalize
+    nouns, like German, end up with "abhängige firmen". The untouched name is now
+    also available as `%{association_name}`:
+
+    ```yaml
+    de:
+      activerecord:
+        errors:
+          messages:
+            restrict_dependent_destroy:
+              has_many: "Datensatz kann nicht gelöscht werden, da abhängige %{association_name} existieren"
+    ```
+
+    Fixes #21064.
+
+    *Jason Lee*
+
+*   Fix subclasses missing associations added to their parent class later.
+
+    A subclass that defined an association of its own kept a copy of the
+    parent's reflections, so an association added to the parent afterwards
+    (for example by an engine or a concern loaded later) had its methods on the
+    subclass, but raised `ActiveRecord::AssociationNotFoundError` when called.
+
+    ```ruby
+    class Post < ActiveRecord::Base; end
+    class FancyPost < Post
+      has_many :tags
+    end
+    Post.has_many :comments
+
+    FancyPost.first.comments # => no longer raises
+    ```
+
+    Fixes #20678.
+
+    *Jason Lee*
+
+*   Wrap the PostgreSQL driver's null byte error in `ActiveRecord::NullByteError`.
+
+    PostgreSQL cannot store null bytes (`\0`) in text columns. Previously the
+    `pg` gem raised a generic `ArgumentError`, which could only be rescued by
+    catching every `ArgumentError` or matching on the message. It is now wrapped
+    in `ActiveRecord::NullByteError`, with the original error available as `#cause`.
+
+    Applications can rescue it to strip the null bytes, validate the input, or
+    reject the request, without any change to stored data.
+
+    This changes which rescue clauses catch the error. `NullByteError` is a
+    subclass of `ActiveRecord::StatementInvalid`, not `ArgumentError`, so code
+    that rescued `ArgumentError` around queries to handle null bytes no longer
+    catches it and should rescue `ActiveRecord::NullByteError` instead. Code
+    that rescues `ActiveRecord::StatementInvalid` or `ActiveRecord::ActiveRecordError`
+    now catches it too.
+
+    ```ruby
+    begin
+      Book.create!(name: "a\0b")
+    rescue ActiveRecord::NullByteError
+      # handle invalid input
+    end
+    ```
+
+    To render it as a 400 Bad Request, add it to `rescue_responses`:
+
+    ```ruby
+    config.action_dispatch.rescue_responses["ActiveRecord::NullByteError"] = :bad_request
+    ```
+
+    *Simon Isler*
+
+*   Fix preloading a `has_many :through` association with `source_type` and
+    conditions on the through table.
+
+    Loading such an association normally or with `eager_load` worked, but
+    preloading it raised, since the source query didn't join the through table.
+
+    ```ruby
+    class Tag < ActiveRecord::Base
+      has_many :taggings
+      has_many :second_tagged_posts, -> { where(taggings: { comment: "second" }) },
+        through: :taggings, source: :taggable, source_type: "Post"
+    end
+
+    Tag.preload(:second_tagged_posts).to_a
+    # => no longer raises `ActiveRecord::StatementInvalid`
+    ```
+
+    *Ryuta Kamizono*
+
+*   Fix preloading a `has_many :through` association with `source_type` or
+    `disable_joins` and conditions reusing already loaded source records
+    without the conditions.
+
+    ```ruby
+    class Tag < ActiveRecord::Base
+      has_many :taggings
+      has_many :tagged_posts_by_bob, -> { joins(:author).where(authors: { name: "Bob" }) },
+        through: :taggings, source: :taggable, source_type: "Post"
+    end
+
+    Tag.preload(taggings: :taggable).preload(:tagged_posts_by_bob).first.tagged_posts_by_bob
+    # => no longer includes posts by other authors
+    ```
+
+    *Ryuta Kamizono*
+
+*   Fix preloading a scoped `has_many :through` association reusing the
+    through records already loaded by an unscoped one.
+
+    ```ruby
+    class Post < ActiveRecord::Base
+      has_many :taggings
+      has_many :tags, through: :taggings
+      has_many :inactive_tags, -> { where(active: false) }, through: :taggings, source: :tag
+    end
+
+    Post.preload(:tags, :inactive_tags).first.inactive_tags # => no longer includes active tags
+    ```
+
+    Fixes #57861.
+
+    *Ryuta Kamizono*
+
+*   Fix preloading a `has_many :through` / `has_one :through` association with
+    `source_type` when the through association is already loaded.
+
+    The source records were preloaded for all already loaded through records,
+    including ones whose polymorphic type doesn't match `source_type`, which
+    could raise `NameError` for an unknown type. And a Symbol `source_type`
+    never matched the stored type, so the association was preloaded as empty.
+
+    ```ruby
+    Tag.preload(:taggings, :tagged_posts)        # no longer preloads non-Post taggables
+    Club.preload(:sponsor, :sponsored_member)    # source_type: :Member works
+    ```
+
+    *Ryuta Kamizono*
+
+*   Exclude `default_order` from aggregate calculations.
+
+    Calculations such as `count` and `sum` now remove default ordering where they
+    already remove explicit ordering. This avoids invalid SQL on PostgreSQL,
+    including `distinct.count` with a custom select.
+
+    *Kengo Johira*
+
+*   Exclude `default_order` in `Relation#exists?`.
+
+    Previously, `exists?` only excluded explicit `order` values, causing
+    `default_order` to be retained in the query.
+
+    *Kengo Johira*
+
+*   Decode and encode PostgreSQL `integer[]` and `bigint[]` columns in C.
+
+    `OID::Array` now gives pg `PG::TextDecoder::Integer` and
+    `PG::TextEncoder::Integer` as element coders, so reading or writing an
+    integer array no longer allocates one String per element.
+
+    An empty or whitespace-only element now deserializes to `0` instead of
+    `nil`. PostgreSQL never returns one for an integer array column, so this
+    only affects an integer array attribute declared over a text array column
+    holding such elements.
+
+    *Clément Joubert*
+
+*   Deprecate the option accessors on `ColumnDefinition`.
+
+    Use `options` instead, for example `column.options[:limit]` instead of
+    `column.limit`.
+
+    *Sampo Kuokkanen*
+
+*   Keep query block scoped optimizer hints on the subquery for `count` with
+    `limit`/`offset`/`distinct` on MySQL.
+
+    Previously all optimizer hints were moved to the outer query, where table
+    level hints like `INDEX(posts idx)` could not resolve their tables and were
+    silently ignored. Now only statement level hints (`MAX_EXECUTION_TIME`,
+    `RESOURCE_GROUP`, and `SET_VAR`) are placed on the outer query, even when
+    multiple hints are given in one string.
+
+    The global scope hints are listed in
+    https://dev.mysql.com/doc/refman/en/optimizer-hints.html.
+
+    ```ruby
+    Post.optimizer_hints("MAX_EXECUTION_TIME(50000)", "NO_RANGE_OPTIMIZATION(posts idx)").limit(5).count
+    # SELECT /*+ MAX_EXECUTION_TIME(50000) */ COUNT(count_column) FROM
+    #   (SELECT /*+ NO_RANGE_OPTIMIZATION(posts idx) */ ... LIMIT 5) subquery_for_count
+    ```
+
+    *Ryuta Kamizono*
+
+*   Fix `left_joins` and `eager_load` dropping an intermediate join when the
+    same through association is joined from different parent paths.
+
+    The second path reused the intermediate join of the first path, so it
+    silently returned values from the wrong records instead of raising an error:
+
+    ```ruby
+    # `current_location` and `storing_location` are both `Location`s, which
+    # `has_one :setting, through: :setting_association`.
+    Book.left_joins(current_location: :setting, library: { storing_location: :setting })
+    ```
+
+    *Masaki Ozawa*
+
+*   Deprecate `ActiveRecord::Validations::NumericalityValidator`.
+
+    Active Record now uses `ActiveModel::Validations::NumericalityValidator`
+    directly. The old constant still works, with a deprecation warning, so code
+    that checks the validators of a model keeps working:
+
+    ```ruby
+    case validator
+    when ActiveRecord::Validations::NumericalityValidator # Deprecated.
+    when ActiveModel::Validations::NumericalityValidator  # Use this instead.
+    end
+    ```
+
+    *Bruno Costanzo*
+
+*   Scope `immutable_strings_by_default` to string columns.
+
+    The setting applied to every column whose type happened to subclass
+    `ActiveModel::Type::String`, which was never the intent. `text` columns and
+    PostgreSQL's `xml`, `citext`, `ltree`, `tsvector` and `macaddr` columns were
+    therefore inferred as `:string`, losing their type, and in some cases their
+    own serialization and comparison behavior with it.
+
+    Only `:string` columns are inferred as `:immutable_string` now. Note that
+    `text` columns are no longer affected by the setting.
+
+    *Ryuta Kamizono*
+
+*   Fix `where` with an array of objects that delegate `#id`.
+
+    Such objects were expanded to their ids only when passed alone or in a one
+    element array, so a longer array was compared against `NULL`:
+
+    ```ruby
+    Author.where(id: [decorator.new(author_one), decorator.new(author_two)])
+    # WHERE "authors"."id" IN (NULL)
+    ```
+
+    *Ryuta Kamizono*
+
+*   Allow Active Record objects in the tuple `where` syntax.
+
+    The single column syntax already accepts records, so the tuple syntax now
+    accepts them too, and a record is expanded to its primary key values.
+
+    ```ruby
+    Cpk::Book.where([:author_id, :id] => book)
+    Cpk::Book.where([:author_id, :id] => [book_one, book_two])
+    ```
+
+    *Ryuta Kamizono*
+
+*   Fix `in_order_of` returning no records for types whose serialized value
+    changes when serialized again, like deterministic encryption, `json`
+    columns and `serialize` coders.
+
+    *Bruno Costanzo*
+
+*   Use native `ALTER TABLE ... RENAME COLUMN` for `rename_column` on SQLite.
+
+    `rename_column` rebuilt the table and copied index, check constraint and
+    virtual column SQL as written, so it failed when that SQL used the renamed
+    column. The rebuild also dropped triggers on the table, broke foreign keys
+    from other tables to the column, and lost a string primary key. SQLite
+    updates all of these when it renames the column itself.
+
+    *Bruno Costanzo*
+
+*   Deprecate `config.active_record.raise_on_assign_to_attr_readonly`.
+
+    It has been a framework default since version 7.1, and keeping it as
+    a configuration flag is preventing further optimization of attribute
+    accessors. It will be removed in 9.0.
+
+    *Jean Boussier*
+
+*   Bump the minimum supported MySQL version to 5.7.9.
+
+    This drops the workarounds for indexing `utf8mb4` `varchar(255)` columns.
+    On MySQL 5.6, InnoDB created tables as `ROW_FORMAT=COMPACT`, whose 767 byte
+    index prefix is too small for `varchar(255)` at four bytes per character,
+    so such an index required `innodb_file_per_table`,
+    `innodb_file_format = 'Barracuda'` and `innodb_large_prefix` to be enabled
+    on the server. Active Record worked around that by emitting
+    `ROW_FORMAT=DYNAMIC` on every `CREATE TABLE`, and by refusing to create a
+    `utf8mb4` database when the server was not configured that way. 5.7.9 is
+    the version where `innodb_default_row_format` defaults to `DYNAMIC`
+    (MariaDB 10.2.2), so neither is needed any more and tables are created
+    without an explicit `ROW_FORMAT`.
+
+    *Ryuta Kamizono*
+
+*   Truncate tables shadowed by a same-named table earlier on the PostgreSQL
+    `search_path`.
+
+    `db:truncate_all` and the reset of parallel test databases truncated the
+    table a bare name resolves to twice and left the shadowed one untouched.
+    They also failed on a table whose name contains a dot.
+
+    *Sergei Malykh*
+
+*   Fix `remove_index` and `index_exists?` in migrations declaring version 4.2
+    to honor `table_name_prefix` and `table_name_suffix`.
+
+    With a prefix set, `remove_index` raised `ArgumentError: Index name '...'
+    on table '...' does not exist`, and `index_exists?` returned `false` for an
+    index that exists.
+
+    *Carlos Daniel Pohlod*
+
+*   Raise the original error when SQLite rolls back a transaction on its own.
+
+    When a statement or `COMMIT` fails with errors such as `SQLITE_FULL`, the
+    original error is raised instead of "cannot rollback - no transaction is
+    active", records saved in the transaction are no longer `persisted?`, and
+    `after_rollback` callbacks run.
+
+    *Cole Robertson*
+
+*   Dump `create_schema` with `if_not_exists: true` for every schema that holds
+    a dumped extension.
+
+    A relocatable extension, such as `btree_gin` or `pg_trgm`, can live in a schema
+    that `dump_schemas` does not cover. The Ruby schema dump wrote
+    `enable_extension "extensions.btree_gin"` without `create_schema` for it, and
+    `db:schema:load` failed with `PG::InvalidSchemaName`. When the schema was in
+    `dump_schemas`, the dump wrote `create_schema "extensions"`, and the load
+    failed with `PG::DuplicateSchema` where the schema exists already, as on Supabase.
+    The dump now writes `create_schema "extensions", if_not_exists: true` in both cases.
+
+    *Tusshar Laddha*
+
+*   Fix `eager_load` with a `limit` on a relation that joins a CTE.
+
+    Working out whether the limit could be applied to the joined query took the
+    name of the CTE for an association name:
+
+    ```ruby
+    Post.with(commented_posts: Comment.select(:post_id))
+      .joins(:commented_posts).eager_load(:author).limit(2)
+    # ActiveRecord::ConfigurationError: Can't join 'Post' to association named
+    # 'commented_posts'; perhaps you misspelled it?
+    ```
+
+    *Ryuta Kamizono*
+
+*   Fix the order of joins when `eager_load` or `left_joins` is combined with
+    joins merged from a relation of another model.
+
+    The join built by `eager_load`, and the one built from the association names
+    passed to `left_joins`, are rooted at the base table, so they have to come
+    before the joins merged in from a relation of another model, since those
+    depend on the tables they bring in. They were emitted after them instead,
+    which produced an invalid query:
+
+    ```ruby
+    Post.eager_load(:comments).merge(Comment.left_joins(:user))
+    # before: ... FROM "posts"
+    #             LEFT OUTER JOIN "users" ON "users"."id" = "comments"."user_id"
+    #             LEFT OUTER JOIN "comments" ON "comments"."post_id" = "posts"."id"
+    # after:  ... FROM "posts"
+    #             LEFT OUTER JOIN "comments" ON "comments"."post_id" = "posts"."id"
+    #             LEFT OUTER JOIN "users" ON "users"."id" = "comments"."user_id"
+
+    Post.left_joins(:comments).merge(Comment.joins(:ratings))
+    # before: ... FROM "posts"
+    #             INNER JOIN "ratings" ON "ratings"."comment_id" = "comments"."id"
+    #             LEFT OUTER JOIN "comments" ON "comments"."post_id" = "posts"."id"
+    # after:  ... FROM "posts"
+    #             LEFT OUTER JOIN "comments" ON "comments"."post_id" = "posts"."id"
+    #             INNER JOIN "ratings" ON "ratings"."comment_id" = "comments"."id"
+    ```
+
+    *Ryuta Kamizono*
+
+*   Move adapter-specific migration version compatibility into the connection adapters.
+
+    The adjustments that `ActiveRecord::Migration::Compatibility` applied through
+    `adapter_name` checks, such as the `timestamp` type for `:datetime` in
+    `Migration[6.1]` on PostgreSQL, are now defined by each adapter. Migrations on
+    the bundled adapters produce the same schema and the same verbose output as
+    before, with one exception: on PostgreSQL, a migration declaring 7.0 or
+    earlier that passes `force:` to `disable_extension` now keeps that value
+    instead of having it replaced by `:cascade`. Adapters that patched those
+    classes to adjust the behavior for their database should define it through
+    `compatibility_behavior_for` instead.
+
+    Adapters that subclass a bundled adapter now inherit its adjustments, which
+    the previous `adapter_name` checks never applied to them. On a PostgreSQL
+    subclass, for example, `disable_extension` in a migration declaring 7.0 or
+    earlier now adds `CASCADE`, and `:datetime` in one declaring 6.1 or earlier
+    becomes `timestamp` when `datetime_type` is `:timestamptz`. An adapter that
+    does not want an inherited adjustment can override
+    `compatibility_behavior_for` to return a subclass of the bundled behavior
+    that overrides that operation.
+
+    *Yasuo Honda*
+
+*   Fix `has_many`/`has_one :through` associations with `disable_joins: true`
+    raising when the owner's foreign key is composite.
+
+    *Federico Carrocera*
+
+*   Fix `where` with a `Range` of value objects on a single-mapping `composed_of`
+    attribute.
+
+    Range endpoints now go through the mapping, like single values and arrays do.
+    Before, they were used as-is, so both ends became `NULL`:
+
+    ```ruby
+    Customer.where(balance: Money.new(150)..Money.new(250))
+    # before: ... WHERE "customers"."balance" BETWEEN NULL AND NULL
+    # after:  ... WHERE "customers"."balance" BETWEEN 150 AND 250
+    ```
+
+    *Kushagra Singh*
+
+*   Combine constraint operations into the single `ALTER TABLE` statement emitted by
+    `change_table` with `bulk: true`.
+
+    `add_foreign_key`, `remove_foreign_key`, `add_check_constraint` and
+    `remove_check_constraint` are now combinable on every adapter that supports
+    bulk alter (MySQL and PostgreSQL), as are `add_unique_constraint`,
+    `remove_unique_constraint`, `add_exclusion_constraint` and
+    `remove_exclusion_constraint` on PostgreSQL.
+
+    ```ruby
+    change_table :posts, bulk: true do |t|
+      t.bigint :reviewer_id
+      t.foreign_key :authors, column: :reviewer_id
+      t.check_constraint "views >= 0", name: "views_check"
+      t.remove_foreign_key :authors, column: :editor_id
+    end
+    ```
+
+    Before, each constraint flushed the pending `ALTER TABLE` and ran on its own.
+    Now all four operations are applied in one statement.
+
+    *Ryuta Kamizono*
+
+*   Stop `connected_to` from changing the role and shard of a thread that shares
+    the execution state.
+
+    `ActionController::Live` copies the request's execution state into the
+    streaming thread, but both threads kept using the same `connected_to` stack.
+    When the request thread left a `connected_to` block, for example the one
+    opened by the shard selector middleware, the streaming thread lost its shard
+    and role too. The stack is now replaced instead of modified in place.
+
+    Fixes #58870.
+
+    *Suliman Abdulrazzaq*
+
+*   Fix `change_column` in migrations declaring version 5.1 or earlier to honor
+    `table_name_prefix` and `table_name_suffix` for `:default`, `:null`, and
+    `:comment` on PostgreSQL.
+
+    With `config.active_record.table_name_prefix = "p_"`:
+
+    ```ruby
+    class AddDefaultToPostsTitle < ActiveRecord::Migration[5.1]
+      def change
+        change_column :posts, :title, :string, default: "untitled"
+      end
+    end
+    ```
+
+    Before:
+
+    ```sql
+    ALTER TABLE "p_posts" ALTER COLUMN "title" TYPE character varying
+    ALTER TABLE "posts" ALTER COLUMN "title" SET DEFAULT 'untitled'
+    ```
+
+    After:
+
+    ```sql
+    ALTER TABLE "p_posts" ALTER COLUMN "title" TYPE character varying
+    ALTER TABLE "p_posts" ALTER COLUMN "title" SET DEFAULT 'untitled'
+    ```
+
+    *Yasuo Honda*
+
+*   Honor an explicit `type:` on `add_reference` and `add_belongs_to` on SQLite
+    in migrations declaring version 6.0 or earlier.
+
+    ```ruby
+    class AddUserToPosts < ActiveRecord::Migration[6.0]
+      def change
+        add_reference :posts, :user, type: :bigint
+      end
+    end
+    ```
+
+    Before:
+
+    ```sql
+    ALTER TABLE "posts" ADD "user_id" integer
+    ```
+
+    After:
+
+    ```sql
+    ALTER TABLE "posts" ADD "user_id" bigint
+    ```
+
+    *Yasuo Honda*
+
+*   Add `maintenance_database` option to the PostgreSQL adapter.
+
+    `bin/rails db:create`, `db:drop` and `db:purge` connect to the `postgres`
+    database by default. Some managed PostgreSQL services, such as
+    DigitalOcean, do not provide a `postgres` database, so these tasks fail
+    there. `maintenance_database` sets the database to connect to instead,
+    like the `--maintenance-db` option of `createdb`.
+
+    ```yaml
+    production:
+      adapter: postgresql
+      database: blog_production
+      maintenance_database: defaultdb
+    ```
+
+    *Yasuo Honda*
+
+*   Treat `false` as disabled for `idle_timeout`, `reaping_frequency` and `max_age`
+    in `database.yml`.
+
+    These options raised `NoMethodError` on boot when set to `false`, which YAML
+    also produces for `off` and `no`. `false` now disables them, like the
+    documented `0`. `idle_timeout` additionally accepts `true` for its default,
+    since unlike the other two it has one.
+
+    *Carlos Daniel Pohlod*
+
+*   Do not dump PostgreSQL tables, enum types and schemas that belong to an
+    extension.
+
+    Tables, enum types and schemas created by `CREATE EXTENSION`, such as
+    `spatial_ref_sys` of PostGIS, `part_config` of pg_partman or the `citus`
+    schema of Citus, are recorded in `pg_depend` as members of the extension
+    (`deptype = 'e'`): `CREATE EXTENSION` creates them, `DROP EXTENSION` drops
+    them, and PostgreSQL refuses to drop or recreate them on their own.
+    Listing them in `db/schema.rb` therefore made the file impossible to load,
+    while `enable_extension` alone already brings them back, as
+    `CREATE EXTENSION` does in `structure.sql`. Objects an application attaches
+    to an extension itself with `ALTER EXTENSION ... ADD` are left out too, as
+    `pg_dump` leaves them out.
+
+    Before:
+
+    ```ruby
+    enable_extension "postgis"
+
+    create_table "posts", force: :cascade do |t|
+      ...
+    end
+
+    create_table "spatial_ref_sys", primary_key: "srid", id: :integer, default: nil, force: :cascade do |t|
+      ...
+    end
+    ```
+
+    After:
+
+    ```ruby
+    enable_extension "postgis"
+
+    create_table "posts", force: :cascade do |t|
+      ...
+    end
+    ```
+
+    *Yasuo Honda*
+
+*   Do not schema-qualify PostgreSQL extensions whose control file fixes their
+    schema, nor tables and enum types in the current schema, when dumping
+    `db/schema.rb`.
+
+    Before:
+
+    ```ruby
+    enable_extension "pg_catalog.plpgsql"
+
+    create_table "public.posts", force: :cascade do |t|
+    ```
+
+    After:
+
+    ```ruby
+    enable_extension "plpgsql"
+
+    create_table "posts", force: :cascade do |t|
+    ```
+
+    *Yasuo Honda*
+
+*   Make `db:schema:load` work with MySQL client 9.4 and later.
+
+    From 9.4.0 on, the client by default passes the `SOURCE` command to the
+    server as SQL instead of handling it itself, and the server rejects it with a
+    syntax error. The SQL structure file is now read from standard input instead.
+
+    *Yasuo Honda*
+
+*   Drop the explicit `SET FOREIGN_KEY_CHECKS` statements from MySQL `db:schema:load`.
+
+    Dumps written by `mysqldump` since MySQL 4.1.1 and by `mariadb-dump` since
+    its first release set `FOREIGN_KEY_CHECKS = 0` themselves, so foreign key
+    checks stay disabled during the load without them.
+
+    If you pass `--compact` in `structure_dump_flags`, the dump leaves it out, so
+    add it back on load:
+
+        ActiveRecord::Tasks::DatabaseTasks.structure_load_flags = ["--init-command=SET FOREIGN_KEY_CHECKS = 0"]
+
+    *Yasuo Honda*
+
+*   Avoid deadlocks when concurrent `find_or_create_by` calls read back the same
+    record within MySQL transactions.
+
+    Use a shared lock for the read after a duplicate insert, preserving visibility
+    under REPEATABLE READ without upgrading competing shared locks to exclusive locks.
+    This also applies to `create_or_find_by` and the bang variants of both methods.
+
+    Fixes #54281.
+
+    *Kirsten Westeinde*
+
+*   Deprecate `ActiveRecord::Callbacks::CALLBACKS`.
+
+    The constant has been outdated for a long time. It is missing several
+    transaction related callbacks that have been added over the years:
+
+    * `before_commit`
+    * `after_save_commit`
+    * `after_create_commit`
+    * `after_update_commit`
+    * `after_destroy_commit`
+
+    Anything driven off the constant silently skips those callbacks, so it is
+    deprecated with no replacement.
+
+    *Ryuta Kamizono*
+
+*   Deprecate `supports_datetime_with_precision?`.
+
+    The check existed for MySQL 5.5 and older, which had no sub-second
+    precision on `DATETIME`, `TIME` and `TIMESTAMP` columns. Every database
+    Active Record supports now has it, so the method always returns true and
+    no longer guards anything.
+
+    *Ryuta Kamizono*
+
+*   Read PostgreSQL indexes and constraints from the table an unqualified name resolves to.
+
+    `indexes`, `foreign_keys`, `check_constraints`, `unique_constraints` and
+    `exclusion_constraints` matched a name against every schema on the search
+    path, so a name carried by two schemas came back with both tables' indexes
+    and constraints. They now resolve the name the way `::regclass` does, as
+    `primary_keys` and `table_options` already did.
+
+    *Ryuta Kamizono*
+
+*   Replace the `mysql5` fallback in `ActiveRecord.database_cli` with `mariadb`.
+
+    *Ryuta Kamizono*
+
+*   Active Record schema caches can now be dumped in JSON format.
+
+    Enabled by configuring `schema_cache_path` with a path ending in `.json`,
+    it is noticeably faster than the existing YAML and Marshal based dumpers.
+
+    *Iliana Hadzhiatanasova*
+
+*   Fix PostgreSQL primary key introspection for covering indexes.
+
+    `pg_index.indkey` includes non-key columns added with `INCLUDE`. Primary
+    keys are now read from `pg_constraint.conkey`, so those columns remain
+    writable during bulk upserts.
+
+    *Aleksandar Maksimovic*
+
+*   Re-enable PostgreSQL triggers when the block given to `disable_referential_integrity` raises.
+
+    On PostgreSQL versions without `NOT ENFORCED` constraints (before 18.4), the
+    adapter ran `ENABLE TRIGGER ALL` only after the block returned. When the block
+    raised outside of a transaction, every foreign key in the database stayed
+    disabled for all later connections.
+
+    *Lucas Guedes*
+
+*   Add `error_verbosity` support to the PostgreSQL adapter's `database.yml` configuration.
+
+    Sets the connection's error verbosity via `PG::Connection#set_error_verbosity`,
+    controlling whether `DETAIL`, `HINT`, and `CONTEXT` fields are included on
+    raised errors. This is useful to keep values echoed back by Postgres in the
+    `DETAIL` field of unique/foreign-key violations (which can contain PII) out
+    of exception messages and, from there, out of error trackers and logs.
+
+        production:
+          adapter: postgresql
+          error_verbosity: <%= PG::PQERRORS_TERSE %>
+
+    *Florent Beaurain*
+
+*   Avoid unnecessary association preloader queries for nil foreign keys when
+    the foreign key and association primary key have different types.
+
+    *Thrwat Elmoselhi*
+
+*   Avoid a redundant join when the scope of a `has_many :through` association
+    joins an association that the through chain already joins.
+
+    Given a scope such as `-> { joins(:post) }` on the through association, the
+    same table was joined twice: once by the chain and once by the scope. Only
+    `belongs_to` and `has_one` joins are dropped, since removing a collection
+    join would change the number of rows the query returns.
+
+    *David Paluy*
+
 *   Add `config.active_record.shuffle_unordered_selects`.
 
     When enabled, Active Record shuffles the rows of every `SELECT` it generates

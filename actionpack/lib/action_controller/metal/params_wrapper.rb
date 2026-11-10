@@ -1,7 +1,5 @@
 # frozen_string_literal: true
 
-# :markup: markdown
-
 require "active_support/core_ext/hash/slice"
 require "active_support/core_ext/hash/except"
 require "active_support/core_ext/module/anonymous"
@@ -152,6 +150,17 @@ module ActionController
               klass.controller_name.singularize
           end
         end
+      end
+
+      def freeze
+        return self if frozen?
+
+        if format.any?
+          name
+          include
+        end
+        @mutex = nil
+        super
       end
 
       private

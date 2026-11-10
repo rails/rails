@@ -19,6 +19,7 @@ require "models/department"
 require "models/cpk/author"
 require "models/cpk/book"
 require "models/cpk/order"
+require "models/cpk/order_agreement"
 
 class HasManyThroughDisableJoinsAssociationsTest < ActiveRecord::TestCase
   fixtures :posts, :authors, :comments, :pirates, :author_addresses
@@ -129,6 +130,35 @@ class HasManyThroughDisableJoinsAssociationsTest < ActiveRecord::TestCase
     assert_equal [@rating1, @rating2], assert_queries_count(3) { @author.no_joins_good_ratings.to_a }
   end
 
+  def test_to_a_on_disable_joins_with_a_default_order_scope
+    assert_queries_match(/ORDER BY .*value.* DESC/i, count: 1) do
+      assert_equal [@rating2, @rating1], @author.no_joins_ratings_ordered_by_default.to_a
+    end
+    assert_equal [@rating2, @rating1], @author.ratings_ordered_by_default.to_a
+  end
+
+  def test_to_a_on_disable_joins_through_a_default_ordered_association
+    author = authors(:bob)
+    first_post = author.posts.create!(title: "first", body: "body")
+    second_post = author.posts.create!(title: "second", body: "body")
+    first_comment = first_post.comments.create!(body: "first")
+    second_comment = second_post.comments.create!(body: "second")
+
+    assert_equal [second_comment, first_comment], author.comments_of_posts_ordered_by_default.to_a
+    assert_equal [second_comment, first_comment], author.no_joins_comments_of_posts_ordered_by_default.to_a
+  end
+
+  def test_to_a_on_disable_joins_with_a_default_order_scope_through_a_default_ordered_association
+    author = authors(:bob)
+    first_post = author.posts.create!(title: "first", body: "body")
+    second_post = author.posts.create!(title: "second", body: "body")
+    first_comment = first_post.comments.create!(body: "first")
+    second_comment = second_post.comments.create!(body: "second")
+
+    assert_equal [first_comment, second_comment], author.default_ordered_comments_of_posts_ordered_by_default.to_a
+    assert_equal [first_comment, second_comment], author.no_joins_default_ordered_comments_of_posts_ordered_by_default.to_a
+  end
+
   def test_preloading_has_many_through_disable_joins
     assert_queries_count(3) { Author.all.preload(:good_ratings).map(&:good_ratings) }
     assert_queries_count(4) { Author.all.preload(:no_joins_good_ratings).map(&:good_ratings) }
@@ -208,5 +238,13 @@ class HasManyThroughDisableJoinsAssociationsTest < ActiveRecord::TestCase
 
     assert_equal author.orders.to_a, author.no_joins_orders.to_a
     assert_equal [order2, order1], author.no_joins_orders.to_a
+  end
+
+  def test_disable_joins_through_with_composite_owner_foreign_key
+    order = Cpk::Order.create!(shop_id: 1)
+    book = Cpk::BookWithOrderAgreements.create!(id: [1, 2], order: order)
+    order_agreement = Cpk::OrderAgreement.create!(order: order)
+
+    assert_equal [order_agreement], book.no_joins_order_agreements.to_a
   end
 end

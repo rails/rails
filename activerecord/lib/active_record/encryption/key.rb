@@ -2,9 +2,9 @@
 
 module ActiveRecord
   module Encryption
-    # A key is a container for a given +secret+
+    # A key is a container for a given `secret`
     #
-    # Optionally, it can include +public_tags+. These tags are meant to be stored
+    # Optionally, it can include `public_tags`. These tags are meant to be stored
     # in clean (public) and can be used, for example, to include information that
     # references the key for a future retrieval operation.
     class Key

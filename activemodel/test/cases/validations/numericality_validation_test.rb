@@ -376,6 +376,39 @@ class NumericalityValidationTest < ActiveModel::TestCase
     assert_valid_values([Float("65.6"), BigDecimal("65.6")])
   end
 
+  def test_validates_numericality_of_float_is_guaranteed_up_to_fifteen_digits
+    Topic.validates_numericality_of :approved, equal_to: BigDecimal("1.23456789012346")
+
+    assert_valid_values([1.2345678901234567, "1.2345678901234567"])
+    assert_invalid_values([1.2345678901234467, "1.2345678901234467"], "must be equal to 1.23456789012346")
+  end
+
+  def test_validates_numericality_of_decimal_attribute_with_precision_and_scale
+    klass = Class.new do
+      include ActiveModel::Model
+      include ActiveModel::Attributes
+
+      attribute :price, :decimal, precision: 4, scale: 2
+      validates_numericality_of :price, less_than_or_equal_to: 99.99
+
+      def self.name
+        "DecimalModel"
+      end
+    end
+
+    ["99.994", 99.994, BigDecimal("99.994"), Rational(99_994, 1000)].each do |raw_value|
+      subject = klass.new(price: raw_value)
+      assert_equal BigDecimal("99.99"), subject.price
+      assert_predicate subject, :valid?
+    end
+
+    ["99.999", 99.999, BigDecimal("99.999"), Rational(99_999, 1000)].each do |raw_value|
+      subject = klass.new(price: raw_value)
+      assert_equal BigDecimal("100.00"), subject.price
+      assert_not_predicate subject, :valid?
+    end
+  end
+
   private
     def assert_invalid_values(values, error = nil)
       with_each_topic_approved_value(values) do |topic, value|

@@ -16,8 +16,8 @@ class BlankTest < ActiveSupport::TestCase
     end
   end
 
-  BLANK = [ EmptyTrue.new, nil, false, "", "   ", "  \n\t  \r ", "　", "\u00a0", [], {} ].freeze
-  NOT   = [ EmptyFalse.new, Object.new, true, 0, 1, "a", [nil], { nil => 0 }, Time.now ].freeze
+  BLANK = [ EmptyTrue.new, nil, false, "", "   ", "  \n\t  \r ", "　", "\u00a0", "  ", "　 ", "  ", [], {} ].freeze
+  NOT   = [ EmptyFalse.new, Object.new, true, 0, 1, "a", " a", "a ", "\0", " \0", " a", "  a", [nil], { nil => 0 }, Time.now ].freeze
 
   def test_blank
     BLANK.each { |v| assert_equal true, v.blank?,  "#{v.inspect} should be blank" }
@@ -27,8 +27,22 @@ class BlankTest < ActiveSupport::TestCase
   def test_blank_with_bundled_string_encodings
     Encoding.list.reject(&:dummy?).each do |encoding|
       assert_predicate " ".encode(encoding), :blank?
+      assert_predicate " \t\n".encode(encoding), :blank?
       assert_not_predicate "a".encode(encoding), :blank?
+      assert_not_predicate " a".encode(encoding), :blank?
     end
+  end
+
+  def test_blank_with_encoding_specific_whitespace
+    # KOI8-R puts its no-break space at 0x9A, outside the Unicode whitespace codepoints.
+    assert_predicate "\x9a".b.force_encoding("KOI8-R"), :blank?
+    assert_not_predicate "\x9a".b.force_encoding("ISO-8859-1"), :blank?
+  end
+
+  def test_blank_with_invalid_byte_sequence
+    assert_raises(ArgumentError) { "\xff".blank? }
+    assert_raises(ArgumentError) { "a\xff".blank? }
+    assert_raises(ArgumentError) { " \xff".blank? }
   end
 
   def test_present

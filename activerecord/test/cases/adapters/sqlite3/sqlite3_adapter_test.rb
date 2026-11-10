@@ -9,6 +9,12 @@ require "support/schema_dumping_helper"
 module ActiveRecord
   module ConnectionAdapters
     class SQLite3AdapterTest < ActiveRecord::SQLite3TestCase
+      skip_under_ractor_proxy :test_autoincrement_primary_key_is_dumped_as_the_default,
+        :test_copy_table_with_existing_records_have_custom_primary_key,
+        :test_copy_table_with_composite_primary_keys, :test_custom_primary_key_in_create_table,
+        :test_custom_primary_key_in_change_table, :test_add_column_with_custom_primary_key,
+        :test_remove_column_preserves_index_options, :test_auto_increment_preserved_on_table_changes
+
       include DdlHelper
       include SchemaDumpingHelper
 
@@ -1066,6 +1072,32 @@ module ActiveRecord
         end
       end
 
+      def test_closed_database_errors_are_translated_to_connection_not_established
+        @conn.connect!
+
+        # A pre-flight close is healed by ensure_connection_ready, so the
+        # translation only fires when the connection dies mid-flight. sqlite3
+        # 2.x raises "cannot use a closed database" from most methods --
+        # including total_changes, the first thing perform_query touches.
+        error = assert_raises ActiveRecord::ConnectionNotEstablished do
+          @conn.send(:with_raw_connection) do |raw_connection|
+            raw_connection.close
+            raw_connection.total_changes
+          end
+        end
+        assert_equal @conn.pool, error.connection_pool
+
+        # prepare raises its own message, "prepare called on a closed
+        # database".
+        @conn.reconnect!
+        assert_raises ActiveRecord::ConnectionNotEstablished do
+          @conn.send(:with_raw_connection) do |raw_connection|
+            raw_connection.close
+            raw_connection.prepare("SELECT 1")
+          end
+        end
+      end
+
       def test_db_is_not_readonly_when_readonly_option_is_false
         conn = SQLite3Adapter.new(
           database: ":memory:",
@@ -1459,6 +1491,94 @@ module ActiveRecord
         assert_equal 1, book_count, "Books were CASCADE deleted when authors table was renamed!"
       ensure
         conn.disconnect! if conn
+      end
+
+      def test_rename_column_used_in_partial_index
+        @conn.create_table :books do |t|
+          t.integer :pages
+          t.index :pages, where: "pages > 10"
+        end
+
+        @conn.rename_column :books, :pages, :page_count
+
+        index = @conn.indexes(:books).first
+        assert_equal ["page_count"], index.columns
+        assert_equal '"page_count" > 10', index.where
+      end
+
+      def test_rename_column_used_in_expression_index
+        @conn.create_table :books do |t|
+          t.string :title
+          t.index "lower(title)", name: "index_books_on_lower_title"
+        end
+
+        @conn.rename_column :books, :title, :name
+
+        assert_equal 'lower("name")', @conn.indexes(:books).first.columns
+      end
+
+      def test_rename_column_used_in_check_constraint
+        @conn.create_table :books do |t|
+          t.integer :pages
+          t.check_constraint "pages > 0", name: "pages_positive"
+        end
+
+        @conn.rename_column :books, :pages, :page_count
+
+        assert_equal ['"page_count" > 0'], @conn.check_constraints(:books).map(&:expression)
+      end
+
+      def test_rename_column_used_in_virtual_column
+        @conn.create_table :books do |t|
+          t.string :title
+          t.virtual :title_upcase, type: :string, as: "upper(title)", stored: true
+        end
+
+        @conn.rename_column :books, :title, :name
+        @conn.execute("INSERT INTO books (name) VALUES ('hhgttg')")
+
+        assert_equal "HHGTTG", @conn.select_value("SELECT title_upcase FROM books")
+      end
+
+      def test_rename_column_keeps_triggers
+        @conn.create_table :books do |t|
+          t.string :title
+          t.integer :edits, default: 0
+        end
+        @conn.execute(<<~SQL)
+          CREATE TRIGGER books_count_edits AFTER UPDATE OF title ON books
+          BEGIN UPDATE books SET edits = edits + 1 WHERE id = NEW.id; END
+        SQL
+
+        @conn.rename_column :books, :title, :name
+
+        assert_equal ["books_count_edits"], @conn.select_values("SELECT name FROM sqlite_master WHERE type = 'trigger'")
+      end
+
+      def test_rename_column_referenced_by_foreign_key
+        @conn.create_table :authors do |t|
+          t.string :code, index: { unique: true }
+        end
+        @conn.create_table :books do |t|
+          t.string :author_code
+        end
+        @conn.add_foreign_key :books, :authors, column: :author_code, primary_key: :code
+
+        @conn.rename_column :authors, :code, :slug
+        @conn.execute("INSERT INTO authors (slug) VALUES ('douglas')")
+        @conn.execute("INSERT INTO books (author_code) VALUES ('douglas')")
+
+        assert_equal "slug", @conn.foreign_keys(:books).first.primary_key
+      end
+
+      def test_rename_primary_key_column
+        @conn.create_table :books, id: false do |t|
+          t.string :code, primary_key: true
+        end
+
+        @conn.rename_column :books, :code, :isbn
+
+        assert_equal "isbn", @conn.primary_key(:books)
       end
 
       private

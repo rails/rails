@@ -27,20 +27,6 @@ module Rails
           }
         end
 
-        def socket
-          @socket ||= [
-            "/tmp/mysql.sock",                        # default
-            "/var/run/mysqld/mysqld.sock",            # debian/gentoo
-            "/var/tmp/mysql.sock",                    # freebsd
-            "/var/lib/mysql/mysql.sock",              # fedora
-            "/opt/local/lib/mysql/mysql.sock",        # fedora
-            "/opt/local/var/run/mysqld/mysqld.sock",  # mac + darwinports + mysql
-            "/opt/local/var/run/mysql4/mysqld.sock",  # mac + darwinports + mysql4
-            "/opt/local/var/run/mysql5/mysqld.sock",  # mac + darwinports + mysql5
-            "/opt/lampp/var/mysql/mysql.sock"         # xampp for linux
-          ].find { |f| File.exist?(f) } unless Gem.win_platform?
-        end
-
         def host
           "127.0.0.1"
         end
@@ -124,7 +110,6 @@ module Rails
         raise NotImplementedError
       end
 
-      def socket; end
       def host; end
 
       def feature

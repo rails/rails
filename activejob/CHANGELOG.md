@@ -1,3 +1,23 @@
+*   Fix `ActiveJob::Core#serialize` converting the given `scheduled_at` to UTC in place.
+
+    `MyJob.set(wait_until: time).perform_later` used `Time#utc`, which changes
+    the receiver. The caller's `time` was converted to UTC after enqueue.
+
+    *Bruno Costanzo*
+
+*   Don't modify the job data a job was deserialized from when it's retried.
+
+    ```ruby
+    job_data = RemoteServiceJob.new.serialize # retry_on Net::OpenTimeout
+    ActiveJob::Base.execute(job_data)         # fails with Net::OpenTimeout, is retried
+    job_data["exception_executions"]          # => {"[Net::OpenTimeout]" => 1}, now {}
+    ```
+
+    Retries no longer mutate `exception_executions` on the job returned by
+    `perform_later`, or on the job data in `performed_jobs`.
+
+    *Yaroslav Markin*
+
 *   Fix continuation step cursors losing their type when a job is interrupted
     and resumed.
 

@@ -237,7 +237,7 @@ More precisely, if the web server is running and application files have been mod
 
 Reloading can be enabled or disabled. The setting that controls this behavior is [`config.enable_reloading`][], which is `true` by default in `development` mode, and `false` by default in `production` mode. For backwards compatibility, Rails also supports `config.cache_classes`, which is equivalent to `!config.enable_reloading`.
 
-Rails uses an evented file monitor to detect files changes by default.  It can be configured instead to detect file changes by walking the autoload paths. This is controlled by the [`config.file_watcher`][] setting.
+Rails uses an evented file monitor to detect file changes by default.  It can be configured instead to detect file changes by walking the autoload paths. This is controlled by the [`config.file_watcher`][] setting.
 
 In a Rails console there is no file watcher active regardless of the value of `config.enable_reloading`. This is because, normally, it would be confusing to have code reloaded in the middle of a console session. Similar to an individual request, you generally want a console session to be served by a consistent, non-changing set of application classes and modules.
 
@@ -415,7 +415,7 @@ In production-like environments it is generally better to load all the applicati
 
 Eager loading is controlled by the flag [`config.eager_load`][]. By default, `development` does not eager load, `test` eager loads if the environment variable `CI` is present, and `production` eager loads.
 
-For Rake task, however, the value assigned to `config.eager_load` is replaced with [`config.rake_eager_load`][]. By default, this one is `false` in `development` and `production`, and matches `config.eager_load` in `test`.
+For Rake tasks, however, the value assigned to `config.eager_load` is replaced with [`config.rake_eager_load`][]. By default, this one is `false` in `development` and `production`, and matches `config.eager_load` in `test`.
 
 The order in which files are eager-loaded is undefined.
 

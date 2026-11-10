@@ -81,14 +81,14 @@ module ActiveRecord
       end
     end
 
-    # Creates an internal metadata table with columns +key+ and +value+
+    # Creates an internal metadata table with columns `key` and `value`
     def create_table
       return unless enabled?
 
       @pool.with_connection do |connection|
         unless connection.table_exists?(table_name)
           connection.create_table(table_name, id: false) do |t|
-            t.string :key, **connection.internal_string_options_for_primary_key
+            t.string :key, primary_key: true
             t.string :value
             t.timestamps
           end
@@ -153,7 +153,7 @@ module ActiveRecord
 
       def select_entry(connection, key)
         sm = Arel::SelectManager.new(arel_table)
-        sm.project(Arel::Nodes::SqlLiteral.new("*", retryable: true))
+        sm.project(Arel.star)
         sm.where(arel_table[primary_key].eq(Arel::Nodes::BindParam.new(key)))
         sm.order(arel_table[primary_key].asc)
         sm.limit = 1

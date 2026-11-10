@@ -6,6 +6,7 @@ require "jobs/hello_job"
 require "jobs/prefixed_job"
 require "jobs/logging_job"
 require "jobs/nested_job"
+require "active_support/testing/ractors_assertions"
 
 class QueueNamingTest < ActiveSupport::TestCase
   setup do
@@ -158,5 +159,23 @@ class QueueNamingTest < ActiveSupport::TestCase
     ConfigurationJob.set(queue: :some_queue).perform_later
     job = JobBuffer.last_value
     assert_equal "some_queue", job.queue_name
+  end
+end
+
+class QueueNamingRactorTest < ActiveSupport::TestCase
+  include ActiveSupport::Testing::Isolation
+  include ActiveSupport::Testing::RactorsAssertions
+
+  test "queue name resolves from a non-main Ractor" do
+    assert_equal "default", on_ractor { HelloJob.new.queue_name }
+    assert_equal "default", on_ractor { HelloJob.default_queue_name }
+  end
+
+  test "prefixed queue name resolves from a non-main Ractor" do
+    ActiveJob::Base.queue_name_prefix = +"aj"
+    ActiveJob::Base.queue_name_delimiter = +"."
+
+    assert_equal "aj.default", on_ractor { HelloJob.new.queue_name }
+    assert_equal "aj.low", on_ractor { HelloJob.new.set(queue: :low).queue_name }
   end
 end

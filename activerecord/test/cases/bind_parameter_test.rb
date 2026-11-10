@@ -278,7 +278,7 @@ if ActiveRecord::Base.lease_connection.prepared_statements
         end
 
         def statement_cache
-          @connection.instance_variable_get(:@statements).send(:cache)
+          main_ractor_connection(@connection).instance_variable_get(:@statements).send(:cache)
         end
 
         def assert_logs_binds(binds)

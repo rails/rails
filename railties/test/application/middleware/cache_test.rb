@@ -50,7 +50,10 @@ module ApplicationTests
 
       app_file "config/routes.rb", <<-RUBY
         Rails.application.routes.draw do
-          get ':controller(/:action)'
+          get 'expires/expires_header', to: 'expires#expires_header'
+          get 'expires/expires_etag', to: 'expires#expires_etag'
+          get 'expires/expires_last_modified', to: 'expires#expires_last_modified'
+          get 'expires/keeps_if_modified_since', to: 'expires#keeps_if_modified_since'
         end
       RUBY
     end

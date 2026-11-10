@@ -2,8 +2,6 @@
 
 require "uri"
 
-# :markup: markdown
-
 module ActionText
   # # Action Text Markdown Conversion
   #
@@ -22,8 +20,10 @@ module ActionText
 
     # Converts a Nokogiri HTML `node` into a Markdown string.
     #
-    #     node = Nokogiri::HTML4.fragment("<p>Hello <strong>world</strong></p>")
-    #     MarkdownConversion.node_to_markdown(node) # => "Hello **world**"
+    # ```
+    # node = Nokogiri::HTML4.fragment("<p>Hello <strong>world</strong></p>")
+    # MarkdownConversion.node_to_markdown(node) # => "Hello **world**"
+    # ```
     #
     # NOTE: text inside `<action-text-markdown>` elements is emitted without escaping, so this
     # method is not safe for untrusted content. Convert user-supplied markup through
@@ -60,22 +60,28 @@ module ActionText
 
     # Returns a Markdown link: `[title](url)`.
     #
-    # Escapes metacharacters in `title`, and percent-encodes characters in `url` that would break
-    # the link syntax.
+    # Escapes metacharacters in `title`, and encodes characters in `url` that would break the link
+    # syntax or that Markdown would decode, such as `\` and `&`.
     #
-    #     MarkdownConversion.markdown_link("photo", "https://example.com/photo_(large).png")
-    #     # => "[photo](https://example.com/photo_%28large%29.png)"
+    # ```
+    # MarkdownConversion.markdown_link("photo", "https://example.com/photo_(large).png")
+    # # => "[photo](https://example.com/photo_%28large%29.png)"
+    # ```
     #
     # Pass `image: true` to produce an image link (`![title](url)`).
     #
-    #     MarkdownConversion.markdown_link("photo", "https://example.com/photo.png", image: true)
-    #     # => "![photo](https://example.com/photo.png)"
+    # ```
+    # MarkdownConversion.markdown_link("photo", "https://example.com/photo.png", image: true)
+    # # => "![photo](https://example.com/photo.png)"
+    # ```
     #
     # If the URI scheme is not allowed (per `Rails::HTML::Sanitizer.allowed_uri?`), returns the
     # escaped title wrapped in escaped brackets (`\[title\]`).
     #
-    #     MarkdownConversion.markdown_link("click", "javascript:alert(1)")
-    #     # => "\\[click\\]"
+    # ```
+    # MarkdownConversion.markdown_link("click", "javascript:alert(1)")
+    # # => "\\[click\\]"
+    # ```
     def markdown_link(title, url, image: false)
       if Rails::HTML::Sanitizer.allowed_uri?(url)
         "#{"!" if image}[#{escape_markdown_text(title)}](#{encode_href(url)})"
@@ -87,8 +93,10 @@ module ActionText
     # Backslash-escapes CommonMark metacharacters in `text` so they are treated
     # as literal characters by Markdown renderers.
     #
-    #     MarkdownConversion.escape_markdown_text("**Important**")
-    #     # => "\\*\\*Important\\*\\*"
+    # ```
+    # MarkdownConversion.escape_markdown_text("**Important**")
+    # # => "\\*\\*Important\\*\\*"
+    # ```
     def escape_markdown_text(text)
       text.gsub(MARKDOWN_METACHARACTERS) { |c| "\\#{c}" }
     end
@@ -98,7 +106,7 @@ module ActionText
       ITALIC_TAGS = %w[i em].freeze
       LIST_BULLET = /\A(-|\d+\.) /
       LIST_INDENT = "  "
-      ENCODE_HREF_CHARS = /[() <>\n\r\t]/
+      ENCODE_HREF_CHARS = /[() <>\\|\n\r\t]/
       MARKDOWN_METACHARACTERS = /
         [\\`*_{}\[\]|~<>]     # metacharacters that should be escaped generally
         | \A\#(?=[\s\#]|\z)   # leading hash before space or another hash: ATX heading
@@ -112,10 +120,11 @@ module ActionText
         a abbr b bdi bdo cite code data del dfn em i kbd mark q
         rp rt ruby s samp small span strong sub sup time u var
       ] ].freeze
+      SINGLE_LINE_ANCESTORS = [ *INLINE_ELEMENTS, *%w[h1 h2 h3 h4 h5 h6 summary tr td th] ].freeze
       LEADING_PRETTY_PRINT_WHITESPACE = /\A\s*\n\s*/
       TRAILING_PRETTY_PRINT_WHITESPACE = /\s*\n\s*\z/
       private_constant :BOLD_TAGS, :ITALIC_TAGS, :LIST_BULLET, :LIST_INDENT, :ENCODE_HREF_CHARS,
-        :MARKDOWN_METACHARACTERS, :SKIP_ESCAPING_PARENTS, :INLINE_ELEMENTS,
+        :MARKDOWN_METACHARACTERS, :SKIP_ESCAPING_PARENTS, :INLINE_ELEMENTS, :SINGLE_LINE_ANCESTORS,
         :LEADING_PRETTY_PRINT_WHITESPACE, :TRAILING_PRETTY_PRINT_WHITESPACE
 
       def markdown_for_node(node, child_values)
@@ -132,7 +141,7 @@ module ActionText
           if respond_to?(method_name, true)
             send(method_name, node, child_values)
           else
-            join_children(child_values).strip
+            visit__container(node, child_values)
           end
         else
           join_children(child_values)
@@ -173,25 +182,23 @@ module ActionText
         if node.parent&.name == "pre"
           inner
         else
-          inline_code(inner)
+          inline_code(inner, node)
         end
       end
 
-      def visit_pre(_node, child_values)
-        inner = join_children(child_values).delete_prefix("\n").delete_suffix("\n")
-        fence = code_fence(inner)
-        "#{fence}\n#{inner}\n#{fence}\n\n"
+      def visit_pre(node, child_values)
+        inner = normalize_line_endings(join_children(child_values)).delete_prefix("\n").delete_suffix("\n")
+
+        if single_line_context?(node)
+          inline_code(inner, node)
+        else
+          fence = code_fence(inner)
+          "#{fence}\n#{inner}\n#{fence}\n\n"
+        end
       end
 
       def visit_p(_node, child_values)
         "#{join_children(child_values)}\n\n"
-      end
-
-      # Trix uses <div> as its default block element and represents newlines as <br> tags
-      # (see piece_view.js and block_view.js in the Trix source). Unlike <p>, we don't append
-      # paragraph-separating newlines here because the <br> children already provide spacing.
-      def visit_div(_node, child_values)
-        join_children(child_values)
       end
 
       def visit__heading(_node, child_values, level)
@@ -234,6 +241,13 @@ module ActionText
         text.gsub(/[\r\n]+/, " ")
       end
 
+      # Markdown ends a line at a bare CR, but String#lines and String#split("\n") do not, so a
+      # CR inside a fence would slip past the indentation #format_list_item and #visit_blockquote
+      # add to each line and land outside the block.
+      def normalize_line_endings(text)
+        text.gsub(/\r\n?/, "\n")
+      end
+
       def visit_tr(node, child_values)
         # lexxy does not emit `thead`, so we need to infer header rows from `tr` contents
         if node.element_children.all? { |cell| cell.name == "th" }
@@ -262,22 +276,40 @@ module ActionText
         join_children(child_values)
       end
 
+      # A container contributes no Markdown of its own, and neither does an element with no
+      # visitor at all. #join_children reads a trailing blank line as "this value is a block"
+      # and uses it to keep the next value off the same line, so a container holding a block
+      # has to report one too. Flatten that away and a fence inside the container lands
+      # mid-line, releasing the `pre` content #markdown_for_node emits unescaped.
+      def visit__container(_node, child_values)
+        inner = join_children(child_values)
+
+        if child_values.any? { |value| block_value?(value) }
+          "#{inner.rstrip}\n\n"
+        else
+          inner
+        end
+      end
+      # Trix uses <div> as its default block element and represents newlines as <br> tags (see
+      # piece_view.js and block_view.js in the Trix source). Unlike <p>, a div of inline content
+      # adds no paragraph-separating newlines: its <br> children already provide the spacing.
+      alias_method :visit_div, :visit__container
+      alias_method :visit_li, :visit__container
+      alias_method :visit_td, :visit__container
+      alias_method :visit_th, :visit__container
+      alias_method :visit_thead, :visit__container
+      alias_method :visit_tbody, :visit__container
+
+      def block_value?(value)
+        stringify(value).end_with?("\n\n")
+      end
+
       # Avoid including content from elements that aren't meaningful for markdown output
       def visit__unsupported(_node, _child_values)
         ""
       end
       alias_method :visit_script, :visit__unsupported
       alias_method :visit_style, :visit__unsupported
-
-      # These elements pass through their content (parent handlers use child_values directly)
-      def visit__passthrough(_node, child_values)
-        join_children(child_values)
-      end
-      alias_method :visit_li, :visit__passthrough
-      alias_method :visit_td, :visit__passthrough
-      alias_method :visit_th, :visit__passthrough
-      alias_method :visit_thead, :visit__passthrough
-      alias_method :visit_tbody, :visit__passthrough
 
       def visit__table_header_row(node, child_values)
         cells = child_values_for_elements(node, child_values).map { |v| stringify(v).strip }
@@ -298,10 +330,15 @@ module ActionText
         end.join("\n")
       end
 
+      # A list item's later lines have to be indented to the width of its marker. Indent them
+      # less and the item ends there, which for a fenced code block means the fence closes
+      # early and the rest of the `pre` content #markdown_for_node emits unescaped is released
+      # as Markdown source. `- ` happens to be as wide as LIST_INDENT; `1. ` is not.
       def format_list_item(lines, bullet)
         first, *rest = lines
         leader = first.match?(LIST_BULLET) ? LIST_INDENT : bullet
-        ([ leader + first ] + rest.map { |line| LIST_INDENT + line }).join("\n")
+        indent = " " * leader.length
+        ([ leader + first ] + rest.map { |line| indent + line }).join("\n")
       end
 
       def join_children(child_values)
@@ -311,7 +348,7 @@ module ActionText
           # Merge adjacent bold/italic runs which Lexxy emits
           if value.is_a?(Array) && (value[0] == :bold || value[0] == :italic)
             if merged.last.is_a?(Array) && merged.last[0] == value[0]
-              merged.last[1] = merged.last[1] + value[1]
+              merged.last[1] = merged.last[1] + code_span_separator(merged.last[1], value[1]) + value[1]
             else
               merged << [ value[0], value[1] ]
             end
@@ -323,13 +360,22 @@ module ActionText
         parts = merged.map { |v| stringify(v) }
         result = +""
         parts.each do |part|
-          # Nested block elements (e.g., lists and blockquotes) need an initial newline injected
-          if !result.empty? && !result.end_with?("\n") && part.end_with?("\n\n")
-            result << "\n"
+          # A block child has to begin its own block. Renderers disagree about whether a fence or
+          # a list may interrupt a paragraph, and one that says no releases the content the fence
+          # was holding, so separate with a blank line rather than a single newline.
+          if !result.empty? && part.end_with?("\n\n")
+            result << "\n" until result.end_with?("\n\n")
           end
-          result << part
+          result << code_span_separator(result, part) << part
         end
         result
+      end
+
+      # When two code spans are adjacent, CommonMark reads their touching delimiters as one longer
+      # backtick string that closes neither span, and then parses the code text, which #markdown_for_node
+      # emits unescaped, as Markdown.
+      def code_span_separator(left, right)
+        left.end_with?("`") && right.start_with?("`") ? " " : ""
       end
 
       def child_values_for_elements(node, child_values)
@@ -365,9 +411,22 @@ module ActionText
         "`" * [3, max_run + 1].max
       end
 
-      def inline_code(content)
+      # Two things break a code span's delimiter. A blank line closes the paragraph before the
+      # closing backtick string arrives -- Markdown turns the line endings inside a code span
+      # into spaces anyway, so collapse them and the span always closes. And a lone backtick
+      # followed by whitespace does not open a span in every renderer (kramdown refuses it), so
+      # widen the delimiter when the content leads with whitespace.
+      #
+      # In a table row, kramdown rebuilds a span that leads with whitespace with a single
+      # backtick, so strip the whitespace. GFM ends a table cell at any unescaped pipe, even one
+      # inside a code span, so escape pipes there.
+      def inline_code(content, node)
+        content = flatten_to_inline(content)
+        if node.ancestors.any? { |ancestor| ancestor.name == "tr" }
+          content = content.strip.gsub("|", "\\|")
+        end
         max_run = content.scan(/`+/).map(&:length).max || 0
-        fence = "`" * [1, max_run + 1].max
+        fence = "`" * [content.match?(/\A\s/) ? 2 : 1, max_run + 1].max
         if content.start_with?("`") || content.end_with?("`")
           "#{fence} #{content} #{fence}"
         else
@@ -404,7 +463,16 @@ module ActionText
       end
 
       def encode_href(href)
-        URI::RFC2396_PARSER.escape(href, ENCODE_HREF_CHARS)
+        URI::RFC2396_PARSER.escape(href, ENCODE_HREF_CHARS).gsub("&", "&amp;")
+      end
+
+      # A fenced code block opens only at the start of a line. A link, a heading, a summary
+      # and a table row or cell each splice their descendants into a line they have already
+      # begun, and Markdown cannot hold a block inside an inline element at all, so under
+      # any of them the fence never opens and the `pre` content #markdown_for_node emits
+      # unescaped is released as Markdown source. See SKIP_ESCAPING_PARENTS.
+      def single_line_context?(node)
+        node.ancestors.any? { |ancestor| ancestor.element? && ancestor.name.in?(SINGLE_LINE_ANCESTORS) }
       end
 
       def skip_markdown_escaping?(node)

@@ -1,3 +1,49 @@
+*   Fix subclasses missing `alias_attribute` aliases added to their parent class later.
+
+    A subclass that held its own copy of the aliases, because it had defined
+    an alias of its own or, in Active Record, because its attribute methods
+    were generated under an abstract class, did not see aliases added to its
+    parent afterwards. `attribute_alias?` returned `false`, and Active Record
+    queries such as `where` used the alias as a column name.
+
+    *Kengo Johira*
+
+*   Fix numericality validator on a decimal attribute with implicit scale.
+
+    A value is now validated as it is actually held by the attribute.
+    Previously a database-backed `decimal` column without an explicit scale
+    (which stores integers) was validated as if no rounding happened:
+
+    ```ruby
+    # t.decimal :unscaled_bank_balance, precision: 10
+
+    class NumericData < ActiveRecord::Base
+      validates_numericality_of :unscaled_bank_balance, equal_to: 10_000_000.0
+    end
+
+    subject = NumericData.new(unscaled_bank_balance: 10_000_000.121)
+    subject.unscaled_bank_balance # => 10000000
+    subject.valid?                # => false (now true)
+    ```
+
+    *Ryuta Kamizono*
+
+*   Check `ActiveModel::Attributes` attribute methods without building the
+    attributes hash.
+
+    `respond_to?` for a method that is not defined no longer calls `attributes`.
+    A key that an `attributes` override adds, without an attribute or a method,
+    no longer makes the model respond to it. Active Record already works this way.
+
+    *Bruno Costanzo*
+
+*   Treat `:except_on` as a callback option in `ActiveModel::Error`.
+
+    Errors from validations using `:except_on` now match `errors.added?` queries
+    without that option, and no longer include it in `errors.details`.
+
+    *Andrii Furmanets*
+
 *   Implement `ActiveModel::Type::Binary::Data#as_json`
 
     Delegates JSON conversion to the underlying binary data value (instead of

@@ -1,3 +1,10 @@
+*   Raise when `ActionMailer.deliver_all_later` is called with a message that was already accessed.
+
+    Previously, the messages were enqueued and any local changes were silently lost,
+    while `deliver_later` raises in the same situation.
+
+    *Bastin*
+
 *   Add support for `config.action_mailer.raise_on_missing_callback_actions`
     when using `_deliver` callbacks with `only:` and `except:` options.
 

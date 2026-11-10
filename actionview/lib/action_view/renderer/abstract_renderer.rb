@@ -4,18 +4,20 @@ require "concurrent/map"
 
 module ActionView
   # This class defines the interface for a renderer. Each class that
-  # subclasses +AbstractRenderer+ is used by the base +Renderer+ class to
+  # subclasses `AbstractRenderer` is used by the base `Renderer` class to
   # render a specific type of object.
   #
-  # The base +Renderer+ class uses its +render+ method to delegate to the
+  # The base `Renderer` class uses its `render` method to delegate to the
   # renderers. These currently consist of
   #
-  #   PartialRenderer - Used for rendering partials
-  #   TemplateRenderer - Used for rendering other types of templates
-  #   StreamingTemplateRenderer - Used for streaming
+  # ```
+  # PartialRenderer - Used for rendering partials
+  # TemplateRenderer - Used for rendering other types of templates
+  # StreamingTemplateRenderer - Used for streaming
+  # ```
   #
-  # Whenever the +render+ method is called on the base +Renderer+ class, a new
-  # renderer object of the correct type is created, and the +render+ method on
+  # Whenever the `render` method is called on the base `Renderer` class, a new
+  # renderer object of the correct type is created, and the `render` method on
   # that new object is called in turn. This abstracts the set up and rendering
   # into a separate classes for partials and templates.
   class AbstractRenderer # :nodoc:
@@ -63,11 +65,11 @@ module ActionView
         end
 
         # Obtains the path to where the object's partial is located. If the object
-        # responds to +to_partial_path+, then +to_partial_path+ will be called and
-        # will provide the path. If the object does not respond to +to_partial_path+,
-        # then an +ArgumentError+ is raised.
+        # responds to `to_partial_path`, then `to_partial_path` will be called and
+        # will provide the path. If the object does not respond to `to_partial_path`,
+        # then an `ArgumentError` is raised.
         #
-        # If +prefix_partial_path_with_controller_namespace+ is true, then this
+        # If `prefix_partial_path_with_controller_namespace` is true, then this
         # method will prefix the partial paths with a namespace.
         def partial_path(object, view)
           object = object.to_model if object.respond_to?(:to_model)
@@ -152,7 +154,7 @@ module ActionView
         template.format
       end
 
-      EMPTY_SPACER = Struct.new(:body).new
+      EMPTY_SPACER = new("", nil)
     end
 
     private
@@ -174,7 +176,14 @@ module ActionView
         formats = Array(formats)
         return if formats.empty? || @lookup_context.html_fallback_for_js
 
-        @lookup_context.formats = formats | @lookup_context.formats
+        current = @lookup_context.formats
+        if formats.size == 1 && !current.empty? && formats.first.equal?(current.first)
+          # The format already leads, so the union would rebuild the same list.
+          # Assign it anyway so formats= still normalizes and validates it.
+          @lookup_context.formats = current
+        else
+          @lookup_context.formats = formats | current
+        end
       end
 
       def build_rendered_template(content, template)

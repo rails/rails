@@ -20,8 +20,8 @@ class ActionText::Generators::InstallGeneratorTest < Rails::Generators::TestCase
   end
 
   teardown do
-     Rails.application = Rails.application.instance
-   end
+    Rails.application = Rails.application.instance
+  end
 
   test "installs JavaScript dependencies with yarn by default" do
     FileUtils.touch("#{destination_root}/package.json")
@@ -47,6 +47,15 @@ class ActionText::Generators::InstallGeneratorTest < Rails::Generators::TestCase
     run_generator_instance
     assert_includes @run_commands, "npm install trix"
     assert_includes @run_commands, "npm install @rails/actiontext"
+  end
+
+  test "installs JavaScript dependencies with aube when aube-lock.yaml exists" do
+    FileUtils.touch("#{destination_root}/package.json")
+    FileUtils.touch("#{destination_root}/aube-lock.yaml")
+
+    run_generator_instance
+    assert_includes @run_commands, "aube add trix"
+    assert_includes @run_commands, "aube add @rails/actiontext"
   end
 
   test "installs JavaScript dependencies with pnpm when pnpm-lock.yaml exists" do

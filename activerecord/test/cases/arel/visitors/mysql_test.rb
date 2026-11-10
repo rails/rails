@@ -34,6 +34,16 @@ module Arel
         assert_like "SELECT FROM DUAL", sql
       end
 
+      test "shares one frozen, retryable DUAL literal" do
+        stmt = Nodes::SelectStatement.new
+        compile(stmt)
+        dual = stmt.cores.last.froms
+
+        assert_same MySQL::DUAL, dual
+        assert_predicate dual, :frozen?
+        assert_predicate dual, :retryable
+      end
+
       test "locking defaults to FOR UPDATE when locking" do
         node = Nodes::Lock.new(Arel.sql("FOR UPDATE"))
         assert_like "FOR UPDATE", compile(node)

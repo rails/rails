@@ -9,8 +9,9 @@ module ActiveSupport
     extend self
 
     # Parse an XML Document string or IO into a simple hash using libxml.
-    # data::
-    #   XML Document string or IO to parse
+    #
+    # data
+    # :   XML Document string or IO to parse
     def parse(data)
       if !data.respond_to?(:read)
         data = StringIO.new(data || "")
@@ -38,8 +39,8 @@ module LibXML # :nodoc:
 
       # Convert XML document to hash.
       #
-      # hash::
-      #   Hash to merge the converted element into.
+      # hash
+      # :   Hash to merge the converted element into.
       def to_hash(hash = {})
         node_hash = {}
 

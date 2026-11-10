@@ -4,6 +4,8 @@ require "cases/helper"
 require "cases/json_shared_test_cases"
 
 class SQLite3JSONTest < ActiveRecord::SQLite3TestCase
+  skip_under_ractor_proxy
+
   include JSONSharedTestCases
 
   def setup

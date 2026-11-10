@@ -1,7 +1,5 @@
 # frozen_string_literal: true
 
-# :markup: markdown
-
 require "nio"
 
 module ActionCable
@@ -20,14 +18,16 @@ module ActionCable
         @todo << lambda do
           @map[io] = @nio.register(io, :r)
           @map[io].value = stream
+        rescue
+          stream.close
         end
         wakeup
       end
 
       def detach(io)
         @todo << lambda do
-          @nio.deregister io
-          @map.delete io
+          @nio.deregister io if @map.delete(io)
+        ensure
           io.close
         end
         wakeup

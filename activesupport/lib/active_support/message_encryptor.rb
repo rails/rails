@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+# :markup: rdoc
+
 require "openssl"
 require "base64"
 require "active_support/core_ext/module/attribute_accessors"
@@ -262,6 +264,12 @@ module ActiveSupport
 
     def read_message(message, **options) # :nodoc:
       deserialize_with_metadata(decrypt(verify(message)), **options)
+    end
+
+    def freeze # :nodoc:
+      length_of_encoded_iv
+      length_of_encoded_auth_tag
+      super
     end
 
     ActiveSupport::InspectBackport.apply(self)

@@ -28,8 +28,9 @@ module ActiveRecord::Associations::Builder # :nodoc:
     def self.add_counter_cache_callbacks(model, reflection)
       cache_column = reflection.counter_cache_column
 
+      name = reflection.name
       model.after_update lambda { |record|
-        association = association(reflection.name)
+        association = association(name)
 
         if association.saved_change_to_target?
           association.increment_counters
@@ -46,32 +47,34 @@ module ActiveRecord::Associations::Builder # :nodoc:
       association = o.association(name)
       foreign_key = association.foreign_key
 
-      old_foreign_id = if foreign_key.any? { |fk| o.public_send(change_method, fk) }
-        values = foreign_key.map do |fk|
-          change = o.public_send(change_method, fk)
-          change ? change.first : o.read_attribute(fk)
+      if foreign_key.any? { |key| o.public_send(change_method, key) }
+        read_old = lambda do |column|
+          change = o.public_send(change_method, column)
+          change ? change.first : o._read_attribute(column)
         end
-        foreign_key.composite? ? values : values.first
-      end
+        old_reference = foreign_key.map_value { |key| read_old.call(key) }
 
-      if old_foreign_id
-        reflection = association.reflection
-        if reflection.polymorphic?
-          foreign_type = association.foreign_type
-          change = o.public_send(change_method, foreign_type)
-          klass = (change && change.first) || o.public_send(foreign_type)
-          klass = o.class.polymorphic_class_for(klass)
-        else
-          klass = association.klass
-        end
-        primary_key = reflection.association_primary_key(klass)
-        old_record = klass.find_by(primary_key => [old_foreign_id])
-
-        if old_record
-          if touch != true
-            old_record.touch_later(touch)
+        if old_reference
+          reflection = association.reflection
+          if reflection.polymorphic?
+            type = read_old.call(association.foreign_type) || o.public_send(association.foreign_type)
+            klass = o.class.polymorphic_class_for(type)
           else
-            old_record.touch_later
+            klass = association.klass
+          end
+
+          old_route = reflection.association_route(origin_class: o.class, destination_class: klass)
+          old_origin_id = old_route._origin_key.map_value { |key| read_old.call(key) }
+          unless foreign_key.composite? && old_origin_id.any?(nil)
+            old_record = klass.find_by(old_route.destination_key.name => [old_origin_id])
+          end
+
+          if old_record
+            if touch != true
+              old_record.touch_later(touch)
+            else
+              old_record.touch_later
+            end
           end
         end
       end
@@ -110,8 +113,10 @@ module ActiveRecord::Associations::Builder # :nodoc:
     end
 
     def self.add_default_callbacks(model, reflection)
+      name = reflection.name
+      default = reflection.options[:default]
       model.before_validation lambda { |o|
-        o.association(reflection.name).default(&reflection.options[:default])
+        o.association(name).default(&default)
       }
     end
 
@@ -144,15 +149,17 @@ module ActiveRecord::Associations::Builder # :nodoc:
         if ActiveRecord.belongs_to_required_validates_foreign_key
           model.validates_presence_of reflection.name, message: :required
         else
+          name = reflection.name
+          polymorphic = reflection.polymorphic?
           condition = lambda { |record|
-            association = record.association(reflection.name)
+            association = record.association(name)
 
             fk_missing_or_changed = association.foreign_key.any? do |fk|
-              record.read_attribute(fk).nil? || record.attribute_changed?(fk)
+              record._read_attribute(fk).nil? || record.attribute_changed?(fk)
             end
 
             fk_missing_or_changed ||
-              (reflection.polymorphic? && (record.read_attribute(association.foreign_type).nil? || record.attribute_changed?(association.foreign_type)))
+              (polymorphic && (record._read_attribute(association.foreign_type).nil? || record.attribute_changed?(association.foreign_type)))
           }
 
           model.validates_presence_of reflection.name, message: :required, if: condition
@@ -160,20 +167,28 @@ module ActiveRecord::Associations::Builder # :nodoc:
       end
     end
 
-    def self.define_change_tracking_methods(model, reflection)
-      model.generated_association_methods.class_eval <<-CODE, __FILE__, __LINE__ + 1
-        def #{reflection.name}_changed?
-          association = association(:#{reflection.name})
-          deprecated_associations_api_guard(association, __method__)
-          association.target_changed?
-        end
+    def self.define_change_tracking_methods(model, reflection, mixin)
+      name = reflection.name
 
-        def #{reflection.name}_previously_changed?
-          association = association(:#{reflection.name})
-          deprecated_associations_api_guard(association, __method__)
-          association.target_previously_changed?
-        end
-      CODE
+      mixin.define_cached_method(:"#{name}_changed?", namespace: :association_changed) do |batch|
+        batch << <<~RUBY
+          def #{name}_changed?
+            association = association(:#{name})
+            deprecated_associations_api_guard(association, :#{name}_changed?)
+            association.target_changed?
+          end
+        RUBY
+      end
+
+      mixin.define_cached_method(:"#{name}_previously_changed?", namespace: :association_previously_changed) do |batch|
+        batch << <<~RUBY
+          def #{name}_previously_changed?
+            association = association(:#{name})
+            deprecated_associations_api_guard(association, :#{name}_previously_changed?)
+            association.target_previously_changed?
+          end
+        RUBY
+      end
     end
 
     private_class_method :macro, :valid_options, :valid_dependent_options, :define_callbacks,

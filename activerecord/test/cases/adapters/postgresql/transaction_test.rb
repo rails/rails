@@ -12,6 +12,18 @@ module ActiveRecord
       self.table_name = "samples"
     end
 
+    class DeadlockingSample < ActiveRecord::Base
+      self.table_name = "samples"
+
+      # Raising 40P01 from the server aborts the transaction for real, which a
+      # deadlock between two sessions cannot do deterministically.
+      before_commit do
+        self.class.lease_connection.execute(
+          "DO $$ BEGIN RAISE EXCEPTION 'deadlock' USING ERRCODE = '40P01'; END $$"
+        )
+      end
+    end
+
     setup do
       @abort, Thread.abort_on_exception = Thread.abort_on_exception, false
       Thread.report_on_exception, @original_report_on_exception = false, Thread.report_on_exception
@@ -26,6 +38,7 @@ module ActiveRecord
       end
 
       Sample.reset_column_information
+      DeadlockingSample.reset_column_information
     end
 
     teardown do
@@ -60,6 +73,25 @@ module ActiveRecord
       end
     end
 
+    test "does not retry a serialization failure while the transaction is aborted" do
+      connection = Sample.lease_connection
+      attempts = 0
+
+      connection.transaction do
+        assert_raises(ActiveRecord::StatementInvalid) { connection.execute("SELECT 1/0") }
+        assert_equal ::PG::PQTRANS_INERROR, connection.instance_variable_get(:@raw_connection).transaction_status
+
+        assert_raises(ActiveRecord::SerializationFailure) do
+          connection.send(:with_raw_connection, allow_retry: true) do
+            attempts += 1
+            raise ActiveRecord::SerializationFailure, "made-up serialization failure"
+          end
+        end
+      end
+
+      assert_equal 1, attempts
+    end
+
     test "raises Deadlocked when a deadlock is encountered" do
       connections = Concurrent::Set.new
       assert_raises(ActiveRecord::Deadlocked) do
@@ -89,6 +121,15 @@ module ActiveRecord
         end
       end
       assert connections.all?(&:active?)
+    end
+
+    test "rolls back when a before_commit callback raises a rollback error" do
+      assert_raises(ActiveRecord::Deadlocked) do
+        DeadlockingSample.transaction { DeadlockingSample.create!(value: 1) }
+      end
+
+      # Raises PG::InFailedSqlTransaction if the transaction was left open.
+      assert_equal 0, Sample.count
     end
 
     test "raises LockWaitTimeout when lock wait timeout exceeded" do
@@ -158,7 +199,7 @@ module ActiveRecord
             latch.count_down
             sleep(0.5)
             conn = Sample.lease_connection
-            pid = conn.select_value("SELECT pid FROM pg_stat_activity WHERE query LIKE '% FOR UPDATE'")
+            pid = conn.select_value("SELECT pid FROM pg_stat_activity WHERE datname = current_database() AND query LIKE '% FOR UPDATE'")
             conn.execute("SELECT pg_cancel_backend(#{pid})")
           end
         end

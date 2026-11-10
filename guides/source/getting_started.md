@@ -286,7 +286,7 @@ they can be deployed to production (live, online!) safely.
 In your code editor, open the migration Rails created for us so we can see what
 the migration does.
 
-NOTE: As convention we'll state the filepath as a comment on top of each file
+NOTE: As a convention we'll state the filepath as a comment on top of each file
 
 
 ```ruby
@@ -1416,7 +1416,7 @@ Let's also display any errors from the form submission inside the form.
 ```
 
 TIP: Using local variables allows partials to be reused multiple times on the
-same page with a different value each time. This comes in handy rendering lists
+same page with a different value each time. This comes in handy when rendering lists
 of items like an index page.
 
 To use this partial in our `app/views/products/new.html.erb` view, we can
@@ -3019,7 +3019,8 @@ the `ApplicationController`:
 # app/controllers/application_controller.rb
 # TODO: Remove this todo
 class ApplicationController < ActionController::Base
-# ...
+  # ...
+end
 ```
 
 Now when I run it on the CI:
@@ -3042,7 +3043,8 @@ To verify, remove the comment:
 ```ruby
 # app/controllers/application_controller.rb
 class ApplicationController < ActionController::Base
-# ...
+  # ...
+end
 ```
 
 and `bin/ci` should now pass:
@@ -3163,7 +3165,7 @@ You can use Kamal to open a production Rails console.
 $ bin/kamal console
 ```
 
-```ruby
+```irb
 store(prod)> User.create!(email_address: "you@example.org", password: "s3cr3t", password_confirmation: "s3cr3t")
 ```
 

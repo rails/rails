@@ -5,6 +5,8 @@ require "cases/helper"
 module ActiveRecord
   class Migration
     class ReferencesIndexTest < ActiveRecord::TestCase
+      skip_under_ractor_proxy
+
       attr_reader :connection, :table_name
 
       def setup

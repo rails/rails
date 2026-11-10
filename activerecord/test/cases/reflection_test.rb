@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require "cases/helper"
+require "active_support/core_ext/object/with"
 require "models/topic"
 require "models/customer"
 require "models/comment"
@@ -14,6 +15,7 @@ require "models/author"
 require "models/organization"
 require "models/post"
 require "models/tagging"
+require "models/categorization"
 require "models/category"
 require "models/book"
 require "models/subscriber"
@@ -260,6 +262,127 @@ class ReflectionTest < ActiveRecord::TestCase
     assert_equal Address, Customer.reflect_on_aggregation(:address).klass
 
     assert_equal Money, Customer.reflect_on_aggregation(:balance).klass
+  end
+
+  def test_reflection_hashes_are_frozen
+    assert_predicate Topic.aggregate_reflections, :frozen?
+    assert_predicate Customer.aggregate_reflections, :frozen?
+    assert_predicate Topic._reflections, :frozen?
+  end
+
+  def test_frozen_through_reflection_with_source_type_has_source_type_reflection
+    model = Class.new(ActiveRecord::Base) do
+      set_temporary_name "frozen_source_type_tag"
+      self.table_name = "tags"
+      has_many :taggings, foreign_key: :tag_id
+      has_many :tagged_posts, through: :taggings, source: :taggable, source_type: "Post"
+    end
+
+    reflection = model.reflect_on_association(:tagged_posts).freeze
+    source_type_reflection = reflection.source_type_reflection
+
+    assert_equal Post, source_type_reflection.klass
+    assert_not_predicate source_type_reflection, :polymorphic?
+  end
+
+  def test_freezing_through_reflection_with_missing_through_association_raises_not_found_error
+    model = Class.new(ActiveRecord::Base) do
+      set_temporary_name "missing_through_tag"
+      self.table_name = "tags"
+      has_many :tagged_posts, through: :nonexistent, source: :taggable, source_type: "Post"
+    end
+
+    assert_raises(ActiveRecord::HasManyThroughAssociationNotFoundError) do
+      model.reflect_on_association(:tagged_posts).freeze
+    end
+  end
+
+  def test_freezing_through_reflection_with_missing_source_association_raises_not_found_error
+    model = Class.new(ActiveRecord::Base) do
+      set_temporary_name "missing_source_tag"
+      self.table_name = "tags"
+      has_many :taggings, foreign_key: :tag_id
+      has_many :tagged_posts, through: :taggings, source: :nonexistent
+    end
+
+    assert_raises(ActiveRecord::HasManyThroughSourceAssociationNotFoundError) do
+      model.reflect_on_association(:tagged_posts).freeze
+    end
+  end
+
+  def test_freezing_reflection_with_missing_inverse_of_raises_not_found_error
+    model = Class.new(ActiveRecord::Base) do
+      set_temporary_name "missing_inverse_post"
+      self.table_name = "posts"
+      has_many :comments, inverse_of: :nonexistent
+    end
+
+    assert_raises(ActiveRecord::InverseOfAssociationNotFoundError) do
+      model.reflect_on_association(:comments).freeze
+    end
+  end
+
+  if RUBY_VERSION >= "4.0"
+    def test_association_reflections_can_be_read_from_a_ractor_in_ractor_mode
+      ActiveSupport::Ractors.with(unshareable_proc_action: :raise) do
+        Categorization.make_reflections_shareable!
+
+        assert Ractor.shareable?(Categorization._reflections)
+
+        result = Ractor.new do
+          belongs_to = Categorization.reflect_on_association(:category)
+          through = Categorization.reflect_on_association(:post_taggings)
+
+          [
+            belongs_to.klass.name,
+            belongs_to.foreign_key,
+            belongs_to.inverse_of.name,
+            belongs_to.counter_cache_column,
+            through.through_reflection?,
+            through.klass.name,
+          ]
+        end.value
+
+        assert_equal(
+          ["Category", "category_id", :categorizations, "categorizations_count", true, "Tagging"],
+          result
+        )
+      end
+    ensure
+      Categorization.reset_column_information
+    end
+
+    def test_aggregate_reflections_can_be_read_from_a_ractor_in_ractor_mode
+      ActiveSupport::Ractors.with(unshareable_proc_action: :raise) do
+        Customer.make_reflections_shareable!
+
+        assert Ractor.shareable?(Customer.aggregate_reflections)
+
+        mapping, klass_name = Ractor.new do
+          reflection = Customer.reflect_on_aggregation(:balance)
+          [reflection.mapping, reflection.klass.name]
+        end.value
+
+        assert_equal [[:balance, :amount]], mapping
+        assert_equal "Money", klass_name
+      end
+    ensure
+      Customer.reset_column_information
+    end
+
+    def test_association_scopes_are_shareable_and_readable_from_a_ractor_in_ractor_mode
+      model = Class.new(ActiveRecord::Base) do
+        set_temporary_name "ractor_scoped_model"
+        self.table_name = "posts"
+        belongs_to :parent, ->(record) { order(:id) }, anonymous_class: self, foreign_key: "author_id", optional: true
+      end
+
+      ActiveSupport::Ractors.with(unshareable_proc_action: :raise) do
+        model.make_reflections_shareable!
+
+        assert Ractor.shareable?(model.reflect_on_association(:parent).scope)
+      end
+    end
   end
 
   def test_reflect_on_all_autosave_associations
@@ -705,6 +828,20 @@ class ReflectionTest < ActiveRecord::TestCase
     assert_equal ["blog_id", "blog_post_id"], blog_post_foreign_key
   end
 
+  def test_belongs_to_reflection_on_abstract_class_with_query_constraints_infers_foreign_key
+    abstract_class = Class.new(ActiveRecord::Base) do
+      self.abstract_class = true
+      query_constraints :blog_id, :id
+      belongs_to :blog_post, class_name: "Sharded::BlogPost"
+    end
+    concrete_class = Class.new(abstract_class) do
+      self.table_name = "sharded_comments"
+    end
+
+    assert_equal ["blog_id", "blog_post_id"], abstract_class.reflect_on_association(:blog_post).foreign_key
+    assert_equal ["blog_id", "blog_post_id"], concrete_class.reflect_on_association(:blog_post).foreign_key
+  end
+
   def test_has_many_foreign_key_derived_from_inverse_with_composite_foreign_key
     reflection = Sharded::BlogPost.reflect_on_association(:comments_with_inverse)
     assert_equal ["blog_id", "blog_post_id"], reflection.foreign_key
@@ -764,6 +901,57 @@ class ReflectionTest < ActiveRecord::TestCase
     end
 
     assert_equal "books_count", model.reflect_on_association(:books).counter_cache_column
+  end
+
+  def test_association_added_to_parent_reaches_subclass_that_defined_its_own_first
+    parent = Class.new(ActiveRecord::Base) do
+      self.table_name = "posts"
+      self.inheritance_column = nil
+      def self.name = "InheritedReflectionPost"
+    end
+    child = Class.new(parent) { has_many :taggings, foreign_key: :taggable_id }
+    parent.has_many :comments, foreign_key: :post_id, class_name: "Comment"
+
+    assert_same parent.reflect_on_association(:comments), child.reflect_on_association(:comments)
+    assert_same parent._reflect_on_association(:comments), child._reflect_on_association(:comments)
+    assert_not_nil child.reflect_on_association(:taggings)
+    assert_nil parent.reflect_on_association(:taggings)
+
+    post = child.create!(title: "Inherited", body: "Comments come from the parent")
+    first = Comment.create!(post_id: post.id, body: "first")
+    second = Comment.create!(post_id: post.id, body: "second")
+    Comment.create!(post_id: post.id + 1, body: "someone else's")
+
+    assert_equal [first.id, second.id].sort, child.find(post.id).comments.ids.sort
+  end
+
+  def test_association_added_to_parent_reaches_grandchild_that_defined_its_own_first
+    parent = Class.new(ActiveRecord::Base) { self.table_name = "posts"; self.inheritance_column = nil }
+    child = Class.new(parent)
+    grandchild = Class.new(child) { has_many :taggings, foreign_key: :taggable_id }
+    parent.has_many :comments, foreign_key: :post_id, class_name: "Comment"
+
+    assert_same parent.reflect_on_association(:comments), child.reflect_on_association(:comments)
+    assert_same parent.reflect_on_association(:comments), grandchild.reflect_on_association(:comments)
+  end
+
+  def test_association_added_to_parent_reaches_subclass_that_already_read_its_reflections
+    parent = Class.new(ActiveRecord::Base) { self.table_name = "posts"; self.inheritance_column = nil }
+    child = Class.new(parent)
+    assert_empty child.reflect_on_all_associations
+    parent.has_many :comments, foreign_key: :post_id, class_name: "Comment"
+
+    assert_same parent.reflect_on_association(:comments), child.reflect_on_association(:comments)
+  end
+
+  def test_association_added_to_parent_does_not_replace_subclass_override
+    parent = Class.new(ActiveRecord::Base) { self.table_name = "posts"; self.inheritance_column = nil }
+    child = Class.new(parent) { has_many :comments, -> { where(type: "SpecialComment") }, foreign_key: :post_id, class_name: "Comment" }
+    child_reflection = child.reflect_on_association(:comments)
+    parent.has_many :comments, foreign_key: :post_id, class_name: "Comment"
+
+    assert_same child_reflection, child.reflect_on_association(:comments)
+    assert_not_same parent.reflect_on_association(:comments), child.reflect_on_association(:comments)
   end
 
   private

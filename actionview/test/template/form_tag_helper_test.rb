@@ -2,6 +2,7 @@
 
 require "abstract_unit"
 require "active_support/core_ext/object/with"
+require "active_support/testing/ractors_assertions"
 
 class FormTagHelperTest < ActionView::TestCase
   include RenderERBUtils
@@ -1181,6 +1182,28 @@ class FormTagHelperTest < ActionView::TestCase
     false
   end
 
+  class FormHelperRactorTest < ActiveSupport::TestCase
+    include ActiveSupport::Testing::Isolation
+    include ActiveSupport::Testing::RactorsAssertions
+
+    test "prepend_content_exfiltration_prevention is readable from a non-main Ractor" do
+      assert_equal ActionView::Helpers::ContentExfiltrationPreventionHelper.prepend_content_exfiltration_prevention,
+        on_ractor { ActionView::Helpers::ContentExfiltrationPreventionHelper.prepend_content_exfiltration_prevention }
+    end
+
+    test "the settings are readable from a non-main Ractor" do
+      expected = [
+        ActionView::Helpers::FormTagHelper.embed_authenticity_token_in_remote_forms,
+        ActionView::Helpers::FormTagHelper.default_enforce_utf8,
+      ]
+
+      assert_equal expected, on_ractor {
+        helper = ActionView::Helpers::FormTagHelper
+        [helper.embed_authenticity_token_in_remote_forms, helper.default_enforce_utf8]
+      }
+    end
+  end
+
   private
     def root_elem(rendered_content)
       Rails::Dom::Testing.html_document_fragment.parse(rendered_content).children.first # extract from nodeset
@@ -1203,4 +1226,35 @@ class FormTagHelperTest < ActionView::TestCase
     ensure
       ActionView::Helpers::ContentExfiltrationPreventionHelper.prepend_content_exfiltration_prevention = old_value
     end
+end
+
+class FormTagHelperIncludedAloneTest < ActiveSupport::TestCase
+  include ActionView::Helpers::FormTagHelper
+  include Rails::Dom::Testing::Assertions::DomAssertions
+
+  attr_accessor :output_buffer
+
+  def protect_against_forgery?
+    true
+  end
+
+  def form_authenticity_token(**)
+    "secret"
+  end
+
+  def request_forgery_protection_token
+    :authenticity_token
+  end
+
+  def test_form_tag_with_a_method_other_than_get
+    expected = <<~HTML.delete("\n")
+      <form action="/posts" accept-charset="UTF-8" method="post">
+      <input type="hidden" name="utf8" value="&#x2713;" autocomplete="off" />
+      <input type="hidden" name="_method" value="patch" autocomplete="off" />
+      <input type="hidden" name="authenticity_token" value="secret" autocomplete="off" />
+      </form>
+    HTML
+
+    assert_dom_equal expected, form_tag("/posts", method: :patch) { "" }
+  end
 end

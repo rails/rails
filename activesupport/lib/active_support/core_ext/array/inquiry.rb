@@ -1,4 +1,3 @@
-# :markup: markdown
 # frozen_string_literal: true
 
 require "active_support/array_inquirer"
@@ -16,6 +15,7 @@ class Array
   # pets.any?(:cat, :ferret)  # => true
   # pets.any?(:ferret, :alligator)  # => false
   # ```
+  #: () -> ActiveSupport::ArrayInquirer
   def inquiry
     ActiveSupport::ArrayInquirer.new(self)
   end

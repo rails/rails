@@ -179,7 +179,7 @@ The `uniqueness` validation also tells Rails to check if a product is already on
 the wishlist. This is paired with the unique index on the wishlist_products table
 so that it's also validated at the database level.
 
-Finally, let's update `app/models/wishlist.rb` with it's associations:
+Finally, let's update `app/models/wishlist.rb` with its associations:
 
 ```ruby#3-4
 class Wishlist < ApplicationRecord
@@ -537,14 +537,13 @@ class WishlistsController < ApplicationController
   end
 
   private
+    def set_wishlist
+      @wishlist = Current.user.wishlists.find(params[:id])
+    end
 
-  def set_wishlist
-    @wishlist = Current.user.wishlists.find(params[:id])
-  end
-
-  def wishlist_params
-    params.expect(wishlist: [ :name ])
-  end
+    def wishlist_params
+      params.expect(wishlist: [ :name ])
+    end
 end
 ```
 
@@ -769,14 +768,13 @@ class Wishlists::WishlistProductsController < ApplicationController
   end
 
   private
+    def set_wishlist
+      @wishlist = Current.user.wishlists.find_by(id: params[:wishlist_id])
+    end
 
-  def set_wishlist
-    @wishlist = Current.user.wishlists.find_by(id: params[:wishlist_id])
-  end
-
-  def set_wishlist_product
-    @wishlist_product = @wishlist.wishlist_products.find(params[:id])
-  end
+    def set_wishlist_product
+      @wishlist_product = @wishlist.wishlist_products.find(params[:id])
+    end
 end
 ```
 
@@ -972,7 +970,7 @@ easier to see how many results match when a filter is applied. When you submit
 the form, Rails adds your selected filters to the URL as query params. The form
 then reads those values when loading the page to automatically re-select the
 same options in the dropdowns, so your choices stay visible after submitting.
-Since the form submits to the index action, so it can display either all
+The form submits to the index action, so it can display either all
 wishlists or just the filtered results.
 
 To make this work, we need to apply these filters in our SQL query with
@@ -1365,8 +1363,8 @@ returned and wishlists without that product are not.
 
 Let's run this test file again to ensure they are all passing:
 
-```ruby
-bin/rails test test/models/wishlist_test.rb
+```bash
+$ bin/rails test test/models/wishlist_test.rb
 Running 3 tests in a single process (parallelization threshold is 50)
 Run options: --seed 27430
 
@@ -1450,7 +1448,7 @@ test "view a wishlist" do
 end
 ```
 
-A user should also be able to view other user's wishlists, so let's test that:
+A user should also be able to view other users' wishlists, so let's test that:
 
 ```ruby
 test "view a wishlist as another user" do
@@ -1633,7 +1631,7 @@ Fantastic! Our tests are all passing.
 
 ## Deploying To Production
 
-Since we previously setup Kamal in the
+Since we previously set up Kamal in the
 [Getting Started Guide](getting_started.html), we just need to push our code
 changes to our Git repository and run:
 

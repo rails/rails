@@ -4,44 +4,51 @@ require "bigdecimal/util"
 
 module ActiveModel
   module Type
-    # = Active Model \Decimal \Type
+    # Active Model \Decimal \Type
+    # ===========================
     #
     # Attribute type for decimal, high-precision floating point numeric
-    # representation. It is registered under the +:decimal+ key.
+    # representation. It is registered under the `:decimal` key.
     #
-    #   class BagOfCoffee
-    #     include ActiveModel::Attributes
+    # ```
+    # class BagOfCoffee
+    #   include ActiveModel::Attributes
     #
-    #     attribute :weight, :decimal
-    #   end
+    #   attribute :weight, :decimal
+    # end
+    # ```
     #
     # Numeric instances are converted to BigDecimal instances. Any other objects
-    # are cast using their +to_d+ method, except for blank strings, which are
-    # cast to +nil+. If a +to_d+ method is not defined, the object is converted
-    # to a string using +to_s+, which is then cast using +to_d+.
+    # are cast using their `to_d` method, except for blank strings, which are
+    # cast to `nil`. If a `to_d` method is not defined, the object is converted
+    # to a string using `to_s`, which is then cast using `to_d`.
     #
-    #   bag = BagOfCoffee.new
+    # ```
+    # bag = BagOfCoffee.new
     #
-    #   bag.weight = 0.01
-    #   bag.weight # => 0.1e-1
+    # bag.weight = 0.01
+    # bag.weight # => 0.1e-1
     #
-    #   bag.weight = "0.01"
-    #   bag.weight # => 0.1e-1
+    # bag.weight = "0.01"
+    # bag.weight # => 0.1e-1
     #
-    #   bag.weight = ""
-    #   bag.weight # => nil
+    # bag.weight = ""
+    # bag.weight # => nil
     #
-    #   bag.weight = :arbitrary
-    #   bag.weight # => 0.0 (the result of `.to_s.to_d`)
+    # bag.weight = :arbitrary
+    # bag.weight # => 0.0 (the result of `.to_s.to_d`)
+    # ```
     #
     # Decimal precision defaults to 18, and can be customized when declaring an
     # attribute:
     #
-    #   class BagOfCoffee
-    #     include ActiveModel::Attributes
+    # ```
+    # class BagOfCoffee
+    #   include ActiveModel::Attributes
     #
-    #     attribute :weight, :decimal, precision: 24
-    #   end
+    #   attribute :weight, :decimal, precision: 24
+    # end
+    # ```
     class Decimal < Value
       include Helpers::Immutable
       include Helpers::Numeric
@@ -61,6 +68,9 @@ module ActiveModel
             case value
             when ::Float
               convert_float_to_big_decimal(value)
+            when ::BigDecimal
+              # Returns value itself, raising like a copy would under BigDecimal.mode.
+              BigDecimal(value)
             when ::Numeric
               BigDecimal(value, precision || BIGDECIMAL_PRECISION)
             when ::String
@@ -97,11 +107,16 @@ module ActiveModel
         end
 
         def apply_scale(value)
-          if scale
+          if scale && !already_scaled?(value)
             value.round(scale)
           else
             value
           end
+        end
+
+        # BigDecimal#round returns an Integer when scale is 0 or less.
+        def already_scaled?(value)
+          scale.positive? && value.is_a?(::BigDecimal) && value.scale.between?(0, scale)
         end
     end
   end

@@ -1,7 +1,5 @@
 # frozen_string_literal: true
 
-# :markup: markdown
-
 require "active_support/core_ext/module/attribute_accessors"
 require "active_support/syntax_error_proxy"
 require "active_support/core_ext/thread/backtrace/location"
@@ -9,7 +7,9 @@ require "rack/utils"
 
 module ActionDispatch
   class ExceptionWrapper
-    cattr_accessor :rescue_responses, default: Hash.new(:internal_server_error).merge!(
+    singleton_class.attr_accessor :rescue_responses, :rescue_templates, :wrapper_exceptions, :silent_exceptions
+
+    @rescue_responses = Hash.new(:internal_server_error).merge!(
       "ActionController::RoutingError"                     => :not_found,
       "AbstractController::ActionNotFound"                 => :not_found,
       "ActionController::MethodNotAllowed"                 => :method_not_allowed,
@@ -28,7 +28,7 @@ module ActionDispatch
       "Rack::QueryParser::InvalidParameterError"           => :bad_request
     ).freeze
 
-    cattr_accessor :rescue_templates, default: Hash.new("diagnostics").merge!(
+    @rescue_templates = Hash.new("diagnostics").merge!(
       "ActionView::MissingTemplate"            => "missing_template",
       "ActionController::RoutingError"         => "routing_error",
       "AbstractController::ActionNotFound"     => "unknown_action",
@@ -37,11 +37,11 @@ module ActionDispatch
       "ActionController::MissingExactTemplate" => "missing_exact_template",
     ).freeze
 
-    cattr_accessor :wrapper_exceptions, default: [
+    @wrapper_exceptions = [
       "ActionView::Template::Error"
     ].freeze
 
-    cattr_accessor :silent_exceptions, default: [
+    @silent_exceptions = [
       "ActionController::RoutingError",
       "ActionDispatch::Http::MimeNegotiation::InvalidType"
     ].freeze
@@ -49,6 +49,7 @@ module ActionDispatch
     attr_reader :backtrace_cleaner, :wrapped_causes, :exception_class_name, :exception
 
     def initialize(backtrace_cleaner, exception)
+      @outer_exception = nil
       @backtrace_cleaner = backtrace_cleaner
       @exception_class_name = exception.class.name
       @wrapped_causes = wrapped_causes_for(exception, backtrace_cleaner)
@@ -56,7 +57,7 @@ module ActionDispatch
       if exception.is_a?(SyntaxError)
         @exception = ActiveSupport::SyntaxErrorProxy.new(exception)
       end
-      @backtrace = build_backtrace
+      @backtrace = nil
     end
 
     def routing_error?
@@ -104,7 +105,7 @@ module ActionDispatch
     end
 
     def unwrapped_exception
-      if wrapper_exceptions.include?(@exception_class_name)
+      if self.class.wrapper_exceptions.include?(@exception_class_name)
         @exception.cause
       else
         @exception
@@ -120,7 +121,7 @@ module ActionDispatch
     end
 
     def rescue_template
-      @@rescue_templates[@exception_class_name]
+      self.class.rescue_templates[@exception_class_name]
     end
 
     def status_code
@@ -129,7 +130,7 @@ module ActionDispatch
 
     def exception_trace
       trace = application_trace
-      trace = framework_trace if trace.empty? && !silent_exceptions.include?(@exception_class_name)
+      trace = framework_trace if trace.empty? && !self.class.silent_exceptions.include?(@exception_class_name)
       trace
     end
 
@@ -179,7 +180,7 @@ module ActionDispatch
     end
 
     def self.status_code_for_exception(class_name)
-      ActionDispatch::Response.rack_status_code(@@rescue_responses[class_name])
+      ActionDispatch::Response.rack_status_code(rescue_responses[class_name])
     end
 
     def show?(request)
@@ -198,7 +199,7 @@ module ActionDispatch
     end
 
     def rescue_response?
-      @@rescue_responses.key?(exception.class.name)
+      self.class.rescue_responses.key?(exception.class.name)
     end
 
     def source_extracts
@@ -235,6 +236,11 @@ module ActionDispatch
       exception.object_id
     end
 
+    protected
+      # The exception this wrapper's exception is a cause of, whose
+      # Template::Error, if any, knows the templates of this backtrace.
+      attr_writer :outer_exception
+
     private
       class SourceMapLocation < ActiveSupport::Delegation::DelegateClass(Thread::Backtrace::Location) # :nodoc:
         def initialize(location, template)
@@ -243,7 +249,7 @@ module ActionDispatch
         end
 
         def spot(exc)
-          if RubyVM::AbstractSyntaxTree.respond_to?(:node_id_for_backtrace_location) && __getobj__.is_a?(Thread::Backtrace::Location)
+          if defined?(::RubyVM::AbstractSyntaxTree) && RubyVM::AbstractSyntaxTree.respond_to?(:node_id_for_backtrace_location) && __getobj__.is_a?(Thread::Backtrace::Location)
             location = @template.spot(__getobj__)
           else
             location = super
@@ -255,18 +261,15 @@ module ActionDispatch
         end
       end
 
-      attr_reader :backtrace
+      def backtrace
+        @backtrace ||= build_backtrace
+      end
 
       def build_backtrace
-        built_methods = {}
+        locations = @exception.backtrace_locations || []
+        built_methods = built_methods_for(locations)
 
-        ActionView::PathRegistry.all_resolvers.each do |resolver|
-          resolver.built_templates.each do |template|
-            built_methods[template.method_name] = template
-          end
-        end
-
-        (@exception.backtrace_locations || []).map do |loc|
+        locations.map do |loc|
           if built_methods.key?(loc.base_label)
             thread_backtrace_location = if loc.respond_to?(:__getobj__)
               loc.__getobj__
@@ -280,6 +283,36 @@ module ActionDispatch
         end
       end
 
+      # Maps the compiled template methods that can appear in +locations+ to
+      # their templates.
+      def built_methods_for(locations)
+        built_methods = {}
+
+        # A template rescues what it raises and rethrows it as a
+        # Template::Error, which records each template it goes through. Those
+        # are the templates whose methods are in the backtrace.
+        outermost = @outer_exception || @exception
+        [outermost, *causes_for(outermost)].each do |exception|
+          next unless exception.is_a?(ActionView::Template::Error)
+
+          exception.templates.each do |template|
+            built_methods[template.method_name] = template if template.respond_to?(:method_name)
+          end
+        end
+
+        # Otherwise collect the templates of every resolver, which is costly,
+        # so only when a template method is in the backtrace.
+        if locations.any? { |loc| !built_methods.key?(loc.base_label) && ActionView::Template.method_name?(loc.base_label) }
+          ActionView::PathRegistry.all_resolvers.each do |resolver|
+            resolver.built_templates.each do |template|
+              built_methods[template.method_name] = template
+            end
+          end
+        end
+
+        built_methods
+      end
+
       def causes_for(exception)
         return enum_for(__method__, exception) unless block_given?
 
@@ -287,7 +320,11 @@ module ActionDispatch
       end
 
       def wrapped_causes_for(exception, backtrace_cleaner)
-        causes_for(exception).map { |cause| self.class.new(backtrace_cleaner, cause) }
+        causes_for(exception).map do |cause|
+          wrapper = self.class.new(backtrace_cleaner, cause)
+          wrapper.outer_exception = exception
+          wrapper
+        end
       end
 
       def clean_backtrace(*args)
@@ -336,7 +373,7 @@ module ActionDispatch
       def source_fragment(path, line)
         return unless Rails.respond_to?(:root) && Rails.root
         full_path = Rails.root.join(path)
-        if File.exist?(full_path)
+        if File.file?(full_path)
           File.open(full_path, "r") do |file|
             extract_source_fragment_lines(file.each_line, line)
           end

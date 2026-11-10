@@ -3,6 +3,7 @@
 require "active_support/inflector"
 require "zeitwerk"
 require "cases/helper"
+require "active_support/testing/ractors_assertions"
 require "models/author"
 require "models/company"
 require "models/membership"
@@ -41,6 +42,10 @@ class InheritanceTest < ActiveRecord::TestCase
     with_store_full_sti_class do
       assert_equal "Namespaced::Company", Namespaced::Company.sti_name
     end
+  end
+
+  def test_class_clone_accepts_freeze_option
+    assert_not_predicate Company.clone(freeze: false), :frozen?
   end
 
   def test_class_with_blank_sti_name
@@ -149,6 +154,31 @@ class InheritanceTest < ActiveRecord::TestCase
 
     # Concrete subclass of an abstract class which has a type column.
     assert_not_predicate SubAbstractStiPost, :descends_from_active_record?
+  end
+
+  def test_finder_needs_type_condition_below_abstract_classes
+    application = Class.new(ActiveRecord::Base) { self.abstract_class = true }
+    base = Class.new(application) do
+      def self.name = "TypeConditionTopic"
+      self.table_name = "topics"
+    end
+    child = Class.new(base) { def self.name = "TypeConditionReply" }
+
+    assert_not_predicate base, :finder_needs_type_condition?
+    assert_predicate child, :finder_needs_type_condition?
+    assert_match(/TypeConditionReply/, child.all.to_sql)
+  end
+
+  def test_top_level_model_overriding_descends_from_active_record_gets_a_type_condition
+    application = Class.new(ActiveRecord::Base) { self.abstract_class = true }
+    model = Class.new(application) do
+      self.table_name = "topics"
+      def self.name = "TypeConditionTopic"
+      def self.descends_from_active_record? = false
+    end
+
+    assert_predicate model, :finder_needs_type_condition?
+    assert_match(/TypeConditionTopic/, model.all.to_sql)
   end
 
   def test_company_descends_from_active_record
@@ -499,6 +529,34 @@ class InheritanceTest < ActiveRecord::TestCase
 
   def test_inheritance_with_default_scope
     assert_equal 1, SelectedMembership.count(:all)
+  end
+
+  if RUBY_VERSION >= "4.0" && !in_memory_db?
+    class InheritanceRactorTest < ActiveRecord::TestCase
+      include ActiveSupport::Testing::Isolation
+      include ActiveSupport::Testing::RactorsAssertions
+
+      def test_finder_needs_type_condition_can_be_computed_from_a_ractor_for_an_sti_subclass
+        model, sti_model = ractor_sti_models
+
+        assert_equal true, on_ractor { sti_model.finder_needs_type_condition? }
+        assert_equal false, on_ractor { model.finder_needs_type_condition? }
+      end
+
+      private
+        def ractor_sti_models
+          model = Class.new(ActiveRecord::Base) do
+            def self.name = "RactorCompany"
+            self.table_name = "companies"
+          end
+          sti_model = Class.new(model) do
+            def self.name = "RactorFirm"
+          end
+          model.load_schema
+
+          [model, sti_model]
+        end
+    end
   end
 end
 

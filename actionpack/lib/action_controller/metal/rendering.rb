@@ -1,7 +1,5 @@
 # frozen_string_literal: true
 
-# :markup: markdown
-
 module ActionController
   module Rendering
     extend ActiveSupport::Concern
@@ -229,8 +227,15 @@ module ActionController
       end
 
       def _set_vary_header
-        if response.headers["Vary"].blank? && request.should_apply_vary_header?
-          response.headers["Vary"] = "Accept"
+        if request.should_apply_vary_header?
+          vary_headers = response.headers["Vary"].to_s.split(",").map(&:strip).reject(&:blank?)
+
+          unless vary_headers.include?("*")
+            request.vary_headers.each do |header|
+              vary_headers << header unless vary_headers.any? { |existing| existing.casecmp?(header) }
+            end
+            response.headers["Vary"] = vary_headers.join(", ")
+          end
         end
       end
 

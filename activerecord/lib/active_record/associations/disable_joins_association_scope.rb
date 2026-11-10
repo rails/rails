@@ -3,35 +3,37 @@
 module ActiveRecord
   module Associations
     class DisableJoinsAssociationScope < AssociationScope # :nodoc:
-      def scope(association)
+      # The ids a link of the chain is looked up by, plucked from the previous
+      # link, and how strongly that link ordered them.
+      Lookup = Data.define(:ids, :order_rank) # :nodoc:
+
+      def scope(association, routes = nil)
         source_reflection = association.reflection
         owner = association.owner
         unscoped = association.klass.unscoped
-        reverse_chain = get_chain(source_reflection, association, unscoped.alias_tracker).reverse
+        routes ||= source_reflection.association_route_chain(origin_class: owner.class, destination_class: association.klass)
+        reverse_chain = get_chain(source_reflection, association, unscoped.alias_tracker, routes).reverse
 
-        last_reflection, last_ordered, last_join_ids = last_scope_chain(reverse_chain, owner)
+        first_route = reverse_chain.first.association_route
+        lookup = Lookup.new(ids: [first_route.origin_key.value_of(owner)], order_rank: 0)
 
-        add_constraints(last_reflection, last_reflection.join_primary_key, last_join_ids, owner, last_ordered)
+        reverse_chain.each_cons(2) do |reflection, next_reflection|
+          records = add_constraints(reflection, lookup, owner)
+          lookup = Lookup.new(
+            ids: records.pluck(next_reflection.association_route.origin_key.name),
+            order_rank: order_rank(records)
+          )
+        end
+
+        add_constraints(reverse_chain.last, lookup, owner)
       end
 
       private
-        def last_scope_chain(reverse_chain, owner)
-          first_item = reverse_chain.shift
-          first_scope = [first_item, false, [owner.read_attribute(first_item.join_foreign_key)]]
-
-          reverse_chain.inject(first_scope) do |(reflection, ordered, join_ids), next_reflection|
-            key = reflection.join_primary_key
-            records = add_constraints(reflection, key, join_ids, owner, ordered)
-            foreign_key = next_reflection.join_foreign_key
-            record_ids = records.pluck(foreign_key)
-            records_ordered = records && records.order_values.any?
-
-            [next_reflection, records_ordered, record_ids]
-          end
-        end
-
-        def add_constraints(reflection, key, join_ids, owner, ordered)
-          scope = reflection.build_scope(reflection.aliased_table).where(key => join_ids)
+        def add_constraints(reflection, lookup, owner)
+          key = reflection.association_route.destination_key.name
+          scope = reflection.build_scope(reflection.aliased_table)
+          predicate = scope.where(key => lookup.ids).where_clause.ast
+          scope._where!(query_constraint(predicate))
 
           relation = reflection.klass.scope_for_association
           scope.merge!(
@@ -43,15 +45,30 @@ module ActiveRecord
             scope.unscope!(*item.unscope_values)
             scope.where_clause += item.where_clause
             scope.order_values = item.order_values | scope.order_values
+            scope.default_order_values = item.default_order_values | scope.default_order_values
             scope
           end
 
-          if scope.order_values.empty? && ordered
-            split_scope = DisableJoinsAssociationRelation.create(scope.model, key, join_ids)
+          if order_rank(scope) < lookup.order_rank
+            split_scope = DisableJoinsAssociationRelation.create(scope.model, key, lookup.ids)
             split_scope.where_clause += scope.where_clause
             split_scope
           else
             scope
+          end
+        end
+
+        # How strongly a link is ordered: not at all, only by a default order, or by
+        # an explicit one. A link keeps the order of the previous one unless it is
+        # ordered at least as strongly, as an explicit order on any link of a joined
+        # chain takes over from the default ones.
+        def order_rank(scope)
+          if !scope.order_values.empty?
+            2
+          elsif !scope.default_order_values.empty?
+            1
+          else
+            0
           end
         end
     end

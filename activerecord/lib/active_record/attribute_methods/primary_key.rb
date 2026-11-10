@@ -2,13 +2,10 @@
 
 module ActiveRecord
   module AttributeMethods
-    # = Active Record Attribute Methods Primary Key
+    # Active Record Attribute Methods Primary Key
+    # ===========================================
     module PrimaryKey
       extend ActiveSupport::Concern
-
-      included do
-        class_attribute :_primary_key_definition, instance_accessor: false
-      end
 
       # Returns this record's primary key value wrapped in an array if one is
       # available.
@@ -62,6 +59,10 @@ module ActiveRecord
       end
 
       private
+        def primary_key_is_composite?
+          false
+        end
+
         def attribute_method?(attr_name)
           attr_name == "id" || super
         end
@@ -78,10 +79,18 @@ module ActiveRecord
           end
 
           # Defines the primary key field -- can be overridden in subclasses.
-          # Overwriting will negate any effect of the +primary_key_prefix_type+
+          # Overwriting will negate any effect of the `primary_key_prefix_type`
           # setting, though.
           def primary_key
-            primary_key_definition.name
+            if table = loaded_mapped_table
+              table._primary_key
+            elsif @schema_context
+              schema_context.primary_key
+            elsif definition = configured_primary_key_definition
+              definition.name
+            else
+              schema_context.primary_key
+            end
           end
 
           def composite_primary_key? # :nodoc:
@@ -89,8 +98,34 @@ module ActiveRecord
           end
 
           def primary_key_definition # :nodoc:
-            reset_primary_key unless _primary_key_definition
-            _primary_key_definition
+            if table = loaded_mapped_table
+              return table.primary_key_definition
+            end
+
+            definition =
+              if @schema_context
+                schema_context.primary_key_definition
+              else
+                configured_primary_key_definition || schema_context.primary_key_definition
+              end
+            key = primary_key
+            return definition if key == definition.name
+
+            definition = ActiveRecord::Key.for(key)
+            include CompositePrimaryKey if definition.composite?
+            definition
+          end
+
+          def declared_primary_key_definition # :nodoc:
+            @primary_key_definition || (superclass.declared_primary_key_definition unless self == Base)
+          end
+
+          def configured_primary_key_definition # :nodoc:
+            if definition = declared_primary_key_definition
+              definition
+            elsif key = primary_key_from_prefix(base_class.name)
+              ActiveRecord::Key.for(key)
+            end
           end
 
           # Returns a quoted version of the primary key name.
@@ -100,41 +135,39 @@ module ActiveRecord
 
           def reset_primary_key # :nodoc:
             ActiveSupport::Ractors.on_main(self) do
-              if base_class?
-                self.primary_key = get_primary_key(base_class.name)
-              else
-                self.primary_key = base_class.primary_key
-              end
-            end
-          end
-
-          def get_primary_key(base_name) # :nodoc:
-            if base_name && primary_key_prefix_type == :table_name
-              base_name.foreign_key(false)
-            elsif base_name && primary_key_prefix_type == :table_name_with_underscore
-              base_name.foreign_key
-            elsif ActiveRecord::Base != self && table_exists?
-              schema_cache.primary_keys(table_name)
-            else
-              "id"
+              @primary_key_definition = nil
+              reload_schema_from_cache
+              primary_key
             end
           end
 
           # Sets the name of the primary key column.
           #
-          #   class Project < ActiveRecord::Base
-          #     self.primary_key = 'sysid'
-          #   end
+          # ```
+          # class Project < ActiveRecord::Base
+          #   self.primary_key = 'sysid'
+          # end
+          # ```
           def primary_key=(value)
-            self._primary_key_definition = ActiveRecord::Key.for(value)
-
-            include CompositePrimaryKey if primary_key_definition.composite?
+            definition = ActiveRecord::Key.for(value)
+            @primary_key_definition = definition
+            include CompositePrimaryKey if definition.composite?
+            reload_schema_from_cache
+            # Regenerate so the id_value reader is replaced by an alias.
+            if definition.composite?
+              ([self] + descendants).each do |model|
+                model.undefine_attribute_methods if model.attribute_methods_generated?
+              end
+            end
           end
 
-          private
-            def inherited(base)
-              super
+          def primary_key_from_prefix(base_name) # :nodoc:
+            if base_name && primary_key_prefix_type == :table_name
+              base_name.foreign_key(false)
+            elsif base_name && primary_key_prefix_type == :table_name_with_underscore
+              base_name.foreign_key
             end
+          end
         end
     end
   end

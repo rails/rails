@@ -38,6 +38,19 @@ module ActiveRecord
         column_def = ColumnDefinition.new("title", "string", limit: 20, default: "Hello", null: false)
         assert_equal "title varchar(20) DEFAULT 'Hello' NOT NULL", @viz.accept(column_def)
       end
+
+      def test_option_accessors_are_deprecated
+        column_def = ColumnDefinition.new("title", "string", { limit: 20 })
+
+        assert_deprecated(/options\[:limit\]/, ActiveRecord.deprecator) do
+          assert_equal 20, column_def.limit
+        end
+
+        assert_deprecated(/options\[:limit\]=/, ActiveRecord.deprecator) do
+          column_def.limit = 30
+        end
+        assert_equal 30, column_def.options[:limit]
+      end
     end
   end
 end

@@ -1,57 +1,109 @@
 # frozen_string_literal: true
 
-# :markup: markdown
+require "active_record/model_schema/schema_context/mapped_table"
+require "active_record/model_schema/schema_context/attributes"
 
 module ActiveRecord
   module ModelSchema
-    # SchemaContext owns all schema-derived state for a model: columns,
-    # attribute types, and column defaults.
     class SchemaContext # :nodoc:
-      attr_reader :model_class, :columns_hash, :columns, :column_names,
-                  :attribute_types, :content_columns
+      attr_reader :model_class, :table_name, :only_columns, :ignored_columns, :base_context,
+        :query_constraints_definition, :configured_primary_key_definition
 
       def initialize(model_class)
         @model_class = model_class
-        @schema_loaded = false
+        unless model_class.base_class?
+          base_class = model_class.base_class
+          @base_primary_key_definition = base_class.configured_primary_key_definition
+          @base_query_constraints_definition = base_class.query_constraints_definition
+          @base_context = base_class.schema_context unless @base_primary_key_definition
+        end
+        @table_name = model_class.table_name
+        @only_columns = model_class.only_columns
+        @ignored_columns = model_class.ignored_columns
+        @query_constraints_definition = model_class.query_constraints_definition
+        @configured_primary_key_definition = model_class.configured_primary_key_definition
+        @mapped_table_cell = ActiveSupport::Ractors::Cell.new
+        @attributes_key = :"active_record_schema_attributes_#{model_class.object_id}"
       end
 
-      def table_name
-        model_class.table_name
+      def attributes
+        # Read-only defaults are shared through the mapped table; otherwise
+        # each Ractor builds its own.
+        mapped_table.attributes || ractor_attributes
+      end
+
+      def ractor_attributes # :nodoc:
+        slot = ActiveSupport::Ractors[@attributes_key]
+        return slot[1] if slot && slot[0].equal?(self)
+
+        attributes = Attributes.new(mapped_table, build_default_attributes)
+        ActiveSupport::Ractors[@attributes_key] = [self, attributes].freeze
+        attributes
+      end
+
+      def derive_query_constraints_list(primary_key)
+        if model_class.base_class? || primary_key != base_primary_key
+          primary_key if primary_key.is_a?(Array)
+        else
+          @base_query_constraints_definition || (primary_key if primary_key.is_a?(Array))
+        end
       end
 
       def primary_key
-        model_class.primary_key
+        primary_key_definition.name
       end
 
-      def _default_attributes
-        @default_attributes
-      end
-
-      def attributes_builder
-        defaults = _default_attributes.except(*(column_names - Array(primary_key)))
-        ActiveModel::AttributeSet::Builder.new(attribute_types, defaults)
-      end
-
-      def column_defaults
-        @column_defaults ||= _default_attributes.deep_dup.to_hash.freeze
-      end
-
-      def _returning_columns_for_insert(connection)
-        @_returning_columns_for_insert || ActiveSupport::Ractors.on_main(self) do
-          @_returning_columns_for_insert ||= begin
-            auto_populated_columns = columns.filter_map do |c|
-              -c.name if connection.return_value_after_insert?(c)
+      def primary_key_definition
+        if definition = configured_primary_key_definition
+          definition
+        elsif table = loaded_mapped_table
+          table._primary_key_definition
+        else
+          ActiveSupport::Ractors.on_main(self) do
+            if table_exists?
+              mapped_table._primary_key_definition
+            else
+              resolve_primary_key_definition
             end
-
-            (auto_populated_columns.empty? ? Array(primary_key) : auto_populated_columns).freeze
           end
         end
       end
 
-      def _returning_columns_for_update(connection)
-        @_returning_columns_for_update ||= columns.filter_map do |c|
-          c.name if connection.return_value_after_update?(c)
+      def resolve_primary_key_definition # :nodoc:
+        configured_primary_key_definition || base_context&.primary_key_definition ||
+          ActiveRecord::Key.for(inferred_primary_key)
+      end
+
+      def apply_primary_key_override(definition) # :nodoc:
+        if current? && overridden_primary_key?(model_class)
+          ActiveRecord::Key.for(model_class.primary_key)
+        else
+          definition
         end
+      end
+
+      def current?
+        model_class.current_schema_context.equal?(self)
+      end
+
+      def schema_cache
+        model_class.schema_cache
+      end
+
+      def table_exists?
+        table_name && schema_cache.data_source_exists?(table_name)
+      end
+
+      def inferred_primary_key
+        if table_exists?
+          schema_cache.primary_keys(table_name)
+        else
+          "id"
+        end
+      end
+
+      def has_query_constraints?
+        !!query_constraints_definition
       end
 
       def cached_find_by_statement(connection, key, &block) # :nodoc:
@@ -59,58 +111,73 @@ module ActiveRecord
         cache.compute_if_absent(key) { StatementCache.create(connection, &block) }
       end
 
-      def initialize_find_by_cache # :nodoc:
-        ActiveSupport::Ractors[model_class.find_by_statement_cache_key] = { true => Concurrent::Map.new, false => Concurrent::Map.new }
+      def find_by_statement_cache # :nodoc:
+        statements = ActiveSupport::Ractors[model_class.find_by_statement_cache_key] || model_class.initialize_find_by_cache
+        statements.fetch_or_store(self) { { true => Concurrent::Map.new, false => Concurrent::Map.new } }
       end
 
-      def find_by_statement_cache # :nodoc:
-        ActiveSupport::Ractors[model_class.find_by_statement_cache_key] || initialize_find_by_cache
+      def loaded_mapped_table # :nodoc:
+        @mapped_table_cell.value
       end
 
       def schema_loaded?
-        @schema_loaded
+        !loaded_mapped_table.nil?
+      end
+
+      # The model's columns as attributes, with its attribute declarations
+      # applied. Read only unless some default can't be frozen.
+      def build_default_attributes # :nodoc:
+        attributes = mapped_table.columns_hash.transform_values do |column|
+          ActiveModel::Attribute.from_database(column.name, column.default, model_class.type_for_column(column))
+        end
+        model_class.apply_pending_attribute_modifications(attributes)
+
+        if attributes.each_value.all?(&:freezable?)
+          attributes.each_value(&:freeze)
+          ActiveModel::ReadOnlyAttributeSet.new(attributes.freeze)
+        else
+          ActiveModel::AttributeSet.new(attributes)
+        end
       end
 
       def load_schema!
-        return if @schema_loaded
-
         unless table_name
           raise ActiveRecord::TableNotSpecified, "#{model_class} has no table configured. Set one with #{model_class}.table_name="
         end
 
-        columns_hash = model_class.connection_pool.schema_cache.columns_hash(table_name)
-        if model_class.only_columns.present?
-          columns_hash = columns_hash.slice(*model_class.only_columns)
-        elsif model_class.ignored_columns.present?
-          columns_hash = columns_hash.except(*model_class.ignored_columns)
+        mapped_table = MappedTable.new(self)
+        # An inheritance_column override can call columns_hash, so we make
+        # this table available to reentrant reads before invoking model hooks.
+        yield mapped_table
+        mapped_table.resolve_model_hooks(self)
+        model_class.make_pending_attribute_modifications_shareable
+        attributes = Attributes.new(mapped_table, build_default_attributes)
+        if attributes.defaults.read_only? && ActiveSupport::Ractors.shareable?(attributes.defaults)
+          mapped_table.attributes = attributes
+        else
+          ActiveSupport::Ractors[@attributes_key] = [self, attributes].freeze
         end
-        @columns_hash = columns_hash.freeze
-
-        @columns = @columns_hash.values.freeze
-        @column_names = @columns.map(&:name).freeze
-
-        @default_attributes = begin
-          attributes_hash = @columns_hash.transform_values do |column|
-            ActiveModel::Attribute.from_database(column.name, column.default, model_class.type_for_column(column))
-          end
-
-          attribute_set = ActiveModel::AttributeSet.new(attributes_hash)
-          model_class.apply_pending_attribute_modifications(attribute_set)
-          attribute_set
-        end
-
-        @attribute_types = @default_attributes.cast_types.tap do |hash|
-          hash.default = ActiveModel::Type.default_value
-        end
-
-        @content_columns = @columns.reject do |c|
-          Array(primary_key).include?(c.name) ||
-          c.name == model_class.inheritance_column ||
-          c.name.end_with?("_id", "_count")
-        end.freeze
-
-        @schema_loaded = true
+        model_class.include(AttributeMethods::CompositePrimaryKey) if mapped_table.primary_key_definition.composite?
+        @mapped_table_cell.value = ActiveSupport::Ractors.make_shareable(mapped_table.freeze)
       end
+
+      def mapped_table # :nodoc:
+        loaded_mapped_table || ActiveSupport::Ractors.on_main(self) { model_class.load_schema_context(self) }
+      end
+
+      private
+        def base_primary_key
+          base_class = model_class.base_class
+          if current? && overridden_primary_key?(base_class)
+            base_class.primary_key
+          else
+            (@base_primary_key_definition || base_context.primary_key_definition).name
+          end
+        end
+
+        def overridden_primary_key?(model)
+          model.method(:primary_key).owner != AttributeMethods::PrimaryKey::ClassMethods
+        end
     end
   end
 end

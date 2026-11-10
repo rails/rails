@@ -9,7 +9,7 @@ Gem::Specification.new do |s|
   s.summary     = "Email composition and delivery framework (part of Rails)."
   s.description = "Email on Rails. Compose, deliver, and test emails using the familiar controller/view pattern. First-class support for multipart email and attachments."
 
-  s.required_ruby_version = ">= 3.3.1"
+  s.required_ruby_version = ">= 3.3.5"
 
   s.license = "MIT"
 
@@ -17,7 +17,7 @@ Gem::Specification.new do |s|
   s.email    = "david@loudthinking.com"
   s.homepage = "https://rubyonrails.org"
 
-  s.files        = Dir["CHANGELOG.md", "README.rdoc", "MIT-LICENSE", "lib/**/*"]
+  s.files        = Dir["CHANGELOG.md", "README.md", "MIT-LICENSE", "lib/**/*"]
   s.require_path = "lib"
   s.requirements << "none"
 

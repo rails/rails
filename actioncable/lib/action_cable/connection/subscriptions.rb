@@ -1,8 +1,7 @@
 # frozen_string_literal: true
 
-# :markup: markdown
-
 require "active_support/core_ext/hash/indifferent_access"
+require "active_support/parameter_filter"
 
 module ActionCable
   module Connection
@@ -68,9 +67,9 @@ module ActionCable
       def add(data)
         id_key = data["identifier"]
 
-        raise MalformedCommandError, data unless id_key.present?
+        raise MalformedCommandError, filtered_command(data) unless id_key.present?
 
-        raise AlreadySubscribedError, id_key if subscriptions.key?(id_key)
+        raise AlreadySubscribedError, filtered_identifier(id_key) if subscriptions.key?(id_key)
 
         subscription = subscription_from_identifier(id_key)
 
@@ -86,7 +85,7 @@ module ActionCable
       def remove(data)
         raise MissingIdentifier unless data["identifier"].present?
 
-        logger.info "Unsubscribing from channel: #{data['identifier']}"
+        logger.info "Unsubscribing from channel: #{filtered_identifier(data["identifier"])}"
         subscription = find(data)
         remove_subscription(subscription) if subscription
       end
@@ -98,7 +97,7 @@ module ActionCable
 
       def perform_action(data)
         subscription = find(data)
-        raise UnknownSubscription.new(data["identifier"]) unless subscription
+        raise UnknownSubscription.new(filtered_identifier(data["identifier"])) unless subscription
         subscription.perform_action ActiveSupport::JSON.decode(data["data"])
       end
 
@@ -125,6 +124,28 @@ module ActionCable
           if subscription_klass && ActionCable::Channel::Base > subscription_klass
             subscription_klass.new(connection, id_key, id_options)
           end
+        end
+
+        def filtered_identifier(id_key)
+          filtered_json(id_key)&.to_json || ActiveSupport::ParameterFilter::FILTERED
+        end
+
+        def filtered_command(data)
+          data = data.merge("data" => filtered_json(data["data"]) || ActiveSupport::ParameterFilter::FILTERED) if data.key?("data")
+          parameter_filter.filter(data)
+        rescue StandardError
+          ActiveSupport::ParameterFilter::FILTERED
+        end
+
+        def filtered_json(json)
+          decoded = ActiveSupport::JSON.decode(json)
+          parameter_filter.filter(decoded) if decoded.is_a?(Hash)
+        rescue StandardError
+          nil
+        end
+
+        def parameter_filter
+          @parameter_filter ||= ActiveSupport::ParameterFilter.new(connection.config.filter_parameters)
         end
     end
   end

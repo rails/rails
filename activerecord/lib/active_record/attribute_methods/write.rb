@@ -2,7 +2,8 @@
 
 module ActiveRecord
   module AttributeMethods
-    # = Active Record Attribute Methods \Write
+    # Active Record Attribute Methods \Write
+    # ======================================
     module Write
       extend ActiveSupport::Concern
 
@@ -19,22 +20,21 @@ module ActiveRecord
               owner.define_cached_method(temp_method_name, as: "#{as}=", namespace: :active_record) do |batch|
                 batch <<
                   "def #{temp_method_name}(value)" <<
-                  "  _write_attribute(#{attr_name_expr}, value)" <<
+                  "  @attributes.write_from_user(#{attr_name_expr}, value)" <<
                   "end"
               end
             end
           end
       end
 
-      # Updates the attribute identified by +attr_name+ using the specified
-      # +value+. The attribute value will be type cast upon being read.
+      # Updates the attribute identified by `attr_name` using the specified
+      # `value`. The attribute value will be type cast upon being read.
       def write_attribute(attr_name, value)
-        name = attr_name.to_s
-        name = self.class.attribute_aliases[name] || name
+        name = resolve_alias(attr_name.is_a?(Symbol) ? attr_name.name : attr_name.to_s)
 
         return @attributes.write_from_user(name, value) unless name == "id" && @primary_key
 
-        if self.class.composite_primary_key?
+        if primary_key_is_composite?
           @attributes.write_from_user("id", value)
         else
           if @primary_key != "id"

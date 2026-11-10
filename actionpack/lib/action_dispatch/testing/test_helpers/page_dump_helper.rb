@@ -8,7 +8,7 @@ module ActionDispatch
       # Saves the content of response body to a file and tries to open it in your browser.
       # Launchy must be present in your Gemfile for the page to open automatically.
       def save_and_open_page(path = html_dump_default_path)
-        save_page(path).tap { |s_path| open_file(s_path) }
+        save_page(path).tap { |s_path| open_file(s_path) } # rubocop:disable Lint/Debugger
       end
 
       private

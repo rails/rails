@@ -207,6 +207,24 @@ class NamedScopingTest < ActiveRecord::TestCase
     assert_equal "The scope body needs to be callable.", e.message
   end
 
+  def test_scope_arguments_follow_the_scope_body
+    klass = Class.new(Post) do
+      scope :approved, -> { where(approved: true) }
+      scope :loose, proc { where(approved: true) }
+      scope :keywordless, ->(**nil) { where(approved: true) }
+    end
+
+    wrong_number = "wrong number of arguments (given 1, expected 0)"
+    assert_equal wrong_number, assert_raises(ArgumentError) { klass.approved(1) }.message
+    assert_equal wrong_number, assert_raises(ArgumentError) { klass.approved(approved: false) }.message
+    assert_equal wrong_number, assert_raises(ArgumentError) { klass.all.approved(1) }.message
+    assert_equal "no keywords accepted", assert_raises(ArgumentError) { klass.keywordless(approved: false) }.message
+    assert_equal "no keywords accepted", assert_raises(ArgumentError) { klass.all.keywordless(approved: false) }.message
+    assert_equal klass.approved.to_sql, klass.keywordless.to_sql
+    assert_equal klass.approved.to_sql, klass.loose(1, approved: false).to_sql
+    assert_equal klass.approved.to_sql, klass.all.loose(1).to_sql
+  end
+
   def test_scopes_name_is_relation_method
     conflicts = [
       :records,
@@ -649,5 +667,15 @@ class NamedScopingTest < ActiveRecord::TestCase
     assert_queries_match(%r{/\* from-scope \*/}) do
       assert_equal_unordered Topic.including_annotate_in_scope.to_a, Topic.all.to_a
     end
+  end
+
+  def test_default_extensions_does_not_build_scope_without_default_scope
+    assert_not_called(Post, :scope_for_association) do
+      assert_equal [], Post.default_extensions
+    end
+  end
+
+  def test_default_extensions_with_default_scope
+    assert_equal [Comment::OopsExtension], Comment.default_extensions
   end
 end

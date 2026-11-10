@@ -122,6 +122,7 @@ class Post < ActiveRecord::Base
   has_many :nonexistent_comments, -> { where "comments.id < 0" }, class_name: "Comment"
 
   has_many :special_comments_ratings, through: :special_comments, source: :ratings
+  has_many :comment_ratings, through: :comments, source: :ratings
   has_many :special_comments_ratings_taggings, through: :special_comments_ratings, source: :taggings
 
   has_many :category_posts, class_name: "CategoryPost"
@@ -282,6 +283,12 @@ class PostWithDefaultScope < ActiveRecord::Base
   self.inheritance_column = :disabled
   self.table_name = "posts"
   default_scope { order(:title) }
+end
+
+class PostWithDefaultOrderScope < ActiveRecord::Base
+  self.inheritance_column = :disabled
+  self.table_name = "posts"
+  default_scope { default_order(id: :desc) }
 end
 
 class PostWithWhereDefaultScope < ActiveRecord::Base

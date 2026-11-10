@@ -8,19 +8,21 @@ module ActiveJob
     #
     # Example:
     #
-    #   class MoneySerializer < ActiveJob::Serializers::ObjectSerializer
-    #     def serialize(money)
-    #       super("amount" => money.amount, "currency" => money.currency)
-    #     end
-    #
-    #     def deserialize(hash)
-    #       Money.new(hash["amount"], hash["currency"])
-    #     end
-    #
-    #     def klass
-    #       Money
-    #     end
+    # ```
+    # class MoneySerializer < ActiveJob::Serializers::ObjectSerializer
+    #   def serialize(money)
+    #     super("amount" => money.amount, "currency" => money.currency)
     #   end
+    #
+    #   def deserialize(hash)
+    #     Money.new(hash["amount"], hash["currency"])
+    #   end
+    #
+    #   def klass
+    #     Money
+    #   end
+    # end
+    # ```
     class ObjectSerializer
       include Singleton
 

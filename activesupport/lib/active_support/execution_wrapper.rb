@@ -1,4 +1,3 @@
-# :markup: markdown
 # frozen_string_literal: true
 
 require "active_support/error_reporter"
@@ -11,6 +10,7 @@ module ActiveSupport
     Null = Object.new # :nodoc:
     def Null.complete! # :nodoc:
     end
+    Null.freeze
 
     define_callbacks :run
     define_callbacks :complete

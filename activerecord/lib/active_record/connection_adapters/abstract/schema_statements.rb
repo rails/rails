@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+# :markup: rdoc
+
 require "active_support/core_ext/string/access"
 require "active_support/core_ext/string/filters"
 require "openssl"
@@ -8,6 +10,10 @@ module ActiveRecord
   module ConnectionAdapters # :nodoc:
     module SchemaStatements
       EMPTY_METADATA = [].freeze # :nodoc:
+
+      def compatibility_behavior_for(migration_class) # :nodoc:
+        ActiveRecord::Migration::CompatibilityBehavior
+      end
 
       # Returns a hash of mappings from the abstract data types to the native
       # database types. See TableDefinition#column for details on the recognized
@@ -336,7 +342,9 @@ module ActiveRecord
           end
 
           td.columns.each do |column|
-            statements << change_column_comment_sql(table_name, column.name, column.comment) if column.comment.present?
+            if column_comment = column.options[:comment].presence
+              statements << change_column_comment_sql(table_name, column.name, column_comment)
+            end
           end
         end
 
@@ -1285,7 +1293,7 @@ module ActiveRecord
         return if options[:if_not_exists] == true && foreign_key_exists?(from_table, to_table, **options.slice(:column, :primary_key))
 
         at = build_alter_table_definition from_table
-        at.add_foreign_key to_table, options
+        at.add_foreign_key(to_table, **options)
 
         execute_alter_table(at)
       end
@@ -1325,10 +1333,8 @@ module ActiveRecord
         to_table ||= options[:to_table]
         return if options.delete(:if_exists) == true && !foreign_key_exists?(from_table, to_table, **options.slice(:column, :name))
 
-        fk_name_to_delete = foreign_key_for!(from_table, to_table: to_table, **options).name
-
         at = build_alter_table_definition from_table
-        at.drop_foreign_key fk_name_to_delete
+        at.remove_foreign_key(to_table, **options)
 
         execute_alter_table(at)
       end
@@ -1415,7 +1421,7 @@ module ActiveRecord
         return if if_not_exists && check_constraint_exists?(table_name, **options)
 
         at = build_alter_table_definition(table_name)
-        at.add_check_constraint(expression, options)
+        at.add_check_constraint(expression, **options)
 
         execute_alter_table(at)
       end
@@ -1444,10 +1450,8 @@ module ActiveRecord
 
         return if if_exists && !check_constraint_exists?(table_name, expression: expression, **options)
 
-        chk_name_to_delete = check_constraint_for!(table_name, expression: expression, **options).name
-
         at = build_alter_table_definition(table_name)
-        at.drop_check_constraint(chk_name_to_delete)
+        at.remove_check_constraint(expression, **options)
 
         execute_alter_table(at)
       end
@@ -1475,8 +1479,9 @@ module ActiveRecord
         insert_versions_sql(versions) if versions.any?
       end
 
-      def internal_string_options_for_primary_key # :nodoc:
-        { primary_key: true }
+      # Whether to inject `default: nil` for an integer or bigint primary key.
+      def inject_legacy_primary_key_default?(type) # :nodoc:
+        [:integer, :bigint].include?(type)
       end
 
       def assume_migrated_upto_version(version)
@@ -1554,7 +1559,7 @@ module ActiveRecord
 
         values = columns_for_distinct(
           primary_key_columns,
-          relation.order_values
+          relation.effective_order_values
         )
 
         limited = relation.reselect(values).distinct!
@@ -1565,7 +1570,7 @@ module ActiveRecord
         if limited_ids.empty?
           relation.none!
         else
-          relation.where!(**Array(relation.primary_key).zip(limited_ids.transpose).to_h)
+          relation._where!(**Array(relation.primary_key).zip(limited_ids.transpose).to_h)
         end
 
         relation.limit_value = relation.offset_value = nil

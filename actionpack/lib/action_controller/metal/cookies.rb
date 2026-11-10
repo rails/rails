@@ -1,7 +1,5 @@
 # frozen_string_literal: true
 
-# :markup: markdown
-
 module ActionController # :nodoc:
   module Cookies
     extend ActiveSupport::Concern

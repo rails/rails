@@ -4,6 +4,7 @@ require "abstract_unit"
 require "controller/fake_models"
 
 require "active_support/core_ext/object/with"
+require "active_support/testing/ractors_assertions"
 
 class FormHelperTest < ActionView::TestCase
   include RenderERBUtils
@@ -3979,6 +3980,15 @@ class FormHelperTest < ActionView::TestCase
     assert_not_includes ActionView::Helpers::FormBuilder.instance_methods, :form_for
   end
 
+  def test_form_builder_has_all_field_helpers
+    builder = ActionView::Helpers::FormBuilder.new(:post, @post, self, {})
+    field_helpers = ActionView::Helpers::FormBuilder.field_helpers
+
+    (field_helpers - [:label, :checkbox, :radio_button, :fields_for, :fields, :hidden_field, :file_field]).each do |field_helper|
+      assert_respond_to builder, field_helper
+    end
+  end
+
   def test_form_for_and_fields_for
     form_for(@post, as: :post, html: { id: "create-post" }) do |post_form|
       concat post_form.text_field(:title)
@@ -4328,6 +4338,28 @@ class FormHelperTest < ActionView::TestCase
 
     expected = whole_form("/cpk/books/1-2", "edit_cpk_book_1_2", "edit_cpk_book", method: "patch")
     assert_dom_equal expected, @rendered
+  end
+
+  class FormHelperRactorTest < ActiveSupport::TestCase
+    include ActiveSupport::Testing::Isolation
+    include ActiveSupport::Testing::RactorsAssertions
+
+    test "the settings are readable from a non-main Ractor" do
+      expected = [
+        ActionView::Helpers::FormHelper.form_with_generates_remote_forms,
+        ActionView::Helpers::FormHelper.form_with_generates_ids,
+        ActionView::Helpers::FormHelper.multiple_file_field_include_hidden,
+      ]
+
+      assert_equal expected, on_ractor {
+        helper = ActionView::Helpers::FormHelper
+        [
+          helper.form_with_generates_remote_forms,
+          helper.form_with_generates_ids,
+          helper.multiple_file_field_include_hidden,
+        ]
+      }
+    end
   end
 
   private

@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require "abstract_unit"
+require "active_support/testing/ractors_assertions"
 
 module Admin; class User; end; end
 
@@ -271,6 +272,32 @@ class ParamsWrapperTest < ActionController::TestCase
     end
   ensure
     User.singleton_class.undef_method(:nested_attributes_options)
+  end
+
+  class RactorTest < ActionController::TestCase
+    include ActiveSupport::Testing::Isolation
+    include ActiveSupport::Testing::RactorsAssertions
+    include ParamsWrapperTestHelp
+
+    tests UsersController
+
+    test "wrapping keeps working once the options have been made shareable" do
+      with_default_wrapper_options do
+        assert_called(User, :attribute_names, times: 2, returns: ["username"]) do
+          ActiveSupport::Ractors.make_shareable(UsersController._wrapper_options)
+          assert_ractor_shareable UsersController._wrapper_options
+
+          @request.env["CONTENT_TYPE"] = "application/json"
+          post :parse, params: { "username" => "sikachu", "title" => "Developer" }
+          assert_parameters("username" => "sikachu", "title" => "Developer", "user" => { "username" => "sikachu" })
+        end
+
+        assert_equal ["user", ["username", "color", "size"]], on_ractor {
+          options = UsersController._wrapper_options
+          [options.name, options.include]
+        }
+      end
+    end
   end
 end
 

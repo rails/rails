@@ -1,3 +1,193 @@
+*   Shift a local time in a DST spring-forward gap forward by the gap's length
+    instead of one hour.
+
+    `TimeZone#local`, `TimeZone#parse`, and `TimeWithZone#change` assumed every
+    gap was one hour long, which overshot in zones with a shorter gap and
+    collapsed distinct local times onto the same instant in zones with a longer
+    one.
+
+    ```ruby
+    ActiveSupport::TimeZone["Australia/Lord_Howe"].local(2025, 10, 5, 2, 15)
+    # Before: 2025-10-05 03:15:00 +1100
+    # After:  2025-10-05 02:45:00 +1100
+    ```
+
+    *Kenta Ishizaki*
+
+*   Fix `FrozenError` when using a frozen `ActiveSupport::MessageVerifier` or
+    `ActiveSupport::MessageEncryptor` that had not verified or decrypted a
+    message yet, as after `Ractor.make_shareable`, and when freezing an already
+    frozen `ActiveSupport::CachingKeyGenerator`.
+
+    A `MessageVerifier` with an unknown digest now raises when it is frozen,
+    instead of when it first signs or verifies a message.
+
+    *Clément Joubert*
+
+*   `ActiveSupport::MessagePack` no longer deserializes an unsafe
+    `ActiveSupport::SafeBuffer` as `html_safe`.
+
+    A `SafeBuffer` that was no longer `html_safe?`, for example after an
+    in-place `gsub!`, was deserialized as an `html_safe` `SafeBuffer`. It is now
+    serialized with an unsafe marker and deserialized as a `String`. Earlier
+    versions of Rails cannot read an unsafe buffer serialized this way.
+
+    [GHSA-2w9f-fxwj-w2qf]
+
+    *Jean Boussier*
+
+*   `ActiveSupport::Inflector#safe_constantize` matches the constant name in a
+    `LoadError` message as a literal string instead of building a `Regexp`
+    from it.
+
+    The name's segments were interpolated unescaped into the pattern, so input
+    that reaches `safe_constantize`, such as the channel identifier in an Action
+    Cable subscribe command, chose the source passed to the regexp compiler.
+
+    [GHSA-8474-xrp6-wh69]
+
+    *Jeremy Daer*
+
+*   Write `ActiveSupport::Duration#iso8601` values as plain decimal numbers.
+
+    Very small or very large float parts were written in scientific notation and
+    rational parts as fractions, which are not valid ISO 8601 and can't be read
+    back with `ActiveSupport::Duration.parse`.
+
+    ```ruby
+    0.00005.seconds.iso8601     # => "PT0.00005S" (was "PT5.0e-05S")
+    Rational(3, 2).days.iso8601 # => "P1.5D" (was "P3/2D")
+    ```
+
+    *Wleeaf*
+
+*   Add `Northwest Territories` to `ActiveSupport::TimeZone::MAPPING`.
+
+    The Northwest Territories no longer shares winter clocks with US Mountain
+    time. The existing `Mountain Time (US & Canada)` entry remains mapped to
+    `America/Denver` for compatibility. Prefer `Northwest Territories` (or the
+    IANA identifier `America/Inuvik`) for users in that region.
+
+    *Andrew Quinn*
+
+*   `Symbol#to_param` now returns `Symbol#name`, the symbol's interned frozen
+    String, instead of allocating a new one on every call before Ruby 4.1.
+
+    *Akira Matsuda*
+
+*   Fix `CurrentAttributes` defaults for attribute names given as strings.
+
+    ```ruby
+    class Current < ActiveSupport::CurrentAttributes
+      attribute "currency", default: "USD"
+    end
+
+    Current.currency # => "USD" (was nil)
+    ```
+
+    *Ryuta Kamizono*
+
+*   `ActiveSupport::Deprecation::DeprecatedObjectProxy` and
+    `DeprecatedInstanceVariableProxy` now inherit from `BasicObject`, so methods
+    added to `Object` after Active Support loads (such as `to_json`, `to_param`,
+    `blank?` or `in?`) are forwarded to the deprecated object with a warning
+    instead of running against the proxy itself.
+
+    *Akira Matsuda*
+
+*   Default `config.active_support.message_serializer` to `:json` for new apps.
+
+    With `config.load_defaults 8.2`, messages from `MessageVerifier` and
+    `MessageEncryptor` (signed IDs, signed GlobalIDs, Active Storage keys, etc.)
+    no longer fall back to deserializing `Marshal` payloads.
+
+    *Ben Sheldon*
+
+*   `ActiveSupport::ParameterFilter#filter_param` now passes `{ key => value }` to
+    `Proc` filters as their third argument, the same hash `filter` would pass for that
+    single pair, instead of `nil`.
+
+    *Kengo Johira, Akira Matsuda*
+
+*   Skip building `ActiveSupport::EventReporter` events that no subscriber would consume.
+
+    Subscribers can define `consumes?(name)` to say whether they would act on an
+    event with that name. `Rails.event.notify` now returns before resolving the
+    payload, capturing the source location and building the event when every
+    matching subscriber declines, and `Rails.event.emitting?(name)` exposes the
+    same answer so emitters can skip assembling payloads that would go nowhere:
+
+    ```ruby
+    if Rails.event.emitting?("user.created")
+      Rails.event.notify("user.created", expensive_payload_for(user))
+    end
+    ```
+
+    The framework log subscribers implement `consumes?` from their logger's level,
+    so a production app logging at `:warn` no longer builds the per-request
+    `action_controller.request_started` and `request_completed` events.
+
+    *Akira Matsuda*
+
+*   Freeze events emitted by `ActiveSupport::EventReporter`.
+
+    Subscribers can no longer change the event seen by later subscribers.
+    Modifying the event in place now raises `FrozenError`, so `dup` it first.
+
+    *Keshav Biswa*
+
+*   Speed up JSON escaping with `String#tr!` on Ruby 4.1+.
+
+    `ActiveSupport::JSON.encode` escaped `<`, `>`, `&`, U+2028 and U+2029 by
+    forcing the generated JSON to BINARY and running `gsub!` over it. Ruby 4.1
+    accepts a Hash of pairs in `String#tr!`, which does the same substitution in
+    a single pass, with no Regexp and no encoding round-trip.
+
+    Escaping is 2x to 10x faster on documents that are large or contain many
+    escapable characters, and allocates fewer intermediate strings. Documents
+    smaller than roughly 128 bytes with nothing to escape are marginally
+    slower, since `tr!` builds a translation table where a pre-compiled Regexp
+    just fails to match. Raises `ArgumentError` when the passed
+    JSON isn't valid UTF-8.
+
+    *Jean Boussier*, *Federico Carrocera*
+
+*   Add `Manitoba` to `ActiveSupport::TimeZone::MAPPING`.
+
+    Manitoba no longer shares winter clocks with US Central time. The existing
+    `Central Time (US & Canada)` entry remains mapped to `America/Chicago` for
+    compatibility. Prefer `Manitoba` (or the IANA identifier `America/Winnipeg`)
+    for users in that region.
+
+    *Dan Williams*
+
+*   Fix `ActiveSupport::BroadcastLogger#tagged` when broadcasting to more than
+    one tagging logger..
+
+    ```ruby
+    broadcast = ActiveSupport::BroadcastLogger.new(logger1, logger2)
+    broadcast.tagged("BCX").info("Hello") # => both loggers log "[BCX] Hello"
+    ```
+
+    *Ben Younes*
+
+*   Preserve the requested key order in `ActiveSupport::Cache::Store#read_multi`
+    when a local cache is active.
+
+    `fetch_multi` was fixed for this, but `read_multi` still returned the local
+    cache hits first instead of following the order of the requested keys.
+
+    *Carlos Daniel Pohlod*
+
+*   Preserve the requested key order in `ActiveSupport::Cache::Store#fetch_multi`
+    when a local cache is active.
+
+    Previously, if some keys were served from the local cache and others from the
+    underlying store, `fetch_multi` returned the local cache hits first instead of
+    following the order of the requested keys.
+
+    *Mueez Afzal*
+
 *   Return a UTC time from `Time.rfc3339` for strings with the "Z" UTC designator.
 
     ```ruby

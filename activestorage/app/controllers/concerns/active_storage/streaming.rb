@@ -58,8 +58,8 @@ module ActiveStorage::Streaming
       ranges.sum { |range| range.end - range.begin } < ActiveStorage.streaming_chunk_max_size
     end
 
-    # Stream the blob from storage directly to the response. The disposition can be controlled by setting +disposition+.
-    # The content type and filename is set directly from the +blob+.
+    # Stream the blob from storage directly to the response. The disposition can be controlled by setting `disposition`.
+    # The content type and filename is set directly from the `blob`.
     def send_blob_stream(blob, disposition: nil) # :doc:
       send_stream(
           filename: blob.filename.sanitized,
@@ -69,13 +69,18 @@ module ActiveStorage::Streaming
           stream.write chunk
         end
       rescue ActiveStorage::FileNotFoundError
+        raise if response.committed?
+
         expires_now
         head :not_found
       rescue
-        # Status and caching headers are already set, but not committed.
-        # Change the status to 500 manually.
-        expires_now
-        head :internal_server_error
+        # Until the first chunk is written, status and caching headers are set
+        # but not committed. Change the status to 500 manually.
+        unless response.committed?
+          expires_now
+          head :internal_server_error
+        end
+
         raise
       end
     end

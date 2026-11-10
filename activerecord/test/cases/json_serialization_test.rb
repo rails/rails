@@ -145,6 +145,19 @@ class JsonSerializationTest < ActiveRecord::TestCase
     assert_no_match %r{ContactSti}, json
   end
 
+  def test_serializable_hash_excludes_inheritance_column_from_sti_without_options
+    @contact = ContactSti.new(@contact.attributes)
+
+    assert_equal @contact.attribute_names - ["type"], @contact.serializable_hash.keys
+    assert_equal @contact.serializable_hash, @contact.serializable_hash({})
+  end
+
+  def test_serializable_hash_includes_inheritance_column_from_sti_when_asked_with_only
+    @contact = ContactSti.new(@contact.attributes)
+
+    assert_equal({ "name" => "Konata Izumi", "type" => "ContactSti" }, @contact.serializable_hash(only: [:name, :type]))
+  end
+
   def test_serializable_hash_with_default_except_option_and_excluding_inheritance_column_from_sti
     @contact = ContactSti.new(@contact.attributes)
     assert_equal "ContactSti", @contact.type

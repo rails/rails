@@ -47,7 +47,7 @@ NOTE: You can read more about how to configure Rails' concurrency in the
 ### Threads vs Fibers
 
 The `active_support.isolation_level` value in your `config/application.rb` file
-provides you the option to define where Rails' internal state should be stored
+provides you with the option to define where Rails' internal state should be stored
 while tasks are run. If you use a fiber-based server or job processor (e.g.
 `falcon`), you should set this value to `:fiber`, otherwise it is best to set it
 to `:thread`.

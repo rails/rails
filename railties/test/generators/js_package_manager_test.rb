@@ -17,6 +17,11 @@ class JsPackageManagerTest < Rails::Generators::TestCase
 
   setup :prepare_destination
 
+  test "detects aube from aube-lock.yaml" do
+    FileUtils.touch(File.join(destination_root, "aube-lock.yaml"))
+    assert_equal :aube, Rails::Generators::JsPackageManager.detect(Pathname(destination_root))
+  end
+
   test "detects bun from bun.lockb" do
     FileUtils.touch(File.join(destination_root, "bun.lockb"))
     assert_equal :bun, Rails::Generators::JsPackageManager.detect(Pathname(destination_root))
@@ -53,6 +58,7 @@ class JsPackageManagerTest < Rails::Generators::TestCase
 
   test "package_add_command returns the correct command" do
     {
+      "aube-lock.yaml" => "aube add @rails/actioncable",
       "bun.lockb" => "bun add @rails/actioncable",
       "pnpm-lock.yaml" => "pnpm add @rails/actioncable",
       "package-lock.json" => "npm install @rails/actioncable",
@@ -68,6 +74,7 @@ class JsPackageManagerTest < Rails::Generators::TestCase
 
   test "package_install_command returns the correct command" do
     {
+      "aube-lock.yaml" => "aube ci",
       "bun.lockb" => "bun install --frozen-lockfile",
       "pnpm-lock.yaml" => "pnpm install --frozen-lockfile",
       "package-lock.json" => "npm ci",
@@ -83,6 +90,7 @@ class JsPackageManagerTest < Rails::Generators::TestCase
 
   test "package_lockfile returns the correct lockfile name" do
     {
+      "aube-lock.yaml" => "aube-lock.yaml",
       "bun.lockb" => "bun.lockb",
       "pnpm-lock.yaml" => "pnpm-lock.yaml",
       "package-lock.json" => "package-lock.json",

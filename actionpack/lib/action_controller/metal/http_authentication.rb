@@ -1,7 +1,5 @@
 # frozen_string_literal: true
 
-# :markup: markdown
-
 require "base64"
 require "active_support/security_utils"
 require "active_support/core_ext/array/access"

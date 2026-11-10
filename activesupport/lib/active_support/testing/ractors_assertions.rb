@@ -22,7 +22,11 @@ module ActiveSupport
           end
 
           def assert_ractor_shareable(obj)
-            assert Ractor.shareable?(obj), "Expected #{obj.inspect} to be shareable, but it is not."
+            assert Ractor.shareable?(obj), -> { "Expected #{obj.inspect} to be shareable, but it is not." }
+          end
+
+          def assert_not_ractor_shareable(obj)
+            assert_not Ractor.shareable?(obj), -> { "Expected #{obj.inspect} to not be shareable, but it is." }
           end
         else
           def on_ractor(*args)
@@ -34,6 +38,10 @@ module ActiveSupport
           end
 
           def assert_ractor_shareable(obj)
+            assert true
+          end
+
+          def assert_not_ractor_shareable(obj)
             assert true
           end
         end

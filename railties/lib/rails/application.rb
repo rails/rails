@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+# :markup: rdoc
+
 require "yaml"
 require "active_support/core_ext/hash/keys"
 require "active_support/key_generator"
@@ -580,7 +582,7 @@ module Rails
     #   Rails.app.dotenvs.option(:cache_host, default: "cache-host-1") # CACHE_HOST from .env or "cache-host-1"
     #   Rails.app.dotenvs.option(:cache_host, default: -> { HostProvider.cache }) # CACHE_HOST from .env or HostProvider.cache
     #
-    # In development mode, this configuration backend is automatically part of `Rails.app.creds`.
+    # In development mode, this configuration backend is automatically part of +Rails.app.creds+.
     def dotenvs(path = Rails.root.join(".env"))
       @dotenvs ||= {}
       @dotenvs[path] ||= ActiveSupport::DotEnvConfiguration.new(path)
@@ -673,19 +675,16 @@ module Rails
 
       @autoloaders, @reloaders, @routes_reloader = nil, nil, nil
 
-      if defined?(ActionView::PathRegistry)
-        view = ActionView::LookupContext.view_context_class.new(ActionView::LookupContext.new([]), {}, nil)
-        ActionView::PathRegistry.all_file_system_resolvers.each do |resolver|
-          resolver.eager_load_templates(view)
-          resolver.freeze
-        end
-      end
+      ActiveSupport.run_load_hooks(:before_ractorize, self)
+
+      ActiveSupport::TimeZone.make_shareable!
 
       Ractor.make_shareable(self)
+      Ractor.make_shareable(Rails.env)
+      Ractor.make_shareable(Rails.logger)
       Ractor.make_shareable(Rails.event)
       Ractor.make_shareable(Rails.error)
       Ractor.make_shareable(Rails.backtrace_cleaner)
-      ActionView::DependencyTracker.share_registry if defined?(ActionView)
 
       begin
         require "rack/ractorize"

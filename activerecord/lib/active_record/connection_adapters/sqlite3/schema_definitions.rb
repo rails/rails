@@ -3,7 +3,8 @@
 module ActiveRecord
   module ConnectionAdapters
     module SQLite3
-      # = Active Record SQLite3 Adapter \Table Definition
+      # Active Record SQLite3 Adapter \Table Definition
+      # ===============================================
       class TableDefinition < ActiveRecord::ConnectionAdapters::TableDefinition
         def change_column(column_name, type, **options)
           name = column_name.to_s
