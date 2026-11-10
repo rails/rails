@@ -129,16 +129,8 @@ module ActiveRecord
           if other.model == relation.model
             relation.joins_values |= other.joins_values
           else
-            associations, others = other.joins_values.partition do |join|
-              case join
-              when Hash, Symbol, Array; true
-              end
-            end
-
-            join_dependency = other.construct_join_dependency(
-              associations, Arel::Nodes::InnerJoin
-            )
-            relation.joins!(join_dependency, *others)
+            join_values, cte_join_nodes = foreign_join_values(other.joins_values, Arel::Nodes::InnerJoin)
+            relation._joins!(join_values.concat(cte_join_nodes))
           end
         end
 
@@ -148,17 +140,27 @@ module ActiveRecord
           if other.model == relation.model
             relation.left_outer_joins_values |= other.left_outer_joins_values
           else
-            associations, others = other.left_outer_joins_values.partition do |join|
-              case join
-              when Hash, Symbol, Array; true
-              end
-            end
-
-            join_dependency = other.construct_join_dependency(
-              associations, Arel::Nodes::OuterJoin
-            )
-            relation.left_outer_joins!(join_dependency, *others)
+            join_values, cte_join_nodes = foreign_join_values(other.left_outer_joins_values, Arel::Nodes::OuterJoin)
+            relation._left_outer_joins!(join_values)
+            # `left_outer_joins_values` only accept association joins, so the
+            # joins to CTEs go along with the inner joins, which come after the
+            # joins to the tables they refer to.
+            relation._joins!(cte_join_nodes) unless cte_join_nodes.empty?
           end
+        end
+
+        # The association names and CTE names in the join values of a relation
+        # of another model are relative to that model, so they are resolved by
+        # that relation: the association names into a join dependency rooted at
+        # that model, and the CTE names into join nodes to its table.
+        def foreign_join_values(join_values, join_type)
+          values = other.send(:classify_join_values, join_values)
+          join_dependency = other.construct_join_dependency(values.association_names, join_type)
+          cte_join_nodes = values.cte_names.map do |cte_name|
+            other.send(:build_with_join_node, cte_name, join_type)
+          end
+
+          [[join_dependency, *values.join_dependencies, *values.nodes], cte_join_nodes]
         end
 
         def merge_multi_values

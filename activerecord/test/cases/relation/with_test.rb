@@ -180,6 +180,27 @@ module ActiveRecord
         assert_predicate records.first.association(:author), :loaded?
       end
 
+      def test_with_joins_merged_from_relation_of_another_model
+        relation = Author.joins(:posts).merge(
+          Post.with(commented_posts: Comment.select(:post_id).distinct).joins(:commented_posts)
+        )
+
+        assert_equal Post.where(id: POSTS_WITH_COMMENTS).where.not(author_id: nil).order(:id).pluck(:id),
+          relation.order("posts.id").pluck("posts.id")
+      end
+
+      def test_with_left_joins_merged_from_relation_of_another_model
+        relation = Author.joins(:posts).merge(
+          Post.with(commented_posts: Comment.select(:post_id).distinct).left_outer_joins(:commented_posts)
+        ).select("posts.id AS post_id, commented_posts.post_id AS has_comments")
+
+        records = relation.order("posts.id").to_a
+
+        assert_equal Author.joins(:posts).count, records.size
+        assert_equal Post.where(id: POSTS_WITH_COMMENTS).where.not(author_id: nil).order(:id).pluck(:id),
+          records.filter_map { _1.post_id if _1.has_comments }
+      end
+
       def test_with_left_joins
         relation = Post
           .with(commented_posts: Comment.select(:post_id).distinct)
