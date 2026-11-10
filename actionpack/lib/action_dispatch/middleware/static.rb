@@ -165,6 +165,16 @@ module ActionDispatch
         File.exist?("#{@root}/#{name.ascii_only? ? name : name.b}")
       end
 
+      def root_entry_or_precompressed?(name, content_type)
+        return true if root_entry?(name)
+        return false unless compressible?(content_type)
+
+        @precompressed.any? do |content_encoding|
+          precompressed_ext = PRECOMPRESSED.fetch(content_encoding)
+          precompressed_ext && root_entry?("#{name}#{precompressed_ext}")
+        end
+      end
+
       def compressible?(content_type)
         @compressible_content_types.match?(content_type)
       end
@@ -188,11 +198,12 @@ module ActionDispatch
         root = path == "/"
         slash = path.index("/", 1)
         top_level = slash ? path[1...slash] : path[1..]
-        top_level_exists = !root && root_entry?(top_level)
 
         ext = ::File.extname(path)
         content_type = ::Rack::Mime.mime_type(ext, nil)
-        yield path, content_type || "text/plain" if top_level_exists
+        path_content_type = content_type || "text/plain"
+        top_level_exists = !root && (slash ? root_entry?(top_level) : root_entry_or_precompressed?(top_level, path_content_type))
+        yield path, path_content_type if top_level_exists
 
         # Tack on .html and /index.html only for paths that don't have an explicit,
         # resolvable file extension. No need to check for foo.js.html and
@@ -204,12 +215,12 @@ module ActionDispatch
 
             # A top-level "/foo" may be served by "foo.html" rather than by an
             # entry named "foo", so probe for that name instead.
-            if slash ? top_level_exists : root_entry?("#{top_level}#{default_ext}")
+            if slash ? top_level_exists : root_entry_or_precompressed?("#{top_level}#{default_ext}", default_content_type)
               yield "#{path}#{default_ext}", default_content_type
             end
 
             if root
-              yield "/#{@index}#{default_ext}", default_content_type if root_entry?("#{@index}#{default_ext}")
+              yield "/#{@index}#{default_ext}", default_content_type if root_entry_or_precompressed?("#{@index}#{default_ext}", default_content_type)
             elsif top_level_exists
               yield "#{path}/#{@index}#{default_ext}", default_content_type
             end

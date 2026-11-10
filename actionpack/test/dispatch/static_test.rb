@@ -287,6 +287,40 @@ class StaticTest < ActiveSupport::TestCase
     assert_empty checked
   end
 
+  def test_probes_root_once_for_missing_nested_or_incompressible_files
+    %w[ /users/1 /users/1.json /users.json ].each do |path|
+      probed = []
+
+      File.stub(:exist?, ->(file) { probed << file; false }) do
+        assert_equal "Hello, World!", get(path).body
+      end
+
+      assert_equal 1, probed.size, path
+    end
+  end
+
+  def test_serves_precompressed_top_level_files_without_uncompressed_copy
+    @app = build_app(DummyApp, @root, index: "compressed-index")
+
+    with_static_file "/compressed.js.gz" do |file|
+      response = get("/compressed.js", "HTTP_ACCEPT_ENCODING" => "gzip")
+      assert_equal file, response.body
+      assert_equal "gzip", response.headers["content-encoding"]
+    end
+
+    with_static_file "/compressed.html.gz" do |file|
+      response = get("/compressed", "HTTP_ACCEPT_ENCODING" => "gzip")
+      assert_equal file, response.body
+      assert_equal "gzip", response.headers["content-encoding"]
+    end
+
+    with_static_file "/compressed-index.html.gz" do |file|
+      response = get("/", "HTTP_ACCEPT_ENCODING" => "gzip")
+      assert_equal file, response.body
+      assert_equal "gzip", response.headers["content-encoding"]
+    end
+  end
+
   def test_ignores_unknown_http_methods
     response = Rack::MockRequest.new(@app).request("BAD_METHOD", "/foo/bar.html")
     assert_equal 200, response.status
