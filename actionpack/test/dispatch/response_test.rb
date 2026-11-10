@@ -154,11 +154,23 @@ class ResponseTest < ActiveSupport::TestCase
     assert_same @response.send(:parsed_content_type_header), @response.send(:parsed_content_type_header)
   end
 
+  test "a Content-Type written with the default charset as an Encoding is not parsed again on read" do
+    ActionDispatch::Response.with(default_charset: Encoding::UTF_8) do
+      @response.content_type = :html
+
+      @response.stub(:parse_content_type, ->(*) { flunk "the header was parsed again" }) do
+        assert_equal "text/html", @response.media_type
+        assert_equal "utf-8", @response.charset
+      end
+    end
+  end
+
   def test_content_type_set_through_the_writers_reads_back_like_a_parsed_header
     [
       ["text/html", nil],
       ["text/html", "utf-16"],
       ["text/html", :UTF8],
+      ["text/html", Encoding::UTF_8],
       ["text/html", ""],
       ["text/html", '"utf-8"'],
       ["text/html", "utf 8"],

@@ -536,6 +536,9 @@ module ActionDispatch # :nodoc:
       if charset
         charset = charset.to_s.downcase
         type = "#{type}; charset=#{charset}"
+        # Encoding#to_s and Symbol#to_s return US-ASCII strings. Retag ASCII-only names
+        # to the header's encoding so the parsed-header memo below can be primed.
+        charset.force_encoding(type.encoding) if charset.ascii_only?
       else
         charset = nil
       end
