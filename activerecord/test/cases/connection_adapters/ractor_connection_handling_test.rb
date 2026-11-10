@@ -1025,6 +1025,43 @@ module ActiveRecord
             assert_empty RactorConnectionHandler::Proxy.connections
           end
 
+          def test_checkin_all_connections_rolls_back_stranded_transactions
+            on_ractor(widgets_table) do |table|
+              connection = ActiveRecord::Base.lease_connection
+              connection.begin_transaction
+              connection.execute("INSERT INTO #{table} (name, price) VALUES ('uncommitted', 1)")
+              nil
+            end
+
+            connection = RactorConnectionHandler::Proxy.connections.values.sole
+            assert_equal 1, connection.open_transactions
+
+            RactorConnectionHandler::Proxy.checkin_all_connections
+
+            assert_equal 0, connection.open_transactions
+            main_pool.with_connection do |reused_connection|
+              assert_equal 0, reused_connection.select_value("SELECT COUNT(*) FROM #{widgets_table}")
+            end
+          ensure
+            connection&.reset! if connection&.transaction_open?
+          end
+
+          def test_checkin_all_connections_removes_inactive_connections
+            on_ractor do
+              ActiveRecord::Base.lease_connection.select_value("SELECT 1")
+              nil
+            end
+
+            connection = RactorConnectionHandler::Proxy.connections.values.sole
+            connection.disconnect!
+
+            RactorConnectionHandler::Proxy.checkin_all_connections
+
+            assert_empty RactorConnectionHandler::Proxy.connections
+            assert_not_includes main_pool.connections, connection
+            assert_equal 42, main_pool.with_connection { |conn| conn.select_value("SELECT 42") }
+          end
+
           private
             def install_shareable_notifications_snapshot
               ActiveSupport::Notifications.notifier_subscriptions =

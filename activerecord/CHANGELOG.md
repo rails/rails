@@ -1,3 +1,10 @@
+*   Reset connections reclaimed from worker Ractors before returning them to the pool.
+
+    `checkin_all_connections` now rolls back stranded transactions and removes
+    inactive connections, matching the connection pool reaper's behavior.
+
+    *Lawrence Lin*
+
 *   Fix a `default_order` being ignored by a `disable_joins` through association.
 
     An explicit order in an association's scope was carried over to the
