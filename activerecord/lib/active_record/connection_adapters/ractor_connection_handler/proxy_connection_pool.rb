@@ -118,14 +118,14 @@ module ActiveRecord
           end
         end
 
-        def checkout(_checkout_timeout = nil)
+        def checkout(checkout_timeout = nil)
           ConnectionPool.used_pools!.add(self)
 
           if pinned = state.pinned_connection
             return pinned
           end
 
-          connection_token, profile = checkout_main_connection
+          connection_token, profile = checkout_main_connection(checkout_timeout)
           connection = profile[:proxy_class].new(self, connection_token, profile, db_config.configuration_hash)
           connection.lease
           connection.query_cache = query_cache
@@ -379,10 +379,11 @@ module ActiveRecord
             "activerecord_pool_transaction_isolation_level_#{@db_config.name}"
           end
 
-          def checkout_main_connection
+          def checkout_main_connection(checkout_timeout)
             connection_name, role, shard = @connection_name, @role, @shard
             main_operation do
-              connection = main_pool(connection_name, role, shard).checkout
+              pool = main_pool(connection_name, role, shard)
+              connection = pool.checkout(checkout_timeout || pool.checkout_timeout)
               begin
                 profile = connection.ractor_connection_profile
                 token = register_connection(connection)

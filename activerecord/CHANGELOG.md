@@ -1,3 +1,10 @@
+*   Respect explicit checkout timeouts in worker Ractors.
+
+    The Ractor connection pool proxy now forwards the timeout passed to
+    `checkout`, falling back to the main pool's timeout when none is supplied.
+
+    *Lawrence Lin*
+
 *   Fix a `default_order` being ignored by a `disable_joins` through association.
 
     An explicit order in an association's scope was carried over to the
