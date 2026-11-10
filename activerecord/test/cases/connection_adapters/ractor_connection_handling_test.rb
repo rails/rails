@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require "cases/helper"
+require "active_support/core_ext/object/with"
 require "active_support/testing/ractors_assertions"
 require "models/course"
 require "models/topic"
@@ -844,6 +845,28 @@ module ActiveRecord
             assert_equal remote_error, driver_error[0]
             assert_equal driver, driver_error[1].split("::").first
             assert_match(/nonexistent_ractor_table/, driver_error[2])
+          end
+
+          def test_checkout_timeout_error_references_the_worker_pool
+            pool = main_pool
+            connections = []
+
+            pool.with(checkout_timeout: 0.001) do
+              pool.max_connections.times { connections << pool.checkout }
+
+              pool_is_workers = on_ractor do
+                worker_pool = ActiveRecord::Base.connection_pool
+                begin
+                  worker_pool.checkout
+                rescue ActiveRecord::ConnectionTimeoutError => error
+                  error.connection_pool.equal?(worker_pool)
+                end
+              end
+
+              assert pool_is_workers, "Expected the checkout timeout error to reference the worker's pool"
+            end
+          ensure
+            connections&.each { |connection| pool.checkin(connection) }
           end
 
           def test_schema_statement_rendering_raises
