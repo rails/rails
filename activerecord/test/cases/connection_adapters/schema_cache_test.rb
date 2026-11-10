@@ -533,6 +533,17 @@ module ActiveRecord
     class MarshalFormatTest < ActiveRecord::TestCase
       include DumpAndLoadTests
 
+      def test_reset_column_information_after_loading_schema_cache
+        Tempfile.create(["schema_cache-", format_extension]) do |tempfile|
+          new_bound_reflection.dump_to(tempfile.path)
+
+          @pool.with(schema_reflection: SchemaReflection.new(tempfile.path)) do
+            Course.reset_column_information
+            assert_equal 3, Course.columns.size
+          end
+        end
+      end
+
       private
         def format_extension
           ".dump"
