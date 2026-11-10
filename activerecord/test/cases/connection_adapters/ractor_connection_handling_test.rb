@@ -179,6 +179,31 @@ module ActiveRecord
             assert_not pool.active_connection?
           end
 
+          def test_with_connection_prevent_permanent_checkout_wont_clear_sticky_lease_set_before_by_lease_connection
+            pool = proxy_pool
+            pool.release_connection
+            assert_not pool.active_connection?
+
+            leased_connection = nil
+            pool.with_connection do |connection|
+              leased_connection = pool.lease_connection
+              assert_same connection, leased_connection
+
+              pool.with_connection(prevent_permanent_checkout: true) do |inner_connection|
+                assert_same leased_connection, inner_connection
+              end
+
+              # NOTE: do not call #lease_connection here: it would set
+              # sticky = true again and hide the bug.
+              assert pool.active_connection?
+            end
+
+            assert pool.active_connection?
+            assert_same leased_connection, pool.lease_connection
+          ensure
+            pool.release_connection
+          end
+
           def test_query_cache_toggles_and_block_forms_restore_previous_state
             pool = proxy_pool
             assert_not pool.query_cache_enabled
