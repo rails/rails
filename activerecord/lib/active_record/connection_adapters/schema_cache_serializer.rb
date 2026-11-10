@@ -116,7 +116,7 @@ module ActiveRecord
 
         def load(data)
           objects = []
-          JSON.parse(data).each do |object|
+          JSON.parse(data, freeze: true).each do |object|
             klass = class_for(object.fetch("_type"))
             instance = klass.allocate
             instance.init_from_schema_json(object, objects)
