@@ -75,6 +75,7 @@ module ActiveRecord
         @join_root = JoinBase.new(base, table, build(tree, base))
         @join_type = join_type
         @remappers = {}
+        @primary_key_aliases = {}
       end
 
       def base_klass
@@ -265,8 +266,7 @@ module ActiveRecord
               next
             end
 
-            if node.primary_key
-              keys = Array(node.primary_key).map { |column| aliases.column_alias(node, column) }
+            if (keys = primary_key_aliases(node))
               id = keys.map { |key| row[key] }
             else
               keys = node.destination_key(parent.base_klass).map { |column| aliases.column_alias(node, column) }
@@ -315,6 +315,12 @@ module ActiveRecord
           model.readonly! if node.readonly?
           model.strict_loading! if node.strict_loading?
           model
+        end
+
+        def primary_key_aliases(node)
+          @primary_key_aliases.fetch(node) do
+            @primary_key_aliases[node] = node.primary_key && Array(node.primary_key).map { |column| aliases.column_alias(node, column) }
+          end
         end
     end
   end
