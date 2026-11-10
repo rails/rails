@@ -2,6 +2,12 @@
 
 require_relative "abstract_unit"
 
+class ParallelizationCleanupTest < ActiveSupport::TestCase
+  test "passes" do
+    assert true
+  end
+end
+
 class ParallelizationTest < ActiveSupport::TestCase
   def setup
     @original_worker_id = ActiveSupport::TestCase.parallel_worker_id
@@ -333,6 +339,18 @@ class ParallelizationTest < ActiveSupport::TestCase
     end
   end
 
+  test "shutdown records an error when a worker's parallelize_teardown raises" do
+    skip "Process-based parallelization requires fork" unless Process.respond_to?(:fork)
+
+    assert_cleanup_error_is_recorded_as_failed_result
+  end
+
+  test "shutdown still runs parent cleanup hooks when a worker error cannot be recorded" do
+    skip "Process-based parallelization requires fork" unless Process.respond_to?(:fork)
+
+    assert_parent_hooks_run_when_worker_error_cannot_be_recorded
+  end
+
   test "shutdown calls run_cleanup_hooks" do
     called = false
     ActiveSupport::Testing::Parallelization.run_cleanup_hook { called = true }
@@ -347,6 +365,58 @@ class ParallelizationTest < ActiveSupport::TestCase
   end
 
   private
+    def assert_cleanup_error_is_recorded_as_failed_result
+      parent_cleanup_called = false
+      ActiveSupport::Testing::Parallelization.run_cleanup_hook do |worker|
+        if worker
+          raise "cleanup failed in worker #{worker}"
+        else
+          parent_cleanup_called = true
+        end
+      end
+
+      summary_reporter = Minitest::SummaryReporter.new(StringIO.new)
+      reporter = Minitest::CompositeReporter.new(summary_reporter)
+
+      parallelization = ActiveSupport::Testing::Parallelization.new(1)
+      parallelization.start
+      parallelization << [ParallelizationCleanupTest, "test_passes", reporter]
+      parallelization.shutdown
+
+      assert parent_cleanup_called, "parent parallelize_teardown hooks should still run"
+      assert_equal 2, summary_reporter.count
+      assert_equal 1, summary_reporter.results.size
+      failure = summary_reporter.results.last
+      assert_equal "parallelize_teardown", failure.name
+      assert_equal "Parallelization worker 0", failure.klass
+      assert_includes failure.failures.first.message, "cleanup failed in worker 0"
+    ensure
+      ActiveSupport::Testing::Parallelization.class_variable_get(:@@run_cleanup_hooks).pop
+    end
+
+    def assert_parent_hooks_run_when_worker_error_cannot_be_recorded
+      parent_cleanup_called = false
+      ActiveSupport::Testing::Parallelization.run_cleanup_hook do |worker|
+        if worker
+          raise "cleanup failed in worker #{worker}"
+        else
+          parent_cleanup_called = true
+        end
+      end
+
+      parallelization = ActiveSupport::Testing::Parallelization.new(1)
+      parallelization.start
+
+      error = nil
+      Timeout.timeout(5, Minitest::Assertion, "Expected shutdown to not hang") do
+        error = assert_raises(RuntimeError) { parallelization.shutdown }
+      end
+      assert_includes error.message, "parallelize_teardown failed"
+      assert parent_cleanup_called, "parent parallelize_teardown hooks should still run"
+    ensure
+      ActiveSupport::Testing::Parallelization.class_variable_get(:@@run_cleanup_hooks).pop
+    end
+
     def with_parallelization(*args, **kwargs)
       parallelization = ActiveSupport::Testing::Parallelization.new(*args, **kwargs)
       yield parallelization

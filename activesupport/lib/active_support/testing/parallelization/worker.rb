@@ -30,8 +30,13 @@ module ActiveSupport
           ensure
             set_process_title("(stopping)")
 
-            run_cleanup
-            @queue.stop_worker(@id)
+            begin
+              run_cleanup
+            rescue => error
+              report_cleanup_error(error)
+            ensure
+              @queue.stop_worker(@id)
+            end
           end
         end
 
@@ -92,6 +97,17 @@ module ActiveSupport
           Parallelization.run_cleanup_hooks.each do |cb|
             cb.call(@number)
           end
+        end
+
+        def report_cleanup_error(error)
+          @queue.report_worker_error(@number, error)
+        rescue DRb::DRbConnError, TypeError
+          # The original exception could not cross the DRb connection (for
+          # example, it cannot be unmarshalled in the parent process). Retry
+          # with a plain RuntimeError so the failure is still reported.
+          reported_error = RuntimeError.new("#{error.class}: #{error.message}")
+          reported_error.set_backtrace(error.backtrace)
+          @queue.report_worker_error(@number, reported_error)
         end
 
         private

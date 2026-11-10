@@ -73,16 +73,22 @@ module ActiveSupport
         end
         @queue_server.remove_dead_workers(dead_worker_pids)
 
-        @queue_server.shutdown
-        @worker_pool.each do |pid|
-          Process.waitpid(pid)
-        rescue Errno::ECHILD
-          nil
+        begin
+          @queue_server.shutdown
+          @worker_pool.each do |pid|
+            Process.waitpid(pid)
+          rescue Errno::ECHILD
+            nil
+          end
+
+          # All workers have exited by now, so every cleanup failure has
+          # been reported. Record them before the run is reported.
+          @queue_server.record_worker_errors
+        ensure
+          DRb.stop_service
+
+          Parallelization.run_cleanup_hooks.each(&:call)
         end
-
-        DRb.stop_service
-
-        Parallelization.run_cleanup_hooks.each(&:call)
       end
     end
   end
