@@ -143,10 +143,11 @@ module ActiveModel
           -max_value
         end
 
-        # Only the first bytes of a string are cast, to bound the work done by
-        # `to_i` on very long input.
+        # Only the first bytes of a string are cast to bound the work done by
+        # `to_i` on long inputs. _limit defaults to 4, which can truncate
+        # 64-bit integers when no limit is set. Use 8 for casting instead.
         def max_cast_bytesize
-          _limit * 4
+          (limit || 8) * 4
         end
 
         def _limit

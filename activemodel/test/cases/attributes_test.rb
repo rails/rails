@@ -75,6 +75,14 @@ module ActiveModel
       assert_equal true, data.boolean_field
     end
 
+    test "integer attributes do not truncate 64-bit integer strings" do
+      data = ModelForAttributesTest.new(integer_field: "9223372036854775807")
+      assert_equal 9223372036854775807, data.integer_field
+
+      data.integer_field = "-9223372036854775808"
+      assert_equal(-9223372036854775808, data.integer_field)
+    end
+
     test "reading attributes" do
       data = ModelForAttributesTest.new(
         integer_field: 1.1,
