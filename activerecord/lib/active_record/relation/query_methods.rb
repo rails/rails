@@ -104,11 +104,7 @@ module ActiveRecord
           end
 
           association_conditions = reflection.association_primary_key_definition.index_with(nil)
-          if reflection.options[:class_name]
-            self.not(association => association_conditions)
-          else
-            self.not(reflection.table_name => association_conditions)
-          end
+          self.not(association_where_key(reflection, association) => association_conditions)
         end
 
         @scope
@@ -141,11 +137,7 @@ module ActiveRecord
           reflection = scope_association_reflection(association)
           @scope.left_outer_joins!(association)
           association_conditions = reflection.association_primary_key_definition.index_with(nil)
-          if reflection.options[:class_name]
-            @scope._where!(association => association_conditions)
-          else
-            @scope._where!(reflection.table_name => association_conditions)
-          end
+          @scope._where!(association_where_key(reflection, association) => association_conditions)
         end
 
         @scope
@@ -159,6 +151,17 @@ module ActiveRecord
             raise ArgumentError.new("An association named `:#{association}` does not exist on the model `#{model.name}`.")
           end
           reflection
+        end
+
+        # Associations with a custom :class_name are joined under an alias named
+        # after the association, unless that name conflicts with the model's own
+        # table name, in which case the join uses the association's table name.
+        def association_where_key(reflection, association)
+          if reflection.options[:class_name] && association.to_s != @scope.table.name
+            association
+          else
+            reflection.table_name
+          end
         end
     end
 

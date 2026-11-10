@@ -1,3 +1,9 @@
+*   Fix `where.missing` and `where.associated` generating a where clause on the
+    wrong table when an association with an explicit `:class_name` has the same
+    name as the model's table.
+
+    *Sampo Kuokkanen*
+
 *   Fix a `default_order` being ignored by a `disable_joins` through association.
 
     An explicit order in an association's scope was carried over to the

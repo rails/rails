@@ -14,6 +14,12 @@ module ActiveRecord
   class WhereChainTest < ActiveRecord::TestCase
     fixtures :posts, :comments, :authors, :humans, :essays, :author_addresses, :books
 
+    class AuthorWithTableNameMatchingAssociation < ActiveRecord::Base
+      self.table_name = "authors"
+
+      has_many :authors, class_name: "::Post", foreign_key: :author_id
+    end
+
     def test_associated_with_association
       Post.where.associated(:author).tap do |relation|
         assert_includes     relation, posts(:welcome)
@@ -121,9 +127,25 @@ module ActiveRecord
       assert_predicate Cpk::Author.where.associated(:books), :any?
     end
 
+    def test_associated_with_association_matching_the_model_table_name
+      author_without_posts = AuthorWithTableNameMatchingAssociation.create!(name: "Shy")
+
+      relation = AuthorWithTableNameMatchingAssociation.left_joins(:authors).where.associated(:authors)
+      assert_includes     relation.ids, authors(:david).id
+      assert_not_includes relation.ids, author_without_posts.id
+    end
+
     def test_missing_with_association
       assert_predicate posts(:authorless).author, :blank?
       assert_equal [posts(:authorless)], Post.where.missing(:author).to_a
+    end
+
+    def test_missing_with_association_matching_the_model_table_name
+      author_without_posts = AuthorWithTableNameMatchingAssociation.create!(name: "Shy")
+
+      relation = AuthorWithTableNameMatchingAssociation.where.missing(:authors)
+      assert_includes     relation.ids, author_without_posts.id
+      assert_not_includes relation.ids, authors(:david).id
     end
 
     def test_missing_with_child_association
