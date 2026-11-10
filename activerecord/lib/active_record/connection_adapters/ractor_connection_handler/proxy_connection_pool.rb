@@ -271,11 +271,11 @@ module ActiveRecord
         def with_pool_transaction_isolation_level(isolation_level, transaction_open)
           if !ActiveRecord.default_transaction_isolation_level.nil?
             begin
+              old_level = pool_transaction_isolation_level
               if transaction_open && pool_transaction_isolation_level != ActiveRecord.default_transaction_isolation_level
                 raise ActiveRecord::TransactionIsolationError, "cannot set default isolation level while transaction is open"
               end
 
-              old_level = pool_transaction_isolation_level
               self.pool_transaction_isolation_level = isolation_level
               yield
             ensure

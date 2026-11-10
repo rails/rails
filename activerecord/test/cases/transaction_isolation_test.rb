@@ -94,6 +94,22 @@ class TransactionIsolationTest < ActiveRecord::TestCase
       end
     end
 
+    test "rejected pool isolation changes preserve the current level" do
+      Tag.with_pool_transaction_isolation_level(:read_committed) do
+        Tag.transaction do
+          assert_raises(ActiveRecord::TransactionIsolationError) do
+            Tag.with_pool_transaction_isolation_level(:serializable) { flunk "unexpected yield" }
+          end
+
+          assert_equal :read_committed, Tag.pool_transaction_isolation_level
+          Tag.create!(name: "after rejected pool change")
+        end
+      end
+
+      assert_nil Tag.pool_transaction_isolation_level
+      assert_equal 1, Tag.count
+    end
+
     test "pool_transaction_isolation_level but transaction overrides isolation" do
       assert_nil Tag.pool_transaction_isolation_level
 
@@ -157,6 +173,24 @@ class TransactionIsolationTest < ActiveRecord::TestCase
           end
         end
       end
+    end
+
+    test "rejected default isolation changes preserve the current pool level" do
+      ActiveRecord.with_transaction_isolation_level(:read_committed) do
+        Tag.transaction do
+          assert_raises(ActiveRecord::TransactionIsolationError) do
+            ActiveRecord.with_transaction_isolation_level(:serializable) do
+              Tag.transaction { flunk "unexpected yield" }
+            end
+          end
+
+          assert_equal :read_committed, Tag.pool_transaction_isolation_level
+          Tag.create!(name: "after rejected default change")
+        end
+      end
+
+      assert_nil Tag.pool_transaction_isolation_level
+      assert_equal 1, Tag.count
     end
 
     test "with_transaction_isolation_level cannot be changed within the block" do
