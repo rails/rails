@@ -1,3 +1,27 @@
+*   Fix preloading a `has_many :through` association whose scope has conditions
+    and `preload` or `eager_load` not loading the nested associations.
+
+    Only `includes` in the scope was applied, so the nested association was
+    loaded with a query per record, or raised under `strict_loading`.
+
+    ```ruby
+    class Tagging < ActiveRecord::Base
+      belongs_to :post
+    end
+
+    class Tag < ActiveRecord::Base
+      has_many :taggings
+      has_many :active_posts, -> { preload(:comments).where(taggings: { active: true }) },
+        through: :taggings, source: :post
+    end
+
+    posts = Tag.preload(:active_posts).first.active_posts
+    posts.map { |post| post.comments.to_a }
+    # => no longer runs a query per post
+    ```
+
+    *Kengo Johira*
+
 *   Fix a `default_order` being ignored by a `disable_joins` through association.
 
     An explicit order in an association's scope was carried over to the

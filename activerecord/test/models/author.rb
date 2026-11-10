@@ -106,6 +106,8 @@ class Author < ActiveRecord::Base
   has_many :comments_containing_the_letter_e, through: :posts, source: :comments
   has_many :comments_with_order_and_conditions, -> { order("comments.body").where("comments.body like 'Thank%'") }, through: :posts, source: :comments
   has_many :comments_with_include, -> { includes(:post).where(posts: { type: "Post" }) }, through: :posts, source: :comments
+  has_many :comments_with_preload, -> { preload(:ratings).where(posts: { type: "Post" }) }, through: :posts, source: :comments
+  has_many :comments_with_eager_load, -> { eager_load(:ratings).where(posts: { type: "Post" }) }, through: :posts, source: :comments
   has_many :comments_for_first_author, -> { for_first_author }, through: :posts, source: :comments
 
   has_many :first_posts
