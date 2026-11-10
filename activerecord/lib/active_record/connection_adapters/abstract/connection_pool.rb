@@ -392,8 +392,8 @@ module ActiveRecord
       # Pins the connection so that every checkout returns the same connection.
       # Transaction management on the pinned connection is the caller's
       # responsibility.
-      def pin_connection!(lock_thread) # :nodoc:
-        @pinned_connection ||= (connection_lease&.connection || checkout)
+      def pin_connection!(lock_thread, connection: nil) # :nodoc:
+        @pinned_connection ||= (connection || connection_lease&.connection || checkout)
         @pinned_connections_depth += 1
 
         # Any leased connection must be in @connections otherwise

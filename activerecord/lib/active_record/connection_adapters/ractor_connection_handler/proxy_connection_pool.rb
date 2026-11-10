@@ -143,10 +143,11 @@ module ActiveRecord
         # Mirrors ConnectionPool#pin_connection!: both pools are pinned so every checkout
         # yields the same connection; worker-side transactions nest as savepoints.
         def pin_connection!(lock_thread)
-          pin_main_connection!(lock_thread)
+          leased_connection = connection_lease.connection
+          pin_main_connection!(lock_thread, leased_connection&.connection_token)
           state = self.state
           begin
-            state.pinned_connection ||= (connection_lease.connection || checkout)
+            state.pinned_connection ||= (leased_connection || checkout)
             state.pinned_depth += 1
 
             connection = state.pinned_connection
@@ -394,11 +395,12 @@ module ActiveRecord
             end
           end
 
-          def pin_main_connection!(lock_thread)
+          def pin_main_connection!(lock_thread, connection_token)
             connection_name, role, shard = @connection_name, @role, @shard
             pin_lock_thread = !!lock_thread
             main_operation(connection_pool: self) do
-              main_pool(connection_name, role, shard).pin_connection!(pin_lock_thread)
+              connection = fetch_connection(connection_token) if connection_token
+              main_pool(connection_name, role, shard).pin_connection!(pin_lock_thread, connection: connection)
               nil
             end
           end

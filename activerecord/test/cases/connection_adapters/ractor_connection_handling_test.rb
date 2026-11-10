@@ -787,6 +787,37 @@ module ActiveRecord
             assert_equal 1, seen
           end
 
+          def test_pinning_an_existing_worker_lease_uses_the_same_main_connection
+            handler = ActiveRecord::Base.default_connection_handler
+            config = main_pool.db_config.configuration_hash.merge(max_connections: 1, checkout_timeout: 0.01)
+            physical_pool = handler.establish_connection(config, owner_name: "RactorPinExistingLease")
+
+            same_proxy, same_main_connection, value = on_ractor do
+              pool = RactorConnectionHandler.instance.retrieve_connection_pool("RactorPinExistingLease")
+              leased = pool.lease_connection
+              pool.pin_connection!(false)
+              begin
+                token = leased.connection_token
+                main_matches = RactorConnectionHandler::Proxy.main_operation do
+                  connection = fetch_connection(token)
+                  connection.pool.checkout.equal?(connection)
+                end
+                [pool.checkout.equal?(leased), main_matches, leased.select_value("SELECT 42")]
+              ensure
+                pool.unpin_connection!
+              end
+            end
+
+            assert same_proxy
+            assert same_main_connection
+            assert_equal 42, value
+            assert_equal 1, physical_pool.connections.size
+            assert_not physical_pool.connections.first.in_use?
+            assert_empty RactorConnectionHandler::Proxy.connections
+          ensure
+            handler&.remove_connection_pool("RactorPinExistingLease")
+          end
+
           def test_transaction_commit_rollback_and_generated_id
             table = widgets_table
             kept_id, committed, rolled_back = on_ractor(table) do |widgets|
