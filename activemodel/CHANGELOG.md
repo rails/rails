@@ -1,3 +1,12 @@
+*   When serializing a record, include keys for singular associations that are nil
+
+    ```ruby
+    user.as_json(include: :phone)
+    # => {name: 'Ben Ehmke', email_address: 'ben.ehmke@email.com', phone: nil}
+    ```
+
+    *Ben Ehmke*
+
 *   Fix subclasses missing `alias_attribute` aliases added to their parent class later.
 
     A subclass that held its own copy of the aliases, because it had defined

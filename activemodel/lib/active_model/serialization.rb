@@ -155,8 +155,10 @@ module ActiveModel
       serializable_add_includes(options) do |association, records, opts|
         hash[serialization_key(association)] = if records.respond_to?(:to_ary)
           records.to_ary.map { |a| a.serializable_hash(opts) }
-        else
+        elsif records.respond_to?(:serializable_hash)
           records.serializable_hash(opts)
+        else
+          records
         end
       end
 
@@ -215,9 +217,7 @@ module ActiveModel
         end
 
         includes.each do |association, opts|
-          if records = send(association)
-            yield association, records, opts
-          end
+          yield association, send(association), opts
         end
       end
   end
