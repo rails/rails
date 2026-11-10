@@ -1195,8 +1195,8 @@ module ActionView
           elsif ActionView::Base.automatically_disable_submit_tag
             disable_with_text = tag_options["data-disable-with"]
             disable_with_text ||= data["disable_with"]
-            disable_with_text ||= value.to_s.clone
-            tag_options.deep_merge!("data" => { "disable_with" => disable_with_text })
+            disable_with_text ||= value.to_s.clone if value.present?
+            tag_options.deep_merge!("data" => { "disable_with" => disable_with_text }) if disable_with_text
           end
 
           tag_options.delete("data-disable-with")
