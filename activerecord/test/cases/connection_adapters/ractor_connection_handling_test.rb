@@ -150,6 +150,20 @@ module ActiveRecord
             assert_not pool.release_connection
           end
 
+          def test_lease_connection_forgets_invalidated_tokens_before_checkout
+            pool = proxy_pool
+            previous = pool.lease_connection
+            previous_token = previous.connection_token
+
+            main_pool.disconnect!
+
+            connection = pool.lease_connection
+            assert_not_equal previous_token, connection.connection_token
+            assert_equal [connection.connection_token], RactorConnectionHandler::Proxy.connections.keys
+            assert_nil previous.connection_token
+            assert_equal 42, connection.select_value("SELECT 42")
+          end
+
           def test_with_connection_yields_and_releases_when_not_sticky
             pool = proxy_pool
 
@@ -1012,6 +1026,23 @@ module ActiveRecord
             end
 
             assert_equal expected, compiled
+          end
+
+          def test_release_connection_forgets_invalidated_tokens
+            on_ractor do
+              pool = ActiveRecord::Base.connection_pool
+              pool.lease_connection
+
+              RactorConnectionHandler::Proxy.main_operation do
+                main_pool("ActiveRecord::Base", :writing, :default).disconnect!
+                nil
+              end
+
+              pool.release_connection
+              nil
+            end
+
+            assert_empty RactorConnectionHandler::Proxy.connections
           end
 
           def test_checkin_all_connections_releases_stranded_tokens
