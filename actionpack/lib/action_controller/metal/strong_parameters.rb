@@ -1339,11 +1339,7 @@ module ActionController
         when Hash
           object.transform_values { |value| _deep_transform_values_in_object(value, &block) }
         when Parameters
-          if object.permitted?
-            object.to_h.deep_transform_values(&block)
-          else
-            object.to_unsafe_h.deep_transform_values(&block)
-          end
+          object.deep_transform_values(&block)
         when Array
           object.map { |e| _deep_transform_values_in_object(e, &block) }
         else
@@ -1356,11 +1352,7 @@ module ActionController
         when Hash
           object.transform_values! { |value| _deep_transform_values_in_object!(value, &block) }
         when Parameters
-          if object.permitted?
-            object.to_h.deep_transform_values!(&block)
-          else
-            object.to_unsafe_h.deep_transform_values!(&block)
-          end
+          object.deep_transform_values!(&block)
         when Array
           object.map! { |e| _deep_transform_values_in_object!(e, &block) }
         else
