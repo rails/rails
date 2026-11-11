@@ -41,14 +41,18 @@ module ActiveSupport
           when Hash
             units[exp] || ""
           when String, Symbol
-            I18n.translate("#{units}.#{exp}", locale: options[:locale], count: number.to_i)
+            I18n.translate("#{units}.#{exp}", locale: options[:locale], count: unit_count)
           else
-            translate_in_locale("human.decimal_units.units.#{exp}", count: number.to_i)
+            translate_in_locale("human.decimal_units.units.#{exp}", count: unit_count)
           end
         end
 
+        def unit_count
+          number.finite? ? number.to_i : 0
+        end
+
         def calculate_exponent(units)
-          exponent = number != 0 ? Math.log10(number.abs).floor : 0
+          exponent = number != 0 && number.finite? ? Math.log10(number.abs).floor : 0
           unit_exponents(units).find { |e| exponent >= e } || 0
         end
 
