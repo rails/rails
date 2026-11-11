@@ -1,3 +1,19 @@
+*   Fix grouped calculations returning uncast keys for a column unknown to the schema.
+
+    Grouping by a column of a joined subquery, a CTE or another table the
+    schema doesn't know now casts the keys with the column types the database
+    reports for the result, so on PostgreSQL and SQLite they are no longer
+    Strings for dates, times, ranges and other non-string types. On PostgreSQL
+    this is the behavior before Rails 7.0.5.
+
+    ```ruby
+    Booking.joins("JOIN (SELECT tsrange(...) AS range) ranges ON TRUE").group("ranges.range").count
+    # => { "[\"2020-01-01 00:00:00\",\"2020-01-02 00:00:00\")" => 1 } before
+    # => { 2020-01-01 00:00:00 UTC...2020-01-02 00:00:00 UTC => 1 } now (PostgreSQL)
+    ```
+
+    *Thomas Klemm*
+
 *   Qualify unscope values with table name when merging relations.
 
     Fixes an issue where merging a relation with an `unscope(where: ...)`
