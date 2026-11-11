@@ -442,6 +442,7 @@ module ActiveSupport
     #
     # If the string is invalid then an `ArgumentError` will be raised unlike `parse`
     # which usually returns `nil` when given an invalid date string.
+    # A calendar date that does not exist, such as February 30, is invalid.
     def iso8601(str)
       # Historically `Date._iso8601(nil)` returns `{}`, but in the `date` gem versions `3.2.1`, `3.1.2`, `3.0.2`,
       # and `2.0.1`, `Date._iso8601(nil)` raises `TypeError` https://github.com/ruby/date/issues/39
@@ -459,6 +460,7 @@ module ActiveSupport
       else
         month = parts.fetch(:mon)
         day = parts.fetch(:mday)
+        raise ArgumentError, "invalid date" unless Date.valid_date?(year, month, day, Date::GREGORIAN)
       end
 
       time = Time.new(
@@ -529,6 +531,7 @@ module ActiveSupport
     # If the time or zone components are missing then an `ArgumentError` will
     # be raised. This is much stricter than either `parse` or `iso8601` which
     # allow for missing components.
+    # An `ArgumentError` is also raised if the specified calendar date does not exist.
     #
     # ```
     # Time.zone = 'Hawaii'            # => "Hawaii"
@@ -539,10 +542,15 @@ module ActiveSupport
 
       raise ArgumentError, "invalid date" if parts.empty?
 
+      year = parts.fetch(:year)
+      month = parts.fetch(:mon)
+      day = parts.fetch(:mday)
+      raise ArgumentError, "invalid date" unless Date.valid_date?(year, month, day, Date::GREGORIAN)
+
       time = Time.new(
-        parts.fetch(:year),
-        parts.fetch(:mon),
-        parts.fetch(:mday),
+        year,
+        month,
+        day,
         parts.fetch(:hour),
         parts.fetch(:min),
         parts.fetch(:sec) + parts.fetch(:sec_fraction, 0),

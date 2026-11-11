@@ -1,3 +1,8 @@
+*   Raise `ArgumentError` when `TimeZone#iso8601` or `TimeZone#rfc3339`
+    parses a nonexistent calendar date, such as February 30.
+
+    *Andy Wang*
+
 *   Don't show the encryption key in `ActiveSupport::EncryptedFile#inspect`.
 
     Previously the key, read from the key file or environment variable, was
