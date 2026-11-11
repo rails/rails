@@ -300,7 +300,7 @@ module ActiveRecord
       def init_from_schema_json(coder, references)
         @columns          = coder["columns"].transform_values { |columns| columns.map { |i| references[i] } }
         @columns_hash     = @columns.transform_values { |columns| columns.index_by(&:name) }
-        @primary_keys     = coder["primary_keys"]
+        @primary_keys     = coder["primary_keys"].dup
         @data_sources     = coder["data_sources"].index_with { true }
         @indexes          = (coder["indexes"] || {}).transform_values { |indexes| indexes.map { |i| references[i] } }
         @version          = coder["version"]
