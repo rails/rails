@@ -244,6 +244,8 @@ Sets the host for the assets. Useful when CDNs are used for hosting assets, or w
 
 Makes application believe that all requests are arriving over SSL. This is useful when proxying through a load balancer that terminates SSL, the forwarded request will appear as though it's HTTP instead of HTTPS to the application. This makes redirects and cookie security target HTTP instead of HTTPS. This middleware makes the server assume that the proxy already terminated SSL, and that the request really is HTTPS.
 
+Only enable it when every request reaches the application through such a proxy. Requests that arrive over plain HTTP are treated as HTTPS too, so `config.force_ssl` doesn't redirect them and the application serves them over HTTP. If clients can still connect over HTTP, redirect them to HTTPS at the proxy.
+
 #### `config.autoflush_log`
 
 Enables writing log file output immediately instead of buffering. Defaults to
@@ -3030,8 +3032,8 @@ Allows detailed configuration for the `:smtp` delivery method. It accepts a hash
 * `:password` - If your mail server requires authentication, set the password in this setting.
 * `:authentication` - If your mail server requires authentication, you need to specify the authentication type here. This is a symbol and one of `:plain`, `:login`, `:cram_md5`.
 * `:enable_starttls` - Use STARTTLS when connecting to your SMTP server and fail if unsupported. It defaults to `false`.
-* `:enable_starttls_auto` - Detects if STARTTLS is enabled in your SMTP server and starts to use it. It defaults to `true`.
-* `:openssl_verify_mode` - When using TLS, you can set how OpenSSL checks the certificate. This is useful if you need to validate a self-signed and/or a wildcard certificate. This can be the name of one of the OpenSSL verify constants, `'none'` or `'peer'` - or the constant directly `OpenSSL::SSL::VERIFY_NONE` or `OpenSSL::SSL::VERIFY_PEER`, respectively.
+* `:enable_starttls_auto` - Detects if STARTTLS is enabled in your SMTP server and starts to use it. It defaults to `true`. If the server doesn't advertise STARTTLS, which an attacker on the network path can arrange, mail and credentials are sent in plain text. Use `:enable_starttls` when the server supports STARTTLS.
+* `:openssl_verify_mode` - When using TLS, you can set how OpenSSL checks the certificate. This is useful if you need to validate a self-signed and/or a wildcard certificate. This can be the name of one of the OpenSSL verify constants, `'none'` or `'peer'` - or the constant directly `OpenSSL::SSL::VERIFY_NONE` or `OpenSSL::SSL::VERIFY_PEER`, respectively. `'none'` disables certificate verification, so anyone on the network path can intercept the connection, including the SMTP credentials. Prefer adding the server's certificate or CA to the trusted store over using it.
 * `:ssl/:tls` - Enables the SMTP connection to use SMTP/TLS (SMTPS: SMTP over direct TLS connection).
 * `:open_timeout` - Number of seconds to wait while attempting to open a connection.
 * `:read_timeout` - Number of seconds to wait until timing-out a read(2) call.
