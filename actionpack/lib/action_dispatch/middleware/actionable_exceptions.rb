@@ -26,9 +26,7 @@ module ActionDispatch
       end
 
       def redirect_to(location)
-        uri = URI.parse location
-
-        if uri.relative? || uri.scheme == "http" || uri.scheme == "https"
+        if path_on_this_host?(location)
           body = ""
         else
           return [400, { Rack::CONTENT_TYPE => "text/plain; charset=utf-8" }, ["Invalid redirection URI"]]
@@ -39,6 +37,15 @@ module ActionDispatch
           Rack::CONTENT_LENGTH => body.bytesize.to_s,
           ActionDispatch::Constants::LOCATION => location,
         }, [body]]
+      end
+
+      # The error page posts `request.path`, so only accept a path on this host.
+      # Protocol-relative locations such as "//example.com" have a host.
+      def path_on_this_host?(location)
+        uri = URI.parse(location)
+        uri.scheme.nil? && uri.host.nil? && uri.path.start_with?("/")
+      rescue URI::Error
+        false
       end
   end
 end
