@@ -111,6 +111,38 @@ class EncryptedFileTest < ActiveSupport::TestCase
     end
   end
 
+  test "reading content by given key" do
+    FileUtils.rm_rf @key_path
+    encrypted_file = ActiveSupport::EncryptedFile.new(content_path: @content_path, key_path: @key_path,
+      env_key: "CONTENT_KEY", raise_if_missing_key: true, key: @key)
+
+    encrypted_file.write @content
+
+    assert_equal @content, encrypted_file.read
+    assert_predicate encrypted_file, :key?
+  end
+
+  test "given key takes precedence over env key and key file" do
+    File.write(@key_path, ActiveSupport::EncryptedFile.generate_key)
+    ENV["CONTENT_KEY"] = ActiveSupport::EncryptedFile.generate_key
+
+    encrypted_file = ActiveSupport::EncryptedFile.new(content_path: @content_path, key_path: @key_path,
+      env_key: "CONTENT_KEY", raise_if_missing_key: true, key: @key)
+
+    assert_equal @key, encrypted_file.key
+  end
+
+  test "raise MissingKeyError when given key is blank and there is no other key" do
+    FileUtils.rm_rf @key_path
+    encrypted_file = ActiveSupport::EncryptedFile.new(content_path: @content_path, key_path: @key_path,
+      env_key: "CONTENT_KEY", raise_if_missing_key: true, key: "")
+
+    assert_raise ActiveSupport::EncryptedFile::MissingKeyError do
+      encrypted_file.read
+    end
+    assert_not encrypted_file.key?
+  end
+
   test "raise InvalidKeyLengthError when key is too short" do
     File.write(@key_path, ActiveSupport::EncryptedFile.generate_key[0..-2])
 

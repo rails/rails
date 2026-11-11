@@ -611,6 +611,7 @@ module Rails
     # Returns an ActiveSupport::EncryptedConfiguration instance for an encrypted
     # file. By default, the encryption key is taken from either
     # <tt>ENV["RAILS_MASTER_KEY"]</tt>, or from the +config/master.key+ file.
+    # Pass +key+ to use the given key instead.
     #
     #   my_config = Rails.application.encrypted("config/my_config.enc")
     #
@@ -623,11 +624,12 @@ module Rails
     # Encrypted files can be edited with the <tt>bin/rails encrypted:edit</tt>
     # command. (See the output of <tt>bin/rails encrypted:edit --help</tt> for
     # more information.)
-    def encrypted(path, key_path: "config/master.key", env_key: "RAILS_MASTER_KEY")
+    def encrypted(path, key_path: "config/master.key", env_key: "RAILS_MASTER_KEY", key: nil)
       ActiveSupport::EncryptedConfiguration.new(
         config_path: Rails.root.join(path),
         key_path: Rails.root.join(key_path),
         env_key: env_key,
+        key: key,
         raise_if_missing_key: config.require_master_key
       )
     end

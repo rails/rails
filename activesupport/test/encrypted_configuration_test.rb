@@ -50,6 +50,17 @@ class EncryptedConfigurationTest < ActiveSupport::TestCase
     assert_equal ({ good: true, bad: false, nested: { foo: "bar" } }), @credentials.something
   end
 
+  test "reading configuration by given key" do
+    @credentials.write({ something: { good: true } }.to_yaml)
+
+    credentials = ActiveSupport::EncryptedConfiguration.new(
+      config_path: @credentials_config_path, key_path: File.join(@tmpdir, "missing.key"),
+      env_key: "RAILS_MASTER_KEY", raise_if_missing_key: true, key: File.read(@credentials_key_path)
+    )
+
+    assert credentials.something[:good]
+  end
+
   test "reading comment-only configuration" do
     @credentials.write("# comment")
 

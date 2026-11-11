@@ -1,3 +1,9 @@
+*   Allow passing the encryption key directly to `ActiveSupport::EncryptedFile`
+    and `ActiveSupport::EncryptedConfiguration` with `key:`. A given key takes
+    precedence over the `env_key` environment variable and the `key_path` file.
+
+    *Dennis Paagman*
+
 *   Shift a local time in a DST spring-forward gap forward by the gap's length
     instead of one hour.
 

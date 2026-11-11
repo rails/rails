@@ -3,11 +3,13 @@
 require "pathname"
 require "active_support"
 require "rails/command/helpers/editor"
+require "rails/command/helpers/encryption_key_prompt"
 
 module Rails
   module Command
     class EncryptedCommand < Rails::Command::Base # :nodoc:
       include Helpers::Editor
+      include Helpers::EncryptionKeyPrompt
 
       class_option :key, aliases: "-k", type: :string,
         default: "config/master.key", desc: "The Rails.root relative path to the encryption key"
@@ -44,6 +46,12 @@ module Rails
 
         def ensure_encryption_key_has_been_added
           return if encrypted_configuration.key?
+
+          if can_prompt_for_encryption_key?(encrypted_configuration)
+            @encrypted_configuration = prompt_for_encrypted_configuration(content_path, key_path)
+            return
+          end
+
           encryption_key_file_generator.add_key_file(key_path)
         end
 
