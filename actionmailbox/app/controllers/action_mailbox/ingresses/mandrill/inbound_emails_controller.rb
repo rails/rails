@@ -48,7 +48,10 @@ module ActionMailbox
       end
 
       def events
-        JSON.parse(params.require(:mandrill_events)).tap do |parsed|
+        raw_events = params.require(:mandrill_events)
+        raise MalformedEventsError unless raw_events.is_a?(String)
+
+        JSON.parse(raw_events).tap do |parsed|
           raise MalformedEventsError unless parsed.is_a?(Array) && parsed.all?(Hash)
         end
       end
