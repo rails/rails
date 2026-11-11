@@ -58,6 +58,19 @@ class StaticTest < ActiveSupport::TestCase
     assert_equal "Hello, World!", get("/doorkeeper%00").body
   end
 
+  def test_file_handler_treats_a_path_that_cleans_to_nothing_as_the_root
+    file_handler = ActionDispatch::FileHandler.new(@root)
+
+    ["..%2f", "..", "foo/.."].each do |path_info|
+      env = Rack::MockRequest.env_for("/")
+      env["PATH_INFO"] = path_info
+
+      status, _, body = file_handler.attempt(env)
+      assert_equal 200, status, "PATH_INFO=#{path_info.inspect}"
+      assert_equal File.read("#{@root}/index.html"), body.to_enum(:each).to_a.join
+    end
+  end
+
   def test_serves_static_index_at_root
     assert_html "/index.html", get("/index.html")
     assert_html "/index.html", get("/index")

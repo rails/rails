@@ -233,7 +233,7 @@ module ActionDispatch
       def clean_path(path_info)
         path = ::Rack::Utils.unescape_path path_info.chomp("/")
         if ::Rack::Utils.valid_path? path
-          ::Rack::Utils.clean_path_info path
+          ::Rack::Utils.clean_path_info(path).presence || "/"
         end
       end
   end
