@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require "action_mailbox/version"
+require "ipaddr"
 require "net/http"
 require "uri"
 
@@ -34,6 +35,8 @@ module ActionMailbox
     end
 
     def relay(source)
+      return Result.new("4.7.0", "Refusing to relay to an ingress URL that doesn't use HTTPS") unless secure_uri?
+
       case response = post(source)
       when Net::HTTPSuccess
         Result.new "2.0.0", "Successfully relayed message to ingress"
@@ -51,6 +54,19 @@ module ActionMailbox
     end
 
     private
+      # Credentials and the message are sent with every request, so plain HTTP
+      # is only allowed to this machine, e.g. an MTA relaying to localhost.
+      def secure_uri?
+        uri.scheme == "https" || (uri.scheme == "http" && loopback_host?)
+      end
+
+      def loopback_host?
+        host = uri.hostname.to_s.downcase
+        host == "localhost" || host.end_with?(".localhost") || IPAddr.new(host).loopback?
+      rescue IPAddr::Error
+        false
+      end
+
       def post(source)
         client.post uri, source,
           "Content-Type"  => CONTENT_TYPE,

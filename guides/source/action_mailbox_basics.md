@@ -108,6 +108,10 @@ action_mailbox:ingress:exim`, providing the `URL` of the relay ingress and the
 $ bin/rails action_mailbox:ingress:exim URL=https://example.com/rails/action_mailbox/relay/inbound_emails INGRESS_PASSWORD=...
 ```
 
+The `URL` must use HTTPS, because the ingress password and the email are sent
+with every request. Plain HTTP is only accepted for an application on the same
+machine, such as `http://localhost:3000`.
+
 ### Mailgun
 
 Give Action Mailbox your Mailgun Signing key (which you can find under Settings

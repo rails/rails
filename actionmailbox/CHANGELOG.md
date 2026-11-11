@@ -1,3 +1,13 @@
+*   Refuse to relay inbound emails to a plain HTTP ingress URL on another host.
+
+    The relayer used by `action_mailbox:ingress:exim`, `:postfix`, and `:qmail`
+    sent the ingress password and the email over plain HTTP when given an
+    `http://` URL. It now requires HTTPS, except for loopback hosts such as
+    `localhost`, and returns a transient `4.7.0` failure otherwise, so the MTA
+    keeps the email queued.
+
+    *Richard Desmarais*
+
 *   Reject Mailgun inbound emails whose timestamp is more than 2 minutes ahead
     of local time.
 
