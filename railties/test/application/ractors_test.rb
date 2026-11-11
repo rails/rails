@@ -69,6 +69,40 @@ if RUBY_VERSION >= "4.0" && ENV["RACK"] == "head"
         assert_ractor_shareable Rails::HealthController.config
       end
 
+      test "ractorize! makes the Active Record configuration shareable" do
+        app "production"
+
+        configs = [
+          ActiveRecord.query_transformers,
+          ActiveRecord.schema_ignored_tables,
+          ActiveRecord::Base.time_zone_aware_types,
+          ActiveRecord::Base.skip_time_zone_conversion_for_attributes,
+        ]
+
+        configs.each { |config| assert_not_ractor_shareable config }
+
+        ractorize!
+
+        configs.each { |config| assert_ractor_shareable config }
+      end
+
+      test "ractorize! makes the Action Dispatch configuration shareable" do
+        app "production"
+
+        configs = [
+          ActionDispatch::ExceptionWrapper.rescue_responses,
+          ActionDispatch::ExceptionWrapper.rescue_templates,
+          ActionDispatch::ExceptionWrapper.wrapper_exceptions,
+          ActionDispatch::ExceptionWrapper.silent_exceptions,
+        ]
+
+        configs.each { |config| assert_not_ractor_shareable config }
+
+        ractorize!
+
+        configs.each { |config| assert_ractor_shareable config }
+      end
+
       test "ractorize! makes the params wrapper options shareable" do
         app_file "app/controllers/posts_controller.rb", <<~RUBY
           class PostsController < ApplicationController
