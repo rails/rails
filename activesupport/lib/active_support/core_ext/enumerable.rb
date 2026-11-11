@@ -236,12 +236,24 @@ module Enumerable
   # Set.new.sole        # => Enumerable::SoleItemExpectedError: no item found
   # { a: 1, b: 2 }.sole # => Enumerable::SoleItemExpectedError: multiple items found
   # ```
+  #
+  # With a block given, calls the block with each element and returns the sole
+  # item for which the block returns a truthy value.
+  #
+  # ```
+  # [1, 2, 3].sole(&:even?)  # => 2
+  # [1, 3].sole(&:even?)     # => Enumerable::SoleItemExpectedError: no item found
+  # [1, 2, 4].sole(&:even?)  # => Enumerable::SoleItemExpectedError: multiple items found
+  # ```
+  #
   #: () -> Elem
   def sole
     result = nil
     found = false
 
     each do |*element|
+      next if block_given? && !yield(*element)
+
       if found
         raise SoleItemExpectedError, "multiple items found"
       end
