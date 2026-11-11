@@ -243,7 +243,7 @@ module ActiveModel
       assert_predicate attributes["foo"], :initialized?
     end
 
-    class MyType
+    class MyType < ::ActiveModel::Type::Value
       def cast(value)
         return if value.nil?
         value + " from user"
@@ -252,9 +252,6 @@ module ActiveModel
       def deserialize(value)
         return if value.nil?
         value + " from database"
-      end
-
-      def assert_valid_value(*)
       end
     end
 

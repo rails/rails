@@ -407,7 +407,7 @@ module ActiveModel
       return value unless UNCAST.equal?(value)
 
       if (attrs = @attributes) && (attr = attrs[index])
-        attr.value!
+        cache_value_at(index, attr.value!)
       else
         cast_value(@ctx.name_at(index), index, &:value!)
       end
@@ -423,9 +423,14 @@ module ActiveModel
       raise FrozenError, "can't modify frozen attributes" if frozen?
       index = index_for_name(name)
       attribute = write(name) { |attr| attr.with_value_from_user(value) }
-      # Cast now so reads of the attribute stay on the fast path. Both hold
-      # the same object, so changes made in place are still detected.
-      @casted_values[index] = attribute.value if index < @casted_values.size
+      # Cast now so the first read of the attribute stays on the fast path.
+      # A mutable type's cast can copy the value (deserialize(serialize(v))
+      # for a serialized column) or run a coder that rejects it, so those
+      # wait for the first read, which caches them (see #cache_value_at):
+      # changes made in place to the assigned object before then are saved.
+      if index < @casted_values.size && !attribute.type.mutable?
+        @casted_values[index] = attribute.value
+      end
       value
     end
 
@@ -524,10 +529,20 @@ module ActiveModel
         return value unless UNCAST.equal?(value)
 
         if (attrs = @attributes) && (attr = attrs[index])
-          attr.value!
+          cache_value_at(index, attr.value!)
         else
           cast_value(name, index, &:value!)
         end
+      end
+
+      # Keeps the value of a built attribute (such as one the user wrote)
+      # where the generated readers look first. It's the attribute's own
+      # value, so changes made to it in place are still detected, and
+      # #store drops it when the attribute is replaced.
+      #: (Integer, untyped) -> untyped
+      def cache_value_at(index, value)
+        @casted_values[index] = value if index < @casted_values.size
+        value
       end
 
       #: (String, Integer) -> ActiveModel::Attribute
