@@ -1,3 +1,22 @@
+*   Fix `number_to_currency` rounding of negative numbers with `round_mode:`
+    and `significant: true`.
+
+    The magnitude was rounded before the sign was applied, so directional round
+    modes went the wrong way for negative numbers, and `significant: true`
+    could drop the minus sign entirely.
+
+    ```ruby
+    number_to_currency(-12.345, round_mode: :floor)
+    # Before: "-$12.34"
+    # After:  "-$12.35"
+
+    number_to_currency(-0.001, precision: 2, significant: true)
+    # Before: "$0.0010"
+    # After:  "-$0.0010"
+    ```
+
+    *Richard Desmarais*
+
 *   Shift a local time in a DST spring-forward gap forward by the gap's length
     instead of one hour.
 

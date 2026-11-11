@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require "active_support/number_helper/number_converter"
+require "active_support/number_helper/rounding_helper"
 
 module ActiveSupport
   module NumberHelper
@@ -13,8 +14,11 @@ module ActiveSupport
         number_d = valid_bigdecimal
         if number_d
           if number_d.negative?
-            number_d = number_d.abs
-            format = options[:negative_format] if options[:precision].nil? || (number_d * 10**options[:precision]) >= 0.5
+            number_d = RoundingHelper.new(options).round(number_d)
+            if number_d.negative?
+              number_d = number_d.abs
+              format = options[:negative_format]
+            end
           end
           number_s = NumberToRoundedConverter.convert_with_resolved_options(number_d, options)
         else

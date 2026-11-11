@@ -117,6 +117,19 @@ module ActiveSupport
         end
       end
 
+      def test_number_to_currency_rounds_negative_numbers_with_their_sign
+        [@instance_with_helpers, TestClassWithClassNumberHelpers, ActiveSupport::NumberHelper].each do |number_helper|
+          assert_equal("-$12.35", number_helper.number_to_currency(-12.345, round_mode: :floor))
+          assert_equal("-$12.34", number_helper.number_to_currency(-12.345, round_mode: :ceiling))
+          assert_equal("-$0.01", number_helper.number_to_currency(-0.001, round_mode: :floor))
+          assert_equal("$0.00", number_helper.number_to_currency(-0.007, round_mode: :ceiling))
+          assert_equal("-$1", number_helper.number_to_currency(-0.4, precision: 0, round_mode: :up))
+          assert_equal("$0", number_helper.number_to_currency(-0.6, precision: 0, round_mode: :down))
+          assert_equal("-$0.0010", number_helper.number_to_currency(-0.001, precision: 2, significant: true))
+          assert_equal("-$1,234.57", number_helper.number_to_currency(-1234.567, precision: 6, significant: true))
+        end
+      end
+
       def test_number_to_percentage
         [@instance_with_helpers, TestClassWithClassNumberHelpers, ActiveSupport::NumberHelper].each do |number_helper|
           assert_equal("100.000%", number_helper.number_to_percentage(100))
