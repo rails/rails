@@ -149,10 +149,34 @@ module ActiveRecord
 
             self[locking_column] += 1
 
-            affected_rows = self.class._update_record(
-              attributes_with_values(attribute_names),
-              update_constraints
-            )
+            returning_columns = self.class.with_connection do |c|
+              if c.supports_update_returning?
+                self.class._returning_columns_for_update(c)
+              else
+                []
+              end
+            end
+
+            if returning_columns.present?
+              result = self.class._update_record_with_result(
+                attributes_with_values(attribute_names),
+                update_constraints,
+                returning_columns
+              )
+
+              returning_values = result.rows.first
+
+              returning_columns.zip(returning_values).each do |column, value|
+                _write_attribute(column, value)
+              end if returning_values.present?
+
+              affected_rows = result.affected_rows
+            else
+              affected_rows = self.class._update_record(
+                attributes_with_values(attribute_names),
+                update_constraints
+              )
+            end
 
             if affected_rows != 1
               raise ActiveRecord::StaleObjectError.new(self, attempted_action)

@@ -1,3 +1,12 @@
+*   Fix generated columns not being refreshed after updating a record with
+    optimistic locking.
+
+    On adapters that support `UPDATE ... RETURNING` (PostgreSQL), models with
+    optimistic locking enabled now refresh generated columns after `update`,
+    like models without optimistic locking already do.
+
+    *Kengo Johira*
+
 *   Qualify unscope values with table name when merging relations.
 
     Fixes an issue where merging a relation with an `unscope(where: ...)`

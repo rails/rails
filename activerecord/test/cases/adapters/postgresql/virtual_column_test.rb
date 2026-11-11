@@ -122,6 +122,34 @@ if ActiveRecord::Base.lease_connection.supports_virtual_columns?
       assert_equal 2, fixtures.size
     end
 
+    def test_stored_column_is_refreshed_on_update_with_optimistic_locking
+      @connection.create_table :locked_virtual_columns, force: true do |t|
+        t.integer :amount
+        t.virtual :doubled_amount, type: :integer, as: "amount * 2", stored: true
+        t.integer :lock_version, default: 0, null: false
+      end
+      locked_model = Class.new(ActiveRecord::Base) { self.table_name = "locked_virtual_columns" }
+
+      record = locked_model.create!(amount: 1)
+      assert_equal 2, record.doubled_amount
+
+      record.update!(amount: 5)
+      assert_equal 10, record.doubled_amount
+      assert_equal 1, record.lock_version
+
+      stale = locked_model.find(record.id)
+      record.update!(amount: 10)
+      assert_equal 20, record.doubled_amount
+      assert_equal 2, record.lock_version
+
+      assert_raises(ActiveRecord::StaleObjectError) { stale.update!(amount: 20) }
+      assert_equal 1, stale.lock_version
+      assert_equal 10, stale.doubled_amount
+      assert_equal 20, locked_model.find(record.id).doubled_amount
+    ensure
+      @connection.drop_table :locked_virtual_columns, if_exists: true
+    end
+
     def test_virtual_column_does_not_deduplicate_with_regular_column
       @connection.create_table :regular_columns, force: true do |t|
         t.string :name
