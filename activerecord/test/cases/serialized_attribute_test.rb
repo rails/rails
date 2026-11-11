@@ -50,6 +50,47 @@ class SerializedAttributeTest < ActiveRecord::TestCase
     assert_equal(myobj, topic.content)
   end
 
+  def test_in_place_changes_to_an_assigned_value_before_it_is_read_are_saved
+    Topic.serialize(:content, coder: JSON)
+    topic = Topic.find(Topic.create!(content: nil).id)
+
+    content = (topic.content = {})
+    content["some"] = "action"
+    topic.save!
+
+    assert_equal({ "some" => "action" }, Topic.find(topic.id).content)
+  end
+
+  class HashOnlyCoder
+    def self.load(value) = value && JSON.parse(value)
+
+    def self.dump(value)
+      raise ArgumentError, "not a Hash" unless value.nil? || value.is_a?(Hash)
+      JSON.dump(value)
+    end
+  end
+
+  def test_a_value_the_coder_rejects_raises_when_it_is_read_not_when_it_is_assigned
+    Topic.serialize(:content, coder: HashOnlyCoder)
+    topic = Topic.find(Topic.create!(content: nil).id)
+
+    assert_nothing_raised { topic.content = "not a hash" }
+    assert_raise(ArgumentError) { topic.content }
+  end
+
+  def test_reading_an_assigned_value_caches_its_cast_value
+    Topic.serialize(:content, coder: JSON)
+    topic = Topic.find(Topic.create!(content: nil).id)
+
+    topic.content = { "a" => 1 }
+    assert_same topic.content, topic.content
+    topic.content["b"] = 2
+    assert_predicate topic, :content_changed?
+    topic.save!
+
+    assert_equal({ "a" => 1, "b" => 2 }, Topic.find(topic.id).content)
+  end
+
   def test_serialized_attribute_on_alias_attribute
     klass = Class.new(ActiveRecord::Base) do
       self.table_name = Topic.table_name
