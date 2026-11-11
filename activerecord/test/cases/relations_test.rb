@@ -2482,7 +2482,7 @@ class RelationTest < ActiveRecord::TestCase
     assert_equal [posts(:authorless)], p0
     assert_equal [posts(:thinking)], p1
 
-    comments = Comment.merge(p0).unscope(where: :author_id).where(post: p1)
+    comments = Comment.merge(p0).unscope(where: { posts: :author_id }).where(post: p1)
 
     assert_not_equal p0.first.comments, comments
     assert_equal p1.first.comments, comments
@@ -2494,6 +2494,47 @@ class RelationTest < ActiveRecord::TestCase
 
     assert_equal expected.where_clause, relation.where_clause
     assert_equal expected.to_sql, relation.to_sql
+  end
+
+  def test_unscope_unqualified_column_removing_conditions_on_other_tables_is_deprecated
+    relation = Post.joins(:comments).where(body: "post", comments: { body: "test" })
+
+    unscoped = assert_deprecated(/also removes conditions on other tables \(comments\.body\)/, ActiveRecord.deprecator) do
+      relation.unscope(where: :body)
+    end
+
+    assert_predicate unscoped.where_clause, :empty?
+  end
+
+  def test_unscope_unqualified_column_only_on_own_table_is_not_deprecated
+    relation = Post.joins(:comments).where(body: "post", comments: { post_id: 1 })
+
+    unscoped = assert_not_deprecated(ActiveRecord.deprecator) do
+      relation.unscope(where: :body)
+    end
+
+    assert_equal Post.joins(:comments).where(comments: { post_id: 1 }).where_clause, unscoped.where_clause
+  end
+
+  def test_unscope_qualified_column_on_other_table_is_not_deprecated
+    relation = Post.joins(:comments).where(body: "post", comments: { body: "test" })
+    expected = Post.joins(:comments).where(body: "post").where_clause
+
+    assert_not_deprecated(ActiveRecord.deprecator) do
+      assert_equal expected, relation.unscope(where: "comments.body").where_clause
+      assert_equal expected, relation.unscope(where: { comments: :body }).where_clause
+      assert_equal expected, relation.unscope(where: Comment.arel_table[:body]).where_clause
+    end
+  end
+
+  def test_rewhere_is_not_deprecated_for_column_on_other_tables
+    relation = Post.joins(:comments).where(body: "post", comments: { body: "test" })
+
+    rewhered = assert_not_deprecated(ActiveRecord.deprecator) do
+      relation.rewhere(body: "other")
+    end
+
+    assert_equal Post.joins(:comments).where(comments: { body: "test" }).where(body: "other").where_clause, rewhered.where_clause
   end
 
   def test_unscope_with_unknown_column

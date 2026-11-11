@@ -997,6 +997,16 @@ module ActiveRecord
     #     == User.where(active: true)
     # ```
     #
+    # To unscope conditions on another table, qualify the column with the table name.
+    #
+    # ```
+    # User.joins(:posts).where(posts: { published: true }).unscope(where: { posts: :published })
+    #     == User.joins(:posts)
+    #
+    # User.joins(:posts).where(posts: { published: true }).unscope(where: "posts.published")
+    #     == User.joins(:posts)
+    # ```
+    #
     # This method is similar to #except, but unlike #except,
     # it persists across merges:
     #
@@ -1041,7 +1051,9 @@ module ActiveRecord
             end
 
             target_values = resolve_arel_attributes(Array.wrap(target_value))
-            self.where_clause = where_clause.except(*target_values)
+            except_clause = where_clause.except(*target_values)
+            warn_unscope_of_other_tables(target_values, except_clause)
+            self.where_clause = except_clause
           end
         else
           raise ArgumentError, "Unrecognized scoping: #{args.inspect}. Use .unscope(where: :attribute_name) or .unscope(:order), for example."
@@ -2558,6 +2570,28 @@ module ActiveRecord
             end
           end
         end
+      end
+
+      def warn_unscope_of_other_tables(target_values, except_clause)
+        return unless target_values.any?(String)
+
+        qualified_values = target_values.map { |value| String === value ? table[value] : value }
+        removed = where_clause.except(*qualified_values) - except_clause
+        return if removed.empty?
+
+        columns = removed.extract_attributes.filter_map do |attr|
+          "#{attr.relation.name}.#{attr.name}" if attr.is_a?(Arel::Attributes::Attribute)
+        end.uniq
+        example = columns.first || "other_table.column"
+
+        ActiveRecord.deprecator.warn(<<~MSG.squish)
+          Unscoping an unqualified column with `unscope(where: ...)` also removes
+          conditions on other tables (#{columns.join(", ")}).
+          This behavior is deprecated and in Rails 9.0 `unscope(where: ...)` will
+          only remove conditions on the `#{table.name}` table for unqualified columns.
+          To remove conditions on other tables, qualify the column with the table name
+          (e.g. `unscope(where: "#{example}")`).
+        MSG
       end
 
       def qualify_attribute_with_table_name(attr)

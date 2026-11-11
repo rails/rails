@@ -1,3 +1,24 @@
+*   Deprecate `unscope(where: :column)` removing conditions on other tables.
+
+    An unqualified column passed to `unscope(where: ...)` currently removes
+    conditions on every table that has a column of that name, including
+    joined and eager loaded tables. In Rails 9.0 it will only remove
+    conditions on the relation's own table.
+
+    ```ruby
+    Post.joins(:comments).where(body: "post", comments: { body: "test" }).unscope(where: :body)
+    # DEPRECATION WARNING: ... also removes conditions on other tables (comments.body) ...
+    ```
+
+    Qualify the column with the table name to unscope conditions on another table:
+
+    ```ruby
+    Post.joins(:comments).where(comments: { body: "test" }).unscope(where: { comments: :body })
+    Post.joins(:comments).where(comments: { body: "test" }).unscope(where: "comments.body")
+    ```
+
+    *Ryuta Kamizono*
+
 *   Cast and freeze a model's attribute defaults when its schema is loaded.
 
     Unless the model declares an attribute with a `default:`, each default is
