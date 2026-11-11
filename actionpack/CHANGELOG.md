@@ -1,3 +1,14 @@
+*   Only exempt GET and HEAD requests from forgery protection when they
+    arrived with that method.
+
+    A POST tunneled through `Rack::MethodOverride` with `_method=get` or
+    `_method=head` skipped the authenticity token and origin checks. It is now
+    verified like any other POST, matching how QUERY requests are handled.
+    Forms built with `form_with`, `form_tag` and `button_to` using
+    `method: :get` are unaffected, since they submit a native GET.
+
+    *Richard Desmarais*
+
 *   Apply `config.action_dispatch.cookies_same_site_protection` to every session
     store.
 

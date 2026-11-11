@@ -450,6 +450,12 @@ module RequestForgeryProtectionTests
     assert_blocked { query :index }
   end
 
+  def test_should_not_exempt_get_or_head_tunneled_through_method_override
+    @request.env["rack.methodoverride.original_method"] = "POST"
+    assert_blocked { get :index }
+    assert_blocked { head :index }
+  end
+
   def test_should_allow_post_without_token_on_unsafe_action
     assert_not_blocked { post :unsafe }
   end
