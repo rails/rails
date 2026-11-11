@@ -33,6 +33,16 @@ class PostgresqlLtreeTest < ActiveRecord::PostgreSQLTestCase
     assert_not_predicate type, :binary?
   end
 
+  def test_add_array_column_with_default
+    # The extension array type isn't in the type map yet, so the default must be
+    # quoted through a type loaded on demand rather than the string fallback.
+    @connection.reload_type_map
+    @connection.add_column "ltrees", "paths", :ltree, array: true, default: ["1.2"]
+    Ltree.reset_column_information
+
+    assert_equal ["1.2"], Ltree.new.paths
+  end
+
   def test_write
     ltree = Ltree.new(path: "1.2.3.4")
     assert ltree.save!
