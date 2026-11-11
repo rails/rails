@@ -757,6 +757,18 @@ class TransactionTest < ActiveRecord::TestCase
     assert_nil new_topic.id, "The topic should not have an ID"
   end
 
+  def test_save_when_implicit_persistence_transaction_skips_the_transaction
+    topic_class = Class.new(Topic) {
+      define_method(:implicit_persistence_transaction) do |connection, &block|
+        block.call
+      end
+    }
+
+    topic = topic_class.find(@first.id)
+    assert topic.update(title: "Updated without a transaction")
+    assert_equal "Updated without a transaction", topic.reload.title
+  end
+
   def test_nested_explicit_transactions
     Topic.transaction do
       Topic.transaction do

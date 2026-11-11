@@ -1,3 +1,12 @@
+*   Fix `save` and `destroy` returning a truthy value when a `before_commit`
+    callback rolls the transaction back with `ActiveRecord::Rollback`.
+
+    The rollback was swallowed after the persistence call had captured its
+    return status, so `save` returned `true` and `destroy!` did not raise
+    although nothing was committed.
+
+    *Andy Wang*
+
 *   Qualify unscope values with table name when merging relations.
 
     Fixes an issue where merging a relation with an `unscope(where: ...)`
