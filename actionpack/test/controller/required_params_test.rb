@@ -34,6 +34,25 @@ class ActionControllerRequiredParamsTest < ActionController::TestCase
     assert_match "Did you mean?", error.detailed_message
   end
 
+  test "suggestions ignore keys too long to be suggested" do
+    keys = ["boko", "b" * 10_000, "#{"x" * 5_000}book"]
+    error = ActionController::ParameterMissing.new(:book, keys)
+
+    assert_equal ["boko"], error.corrections
+    assert_equal DidYouMean::SpellChecker.new(dictionary: keys).correct("book"), error.corrections
+  end
+
+  test "suggestions consider a bounded number of keys" do
+    keys = Array.new(ActionController::ParameterMissing::MAX_SUGGESTION_KEYS) { |i| "k#{i}" } + ["boko"]
+
+    assert_empty ActionController::ParameterMissing.new(:book, keys).corrections
+    assert_equal ["boko"], ActionController::ParameterMissing.new(:book, keys.reverse).corrections
+  end
+
+  test "suggestions without keys" do
+    assert_empty ActionController::ParameterMissing.new(:book).corrections
+  end
+
   test "required parameters that are present will not raise" do
     post :create, params: { book: { name: "Mjallo!" } }
     assert_response :ok
