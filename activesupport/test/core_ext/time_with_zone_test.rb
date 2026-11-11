@@ -156,6 +156,30 @@ class TimeWithZoneTest < ActiveSupport::TestCase
     assert_equal "1999-12-31 19:00:00.000000000 -0500", @twz.to_fs(:inspect)
   end
 
+  def test_to_fs_with_utc_zone
+    utc = Time.utc(2000, 1, 1, 0, 0, 0, Rational(123456789, 1000))
+    %w[UTC Etc/UTC].each do |zone_name|
+      zone = ActiveSupport::TimeZone[zone_name]
+      [ActiveSupport::TimeWithZone.new(utc, zone), ActiveSupport::TimeWithZone.new(utc.to_datetime, zone)].each do |twz|
+        ActiveSupport::TimeFormats.list.each do |name, format|
+          next unless format.is_a?(String)
+          assert_equal twz.getlocal(twz.utc_offset).strftime(format), twz.to_fs(name), "#{zone_name} to_fs(#{name.inspect})"
+        end
+        assert_equal "2000-01-01 00:00:00.123456789 +0000", twz.to_fs(:inspect)
+      end
+    end
+  end
+
+  def test_to_fs_with_utc_zone_and_overridden_format
+    twz = ActiveSupport::TimeWithZone.new(@utc, ActiveSupport::TimeZone["UTC"])
+    ActiveSupport::TimeFormats.stub(:lookup, ->(format) { { short: "%-z %^Z" }[format] }) do
+      assert_equal "+0000 ", twz.to_fs(:short)
+    end
+    ActiveSupport::TimeFormats.stub(:lookup, ->(format) { { short: +"%d %b %H:%M" }[format] }) do
+      assert_equal "01 Jan 00:00", twz.to_fs(:short)
+    end
+  end
+
   def test_to_fs_not_existent
     assert_equal "1999-12-31 19:00:00 -0500", @twz.to_fs(:not_existent)
   end

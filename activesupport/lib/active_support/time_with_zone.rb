@@ -51,7 +51,16 @@ module ActiveSupport
 
     FLAGGED_ZONE = /[-_^#:\dEO]Z/
     DASH_FLAGGED_OFFSET = /-[-_^#\d]*:*z/
-    private_constant :FLAGGED_ZONE, :DASH_FLAGGED_OFFSET
+    UTC_SAFE_FORMATS = {
+      inspect: "%Y-%m-%d %H:%M:%S.%9N %z",
+      number: "%Y%m%d%H%M%S",
+      nsec: "%Y%m%d%H%M%S%9N",
+      usec: "%Y%m%d%H%M%S%6N",
+      time: "%H:%M",
+      short: "%d %b %H:%M",
+      long: "%B %d, %Y %H:%M"
+    }.freeze
+    private_constant :FLAGGED_ZONE, :DASH_FLAGGED_OFFSET, :UTC_SAFE_FORMATS
 
     include Comparable
     attr_reader :time_zone
@@ -258,7 +267,11 @@ module ActiveSupport
       if format == :db
         utc.to_fs(format)
       elsif formatter = ::ActiveSupport::TimeFormats.lookup(format)
-        formatter.respond_to?(:call) ? formatter.call(self).to_s : strftime(formatter)
+        if @time_zone.utc? && UTC_SAFE_FORMATS[format] == formatter
+          utc.strftime(formatter)
+        else
+          formatter.respond_to?(:call) ? formatter.call(self).to_s : strftime(formatter)
+        end
       else
         to_s
       end
