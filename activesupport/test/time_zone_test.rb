@@ -378,6 +378,44 @@ class TimeZoneTest < ActiveSupport::TestCase
     assert_equal "invalid date", exception.message
   end
 
+  def test_iso8601_with_invalid_calendar_date
+    zone = ActiveSupport::TimeZone["UTC"]
+
+    exception = assert_raises(ArgumentError) do
+      zone.iso8601("2026-02-30")
+    end
+
+    assert_equal "invalid date", exception.message
+  end
+
+  def test_iso8601_with_invalid_calendar_date_and_local_time
+    zone = ActiveSupport::TimeZone["UTC"]
+
+    assert_raises(ArgumentError) do
+      zone.iso8601("2026-02-29T10:00")
+    end
+  end
+
+  def test_iso8601_with_invalid_calendar_date_and_offset
+    zone = ActiveSupport::TimeZone["UTC"]
+
+    assert_raises(ArgumentError) do
+      zone.iso8601("2026-04-31T10:00:00+02:00")
+    end
+  end
+
+  def test_iso8601_with_leap_day
+    zone = ActiveSupport::TimeZone["UTC"]
+
+    assert_equal Time.utc(2000, 2, 29), zone.iso8601("2000-02-29").utc
+  end
+
+  def test_iso8601_uses_the_gregorian_calendar_for_calendar_dates
+    zone = ActiveSupport::TimeZone["UTC"]
+
+    assert_equal Time.utc(1582, 10, 10), zone.iso8601("1582-10-10").utc
+  end
+
   def test_iso8601_with_nil
     zone = ActiveSupport::TimeZone["Eastern Time (US & Canada)"]
 
@@ -655,6 +693,28 @@ class TimeZoneTest < ActiveSupport::TestCase
     end
 
     assert_equal "invalid date", exception.message
+  end
+
+  def test_rfc3339_with_invalid_calendar_date
+    zone = ActiveSupport::TimeZone["UTC"]
+
+    exception = assert_raises(ArgumentError) do
+      zone.rfc3339("1900-02-29T10:00:00Z")
+    end
+
+    assert_equal "invalid date", exception.message
+  end
+
+  def test_rfc3339_with_leap_day_and_offset
+    zone = ActiveSupport::TimeZone["UTC"]
+
+    assert_equal Time.utc(2000, 2, 28, 22, 15, 0.75), zone.rfc3339("2000-02-29T00:15:00.750+02:00").utc
+  end
+
+  def test_rfc3339_uses_the_gregorian_calendar
+    zone = ActiveSupport::TimeZone["UTC"]
+
+    assert_equal Time.utc(1582, 10, 10, 10), zone.rfc3339("1582-10-10T10:00:00Z").utc
   end
 
   def test_rfc3339_with_old_date

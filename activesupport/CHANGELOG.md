@@ -1,3 +1,8 @@
+*   Raise `ArgumentError` when `TimeZone#iso8601` or `TimeZone#rfc3339`
+    parses a nonexistent calendar date, such as February 30.
+
+    *Andy Wang*
+
 *   Shift a local time in a DST spring-forward gap forward by the gap's length
     instead of one hour.
 
