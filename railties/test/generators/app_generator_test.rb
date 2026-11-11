@@ -318,6 +318,19 @@ class AppGeneratorTest < Rails::Generators::TestCase
     end
   end
 
+  def test_app_update_preserves_skip_kamal
+    run_generator [ destination_root, "--skip-kamal" ]
+
+    FileUtils.cd(destination_root) do
+      run_app_update
+
+      assert_file "config/environments/production.rb" do |content|
+        assert_match(/^  config\.assume_ssl = true$/, content)
+        assert_match(/^  config\.force_ssl = true$/, content)
+      end
+    end
+  end
+
   def test_app_update_preserves_skip_thruster
     run_generator [ destination_root, "--skip-thruster" ]
 
