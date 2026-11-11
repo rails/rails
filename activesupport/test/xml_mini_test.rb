@@ -354,6 +354,18 @@ YAML
       assert_equal({ "1 => 'test'" => nil }, parser.call("{1 => 'test'}"))
     end
 
+    def test_yaml_only_loads_basic_types_and_symbols
+      parser = @parsing["yaml"]
+
+      assert_equal :value, parser.call(":value")
+
+      object = "--- !ruby/object:Object {}\n"
+      assert_equal object, parser.call(object)
+
+      aliases = "a: &x 1\nb: *x\n"
+      assert_equal aliases, parser.call(aliases)
+    end
+
     def test_hexBinary
       expected = "Hello, World!"
       hex_binary = "48656C6C6F2C20576F726C6421"

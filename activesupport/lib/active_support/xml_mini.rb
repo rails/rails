@@ -87,7 +87,7 @@ module ActiveSupport
         end,
         "boolean"      => Proc.new { |boolean| %w(1 true).include?(boolean.to_s.strip) },
         "string"       => Proc.new { |string|  string.to_s },
-        "yaml"         => Proc.new { |yaml|    YAML.load(yaml) rescue yaml },
+        "yaml"         => Proc.new { |yaml|    YAML.safe_load(yaml, permitted_classes: [Symbol]) rescue yaml },
         "base64Binary" => Proc.new { |bin|     ::Base64.decode64(bin) },
         "hexBinary"    => Proc.new { |bin|     _parse_hex_binary(bin) },
         "binary"       => Proc.new { |bin, entity| _parse_binary(bin, entity) },
