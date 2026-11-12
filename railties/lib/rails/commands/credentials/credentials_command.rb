@@ -77,7 +77,25 @@ module Rails
         end
       end
 
+      desc "keys", "List the paths of the keys in the decrypted credentials, without their values"
+      def keys
+        load_environment_config!
+
+        if credentials.read.present?
+          say key_paths(credentials.config).join("\n")
+        else
+          missing_credentials!
+        end
+      end
+
       private
+        def key_paths(hash, prefix = nil)
+          hash.flat_map do |key, value|
+            path = prefix ? "#{prefix}.#{key}" : key.to_s
+            value.is_a?(Hash) ? key_paths(value, path) : path
+          end
+        end
+
         def config
           Rails.application.config.credentials
         end

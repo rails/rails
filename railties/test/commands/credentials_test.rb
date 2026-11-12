@@ -367,6 +367,36 @@ class Rails::Command::CredentialsTest < ActiveSupport::TestCase
     assert_match("Invalid or missing credential path: egg.spam", stderr_output)
   end
 
+  test "keys lists the path of every key without the values" do
+    write_credentials <<~YAML
+      # Commented out: true
+      foo:
+        bar:
+          baz: secret-baz
+        qux: secret-qux
+      list: [secret-1, secret-2]
+      empty:
+    YAML
+
+    output = run_keys_command
+    assert_equal "foo.bar.baz\nfoo.qux\nlist\nempty\n", output
+    assert_no_match "secret", output
+  end
+
+  test "keys command lists keys of the credentials specified by environment option" do
+    write_credentials "foo: bar", environment: "production"
+
+    assert_equal "foo\n", run_keys_command(environment: "production")
+  end
+
+  test "keys command does not raise error when require_master_key is false and master key does not exist" do
+    remove_file "config/master.key"
+    add_to_config "config.require_master_key = false"
+
+    stderr_output = capture(:stderr) { run_keys_command(stderr: true, allow_failure: true) }
+    assert_match(/Missing 'config\/master\.key' to decrypt credentials/, stderr_output)
+  end
+
   private
     DEFAULT_CREDENTIALS_PATTERN = /access_key_id: 123\n.*secret_key_base: \h{128}\n/m
 
@@ -391,6 +421,11 @@ class Rails::Command::CredentialsTest < ActiveSupport::TestCase
 
     def run_fetch_command(path, **options)
       rails "credentials:fetch", path, **options
+    end
+
+    def run_keys_command(environment: nil, **options)
+      args = environment ? ["--environment", environment] : []
+      rails "credentials:keys", args, **options
     end
 
     def write_credentials(content, **options)
