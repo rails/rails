@@ -702,6 +702,19 @@ class EagerAssociationTest < ActiveRecord::TestCase
     end
   end
 
+  def test_preloading_ordered_nested_has_many_through_with_a_new_record_in_a_loaded_source
+    persisted = developers(:david).project_developers_by_salary.map(&:salary)
+    developer = Developer.find(developers(:david).id)
+    project = developer.projects.load.first
+    project.developers_by_salary.load
+    project.developers_by_salary.build(name: "alice", salary: 1_000_000)
+    project.developers_by_salary.build(name: "bob", salary: 2_000_000)
+
+    ActiveRecord::Associations::Preloader.new(records: [developer], associations: :project_developers_by_salary).call
+
+    assert_equal [*persisted, 1_000_000, 2_000_000], developer.project_developers_by_salary.map(&:salary)
+  end
+
   def test_eager_with_has_many_through_an_sti_join_model_with_conditions_on_both
     author = Author.all.merge!(includes: :special_nonexistent_post_comments, order: "authors.id").first
     assert_equal [], author.special_nonexistent_post_comments

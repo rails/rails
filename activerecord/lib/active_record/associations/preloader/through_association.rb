@@ -35,7 +35,12 @@ module ActiveRecord
             end
 
             records.compact!
-            records.sort_by! { |rhs| preload_index[rhs] } if source_order_applies?
+            if source_order_applies?
+              # A reused loaded target can hold records missing from the index,
+              # such as new ones: keep them last, in their loaded order.
+              unranked = records_in_query_order.size
+              records.sort_by! { |rhs| preload_index.fetch(rhs) { unranked += 1 } }
+            end
             records.uniq! if scope.distinct_value
             result[owner] = records
           end

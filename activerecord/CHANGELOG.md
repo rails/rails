@@ -1,3 +1,12 @@
+*   Fix `ArgumentError` when preloading an ordered `has_many :through` whose
+    source is a loaded `has_and_belongs_to_many` or `:through` association
+    holding a record no query returned, such as a new record.
+
+    Such records have no place in the order; they now come last, in the order
+    they were loaded.
+
+    *Clément Joubert*
+
 *   Fix `where` and `having` not parenthesizing bound SQL literals passed as Arel nodes.
 
     An `OR` in such a node could escape a neighbouring condition, including
