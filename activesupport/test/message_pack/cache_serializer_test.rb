@@ -27,13 +27,15 @@ class MessagePackCacheSerializerTest < ActiveSupport::TestCase
     end
   end
 
-  test "handles missing class gracefully" do
+  test "raises a cache deserialization error for a missing class" do
     klass = Class.new(DefinesFromMsgpackExt)
     def klass.name; "DoesNotActuallyExist"; end
 
     dumped = dump(klass.new("foo"))
     assert_not_nil dumped
-    assert_nil load(dumped)
+    assert_raises ActiveSupport::Cache::DeserializationError, match: "DoesNotActuallyExist" do
+      load(dumped)
+    end
   end
 
   private
