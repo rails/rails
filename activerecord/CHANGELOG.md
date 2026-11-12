@@ -1,3 +1,12 @@
+*   Fix a deadlock between transactional tests and a thread checking out a
+    connection while the test's connection is being pinned.
+
+    `pin_connection!` made the connection visible as pinned before installing
+    its lock, so another thread could take the pinned connection under the
+    previous no-op lock and then wait for the new lock while holding the pool.
+
+    *Hasan Nadeem*
+
 *   Deprecate `unscope(where: :column)` removing conditions on other tables.
 
     An unqualified column passed to `unscope(where: ...)` currently removes

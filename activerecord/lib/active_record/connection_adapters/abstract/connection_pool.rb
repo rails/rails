@@ -393,21 +393,25 @@ module ActiveRecord
       # Transaction management on the pinned connection is the caller's
       # responsibility.
       def pin_connection!(lock_thread) # :nodoc:
-        @pinned_connection ||= (connection_lease&.connection || checkout)
-        @pinned_connections_depth += 1
+        connection = @pinned_connection || connection_lease&.connection || checkout
 
         # Any leased connection must be in @connections otherwise
         # some methods like #connected? won't behave correctly
-        unless @connections.include?(@pinned_connection)
-          @connections << @pinned_connection
+        unless @connections.include?(connection)
+          @connections << connection
         end
 
         # A nested pin keeps the lock an outer one installed: another thread
         # may hold it mid-statement.
-        if lock_thread && @pinned_connection.lock.equal?(ActiveSupport::Concurrency::NullLock)
-          @pinned_connection.lock_thread = ActiveSupport::IsolatedExecutionState.context
+        if lock_thread && connection.lock.equal?(ActiveSupport::Concurrency::NullLock)
+          connection.lock_thread = ActiveSupport::IsolatedExecutionState.context
         end
-        @pinned_connection.pinned = true
+        connection.pinned = true
+
+        # Pin the connection only once its lock is in place: #checkout hands
+        # the pinned connection to other threads under that lock.
+        @pinned_connection = connection
+        @pinned_connections_depth += 1
       end
 
       def unpin_connection! # :nodoc:
