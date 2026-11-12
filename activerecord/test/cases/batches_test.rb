@@ -1160,4 +1160,98 @@ class EachTest < ActiveRecord::TestCase
     relation = Cpk::Book.where("author_id >= ? AND id < ?", author_id, id).in_batches(of: 1, order: [:asc, :desc]).first
     assert_equal book2, relation.first
   end
+
+  test ".find_each over several columns compares row values where the adapter supports them" do
+    insert_cpk_books([1, 1], [1, 2], [2, 1])
+    books = Cpk::Book.order(:author_id, :id).to_a
+    condition = Cpk::Book.with_connection(&:supports_row_value_comparison?) ? row_value_query(">") : / OR /
+
+    walked = []
+    assert_queries_match(condition, count: books.size) do
+      Cpk::Book.find_each(batch_size: 1) { |book| walked << book }
+    end
+    assert_equal books, walked
+  end
+
+  test ".in_batches over several columns compares row values from the start option and in descending order" do
+    skip unless Cpk::Book.with_connection(&:supports_row_value_comparison?)
+
+    insert_cpk_books([1, 1], [1, 2], [2, 1])
+    first, second, third = Cpk::Book.order(:author_id, :id).to_a
+
+    relation = assert_queries_match(row_value_query(">=")) do
+      Cpk::Book.in_batches(of: 1, start: second.id).first
+    end
+    assert_equal second, relation.first
+
+    descending = []
+    assert_queries_match(row_value_query("<")) do
+      Cpk::Book.find_each(batch_size: 1, order: [:desc, :desc]) { |book| descending << book }
+    end
+    assert_equal [third, second, first], descending
+  end
+
+  test ".in_batches over several columns in different directions keeps comparing column by column" do
+    insert_cpk_books([1, 1], [1, 2], [2, 1])
+    books = Cpk::Book.order(author_id: :asc, id: :desc).to_a
+
+    walked = []
+    assert_queries_match(/ OR /, count: books.size) do
+      Cpk::Book.find_each(batch_size: 1, order: [:asc, :desc]) { |book| walked << book }
+    end
+    assert_equal books, walked
+  end
+
+  test ".find_each over several columns within an IN list on the first one" do
+    insert_cpk_books([1, 1], [1, 2], [2, 1], [3, 1], [3, 2])
+    books = Cpk::Book.where(author_id: [1, 3]).order(:author_id, :id).to_a
+
+    walked = []
+    Cpk::Book.where(author_id: [1, 3]).find_each(batch_size: 1) { |book| walked << book }
+    assert_equal books, walked
+  end
+
+  if current_adapter?(:PostgreSQLAdapter)
+    test ".find_each over several columns repeats the first bound where the adapter needs it" do
+      insert_cpk_books([1, 1], [1, 2], [2, 1])
+      books = Cpk::Book.order(:author_id, :id).to_a
+
+      [true, false].each do |needs_leading_bound|
+        Cpk::Book.with_connection do |connection|
+          connection.stub(:row_value_comparison_needs_leading_bound?, needs_leading_bound) do
+            walked = []
+            assert_queries_match(row_value_query(">", leading_bound: needs_leading_bound), count: books.size) do
+              Cpk::Book.find_each(batch_size: 1) { |book| walked << book }
+            end
+            assert_equal books, walked
+          end
+        end
+      end
+    end
+  end
+
+  test ".find_each and .find_in_batches over several columns size their enumerators" do
+    insert_cpk_books([1, 1], [1, 2], [2, 1], [2, 2])
+
+    assert_equal 3, Cpk::Book.find_each(start: [1, 2]).size
+    assert_equal 2, Cpk::Book.find_each(start: [1, 2], finish: [2, 1]).size
+    assert_equal 2, Cpk::Book.find_in_batches(batch_size: 2, start: [1, 2]).size
+  end
+
+  private
+    def insert_cpk_books(*keys)
+      Cpk::Book.delete_all # Fixtures loaded by other tests may remain.
+      keys.each { |key| Cpk::Book.create!(id: key) }
+    end
+
+    # Matches (author_id, id) <operator> (...), after author_id's repeated bound
+    # when leading_bound is true, without it when false, either way when nil.
+    def row_value_query(operator, leading_bound: nil)
+      author_id = Regexp.escape(quote_table_name("cpk_books.author_id"))
+      columns = Regexp.escape("(#{quote_table_name("cpk_books.author_id")}, #{quote_table_name("cpk_books.id")})")
+      bound = "#{author_id} [<>]= \\S+ AND "
+      bound = { nil => "(#{bound})?", true => bound, false => "" }.fetch(leading_bound)
+
+      /WHERE \(?#{bound}#{columns} #{operator} /
+    end
 end

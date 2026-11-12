@@ -1,3 +1,15 @@
+*   Batch over several columns with a row value comparison on PostgreSQL and SQLite.
+
+    `find_each`, `find_in_batches` and `in_batches` over a composite primary key
+    or several `cursor:` columns asked for each batch after the first with
+    `a > x OR (a = x AND b > y)`. The database could only use that as a filter
+    over an index on `(a, b)`, so every batch read again all the rows before the
+    cursor, and walking a table took time proportional to the square of its
+    size. When the columns are all in the same order, batches now ask for
+    `(a, b) > (x, y)` instead, which reads the index from the cursor.
+
+    *Jose Galisteo*
+
 *   Deprecate `unscope(where: :column)` removing conditions on other tables.
 
     An unqualified column passed to `unscope(where: ...)` currently removes

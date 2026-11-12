@@ -123,6 +123,10 @@ module ActiveRecord
           pure_remote_dispatch(:supports_restart_db_transaction?)
         end
 
+        def supports_row_value_comparison?
+          pure_remote_dispatch(:supports_row_value_comparison?)
+        end
+
         def supports_savepoints?
           pure_remote_dispatch(:supports_savepoints?)
         end
@@ -149,6 +153,10 @@ module ActiveRecord
 
         def supports_virtual_columns?
           pure_remote_dispatch(:supports_virtual_columns?)
+        end
+
+        def row_value_comparison_needs_leading_bound?
+          pure_remote_dispatch(:row_value_comparison_needs_leading_bound?)
         end
 
         # QUOTING =================================================

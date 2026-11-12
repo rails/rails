@@ -711,6 +711,16 @@ module ActiveRecord
         false
       end
 
+      # Whether `(a, b) > (x, y)` reads an index on `(a, b)` from `(x, y)`.
+      def supports_row_value_comparison? # :nodoc:
+        false
+      end
+
+      # Whether row value comparisons plan better as `a >= x AND (a, b) > (x, y)`.
+      def row_value_comparison_needs_leading_bound? # :nodoc:
+        false
+      end
+
       def return_value_after_insert?(column) # :nodoc:
         column.auto_populated_on_insert?
       end
