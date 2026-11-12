@@ -851,6 +851,87 @@ module Arel
         }, compile(test)
       end
 
+      test "TableAlias with a schema-qualified default name uses a dot-free alias" do
+        aliased = Table.new(name: "some_schema.some_table").alias
+        assert_like %{
+          "some_schema"."some_table" "some_schema_some_table_2"
+        }, compile_schema_qualified(aliased)
+      end
+
+      test "attributes of a schema-qualified default TableAlias reference the dot-free alias" do
+        aliased = Table.new(name: "some_schema.some_table").alias
+        assert_like %{
+          "some_schema_some_table_2"."id"
+        }, compile_schema_qualified(aliased[:id])
+      end
+
+      test "subquery aliased with a schema-qualified table name is referenced by that alias in the outer query" do
+        table = Table.new(name: "some_schema.some_table")
+
+        subquery = Arel::SelectManager.new(table)
+        subquery.project(table[:id])
+
+        outer = Arel::SelectManager.new(subquery.as("some_schema.some_table"))
+        outer.project(table[:id])
+        outer.where(table[:id].eq(1))
+        outer.order(table[:id])
+
+        assert_like %{
+          SELECT "some_schema.some_table"."id"
+          FROM (SELECT "some_schema"."some_table"."id" FROM "some_schema"."some_table") "some_schema.some_table"
+          WHERE "some_schema.some_table"."id" = 1
+          ORDER BY "some_schema.some_table"."id"
+        }, compile_schema_qualified(outer.ast)
+      end
+
+      test "does not rewrite references when a joined table shares the alias name" do
+        # The visitor refuses to guess when a joined table has the same name as the dotted FROM alias,
+        # so the output is unchanged from before: the alias stays unquoted and references stay unrewritten.
+        table = Table.new(name: "some_schema.some_table")
+
+        subquery = Arel::SelectManager.new(table)
+        subquery.project(table[:id])
+
+        outer = Arel::SelectManager.new(subquery.as("some_schema.some_table"))
+        outer.project(table[:id])
+        outer.join(table).on(table[:id].eq(table[:parent_id]))
+
+        assert_like %{
+          SELECT "some_schema"."some_table"."id"
+          FROM (SELECT "some_schema"."some_table"."id" FROM "some_schema"."some_table") some_schema.some_table
+          INNER JOIN "some_schema"."some_table" ON "some_schema"."some_table"."id" = "some_schema"."some_table"."parent_id"
+        }, compile_schema_qualified(outer.ast)
+      end
+
+      test "subquery aliased with a dotted SqlLiteral name is quoted as a single identifier" do
+        table = Table.new(name: "some_schema.some_table")
+
+        subquery = Arel::SelectManager.new(table)
+        subquery.project(table[:id])
+
+        outer = Arel::SelectManager.new(subquery.as(Arel.sql("some_schema.some_table")))
+        outer.project(Arel.sql("1"))
+
+        assert_like %{
+          SELECT 1
+          FROM (SELECT "some_schema"."some_table"."id" FROM "some_schema"."some_table") "some_schema.some_table"
+        }, compile_schema_qualified(outer.ast)
+      end
+
+      test "non-dotted subquery and table aliases are rendered unchanged" do
+        users = Table.new(name: :users)
+
+        subquery = Arel::SelectManager.new(users)
+        subquery.project(users[:id])
+        assert_like %{
+          (SELECT "users"."id" FROM "users") Posts
+        }, compile(subquery.as("Posts"))
+
+        assert_like %{
+          "users" "posts_2"
+        }, compile(users.alias("posts_2"))
+      end
+
       test "distinct on raises not implemented error" do
         core = Arel::Nodes::SelectCore.new
         core.set_quantifier = Arel::Nodes::DistinctOn.new(Arel.sql("aaron"))
@@ -1007,6 +1088,10 @@ module Arel
       private
         def compile(node)
           @visitor.accept(node, Collectors::SQLString.new).value
+        end
+
+        def compile_schema_qualified(node)
+          ToSql.new(FakeRecord::SchemaQualifiedConnection.new).accept(node, Collectors::SQLString.new).value
         end
     end
   end

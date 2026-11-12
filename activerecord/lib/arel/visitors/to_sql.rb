@@ -12,6 +12,7 @@ module Arel # :nodoc: all
       def initialize(connection)
         super()
         @connection = connection
+        @from_alias = nil
       end
 
       def compile(node, collector = Arel::Collectors::SQLString.new)
@@ -138,11 +139,17 @@ module Arel # :nodoc: all
             collector << " "
           end
 
-          o.cores.each { |core| collector = visit_Arel_Nodes_SelectCore(core, collector) }
+          previous_from_alias = @from_alias
+          @from_alias = dotted_from_alias_name(o.cores.last)
+          begin
+            o.cores.each { |core| collector = visit_Arel_Nodes_SelectCore(core, collector) }
 
-          collect_nodes_for o.orders, collector, " ORDER BY "
+            collect_nodes_for o.orders, collector, " ORDER BY "
 
-          visit_Arel_Nodes_SelectOptions(o, collector)
+            visit_Arel_Nodes_SelectOptions(o, collector)
+          ensure
+            @from_alias = previous_from_alias
+          end
         end
 
         # The Oracle enhanced adapter uses this private method,
@@ -432,7 +439,7 @@ module Arel # :nodoc: all
         def visit_Arel_Nodes_TableAlias(o, collector)
           collector = visit o.relation, collector
           collector << " "
-          collector << quote_table_name(o.name)
+          collector << quote_table_alias_name(o.name)
         end
 
         def visit_Arel_Nodes_Between(o, collector)
@@ -761,8 +768,14 @@ module Arel # :nodoc: all
         end
 
         def visit_Arel_Attributes_Attribute(o, collector)
-          join_name = o.relation.table_alias || o.relation.name
-          collector << quote_table_name(join_name) << "." << quote_column_name(o.name)
+          relation = o.relation
+          join_name = relation.table_alias || relation.name
+          if @from_alias && @from_alias == join_name.to_s
+            collector << @connection.quote_column_name(@from_alias)
+          else
+            collector << quote_table_name(join_name)
+          end
+          collector << "." << quote_column_name(o.name)
         end
 
         BIND_BLOCK = ActiveSupport::Ractors.shareable_proc { "?" }
@@ -892,6 +905,31 @@ module Arel # :nodoc: all
         def quote(value)
           return value if Arel::Nodes::SqlLiteral === value
           @connection.quote value
+        end
+
+        # An alias is a single identifier, so a dotted alias such as "schema.table" is quoted as one
+        # identifier. Only the FROM alias of a SELECT is ever referenced by name, see #dotted_from_alias_name.
+        def quote_table_alias_name(name)
+          if @from_alias && name.to_s == @from_alias
+            @connection.quote_column_name(@from_alias)
+          else
+            quote_table_name(name)
+          end
+        end
+
+        # The name of the FROM alias of a SELECT when it is a dotted alias such as "schema.table", which
+        # is quoted as one identifier and referenced by that name. nil otherwise, or when a joined table
+        # has the same name, since references to it could not be told apart from the alias.
+        def dotted_from_alias_name(core)
+          source = core&.source
+          return unless Nodes::TableAlias === source&.left
+
+          name = source.left.name.to_s
+          return unless name.include?(".") && /\A\w+\.\w+\z/.match?(name)
+
+          name unless source.right.any? do |join|
+            Nodes::Join === join && Arel::Table === join.left && join.left.table_alias.nil? && join.left.name.to_s == name
+          end
         end
 
         def quote_table_name(name)

@@ -46,7 +46,7 @@ module Arel # :nodoc: all
           # "AS" is not optional in "{UPDATE | DELETE} table AS alias ..."
           collector = visit o.relation, collector
           collector << " AS "
-          collector << quote_table_name(o.name)
+          collector << quote_table_alias_name(o.name)
         end
 
         # Locks are not supported in SQLite
