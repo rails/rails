@@ -33,7 +33,7 @@ module Arel # :nodoc: all
       @name || @klass&.table_name
     end
 
-    def alias(name = "#{self.name}_2")
+    def alias(name = "#{self.name.tr(".", "_")}_2")
       Nodes::TableAlias.new(self, name)
     end
 
