@@ -1,3 +1,13 @@
+*   Fix a worker whose `parallelize_teardown` raises not failing the test run.
+
+    When a cleanup hook raised in a worker, the worker died before calling
+    `stop_worker`, so the server reaped it silently and Minitest reported
+    success. The worker now reports the error to the server (and always calls
+    `stop_worker`), and the server records it as a failed result during
+    shutdown, so the run fails and the summary counts the error.
+
+    *Azmi Muwahid*
+
 *   Shift a local time in a DST spring-forward gap forward by the gap's length
     instead of one hour.
 
