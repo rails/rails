@@ -1,3 +1,13 @@
+*   Treat a `:message_pack` cache serializer to treat classes that no longer
+    exists as a cache miss.
+
+    Reading such an entry returned `nil` as if `nil` had been cached, so `fetch`
+    never called its block and `exist?` returned `true` until the entry expired.
+    It is now a miss, as it is with the Marshal serializers.
+
+    *Hasan Nadeem*
+
+
 ## Rails 8.1.4.1 (November 03, 2026) ##
 
 *   `ActiveSupport::MessagePack` no longer deserializes an unsafe
