@@ -1,3 +1,17 @@
+*   Add `bin/rails credentials:keys` to list the keys in the credentials without their values.
+
+    It prints the path of every key, one per line, in the same dot notation as `credentials:fetch`,
+    so you can check which credentials are set, for example in another environment, without revealing any secret.
+
+    ```bash
+    $ bin/rails credentials:keys --environment production
+    aws.access_key_id
+    aws.secret_access_key
+    secret_key_base
+    ```
+
+    *Alessandro Rodi*
+
 *   Stop setting `config.action_mailer.delivery_job` in `config.load_defaults`.
 
     Action Mailer already defaults to `ActionMailer::MailDeliveryJob`, and
