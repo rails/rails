@@ -101,6 +101,11 @@ module Arel
       assert_equal node, node[:id].relation
     end
 
+    test "alias should not keep the schema qualifier in the default name" do
+      node = Table.new(name: "some_schema.users").alias
+      assert_equal "some_schema_users_2", node.name
+    end
+
     test "new should accept a hash" do
       rel = Table.new name: :users, as: "foo"
       assert_equal "foo", rel.table_alias
