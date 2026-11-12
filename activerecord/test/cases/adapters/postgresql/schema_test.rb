@@ -352,6 +352,15 @@ class SchemaTest < ActiveRecord::PostgreSQLTestCase
     assert_equal ["thing1"], Thing1.pluck(:"test_schema.things.name")
   end
 
+  def test_self_join_with_default_arel_alias_on_qualified_schema_name
+    Thing1.create(id: 1, name: "thing1", email: "thing1@localhost", moment: Time.now)
+    table = Thing1.arel_table
+    aliased = table.alias
+    join = table.join(aliased).on(table[:id].eq(aliased[:id])).join_sources
+
+    assert_equal ["thing1"], Thing1.joins(join).map(&:name)
+  end
+
   def test_classes_with_qualified_schema_name
     assert_equal 0, Thing1.count
     assert_equal 0, Thing2.count

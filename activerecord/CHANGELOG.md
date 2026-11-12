@@ -1,3 +1,12 @@
+*   Fix the default `Arel::Table#alias` name for schema-qualified table names.
+
+    `Arel::Table.new(name: "some_schema.some_table").alias` used `some_schema.some_table_2`
+    as the alias, which was quoted as `"some_schema"."some_table_2"` and produced
+    invalid SQL. The dot is now replaced with an underscore, as the alias tracker
+    already does for association aliases.
+
+    *Carlos Daniel Pohlod*
+
 *   Deprecate `unscope(where: :column)` removing conditions on other tables.
 
     An unqualified column passed to `unscope(where: ...)` currently removes
