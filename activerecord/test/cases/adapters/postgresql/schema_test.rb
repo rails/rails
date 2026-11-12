@@ -103,6 +103,7 @@ class SchemaTest < ActiveRecord::PostgreSQLTestCase
   teardown do
     @connection.drop_schema SCHEMA2_NAME, if_exists: true
     @connection.drop_schema SCHEMA_NAME, if_exists: true
+    @connection.drop_schema "music", if_exists: true
   end
 
   def test_schema_names
@@ -172,21 +173,58 @@ class SchemaTest < ActiveRecord::PostgreSQLTestCase
   end
 
   def test_habtm_table_name_with_schema
-    ActiveRecord::Base.lease_connection.drop_schema "music", if_exists: true
-    ActiveRecord::Base.lease_connection.create_schema "music"
-    ActiveRecord::Base.lease_connection.execute <<~SQL
-      CREATE TABLE music.albums (id serial primary key, deleted boolean default false);
-      CREATE TABLE music.songs (id serial primary key);
-      CREATE TABLE music.albums_songs (album_id integer, song_id integer);
-    SQL
+    create_music_schema
 
     song = Song.create
     album = song.albums.create
     assert_equal song, Song.includes(:albums).where("albums.id": album.id).first
     assert_equal [album.id], Song.joins(:albums).pluck("albums.id")
     assert_equal [album.id], Song.joins(:albums).pluck("music.albums.id")
-  ensure
-    ActiveRecord::Base.lease_connection.drop_schema "music", if_exists: true
+  end
+
+  def test_from_subquery_aliased_with_schema_qualified_table_name
+    insert_things
+
+    relation = Thing1.from(Thing1.where(name: "a"), Thing1.table_name)
+
+    assert_equal ["a"], relation.map(&:name)
+  end
+
+  def test_arel_table_alias_with_schema_qualified_table_name
+    insert_things
+
+    table = Thing1.arel_table
+    aliased = table.alias
+    join = table.join(aliased).on(table[:id].eq(aliased[:id])).join_sources
+
+    assert_equal ["a", "b"], Thing1.joins(join).order(:name).map(&:name)
+  end
+
+  def test_includes_with_unquoted_schema_qualified_order_does_not_eager_load
+    song1, song2 = create_songs_with_albums
+
+    relation = Song.includes(:albums).order("music.songs.id DESC")
+
+    assert_not_predicate relation, :eager_loading?
+    assert_equal [song2, song1], relation.to_a
+  end
+
+  def test_includes_with_quoted_schema_qualified_order_does_not_eager_load
+    song1, song2 = create_songs_with_albums
+
+    relation = Song.includes(:albums).order('"music"."songs"."id" DESC NULLS LAST')
+
+    assert_not_predicate relation, :eager_loading?
+    assert_equal [song2, song1], relation.to_a
+  end
+
+  def test_includes_with_order_on_joined_table_still_eager_loads
+    create_songs_with_albums
+
+    relation = Song.includes(:albums).order("albums.id")
+
+    assert_predicate relation, :eager_loading?
+    assert_equal 2, relation.to_a.size
   end
 
   def test_drop_schema_with_nonexisting_schema
@@ -750,6 +788,29 @@ class SchemaTest < ActiveRecord::PostgreSQLTestCase
 
     def create_partitioned_table_index
       @connection.execute "CREATE INDEX #{PARTITIONED_TABLE_INDEX} ON #{SCHEMA_NAME}.#{PARTITIONED_TABLE} (logdate, city_id)"
+    end
+
+    def create_music_schema
+      @connection.drop_schema "music", if_exists: true
+      @connection.create_schema "music"
+      @connection.execute <<~SQL
+        CREATE TABLE music.albums (id serial primary key, deleted boolean default false);
+        CREATE TABLE music.songs (id serial primary key);
+        CREATE TABLE music.albums_songs (album_id integer, song_id integer);
+      SQL
+    end
+
+    def create_songs_with_albums
+      create_music_schema
+      song1 = Song.create
+      song2 = Song.create
+      song1.albums.create
+      song2.albums.create
+      [song1, song2]
+    end
+
+    def insert_things
+      @connection.execute "INSERT INTO #{SCHEMA_NAME}.#{TABLE_NAME} (id, name) VALUES (1, 'a'), (2, 'b')"
     end
 end
 

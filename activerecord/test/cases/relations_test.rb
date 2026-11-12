@@ -499,6 +499,14 @@ class RelationTest < ActiveRecord::TestCase
     assert_empty topics.references_values
   end
 
+  def test_order_with_unquoted_schema_qualified_table_name_references_schema_and_table
+    assert_equal ["some_schema.topics"], Topic.order(Arel.sql("some_schema.topics.id DESC")).references_values
+  end
+
+  def test_order_with_quoted_schema_qualified_table_name_references_schema_and_table
+    assert_equal ["some_schema.topics"], Topic.order(Arel.sql('"some_schema"."topics"."id" DESC')).references_values
+  end
+
   def test_finding_with_reorder_by_aliased_attributes
     topics = Topic.order("author_name").reorder(:heading)
     assert_equal 5, topics.to_a.size

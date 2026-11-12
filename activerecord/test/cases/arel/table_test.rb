@@ -158,6 +158,15 @@ module Arel
       assert_equal "users", @relation.name
     end
 
+    test "default alias name replaces dots in a schema-qualified name" do
+      schema_qualified = Table.new(name: "some_schema.some_table")
+      assert_equal "some_schema_some_table_2", schema_qualified.alias.name
+    end
+
+    test "default alias name keeps the table name for a dot-free name" do
+      assert_equal "posts_2", Table.new(name: "posts").alias.name
+    end
+
     test "[] when given a Symbol manufactures an attribute if the symbol names an attribute within the relation" do
       column = @relation[:id]
       assert_equal "id", column.name

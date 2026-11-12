@@ -1,3 +1,25 @@
+*   Fix invalid SQL for schema-qualified table names used as aliases.
+
+    The default name of `Arel::Table#alias` for a table such as `"schema.table"` was
+    `"schema.table_2"`, which databases reject as an alias. It is now `"schema_table_2"`,
+    matching the aliases generated for associations.
+
+    A subquery given a schema-qualified alias, for example `Relation#from(subquery, Model.table_name)`,
+    is now quoted as a single identifier (`"schema.table"`), and references to the table in the same
+    `SELECT` use that alias. References inside nested subqueries, and joins to a table with the same
+    name as the alias, are not rewritten.
+
+    *William Howard*
+
+*   Fix `eager_loading?` incorrectly returning `true` for `includes` combined with an
+    `order` on a schema-qualified table.
+
+    `extract_table_name_from` only captured the schema name from strings such as
+    `"schema.table.column"` (quoted or unquoted), so `references_values` never matched the
+    schema-qualified `table_name` and `includes` was needlessly converted to a `JOIN`.
+
+    *William Howard*
+
 *   Deprecate `unscope(where: :column)` removing conditions on other tables.
 
     An unqualified column passed to `unscope(where: ...)` currently removes

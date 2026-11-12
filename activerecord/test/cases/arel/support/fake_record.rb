@@ -92,6 +92,14 @@ module FakeRecord
     end
   end
 
+  # Quotes schema-qualified table names the way the real adapters do ("schema"."table"),
+  # so that alias quoting can be asserted against schema-qualified table names.
+  class SchemaQualifiedConnection < Connection
+    def quote_table_name(name)
+      name.to_s.split(".").map { |part| quote_column_name(part) }.join(".")
+    end
+  end
+
   class ConnectionPool
     def initialize
       @connection = Connection.new

@@ -56,9 +56,20 @@ module Arel
         assert_like %{ "users"."name" IS NOT NULL }, sql
       end
 
+      test "TableAlias with a schema-qualified name is quoted as a single identifier after AS" do
+        aliased = Table.new(name: "some_schema.some_table").alias
+        assert_like %{
+          "some_schema"."some_table" AS "some_schema_some_table_2"
+        }, compile_schema_qualified(aliased)
+      end
+
       private
         def compile(node)
           @visitor.accept(node, Collectors::SQLString.new).value
+        end
+
+        def compile_schema_qualified(node)
+          SQLite.new(FakeRecord::SchemaQualifiedConnection.new).accept(node, Collectors::SQLString.new).value
         end
     end
   end
