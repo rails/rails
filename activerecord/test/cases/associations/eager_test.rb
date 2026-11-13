@@ -690,16 +690,35 @@ class EagerAssociationTest < ActiveRecord::TestCase
   end
 
   def test_preloading_nested_association_under_has_many_through_with_two_objects_for_the_same_owner
-    loaded_author = Author.find(authors(:david).id)
+    category = Category.find(categories(:general).id)
+    category.categorizations.create!(author: authors(:david), post: posts(:thinking))
+    loaded_author, other_copy = category.authors.load.select { |author| author.id == authors(:david).id }
+    assert_not_same loaded_author, other_copy
     loaded_author.comments.load
-    other_copy = Author.find(authors(:david).id)
 
-    ActiveRecord::Associations::Preloader.new(records: [loaded_author, other_copy], associations: { comments: :ratings }).call
+    categorization = category.categorizations.preload(category: { authors: { comments: :ratings } }).first
+
+    assert_same category, categorization.category
 
     assert_no_queries do
       assert_equal 3, loaded_author.comments.sum { |comment| comment.ratings.size }
       assert_equal 3, other_copy.comments.sum { |comment| comment.ratings.size }
     end
+  end
+
+  def test_preloading_ordered_nested_has_many_through_with_a_new_record_in_a_loaded_source
+    persisted = developers(:david).project_developers_by_salary.map(&:salary)
+    developer = Developer.find(developers(:david).id)
+    developer.contracts.create!(company: companies(:first_firm))
+    project = developer.projects.load.first
+    project.developers_by_salary.load
+    project.developers_by_salary.build(name: "alice", salary: 1_000_000)
+    project.developers_by_salary.build(name: "bob", salary: 2_000_000)
+
+    contract = developer.contracts.preload(developer: :project_developers_by_salary).first
+
+    assert_same developer, contract.developer
+    assert_equal [*persisted, 1_000_000, 2_000_000], developer.project_developers_by_salary.map(&:salary)
   end
 
   def test_eager_with_has_many_through_an_sti_join_model_with_conditions_on_both
