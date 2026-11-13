@@ -369,6 +369,22 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     assert_equal false, bulb.frickinawesome
   end
 
+  def test_association_unscope_with_hash_in_array_removes_default_scope_condition
+    post = PostWithWhereDefaultScope.create!(author: authors(:david), title: "title", body: "body")
+    CommentOnPostWithWhereDefaultScope.create!(body: "active", post: post)
+    CommentOnPostWithWhereDefaultScope.create!(body: "deleted", post: post, deleted_at: Time.now)
+
+    assert_equal 2, post.comments_unscoped_by_hash_in_array.count
+  end
+
+  def test_association_unscope_with_arel_attribute_in_array_removes_default_scope_condition
+    post = PostWithWhereDefaultScope.create!(author: authors(:david), title: "title", body: "body")
+    CommentOnPostWithWhereDefaultScope.create!(body: "active", post: post)
+    CommentOnPostWithWhereDefaultScope.create!(body: "deleted", post: post, deleted_at: Time.now)
+
+    assert_equal 2, post.comments_unscoped_by_arel_attribute_in_array.count
+  end
+
   def test_build_from_association_should_respect_scope
     author = Author.new
 
