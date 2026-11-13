@@ -1,3 +1,10 @@
+*   Allow `config.content_security_policy_report_only` to accept a block that
+    defines a separate report-only policy.
+
+    Fixes #40452.
+
+    *Shaun Russell*
+
 *   Fix `/rails/info/notes` raising `Encoding::CompatibilityError` when notes
     from Ruby and non-Ruby files contain non-ASCII characters.
 
