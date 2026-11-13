@@ -1,3 +1,13 @@
+*   Fix `ActiveSupport::BroadcastLogger#push_tags`, `#pop_tags` and `#clear_tags!`
+    when broadcasting to more than one tagging logger.
+
+    They returned one result per logger, so `Rails::Rack::Logger` counted the
+    loggers instead of the tags it pushed and popped the wrong number of tags at
+    the end of each request, which could leave request tags behind on the
+    thread or remove tags the middleware never pushed.
+
+    *Islam Gagiev*
+
 *   Shift a local time in a DST spring-forward gap forward by the gap's length
     instead of one hour.
 

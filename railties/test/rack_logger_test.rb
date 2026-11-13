@@ -145,6 +145,20 @@ module Rails
       ensure
         @notifier.unsubscribe block_sub
       end
+
+      def test_logger_pops_its_tags_when_broadcasting_to_multiple_tagging_loggers
+        loggers = 2.times.map { ActiveSupport::TaggedLogging.new(::Logger.new(File::NULL)) }
+        broadcast = ActiveSupport::BroadcastLogger.new(*loggers)
+
+        taggers = ["tag1", "tag2", ->(_req) { "tag3" }]
+        logger_middleware = TestLogger.new(broadcast, taggers: taggers) do
+          loggers.each { |logger| assert_equal(["tag1", "tag2", "tag3"], logger.formatter.current_tags) }
+        end
+
+        logger_middleware.call("REQUEST_METHOD" => "GET").last.close
+
+        loggers.each { |logger| assert_equal([], logger.formatter.current_tags) }
+      end
     end
   end
 end
