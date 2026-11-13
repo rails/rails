@@ -1714,9 +1714,13 @@ http://localhost:3000/session/new and you'll see the New link on the index page.
 Optionally, you can include a link to this route in the navbar to add a Login
 link if not authenticated.
 
-```erb
-<%# app/views/products/index.html.erb %>
-<%= link_to "Login", new_session_path unless authenticated? %>
+```erb#5
+<%# app/views/layouts/application.html.erb %>
+<nav>
+  <%= link_to "Home", root_path %>
+  <%= button_to "Log out", session_path, method: :delete if authenticated? %>
+  <%= link_to "Login", new_session_path unless authenticated? %>
+</nav>
 ```
 
 You can also update the Edit and Delete links on the
