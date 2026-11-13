@@ -45,11 +45,13 @@ gem "ruby-vips", "~> 2.3", require: false
 # Use Rack CORS for handling Cross-Origin Resource Sharing (CORS), making cross-origin Ajax possible
 # gem "rack-cors"
 <%- end -%>
-<% if RUBY_ENGINE == "ruby" -%>
+<% if RUBY_ENGINE == "ruby" || !options.skip_bundler_audit? || !options.skip_brakeman? || !options.skip_rubocop? -%>
 
 group :development, :test do
+<%- if RUBY_ENGINE == "ruby" -%>
   # See https://guides.rubyonrails.org/debugging_rails_applications.html#debugging-with-the-debug-gem
   gem "debug", platforms: %i[ mri windows ], require: "debug/prelude"
+<%- end -%>
 <%- unless options.skip_bundler_audit? -%>
 
   # Audits gems for known security defects (use config/bundler-audit.yml to ignore issues)
