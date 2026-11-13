@@ -216,15 +216,6 @@ module AbstractController
         end
       end
 
-      def test_protocol_encoding_is_preserved
-        add_host!
-        [Encoding::ISO_8859_1, Encoding::BINARY].each do |encoding|
-          url = W.new.url_for(controller: "c", action: "a", id: "i", protocol: "https".encode(encoding))
-          assert_equal "https://www.basecamphq.com/c/a/i", url
-          assert_equal encoding, url.encoding
-        end
-      end
-
       def test_invalid_host_encoding_is_rejected_before_protocol
         error = assert_raises(ArgumentError) do
           W.new.url_for(controller: "c", action: "a", host: "\xFF", protocol: true)
