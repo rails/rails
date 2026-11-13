@@ -1,3 +1,11 @@
+*   `Rails.app.dotenvs` no longer runs shell commands from `.env`.
+
+    `$(...)` in a value is literal text. Development credential lookup
+    reads this file, so command substitution was code execution for
+    anyone who could write it.
+
+    *Alexander Patrikalakis*
+
 *   Detect Kamal in `bin/rails app:update`.
 
     The update command didn't pass `skip_kamal`, so it rendered config files

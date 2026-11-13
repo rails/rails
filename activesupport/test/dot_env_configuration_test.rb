@@ -110,9 +110,9 @@ class DotEnvConfigurationTest < ActiveSupport::TestCase
     assert_equal "1", @config.require(:one)
   end
 
-  test "strips inline comment after a command substitution" do
+  test "strips inline comment after a value that looks like command substitution" do
     write_env_file_raw("SECRET=$(echo hello) # inline note")
-    assert_equal "hello", @config.require(:secret)
+    assert_equal "$(echo hello)", @config.require(:secret)
   end
 
   test "keeps a # without preceding whitespace as part of an unquoted value" do
@@ -151,14 +151,19 @@ class DotEnvConfigurationTest < ActiveSupport::TestCase
     assert_equal "https:///path", @config.require(:url)
   end
 
-  test "executes commands" do
+  test "does not execute command substitutions" do
     write_env_file_raw("SECRET=$(echo hello)")
-    assert_equal "hello", @config.require(:secret)
+    assert_equal "$(echo hello)", @config.require(:secret)
   end
 
-  test "executes commands and interpolates variables" do
+  test "does not execute command substitutions inside quotes" do
+    write_env_file_raw("SECRET='$(echo hello)'")
+    assert_equal "$(echo hello)", @config.require(:secret)
+  end
+
+  test "interpolates variables around literal command-shaped text" do
     write_env_file_raw("PREFIX=hello\nSECRET=$(echo world)\nCOMBINED=\${PREFIX}-\${SECRET}")
-    assert_equal "hello-world", @config.require(:combined)
+    assert_equal "hello-$(echo world)", @config.require(:combined)
   end
 
   test "returns empty hash when file does not exist" do

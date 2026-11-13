@@ -572,7 +572,8 @@ module Rails
     # - Empty lines (ignored)
     # - Quoted values (single or double quotes)
     # - Variable interpolation with ${VAR} syntax
-    # - Command execution with $(command) syntax
+    #
+    # `$(...)` is kept as literal text and is not executed.
     #
     # Examples:
     #

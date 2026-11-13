@@ -1,3 +1,12 @@
+*   Don't execute shell commands while parsing `.env` files.
+
+    `ActiveSupport::DotEnvConfiguration` used to run `$(...)` in values,
+    including inside quotes. Those files are read when development
+    credentials are loaded. `$(...)` is now literal text. Put already
+    resolved secrets in the environment or in `.env`.
+
+    *Alexander Patrikalakis*
+
 *   Don't show the encryption key in `ActiveSupport::EncryptedFile#inspect`.
 
     Previously the key, read from the key file or environment variable, was
