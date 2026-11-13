@@ -1,3 +1,16 @@
+*   Add support for passing a block to `Enumerable#sole`.
+
+    When passed a block, `sole` now runs the block for each item and returns the
+    sole item for which the block returns a truthy value.
+
+    ```ruby
+    [1, 2, 3].sole(&:even?)  # => 2
+    [1, 3].sole(&:even?)     # => Enumerable::SoleItemExpectedError: no item found
+    [1, 2, 4].sole(&:even?)  # => Enumerable::SoleItemExpectedError: multiple items found
+    ```
+
+    *Collin Styles*
+
 *   Shift a local time in a DST spring-forward gap forward by the gap's length
     instead of one hour.
 

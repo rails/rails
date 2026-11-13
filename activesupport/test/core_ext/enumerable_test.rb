@@ -449,12 +449,27 @@ class EnumerableTests < ActiveSupport::TestCase
     assert_raise(expected_raise) { GenericEnumerable.new([1, 2]).sole }
     assert_raise(expected_raise) { GenericEnumerable.new([1, nil]).sole }
     assert_raise(expected_raise) { GenericEnumerable.new(1..).sole }
+
+    assert_equal 2, GenericEnumerable.new([1, 2, 3]).sole(&:even?)
+    assert_nil GenericEnumerable.new([1, nil, 3]).sole(&:nil?)
+    assert_equal [:b, 2], { a: 1, b: 2 }.sole { |_key, value| value.even? }
+    assert_raise(expected_raise) { GenericEnumerable.new([]).sole(&:even?) }
+    assert_raise(expected_raise) { GenericEnumerable.new([1, 3]).sole(&:even?) }
+    assert_raise(expected_raise) { GenericEnumerable.new([1, 2, 4]).sole(&:even?) }
+  end
+
+  def test_sole_iterates_only_on_what_is_needed
+    very_long_enum = GenericEnumerable.new(1..)
+    assert_raise(Enumerable::SoleItemExpectedError) { very_long_enum.sole { |x| x < 3 } }
   end
 
   def test_sole_returns_same_value_as_first_for_tuples
     enum = Enumerator.new(1) { |yielder| yielder.yield(1, "one") }
     assert_equal [1, "one"], enum.sole
     assert_equal enum.first, enum.sole
+
+    enum = Enumerator.new(2) { |yielder| yielder.yield(1, "one"); yielder.yield(2, "two") }
+    assert_equal [2, "two"], enum.sole { |n, _| n.even? }
   end
 
   class KeywordYielder
