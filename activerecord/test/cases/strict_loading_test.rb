@@ -354,7 +354,7 @@ class StrictLoadingTest < ActiveRecord::TestCase
 
     author = Author.strict_loading.preload(:comments, comments: :ratings).find(author.id)
 
-    assert_equal [rating], author.comments.first.ratings
+    assert_equal [rating], author.comments.find { |c| c.id == comment.id }.ratings
   end
 
   def test_strict_loading_with_has_one_through_does_not_prevent_creation_of_association
