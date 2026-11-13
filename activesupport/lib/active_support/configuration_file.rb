@@ -4,10 +4,22 @@ module ActiveSupport
   # Reads a YAML configuration file, evaluating any ERB, then
   # parsing the resulting YAML.
   #
+  # Parsing uses +YAML.safe_load+ with aliases enabled. The only extra
+  # classes permitted are +Date+, +DateTime+, +Time+, +Symbol+, and
+  # +YAML::Omap+ (ordered fixtures). A +!ruby/object+ tag raises
+  # +Psych::DisallowedClass+.
+  #
   # Warns in case of YAML confusing characters, like invisible
   # non-breaking spaces.
   class ConfigurationFile # :nodoc:
     class FormatError < StandardError; end
+
+    def self.permitted_classes
+      require "date"
+      require "yaml"
+      require "psych/omap"
+      @permitted_classes ||= [Date, DateTime, Time, Symbol, YAML::Omap].freeze
+    end
 
     def initialize(content_path)
       @content_path = content_path.to_s
@@ -20,11 +32,16 @@ module ActiveSupport
 
     def parse(context: nil, **options)
       source = @content.include?("<%") ? render(context) : @content
+      extra_classes = Array(options.delete(:permitted_classes))
+      yaml_options = {
+        aliases: true,
+        permitted_classes: self.class.permitted_classes + extra_classes
+      }.merge(options)
 
       if source == @content
-        YAML.unsafe_load_file(@content_path, **options) || {}
+        YAML.safe_load_file(@content_path, **yaml_options) || {}
       else
-        YAML.unsafe_load(source, **options) || {}
+        YAML.safe_load(source, **yaml_options) || {}
       end
     rescue Psych::SyntaxError => error
       raise FormatError, "YAML syntax error occurred while parsing #{@content_path}. " \

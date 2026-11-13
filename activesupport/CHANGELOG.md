@@ -1,3 +1,14 @@
+*   Parse configuration YAML with `YAML.safe_load`.
+
+    `ActiveSupport::ConfigurationFile` used `YAML.unsafe_load`, so a
+    `!ruby/object` tag in `database.yml`, `storage.yml`, `config_for`, or
+    a fixture instantiated an arbitrary class. Aliases still work. `Date`,
+    `DateTime`, `Time`, `Symbol`, and `YAML::Omap` are permitted. Other
+    classes raise `Psych::DisallowedClass` unless passed as
+    `permitted_classes:`.
+
+    *Alexander Patrikalakis*
+
 *   Don't show the encryption key in `ActiveSupport::EncryptedFile#inspect`.
 
     Previously the key, read from the key file or environment variable, was
