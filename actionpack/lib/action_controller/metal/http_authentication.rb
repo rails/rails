@@ -223,7 +223,7 @@ module ActionController
         credentials = decode_credentials_header(request)
         valid_nonce = validate_nonce(secret_key, request, credentials[:nonce])
 
-        if valid_nonce && realm == credentials[:realm] && opaque(secret_key) == credentials[:opaque]
+        if valid_nonce && realm == credentials[:realm] && ActiveSupport::SecurityUtils.secure_compare(opaque(secret_key), credentials[:opaque].to_s)
           password = password_procedure.call(credentials[:username])
           return false unless password
 
@@ -234,7 +234,7 @@ module ActionController
             [true, false].any? do |password_is_ha1|
               _uri = trailing_question_mark ? uri + "?" : uri
               expected = expected_response(method, _uri, credentials, password, password_is_ha1)
-              expected == credentials[:response]
+              ActiveSupport::SecurityUtils.secure_compare(expected, credentials[:response].to_s)
             end
           end
         end
@@ -341,7 +341,7 @@ module ActionController
       def validate_nonce(secret_key, request, value, seconds_to_timeout = 5 * 60)
         return false if value.nil?
         t = ::Base64.decode64(value).split(":").first.to_i
-        nonce(secret_key, t) == value && (t - Time.now.to_i).abs <= seconds_to_timeout
+        ActiveSupport::SecurityUtils.secure_compare(nonce(secret_key, t), value) && (t - Time.now.to_i).abs <= seconds_to_timeout
       end
 
       # Opaque based on digest of secret key
