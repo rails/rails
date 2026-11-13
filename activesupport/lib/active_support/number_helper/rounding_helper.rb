@@ -20,6 +20,7 @@ module ActiveSupport
       def digit_count(number)
         return 1 if number.zero?
         return 1 unless number.respond_to?(:finite?) && number.finite?
+        return number.exponent if number.is_a?(BigDecimal)
         (Math.log10(number.abs) + 1).floor
       end
 

@@ -1,3 +1,19 @@
+*   Format non-finite and out-of-range numbers in `number_to_human` and
+    `number_to_human_size` instead of raising.
+
+    `Float::INFINITY`, `Float::NAN`, strings such as `"Infinity"`, and values
+    beyond the `Float` range raised `FloatDomainError` or `ArgumentError`. They
+    are now formatted the same way `number_to_currency` and
+    `number_to_percentage` already format them. `significant: true` also no
+    longer raises for `BigDecimal` values beyond the `Float` range.
+
+    ```ruby
+    number_to_human_size(Float::INFINITY) # => "Inf Bytes"
+    number_to_human("Infinity")           # => "Inf"
+    ```
+
+    *Richard Desmarais*
+
 *   Shift a local time in a DST spring-forward gap forward by the gap's length
     instead of one hour.
 

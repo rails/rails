@@ -285,6 +285,36 @@ module ActiveSupport
         end
       end
 
+      def test_to_rounded_with_significant_true_and_value_beyond_float_range
+        [@instance_with_helpers, TestClassWithClassNumberHelpers, ActiveSupport::NumberHelper].each do |number_helper|
+          assert_equal "1" + "0" * 400, number_helper.number_to_rounded(10**400, precision: 3, significant: true)
+          assert_equal "1" + "0" * 400, number_helper.number_to_rounded("1e400".to_d, precision: 3, significant: true)
+        end
+      end
+
+      def test_number_to_human_size_with_non_finite_value
+        [@instance_with_helpers, TestClassWithClassNumberHelpers, ActiveSupport::NumberHelper].each do |number_helper|
+          assert_equal "Inf Bytes",  number_helper.number_to_human_size(Float::INFINITY)
+          assert_equal "-Inf Bytes", number_helper.number_to_human_size(-Float::INFINITY)
+          assert_equal "NaN Bytes",  number_helper.number_to_human_size(Float::NAN)
+          assert_equal "Inf Bytes",  number_helper.number_to_human_size("Infinity")
+          assert_equal "-Inf Bytes", number_helper.number_to_human_size("-Infinity")
+          assert_equal "Inf Bytes",  number_helper.number_to_human_size(10**400)
+          assert_equal "6 Bytes",    number_helper.number_to_human_size("6_")
+        end
+      end
+
+      def test_number_to_human_with_non_finite_value
+        [@instance_with_helpers, TestClassWithClassNumberHelpers, ActiveSupport::NumberHelper].each do |number_helper|
+          assert_equal "Inf",  number_helper.number_to_human(Float::INFINITY)
+          assert_equal "-Inf", number_helper.number_to_human(-Float::INFINITY)
+          assert_equal "NaN",  number_helper.number_to_human(Float::NAN)
+          assert_equal "Inf",  number_helper.number_to_human("Infinity")
+          assert_equal "Inf",  number_helper.number_to_human(10**400)
+          assert_equal "Inf m", number_helper.number_to_human(Float::INFINITY, units: { unit: "m", thousand: "km" })
+        end
+      end
+
       def test_to_rounded_with_strip_insignificant_zeros
         [@instance_with_helpers, TestClassWithClassNumberHelpers, ActiveSupport::NumberHelper].each do |number_helper|
           assert_equal "9775.43", number_helper.number_to_rounded(9775.43, precision: 4, strip_insignificant_zeros: true)

@@ -11,14 +11,16 @@ module ActiveSupport
       self.validate_float = true
 
       def convert
-        @number = Float(number)
+        @number = valid_bigdecimal.to_f
 
         # For backwards compatibility with those that didn't add strip_insignificant_zeros to their locale files.
         unless options.key?(:strip_insignificant_zeros)
           options[:strip_insignificant_zeros] = true
         end
 
-        if smaller_than_base?
+        if !number.finite?
+          number_to_format = NumberToRoundedConverter.convert_with_resolved_options(number, options)
+        elsif smaller_than_base?
           number_to_format = number.to_i.to_s
         else
           human_size = number / (base**exponent)
@@ -33,11 +35,11 @@ module ActiveSupport
         end
 
         def unit
-          translate_number_value_with_default(storage_unit_key, locale: options[:locale], count: number.to_i, raise: true)
+          translate_number_value_with_default(storage_unit_key, locale: options[:locale], count: number.finite? ? number.to_i : 0, raise: true)
         end
 
         def storage_unit_key
-          key_end = smaller_than_base? ? "byte" : STORAGE_UNITS[exponent]
+          key_end = !number.finite? || smaller_than_base? ? "byte" : STORAGE_UNITS[exponent]
           "human.storage_units.units.#{key_end}"
         end
 
