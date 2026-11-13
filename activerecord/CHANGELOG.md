@@ -1,3 +1,15 @@
+*   Add `enforced:` option to `add_check_constraint` for PostgreSQL 18+.
+
+    When `enforced: false` is passed, the constraint is created as `NOT ENFORCED`,
+    so PostgreSQL does not check it when rows are inserted or updated.
+
+    ```ruby
+    add_check_constraint :products, "price > 0", name: "price_check", enforced: false
+    # => ALTER TABLE "products" ADD CONSTRAINT price_check CHECK (price > 0) NOT ENFORCED
+    ```
+
+    *Juanito Fatas*
+
 *   Fix joining through an association whose scope has references and includes
     aliasing a later join of an included table.
 

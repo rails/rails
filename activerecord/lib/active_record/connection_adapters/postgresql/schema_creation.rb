@@ -22,7 +22,10 @@ module ActiveRecord
           end
 
           def visit_CheckConstraintDefinition(o)
-            super.dup.tap { |sql| sql << " NOT VALID" unless o.validate? }
+            super.dup.tap do |sql|
+              sql << " NOT ENFORCED" unless o.enforced?
+              sql << " NOT VALID" unless o.validate?
+            end
           end
 
           def visit_ValidateConstraint(o)
