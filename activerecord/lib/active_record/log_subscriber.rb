@@ -5,6 +5,7 @@ module ActiveRecord
     IGNORE_PAYLOAD_NAMES = ["SCHEMA", "EXPLAIN"].freeze
 
     self.namespace = "active_record"
+    self.needs_source_location = false
 
     class_attribute :backtrace_cleaner, default: ActiveSupport::BacktraceCleaner.new
 

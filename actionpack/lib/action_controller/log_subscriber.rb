@@ -5,6 +5,7 @@ module ActionController
     class_attribute :backtrace_cleaner, default: ActiveSupport::BacktraceCleaner.new
 
     self.namespace = "action_controller"
+    self.needs_source_location = false
 
     def request_started(event)
       payload = event[:payload]

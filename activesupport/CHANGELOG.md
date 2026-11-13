@@ -1,3 +1,14 @@
+*   Event subscribers can define `needs_source_location?` to skip capturing the
+    caller's source location.
+
+    `ActiveSupport::EventReporter#notify` walks the call stack for
+    `event[:source_location]` on every event. When no subscriber receiving an
+    event needs it, the key is now left out. `EventReporter::LogSubscriber`
+    subclasses opt out with `self.needs_source_location = false`, which the
+    framework log subscribers do, saving 5 allocations per event.
+
+    *Sampo Kuokkanen*
+
 *   Shift a local time in a DST spring-forward gap forward by the gap's length
     instead of one hour.
 

@@ -3,6 +3,7 @@
 module ActiveStorage
   class LogSubscriber < ActiveSupport::EventReporter::LogSubscriber # :nodoc:
     self.namespace = "active_storage"
+    self.needs_source_location = false
 
     def service_upload(event)
       message = "Uploaded file to key: #{key_in(event)}"

@@ -103,6 +103,73 @@ module ActiveSupport
       assert_equal 1, broken.events.size
     end
 
+    class NoSourceLocationSubscriber < EventReporter::TestHelper::EventSubscriber
+      def needs_source_location?
+        false
+      end
+    end
+
+    class BrokenSourceLocationSubscriber < EventReporter::TestHelper::EventSubscriber
+      def needs_source_location?
+        raise StandardError, "needs_source_location? blew up"
+      end
+    end
+
+    test "notify omits source_location when no subscriber needs it" do
+      subscriber = NoSourceLocationSubscriber.new
+      reporter = EventReporter.new(subscriber, raise_on_error: true)
+
+      reporter.notify("some.event", id: 1)
+
+      assert_equal 1, subscriber.events.size
+      assert_not subscriber.events.first.key?(:source_location)
+    end
+
+    test "notify includes source_location when any matching subscriber needs it" do
+      subscriber = NoSourceLocationSubscriber.new
+      reporter = EventReporter.new(subscriber, @subscriber, raise_on_error: true)
+
+      reporter.notify("some.event", id: 1); lineno = __LINE__
+
+      source_location = subscriber.events.first[:source_location]
+      assert_equal __FILE__, source_location[:filepath]
+      assert_equal lineno, source_location[:lineno]
+      assert_same subscriber.events.first, @subscriber.events.first
+    end
+
+    test "subscribers filtered out of an event don't make notify capture source_location" do
+      subscriber = NoSourceLocationSubscriber.new
+      reporter = EventReporter.new(subscriber, raise_on_error: true)
+      reporter.subscribe(@subscriber) { |event| event[:name] == "other.event" }
+
+      reporter.notify("some.event", id: 1)
+
+      assert_not subscriber.events.first.key?(:source_location)
+      assert_empty @subscriber.events
+    end
+
+    test "a subscriber whose needs_source_location? raises is reported and treated as needing it" do
+      broken = BrokenSourceLocationSubscriber.new
+      reporter = EventReporter.new(broken, raise_on_error: false)
+
+      error_report = assert_error_reported do
+        reporter.notify("some.event")
+      end
+
+      assert_equal "needs_source_location? blew up", error_report.error.message
+      assert broken.events.first.key?(:source_location)
+    end
+
+    test "needs_source_location? errors are raised when raise_on_error is true" do
+      reporter = EventReporter.new(BrokenSourceLocationSubscriber.new, raise_on_error: true)
+
+      error = assert_raises(StandardError) do
+        reporter.notify("some.event")
+      end
+
+      assert_equal "needs_source_location? blew up", error.message
+    end
+
     test "emitting? reports whether any subscriber would consume the event" do
       assert @reporter.emitting?("some.event")
       assert @reporter.emitting?(:some_event)
