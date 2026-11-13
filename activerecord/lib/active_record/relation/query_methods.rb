@@ -2008,7 +2008,7 @@ module ActiveRecord
           if rest.empty?
             parts = [Arel.sql(opts)]
           else
-            parts = [model.bound_sql_literal_for("(#{opts})", rest)]
+            parts = [model.bound_sql_literal_for(opts, rest)]
           end
         when Hash
           attribute_aliases = model.attribute_aliases
