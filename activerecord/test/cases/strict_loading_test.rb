@@ -19,7 +19,7 @@ require "models/comment"
 require "models/rating"
 
 class StrictLoadingTest < ActiveRecord::TestCase
-  fixtures :developers, :developers_projects, :projects, :ships
+  fixtures :developers, :developers_projects, :projects, :ships, :authors, :author_addresses
 
   def run(*)
     with_debug_event_reporting do
