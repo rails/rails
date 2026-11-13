@@ -543,6 +543,18 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
     assert_equal("This is our loyal customer", order_tag.attached_reason)
   end
 
+  def test_ids_reader_with_composite_primary_key_on_source
+    tag = cpk_tags(:cpk_tag_loyal_customer)
+
+    ids = tag.order_ids
+
+    assert_kind_of Array, ids
+    assert_equal(
+      [cpk_orders(:cpk_groceries_order_1).id, cpk_orders(:cpk_groceries_order_2).id].sort,
+      ids.sort
+    )
+  end
+
   def test_destroy_all_on_association_clears_scope
     post = Post.create!(title: "Rails 6", body: "")
     people = post.people
@@ -1976,17 +1988,6 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
     book.reload
     assert_nil book.shop_id
     assert_nil book.order_id
-  end
-
-  def test_ids_reader_with_composite_primary_key_on_source
-    blog = Sharded::Blog.create!
-    post = Sharded::BlogPost.create!(blog_id: blog.id)
-    comment = Sharded::Comment.create!(blog_id: blog.id, blog_post_id: post.id)
-
-    ids = blog.comments_via_post_ids
-
-    assert_kind_of Array, ids
-    assert_equal [[comment.blog_id, comment.id]], ids
   end
 
   private

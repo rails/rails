@@ -47,7 +47,7 @@ module ActiveRecord::Associations::Builder # :nodoc:
       association = o.association(name)
       foreign_key = association.foreign_key
 
-      if foreign_key.any? { |key| o.public_send(change_method, key) }
+      if association.match_key.any? { |key| o.public_send(change_method, key) }
         read_old = lambda do |column|
           change = o.public_send(change_method, column)
           change ? change.first : o._read_attribute(column)
@@ -154,11 +154,10 @@ module ActiveRecord::Associations::Builder # :nodoc:
           condition = lambda { |record|
             association = record.association(name)
 
-            fk_missing_or_changed = association.foreign_key.any? do |fk|
-              record._read_attribute(fk).nil? || record.attribute_changed?(fk)
-            end
+            fk_missing = association.foreign_key.any? { |fk| record._read_attribute(fk).nil? }
+            match_key_changed = association.match_key.any? { |key| record.attribute_changed?(key) }
 
-            fk_missing_or_changed ||
+            fk_missing || match_key_changed ||
               (polymorphic && (record._read_attribute(association.foreign_type).nil? || record.attribute_changed?(association.foreign_type)))
           }
 

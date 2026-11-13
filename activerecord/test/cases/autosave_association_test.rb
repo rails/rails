@@ -2561,7 +2561,7 @@ class AutosavePolymorphicShardedPrimaryKeyTest < ActiveRecord::TestCase
     assert_equal post, image.reload.imageable
   end
 
-  def test_autosave_polymorphic_belongs_to_with_composite_query_constraints_inverse
+  def test_autosave_polymorphic_belongs_to_with_composite_foreign_key_inverse
     shipment = Shipment.new(region_id: 7)
     adjustment = Adjustment.new(region_id: 7)
     adjustment.adjustable = shipment
