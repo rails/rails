@@ -2334,8 +2334,34 @@ The default value depends on the `config.load_defaults` target version:
 
 #### `config.action_controller.allowed_redirect_hosts`
 
-Specifies a list of allowed hosts for redirects. `redirect_to` will allow redirects to them without raising an
-`UnsafeRedirectError` error.
+Specifies a list of hosts that `redirect_to` and `redirect_back_or_to` may
+redirect to without raising an `UnsafeRedirectError`. The list defaults to
+`[]`. Entries can be strings, regular expressions, or `IPAddr` values.
+
+String entries are matched case-insensitively against the hostname. A leading
+dot matches the domain and one level of subdomain; for example, `.example.com`
+matches `example.com` and `www.example.com`, but not `a.b.example.com`.
+Regular expressions are anchored to the whole hostname and remain
+case-sensitive unless the `i` option is used. String entries should be
+hostnames without a scheme or port; ports are ignored when matching.
+
+```ruby
+# config/application.rb
+config.action_controller.allowed_redirect_hosts = ["example.com", /.*\.partner\.jp/]
+```
+
+The list can also be set on a specific controller. The setting applies to that
+controller and its subclasses, and replaces the application-wide list rather
+than adding to it:
+
+```ruby
+class PaymentsController < ApplicationController
+  self.allowed_redirect_hosts = ["payments.example.com"]
+end
+```
+
+`url_from` also treats the configured hosts as internal, so it returns them
+unchanged when the host matches.
 
 #### `ActionController::Base.wrap_parameters`
 
