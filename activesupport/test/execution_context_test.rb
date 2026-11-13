@@ -50,6 +50,20 @@ class ExecutionContextTest < ActiveSupport::TestCase
     end
   end
 
+  test "#pop clears a context pushed before nesting was enabled" do
+    ActiveSupport::ExecutionContext.with(nestable: false) do
+      ActiveSupport::ExecutionContext.push
+      ActiveSupport::ExecutionContext[:foo] = "bar"
+      ActiveSupport::ExecutionContext.current_attributes_instances[:foo] = Object.new
+
+      ActiveSupport::ExecutionContext.nestable = true
+      ActiveSupport::ExecutionContext.pop
+
+      assert_equal({}, ActiveSupport::ExecutionContext.to_h)
+      assert_equal({}, ActiveSupport::ExecutionContext.current_attributes_instances)
+    end
+  end
+
   test "#set coerce keys to symbol" do
     ActiveSupport::ExecutionContext.set("foo" => "bar") do
       assert_equal "bar", ActiveSupport::ExecutionContext.to_h[:foo]
