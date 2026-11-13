@@ -24,7 +24,7 @@ module ActiveRecord
         scope = klass.unscoped
         owner = association.owner
         routes ||= reflection.association_route_chain(origin_class: owner.class, destination_class: klass)
-        chain = get_chain(reflection, association, scope.alias_tracker, routes)
+        chain = get_chain(reflection, association, scope, routes)
 
         extensions = reflection.extensions
         scope.extending!(extensions) unless extensions.empty?
@@ -99,13 +99,15 @@ module ActiveRecord
           def all_includes(&); nil; end
         end
 
-        def get_chain(reflection, association, tracker, routes)
+        def get_chain(reflection, association, scope, routes)
           name = reflection.name
           chain = []
+          tracker = nil
           reflection.chain.zip(routes) do |refl, route|
             if chain.empty?
               chain << Reflection::RuntimeReflection.new(reflection, association, route)
             else
+              tracker ||= scope.alias_tracker
               aliased_table = tracker.aliased_table_for(refl.klass.arel_table) do
                 refl.alias_candidate(name)
               end
