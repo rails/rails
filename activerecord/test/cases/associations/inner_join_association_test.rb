@@ -63,6 +63,17 @@ class InnerJoinAssociationTest < ActiveRecord::TestCase
     end
   end
 
+  def test_construct_finder_sql_does_not_alias_tables_included_by_the_association_scope
+    authors = Author.joins(posts_with_comments_and_categories: :comments).merge(Comment.where(body: "Thank you for the welcome"))
+    assert_equal [authors(:david)], authors
+
+    authors = Author.eager_load(posts_with_comments_and_categories: :comments).where(comments: { body: "Thank you for the welcome" })
+    assert_equal [authors(:david)], authors
+
+    authors = Author.left_joins(posts_with_comments_and_categories: :comments).where(comments: { body: "Thank you for the welcome" })
+    assert_equal [authors(:david)], authors
+  end
+
   def test_user_supplied_joins_order_should_be_preserved
     string_join = <<~SQL
       JOIN people agents_people_2 ON agents_people_2.primary_contact_id = people.id

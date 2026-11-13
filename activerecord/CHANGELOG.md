@@ -1,3 +1,22 @@
+*   Fix joining through an association whose scope has references and includes
+    aliasing a later join of an included table.
+
+    ```ruby
+    class Customer < ActiveRecord::Base
+      has_many :orders, -> { order("orders.id DESC") }
+    end
+
+    class Order < ActiveRecord::Base
+      has_many :items
+      default_scope { includes(:items) }
+    end
+
+    Customer.joins(orders: :items).merge(Item.where(name: "ball"))
+    # Before: joined `items` as `items_orders` => no such column: items.name
+    ```
+
+    *Wei-Lun Li*
+
 *   Fix `ArgumentError` when preloading an ordered `has_many :through` whose
     source is a loaded `has_and_belongs_to_many` or `:through` association
     holding a record no query returned, such as a new record.
