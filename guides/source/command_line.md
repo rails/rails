@@ -1408,6 +1408,18 @@ active_record_encryption:
 secret_key_base: 6013280bda2fcbdbeda1732859df557a067ac81c423855aedba057f7a9b14161442d9cadfc7e48109c79143c5948de848ab5909ee54d04c34f572153466fc589
 ```
 
+To check which credentials are set without revealing their values, use the
+`:keys` command. It prints the path of every key, in the same dot notation
+accepted by `credentials:fetch`:
+
+```bash
+$ bin/rails credentials:keys
+active_record_encryption.primary_key
+active_record_encryption.deterministic_key
+active_record_encryption.key_derivation_salt
+secret_key_base
+```
+
 You can learn about credentials in the [Rails Security
 Guide](security.html#custom-credentials).
 
