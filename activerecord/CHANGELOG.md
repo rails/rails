@@ -1,3 +1,13 @@
+*   Reject raw SQL in the column position of a table/column hash.
+
+    `select(posts: ["id, name"])` quoted the table name and then appended
+    the column string unchanged. A string in that position is now only
+    accepted when it is an identifier. Pass `Arel.sql` for a real SQL
+    expression. String arguments to `select`, `order`, and `where` are
+    unchanged.
+
+    *Alexander Patrikalakis*
+
 *   Fix `ArgumentError` when preloading an ordered `has_many :through` whose
     source is a loaded `has_and_belongs_to_many` or `:through` association
     holding a record no query returned, such as a new record.

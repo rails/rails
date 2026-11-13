@@ -2341,8 +2341,15 @@ module ActiveRecord
           predicate_builder.resolve_arel_attribute(table_name, column_name) do
             lookup_table_klass_from_join_dependencies(table_name)
           end
-        else
+        elsif Arel.arel_node?(column_name)
+          # Explicit SQL, same contract as select("count(*) AS total").
           Arel.sql("#{model.adapter_class.quote_table_name(table_name)}.#{column_name}")
+        else
+          # Hash forms such as select(posts: ["id, name"]) used to splice the
+          # string in after the quoted table name. A plain string is only an
+          # identifier; raw SQL has to be an Arel.sql literal. The permit
+          # matches nothing so every remaining string is rejected.
+          model.disallow_raw_sql!([column_name], permit: /\A\z/)
         end
       end
 

@@ -93,16 +93,22 @@ module ActiveRecord
     end
 
     def test_select_with_invalid_nested_field
-      assert_raises(ActiveRecord::StatementInvalid) do
+      assert_raises(ActiveRecord::UnknownAttributeReference) do
         Post.select(posts: { "UPPER(title)" => :post_title }).take
       end
-      assert_raises(ActiveRecord::StatementInvalid) do
+      assert_raises(ActiveRecord::UnknownAttributeReference) do
         Post.select(posts: ["UPPER(title)"]).take
       end
     end
 
+    def test_select_hash_rejects_a_column_string_that_is_not_an_identifier
+      assert_raises(ActiveRecord::UnknownAttributeReference) do
+        Post.select(posts: ["id, (SELECT 1)"]).to_sql
+      end
+    end
+
     def test_select_with_hash_argument_without_aliases
-      post = Post.select(posts: [:title, "title as post_title"]).first
+      post = Post.select(posts: [:title, Arel.sql("title as post_title")]).first
       assert_equal "Welcome to the weblog", post.title
       assert_equal "Welcome to the weblog", post.post_title
     end
