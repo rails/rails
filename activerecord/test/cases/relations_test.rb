@@ -2496,6 +2496,22 @@ class RelationTest < ActiveRecord::TestCase
     assert_equal expected.to_sql, relation.to_sql
   end
 
+  def test_unscope_merge_array_containing_hash
+    expected = Post.joins(:comments)
+    relation = Post.joins(:comments).where(body: "post", comments: { body: "test" }).merge(Post.unscope(where: [:body, { comments: :body }]))
+
+    assert_equal expected.where_clause, relation.where_clause
+    assert_equal expected.to_sql, relation.to_sql
+  end
+
+  def test_unscope_merge_array_containing_arel_attribute
+    expected = Post.joins(:comments)
+    relation = Post.joins(:comments).where(body: "post", comments: { body: "test" }).merge(Post.unscope(where: [:body, Comment.arel_table[:body]]))
+
+    assert_equal expected.where_clause, relation.where_clause
+    assert_equal expected.to_sql, relation.to_sql
+  end
+
   def test_unscope_unqualified_column_removing_conditions_on_other_tables_is_deprecated
     relation = Post.joins(:comments).where(body: "post", comments: { body: "test" })
 
