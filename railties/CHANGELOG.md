@@ -1,3 +1,10 @@
+*   Require patched Puma and SQLite3 releases in newly generated apps.
+
+    The generated Gemfile asks for Puma `>= 7.2.1`, excluding 8.0.0 and
+    8.0.1, and for SQLite3 `>= 2.10.2`.
+
+    *Alexander Patrikalakis*
+
 *   Detect Kamal in `bin/rails app:update`.
 
     The update command didn't pass `skip_kamal`, so it rendered config files

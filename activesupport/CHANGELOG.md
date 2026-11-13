@@ -1,3 +1,11 @@
+*   Require `uri` 1.0.4, `erb` 6.0.4, and `rexml` 3.4.2.
+
+    These default gems are loaded by Active Support. The floors are
+    the patched releases for CVE-2025-61594, CVE-2026-41316, and
+    CVE-2025-58767.
+
+    *Alexander Patrikalakis*
+
 *   Don't show the encryption key in `ActiveSupport::EncryptedFile#inspect`.
 
     Previously the key, read from the key file or environment variable, was

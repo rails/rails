@@ -1,3 +1,10 @@
+*   Require `websocket-driver` 0.8.2.
+
+    That release covers the memory-exhaustion and Host-header
+    advisories in the Action Cable WebSocket driver.
+
+    *Alexander Patrikalakis*
+
 *   Filter parameters from the message logged when a command can't be handled.
 
     When a channel action raised, the error log included the raw WebSocket message,

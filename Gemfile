@@ -29,7 +29,7 @@ gem "thruster", require: false
 # require: false so bcrypt and argon2 are loaded only when has_secure_password is used.
 # This is to avoid Active Model (and by extension the entire framework)
 # being dependent on binary libraries.
-gem "bcrypt", "~> 3.1.11", require: false
+gem "bcrypt", "~> 3.1.22", require: false
 gem "argon2", "~> 2.3.2", require: false
 
 # This needs to be with require false to avoid it being automatically loaded by
@@ -39,8 +39,8 @@ gem "terser", ">= 1.1.4", require: false
 # Minimum version that tolerates passing keyword args to JSON.parse
 gem "json", ">= 2.3.0", "!=2.7.0"
 
-# Workaround until all supported Ruby versions ship with uri version 0.13.1 or higher.
-gem "uri", ">= 0.13.1", require: false
+# Workaround until all supported Ruby versions ship with uri version 1.0.4 or higher.
+gem "uri", ">= 1.0.4", require: false
 
 gem "prism"
 
@@ -65,17 +65,17 @@ group :doc do
   gem "redcarpet", "~> 3.6.1", platforms: :ruby
   gem "w3c_validators", "~> 1.3.6"
   gem "rouge"
-  gem "rubyzip", "~> 2.0"
+  gem "rubyzip", ">= 3.4.0"
 end
 
 # Active Support
-gem "dalli"
+gem "dalli", ">= 5.0.12"
 gem "redis-client", ">= 0.28.0"
 gem "listen", "~> 3.3", require: false
 gem "libxml-ruby", platforms: :ruby
 gem "connection_pool", require: false
-gem "rexml", require: false
-gem "msgpack", ">= 1.7.0", require: false
+gem "rexml", ">= 3.4.2", require: false
+gem "msgpack", ">= 1.8.2", require: false
 
 # for railties
 gem "bootsnap", ">= 1.4.4", require: false
@@ -95,8 +95,8 @@ gem "useragent", require: false
 
 # Active Job
 group :job do
-  gem "resque", require: false
-  gem "resque-scheduler", require: false
+  gem "resque", ">= 3.2.0", require: false
+  gem "resque-scheduler", ">= 5.0.1", require: false
   gem "queue_classic", ">= 4.0.0", require: false, platforms: :ruby
   gem "sneakers", require: false
   gem "backburner", require: false
@@ -104,7 +104,7 @@ end
 
 # Action Cable
 group :cable do
-  gem "puma", ">= 5.0.3", require: false
+  gem "puma", ">= 7.2.1", "!= 8.0.0", "!= 8.0.1", require: false
 
   gem "redis", ">= 4.0.1", require: false
 
@@ -115,8 +115,10 @@ end
 
 # Active Storage
 group :storage do
-  gem "aws-sdk-s3", require: false
+  gem "aws-sdk-s3", ">= 1.208.0", require: false
   gem "google-cloud-storage", "~> 1.11", require: false
+  # CVE-2026-45363 is patched in 2.10.3. Stay on this line so Signet can keep `jwt < 3`.
+  gem "jwt", "~> 2.10.3", require: false
 
   gem "image_processing", "~> 2.0"
   gem "ruby-vips", "~> 2.3"
@@ -148,7 +150,7 @@ platforms :ruby, :windows do
   gem "nokogiri", ">= 1.8.1", "!= 1.11.0"
 
   # Active Record.
-  gem "sqlite3", ">= 2.1"
+  gem "sqlite3", ">= 2.10.2"
 
   group :db do
     gem "pg", "~> 1.3"

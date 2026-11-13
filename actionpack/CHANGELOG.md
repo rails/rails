@@ -1,3 +1,10 @@
+*   Require Rack 3.2.8 and Rack Session 2.1.2.
+
+    These floors are the patched releases for the Rack body-parsing,
+    static-file, host-allowlist, and session advisories.
+
+    *Alexander Patrikalakis*
+
 *   Apply `config.action_dispatch.cookies_same_site_protection` to every session
     store.
 

@@ -508,7 +508,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
   def test_config_database_is_added_by_default
     run_generator
     assert_file "config/database.yml", /sqlite3/
-    assert_gem "sqlite3", '">= 2.1"'
+    assert_gem "sqlite3", '">= 2.10.2"'
   end
 
   def test_config_mysql_database
@@ -530,7 +530,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
 
   def test_generator_defaults_to_puma_version
     run_generator [destination_root]
-    assert_gem "puma", '">= 7.1"'
+    assert_gem "puma", '">= 7.2.1", "!= 8.0.0", "!= 8.0.1"'
   end
 
   def test_action_cable_redis_gems

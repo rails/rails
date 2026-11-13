@@ -1,3 +1,11 @@
+*   Require `mail` 2.9.1 and `net-imap` 0.6.4.1.
+
+    `mail` 2.9.1 is the patched release for CVE-2026-63435. It depends
+    on `net-imap` without a floor, so Action Mailer requires the
+    patched IMAP client as well.
+
+    *Alexander Patrikalakis*
+
 *   Raise when `ActionMailer.deliver_all_later` is called with a message that was already accessed.
 
     Previously, the messages were enqueued and any local changes were silently lost,

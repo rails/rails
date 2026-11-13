@@ -1,3 +1,10 @@
+*   Require `action_text-trix` `~> 2.1.18`.
+
+    That constraint keeps the editor on a release that includes the
+    fixes for CVE-2026-73428, CVE-2026-73427, and CVE-2026-73426.
+
+    *Alexander Patrikalakis*
+
 *   Add alternative text to Action Text attachments.
 
     Attachments could only be described by their caption, which is always shown

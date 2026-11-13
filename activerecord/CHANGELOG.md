@@ -1,3 +1,7 @@
+*   Require `sqlite3` 2.10.2 when the SQLite adapter loads.
+
+    *Alexander Patrikalakis*
+
 *   Fix `ArgumentError` when preloading an ordered `has_many :through` whose
     source is a loaded `has_and_belongs_to_many` or `:through` association
     holding a record no query returned, such as a new record.

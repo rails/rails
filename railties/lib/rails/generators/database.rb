@@ -233,7 +233,7 @@ module Rails
         end
 
         def gem
-          ["sqlite3", [">= 2.1"]]
+          ["sqlite3", [">= 2.10.2"]]
         end
 
         def base_package

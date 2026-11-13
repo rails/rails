@@ -38,6 +38,7 @@ Gem::Specification.new do |s|
   s.add_dependency "actionview", version
   s.add_dependency "activejob", version
 
-  s.add_dependency "mail", ">= 2.8.0"
+  s.add_dependency "mail", ">= 2.9.1"
+  s.add_dependency "net-imap", ">= 0.6.4.1"
   s.add_dependency "rails-dom-testing", "~> 2.2"
 end

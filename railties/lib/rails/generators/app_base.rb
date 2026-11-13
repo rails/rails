@@ -292,7 +292,8 @@ module Rails
       end
 
       def web_server_gemfile_entry # :doc:
-        GemfileEntry.new "puma", ">= 7.1", "Use the Puma web server [https://github.com/puma/puma]"
+        # 8.0.0 and 8.0.1 do not include the PROXY protocol parser fix.
+        GemfileEntry.new "puma", [">= 7.2.1", "!= 8.0.0", "!= 8.0.1"], "Use the Puma web server [https://github.com/puma/puma]"
       end
 
       def asset_pipeline_gemfile_entry

@@ -46,6 +46,8 @@ Gem::Specification.new do |s|
   s.add_dependency "psych", ">= 4"
   s.add_dependency "logger", ">= 1.4.2"
   s.add_dependency "securerandom", ">= 0.3"
-  s.add_dependency "uri", ">= 0.13.1"
+  s.add_dependency "uri", ">= 1.0.4"
+  s.add_dependency "erb", ">= 6.0.4"
+  s.add_dependency "rexml", ">= 3.4.2"
   s.add_dependency "ractor-dispatch", ">= 0.3.0"
 end

@@ -1,3 +1,11 @@
+*   Require Crass 1.0.8.
+
+    Loofah depends on `crass ~> 1.0.2`, which still resolves to 1.0.6.
+    Action View now requires the patched Crass release used by the
+    HTML sanitizer.
+
+    *Alexander Patrikalakis*
+
 *   Implement `button_to` in terms of `form_tag`.
 
     Forms rendered by `button_to` include `[accept-charset="UTF-8"]` and
