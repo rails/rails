@@ -119,6 +119,24 @@ class NormalizedAttributeTest < ActiveModel::TestCase
     assert_equal "0", aircraft.name
   end
 
+  test "checks serializability of the normalized value" do
+    clamped = Class.new(Aircraft) do
+      normalizes :wheels_count, with: -> count { count.clamp(0, 100) }
+    end
+
+    assert clamped.attribute_types["wheels_count"].serializable?(2**64)
+  end
+
+  test "yields the out of range normalized value when it is not serializable" do
+    scaled = Class.new(Aircraft) do
+      normalizes :wheels_count, with: -> count { count * 2**40 }
+    end
+
+    yielded = nil
+    assert_not scaled.attribute_types["wheels_count"].serializable?(2**24) { |value| yielded = value }
+    assert_equal 2**64, yielded
+  end
+
   test ".normalized_attributes is ractor safe" do
     assert_ractor_shareable NormalizedAircraft.normalized_attributes
   end
