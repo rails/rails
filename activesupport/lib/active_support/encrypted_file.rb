@@ -3,6 +3,7 @@
 require "pathname"
 require "tempfile"
 require "active_support/message_encryptor"
+require "active_support/inspect_backport"
 
 module ActiveSupport
   class EncryptedFile
@@ -85,8 +86,14 @@ module ActiveSupport
       writing read, &block
     end
 
+    ActiveSupport::InspectBackport.apply(self)
+
 
     private
+      def instance_variables_to_inspect
+        [:@content_path, :@key_path].freeze
+      end
+
       def writing(contents)
         Tempfile.create(["", "-" + content_path.basename.to_s.chomp(".enc")]) do |tmp_file|
           tmp_path = Pathname.new(tmp_file)

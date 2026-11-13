@@ -1,3 +1,11 @@
+*   Don't show the encryption key in `ActiveSupport::EncryptedFile#inspect`.
+
+    Previously the key, read from the key file or environment variable, was
+    included in the default `inspect` output, so it could end up in logs or
+    error pages.
+
+    *Dennis Paagman*
+
 *   Shift a local time in a DST spring-forward gap forward by the gap's length
     instead of one hour.
 
