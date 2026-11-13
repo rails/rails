@@ -134,22 +134,6 @@ class FileSystemResolverRactorTest < ActiveSupport::TestCase
   include ActiveSupport::Testing::Isolation
   include ActiveSupport::Testing::RactorsAssertions
 
-  # Compiling methods into FakeView from another Ractor is how frozen non-strict templates
-  # are compiled in a ractorized application, with the view class container built in the
-  # main Ractor and other Ractors compiling methods into it. This might stop working with
-  # https://bugs.ruby-lang.org/issues/22226, which would require compiling into a
-  # Ractor-local container instead.
-  class FakeView
-    def compiled_method_container
-      self.class
-    end
-
-    def _run(method, template, locals, buffer, add_to_stack:, has_strict_locals:, &block)
-      @output_buffer = buffer
-      public_send(method, locals, buffer, &block)
-    end
-  end
-
   test "non-strict templates compile inside a non-main Ractor" do
     Dir.mktmpdir do |dir|
       Dir.mkdir(File.join(dir, "test"))
@@ -167,13 +151,51 @@ class FileSystemResolverRactorTest < ActiveSupport::TestCase
       resolver.eager_load_templates
       resolver.freeze
 
-      rendered = on_ractor(resolver) do |resolver|
+      main_view_class = ActionView::LookupContext.view_context_class
+      rendered, worker_view_class = on_ractor(resolver) do |resolver|
         details = { locale: [:en].freeze, formats: [:html].freeze, variants: [].freeze, handlers: [:erb].freeze }.freeze
         template = resolver.find_all("card", "test", true, details, nil, [:post])[0]
-        template.render(FakeView.new, { post: "hello" })
+        view_class = ActionView::LookupContext.view_context_class
+        view = view_class.new(ActionView::LookupContext.new([], details), {}, nil)
+
+        [template.render(view, { post: "hello" }), view_class]
       end
 
       assert_equal "hello", rendered
+      assert_not_same main_view_class, worker_view_class if RUBY_VERSION >= "4.0"
+    end
+  end
+
+  test "strict locals templates precompiled in the main Ractor render inside a non-main Ractor" do
+    Dir.mktmpdir do |dir|
+      Dir.mkdir(File.join(dir, "test"))
+      File.write(File.join(dir, "test", "hello.html.erb"), "<%# locals: () %>Hi")
+
+      Mime.eager_load!
+      ActionView::Template::Handlers::ERB.escape_ignore_list.freeze
+
+      # Make sure subscriptions are Ractor-shareable
+      ActiveSupport::Ractors.unshareable_proc_action = :raise
+      # Nothing subscribes after, so record manually
+      ActiveSupport::Notifications.send(:record_subscriptions)
+
+      details = { locale: [:en].freeze, formats: [:html].freeze, variants: [].freeze, handlers: [:erb].freeze }.freeze
+      resolver = ActionView::FileSystemResolver.new(dir)
+      main_view_class = ActionView::LookupContext.view_context_class
+      main_view = main_view_class.new(ActionView::LookupContext.new([], details), {}, nil)
+      resolver.eager_load_templates(main_view)
+      resolver.freeze
+
+      rendered, worker_view_class = on_ractor(resolver, details) do |resolver, details|
+        template = resolver.find_all("hello", "test", false, details, nil, [])[0]
+        view_class = ActionView::LookupContext.view_context_class
+        view = view_class.new(ActionView::LookupContext.new([], details), {}, nil)
+
+        [template.render(view, {}), view_class]
+      end
+
+      assert_equal "Hi", rendered
+      assert_operator worker_view_class, :<, main_view_class if RUBY_VERSION >= "4.0"
     end
   end
 end
