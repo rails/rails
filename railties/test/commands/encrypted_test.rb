@@ -2,10 +2,11 @@
 
 require "isolation/abstract_unit"
 require "env_helpers"
+require "console_helpers"
 require "rails/command"
 
 class Rails::Command::EncryptedTest < ActiveSupport::TestCase
-  include ActiveSupport::Testing::Isolation, EnvHelpers
+  include ActiveSupport::Testing::Isolation, EnvHelpers, ConsoleHelpers
 
   setup :build_app
   teardown :teardown_app
@@ -149,7 +150,42 @@ class Rails::Command::EncryptedTest < ActiveSupport::TestCase
     assert_match(/access_key_id: 123/, run_show_command(key: "config/tokens.key"))
   end
 
+  test "edit command prompts for missing key when encrypted file exists" do
+    run_edit_command
+    master_key = read_file("config/master.key")
+    remove_file "config/master.key"
+
+    output = run_edit_command_in_terminal(input: ["wrong", master_key], visual: %(ruby -e "File.write ARGV[0], 'foo: bar'"))
+
+    assert_match "Missing 'config/master.key' to decrypt 'config/tokens.yml.enc'.", output
+    assert_match "Sorry, try again.", output
+    assert_no_match master_key, output
+    assert_match "File encrypted and saved.", output
+    assert_no_file "config/master.key"
+
+    switch_env("RAILS_MASTER_KEY", master_key) do
+      assert_match "foo: bar", run_show_command
+    end
+  end
+
+  test "edit command gives up prompting for missing key after three wrong keys" do
+    run_edit_command
+    remove_file "config/master.key"
+
+    output = run_edit_command_in_terminal(input: ["wrong"] * 3)
+
+    assert_match "3 incorrect encryption key attempts.", output
+    assert_no_file "config/master.key"
+  end
+
   private
+    def run_edit_command_in_terminal(input:, visual: "cat")
+      skip "PTY unavailable" unless available_pty?
+
+      run_in_terminal("bin/rails", "encrypted:edit", @encrypted_file, prompt: /Enter the encryption key:/, input: input,
+        env: { "VISUAL" => visual, "RAILS_MASTER_KEY" => nil }, chdir: app_path)
+    end
+
     def run_edit_command(file = @encrypted_file, key: nil, visual: "cat", editor: "cat", **options)
       switch_env("VISUAL", visual) do
         switch_env("EDITOR", editor) do

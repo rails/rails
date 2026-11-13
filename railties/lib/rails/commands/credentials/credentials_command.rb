@@ -3,12 +3,14 @@
 require "pathname"
 require "active_support"
 require "rails/command/helpers/editor"
+require "rails/command/helpers/encryption_key_prompt"
 require "rails/command/environment_argument"
 
 module Rails
   module Command
     class CredentialsCommand < Rails::Command::Base # :nodoc:
       include Helpers::Editor
+      include Helpers::EncryptionKeyPrompt
       include EnvironmentArgument
 
       require_relative "credentials_command/diffing"
@@ -96,6 +98,11 @@ module Rails
 
         def ensure_encryption_key_has_been_added
           return if credentials.key?
+
+          if can_prompt_for_encryption_key?(credentials)
+            @credentials = prompt_for_encrypted_configuration(content_path, key_path)
+            return
+          end
 
           require "rails/generators/rails/encryption_key_file/encryption_key_file_generator"
 

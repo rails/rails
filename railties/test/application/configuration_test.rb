@@ -1157,6 +1157,15 @@ module ApplicationTests
       assert_not app.credentials.secret_key_base
     end
 
+    test "encrypted reads the file with a given key instead of the key file" do
+      master_key = File.read("#{app_path}/config/master.key")
+      remove_file "config/master.key"
+      app "development"
+
+      assert_not app.encrypted("config/credentials.yml.enc").key?
+      assert app.encrypted("config/credentials.yml.enc", key: master_key).secret_key_base
+    end
+
     test "protect from forgery is the default in a new app" do
       make_basic_app
 

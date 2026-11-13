@@ -1,3 +1,24 @@
+*   Prompt for the encryption key in `bin/rails credentials:edit` and
+    `bin/rails encrypted:edit` when the encrypted file exists but its key is
+    missing.
+
+    Instead of generating a new key that can't decrypt the existing file, the
+    key is read from the terminal without echoing it and verified against the
+    encrypted file. The key is only used for that edit and is never written
+    to disk. After three wrong keys, the command exits.
+
+    *Dennis Paagman*
+
+*   Allow passing the encryption key directly to `Rails.application.encrypted`
+    with `key:`. A given key takes precedence over `RAILS_MASTER_KEY` and the
+    key file.
+
+    ```ruby
+    Rails.application.encrypted("config/credentials.yml.enc", key: key)
+    ```
+
+    *Dennis Paagman*
+
 *   Fix `/rails/info/notes` raising `Encoding::CompatibilityError` when notes
     from Ruby and non-Ruby files contain non-ASCII characters.
 
