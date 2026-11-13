@@ -1068,13 +1068,10 @@ module ActiveRecord
         case scope
         when Hash
           scope.transform_values do |target_value|
-            case target_value
-            when Array
+            if target_value.is_a?(Array)
               target_value.map { |value| qualify_attribute_with_table_name(value) }
-            when Symbol, String
-              qualify_attribute_with_table_name(target_value)
             else
-              target_value
+              qualify_attribute_with_table_name(target_value)
             end
           end
         else
@@ -2595,7 +2592,12 @@ module ActiveRecord
       end
 
       def qualify_attribute_with_table_name(attr)
-        attr.to_s.include?(".") ? attr : predicate_builder.resolve_arel_attribute(table_name, attr)
+        case attr
+        when Symbol, String
+          attr.to_s.include?(".") ? attr : predicate_builder.resolve_arel_attribute(table_name, attr)
+        else
+          attr
+        end
       end
 
       # Checks to make sure that the arguments are not blank. Note that if some

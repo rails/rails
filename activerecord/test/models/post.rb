@@ -298,6 +298,8 @@ class PostWithWhereDefaultScope < ActiveRecord::Base
 
   belongs_to :author
   has_many :comments, -> { unscope(where: :deleted_at) }, class_name: "CommentOnPostWithWhereDefaultScope", foreign_key: :post_id
+  has_many :comments_unscoped_by_hash_in_array, -> { unscope(where: [:body, { comments: :deleted_at }]) }, class_name: "CommentOnPostWithWhereDefaultScope", foreign_key: :post_id
+  has_many :comments_unscoped_by_arel_attribute_in_array, -> { unscope(where: [:body, Comment.arel_table[:deleted_at]]) }, class_name: "CommentOnPostWithWhereDefaultScope", foreign_key: :post_id
 end
 
 class PostWithPreloadDefaultScope < ActiveRecord::Base
