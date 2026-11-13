@@ -1,3 +1,10 @@
+*   Write `db/schema.rb` atomically when dumping the schema.
+
+    Processes loading the schema while it was being dumped could read an empty or partial file,
+    and a dump that failed partway left the truncated file behind.
+
+    *Andrew Fader*
+
 *   Fix `ArgumentError` when preloading an ordered `has_many :through` whose
     source is a loaded `has_and_belongs_to_many` or `:through` association
     holding a record no query returned, such as a new record.
@@ -147,6 +154,7 @@
     Fixes #49197.
 
     *Clément Joubert*
+||||||| parent of e2c6c2ad55 (Write db/schema.rb atomically in DatabaseTasks.dump_schema)
 
 *   Retry `ActiveRecord::SerializationFailure` on queries that opted into retries.
 
