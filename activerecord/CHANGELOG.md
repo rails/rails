@@ -1,3 +1,12 @@
+*   Resolve a delegated type only when it is in the `types` list.
+
+    `delegated_type` previously passed `entryable_type` to `constantize`
+    from `entryable_class` and `build_entryable` without checking `types`.
+    A value outside that list now raises `ArgumentError` before the name
+    is resolved. Scope methods were already limited to the list.
+
+    *Alexander Patrikalakis*
+
 *   Fix `ArgumentError` when preloading an ordered `has_many :through` whose
     source is a loaded `has_and_belongs_to_many` or `:through` association
     holding a record no query returned, such as a new record.

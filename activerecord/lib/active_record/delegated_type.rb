@@ -214,6 +214,10 @@ module ActiveRecord
     #
     # @entry.entryable_class # => Message or Comment
     # @entry.entryable_name  # => "message" or "comment"
+    #
+    # +entryable_class+ and +build_entryable+ resolve the stored type only when
+    # it is one of +types+. Any other value raises +ArgumentError+ and is not
+    # passed to +constantize+.
     # Entry.messages         # => Entry.where(entryable_type: "Message")
     # @entry.message?        # => true when entryable_type == "Message"
     # @entry.message         # => returns the message record, when entryable_type == "Message", otherwise nil
@@ -284,7 +288,12 @@ module ActiveRecord
         end
 
         define_method "#{role}_class" do
-          public_send(role_type).constantize
+          type_name = public_send(role_type)
+          unless self.class.public_send("#{role}_types").include?(type_name)
+            raise ArgumentError, "#{role} type #{type_name.inspect} is not in the list of delegated types"
+          end
+
+          type_name.constantize
         end
 
         define_method "#{role}_name" do

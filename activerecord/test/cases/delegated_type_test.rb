@@ -34,9 +34,14 @@ class DelegatedTypeTest < ActiveRecord::TestCase
   end
 
   test "delegated class with custom foreign_type" do
-    assert_equal Message, @entry_with_message.thing_class
-    assert_equal Comment, @entry_with_comment.thing_class
     assert_equal Post, @entry_with_post.thing_class
+
+    assert_raises ArgumentError do
+      @entry_with_message.thing_class
+    end
+    assert_raises ArgumentError do
+      @entry_with_comment.thing_class
+    end
   end
 
   test "delegated type name" do
@@ -48,7 +53,9 @@ class DelegatedTypeTest < ActiveRecord::TestCase
   end
 
   test "delegated type name with custom foreign_type" do
-    assert_equal "message", @entry_with_message.thing_name
+    assert_raises ArgumentError do
+      @entry_with_message.thing_name
+    end
     assert_equal "post", @entry_with_post.thing_name
     assert_predicate @entry_with_post.thing_name, :post?
   end
@@ -61,7 +68,22 @@ class DelegatedTypeTest < ActiveRecord::TestCase
       Post
     end
     assert_equal "post", @entry_with_message.entryable_name
-    assert_equal "comment", @entry_with_message.thing_name
+    assert_raises ArgumentError do
+      @entry_with_message.thing_name
+    end
+  end
+
+  test "delegated class does not constantize a type outside the list" do
+    assert_not defined?(NotADelegatedType)
+
+    @entry_with_message.entryable_type = "NotADelegatedType"
+    error = assert_raises(ArgumentError) { @entry_with_message.entryable_class }
+    assert_match(/NotADelegatedType/, error.message)
+    assert_raises(ArgumentError) { @entry_with_message.build_entryable }
+    assert_not defined?(NotADelegatedType)
+
+    @entry_with_message.entryable_type = "String"
+    assert_raises(ArgumentError) { @entry_with_message.entryable_class }
   end
 
   test "delegated type predicates" do
