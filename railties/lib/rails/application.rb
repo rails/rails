@@ -168,6 +168,9 @@ module Rails
     end
 
     def reload_routes_unless_loaded # :nodoc:
+      # Ractorized applications have discarded their routes reloader.
+      return false if frozen?
+
       initialized? && routes_reloader.execute_unless_loaded
     end
 

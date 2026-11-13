@@ -37,6 +37,49 @@ if RUBY_VERSION >= "4.0" && ENV["RACK"] == "head"
         assert_ractor_shareable Rails.backtrace_cleaner
       end
 
+      test "lazy routes remain usable after ractorizing the test environment" do
+        add_to_env_config "test", "ActiveSupport::Ractors.unshareable_proc_action = :warn"
+        add_to_env_config "test", "config.logger = ActiveSupport::Ractors::Logger.new"
+        add_to_env_config "test", "config.public_file_server.enabled = false"
+        add_to_env_config "test", "config.cache_store = :null_store"
+        add_to_env_config "test", "config.action_cable.mount_path = nil"
+        add_to_env_config "test", "config.active_job.queue_adapter = :inline"
+        add_to_env_config "test", "config.eager_load = true"
+        add_to_env_config "test", "config.assets.server = false"
+
+        app_file "config/routes.rb", <<~RUBY
+          Rails.application.routes.draw do
+            get "/posts", to: PostsEndpoint, as: :posts
+          end
+        RUBY
+        app_file "app/endpoints/posts_endpoint.rb", <<~RUBY
+          class PostsEndpoint
+            def self.call(_env)
+              [200, { "content-type" => "text/plain" }, ["posts"]]
+            end
+          end
+        RUBY
+
+        app "test"
+        assert_instance_of Rails::Engine::LazyRouteSet, Rails.application.routes
+
+        ractorize!
+
+        env = Rack::MockRequest.env_for("/posts").except("rack.input", "rack.errors")
+        status, body = on_ractor(env) do |env|
+          response = Rails.application.call(env)
+          content = +""
+          response[2].each { |chunk| content << chunk }
+          response[2].close if response[2].respond_to?(:close)
+          [response[0], content]
+        end
+
+        assert_equal 200, status
+        assert_equal "posts", body
+        assert_equal "/posts", on_ractor { Rails.application.routes.url_helpers.posts_path }
+        assert_not Rails.application.reload_routes_unless_loaded
+      end
+
       test "ractorize! runs before_ractorize load hooks with the application" do
         app_file "config/initializers/before_ractorize.rb", <<~RUBY
           $before_ractorize_calls = []
