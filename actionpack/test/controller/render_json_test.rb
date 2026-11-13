@@ -132,6 +132,7 @@ class RenderJsonTest < ActionController::TestCase
         get :render_json_unsafe_chars_without_callback
         assert_equal %({"hello":"\u2028\u2029<script>"}), @response.body
         assert_equal "application/json", @response.media_type
+        assert_equal "nosniff", @response.headers["X-Content-Type-Options"]
       end
     end
   end
@@ -146,6 +147,7 @@ class RenderJsonTest < ActionController::TestCase
     get :render_json_unsafe_chars_without_callback
     assert_equal %({"hello":"\u2028\u2029<script>"}), @response.body
     assert_equal "application/json", @response.media_type
+    assert_equal "nosniff", @response.headers["X-Content-Type-Options"]
   ensure
     ActionController.deprecator.silence do
       @controller.class.escape_json_responses = @before_escape_json_responses

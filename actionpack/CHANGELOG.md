@@ -1,3 +1,13 @@
+*   Send `X-Content-Type-Options: nosniff` on unescaped JSON responses.
+
+    `render json:` leaves `<`, U+2028, and U+2029 unescaped when
+    `escape_json_responses` is false. The response now sets nosniff unless
+    the application already set that header. `json_escape` still escapes
+    those characters when the JSON is embedded in HTML. Turning
+    `escape_json_responses` back on stays deprecated.
+
+    *Alexander Patrikalakis*
+
 *   Apply `config.action_dispatch.cookies_same_site_protection` to every session
     store.
 
