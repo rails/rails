@@ -1,3 +1,12 @@
+*   Detect Kamal in `bin/rails app:update`.
+
+    The update command didn't pass `skip_kamal`, so it rendered config files
+    as if every application deployed with Kamal. For applications without the
+    `kamal` gem, that proposed commenting out `config.assume_ssl` and
+    `config.force_ssl` in `config/environments/production.rb`.
+
+    *Richard Desmarais*
+
 *   Fix `/rails/info/notes` raising `Encoding::CompatibilityError` when notes
     from Ruby and non-Ruby files contain non-ASCII characters.
 
