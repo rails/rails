@@ -26,7 +26,7 @@ module ActionCable
         @serial_executor = Concurrent::SerializedExecutionDelegator.new(worker_pool.executor)
         @logger = server.new_tagged_logger { request }
 
-        @websocket      = WebSocket.new(env, self, event_loop)
+        @websocket      = WebSocket.new(env, self, event_loop, max_message_size: config.max_message_size)
         @message_buffer = MessageBuffer.new(self)
 
         @protocol = nil

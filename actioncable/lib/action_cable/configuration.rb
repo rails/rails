@@ -16,6 +16,7 @@ module ActionCable
     attr_accessor :cable, :url, :mount_path
     attr_accessor :precompile_assets
     attr_accessor :health_check_path, :health_check_application
+    attr_accessor :max_message_size
     attr_writer :pubsub_adapter
 
     def initialize
