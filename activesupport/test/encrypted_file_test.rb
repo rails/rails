@@ -153,6 +153,35 @@ class EncryptedFileTest < ActiveSupport::TestCase
     FileUtils.rm_rf symlink_path
   end
 
+  test "writing with comma-separated env keys uses the first key" do
+    FileUtils.rm_rf @key_path
+
+    old_key = @key
+    new_key = ActiveSupport::EncryptedFile.generate_key
+
+    ENV["CONTENT_KEY"] = old_key
+    encrypted_file(@content_path).write(@content)
+
+    ENV["CONTENT_KEY"] = "#{new_key},#{old_key}"
+    rotated = encrypted_file(@content_path)
+
+    assert_equal @content, rotated.read
+    rotated.write("updated")
+    assert_equal "updated", rotated.read
+
+    ENV["CONTENT_KEY"] = new_key
+    assert_equal "updated", encrypted_file(@content_path).read
+  end
+
+  test "raise InvalidKeyLengthError when first of comma-separated keys is wrong length" do
+    FileUtils.rm_rf @key_path
+    ENV["CONTENT_KEY"] = "#{@key[0..-2]},#{@key}"
+
+    assert_raise ActiveSupport::EncryptedFile::InvalidKeyLengthError do
+      encrypted_file(@content_path).write(@content)
+    end
+  end
+
   test "can read encrypted file after changing default_serializer" do
     ActiveSupport::Messages::Codec.with(default_serializer: :marshal) do
       encrypted_file(@content_path).write(@content)
