@@ -40,7 +40,7 @@ module ActiveModel
     end
 
     def freezable?
-      true
+      !type.respond_to?(:freezable_default?) || type.freezable_default?(value_before_type_cast)
     end
 
     def freeze
