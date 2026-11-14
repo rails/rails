@@ -49,6 +49,19 @@ module ActiveSupport
     PRECISIONS = Hash.new { |h, n| h[n] = "%FT%T.%#{n}N" }
     PRECISIONS[0] = "%FT%T"
 
+    FLAGGED_ZONE = /[-_^#:\dEO]Z/
+    DASH_FLAGGED_OFFSET = /-[-_^#\d]*:*z/
+    UTC_SAFE_FORMATS = {
+      inspect: "%Y-%m-%d %H:%M:%S.%9N %z",
+      number: "%Y%m%d%H%M%S",
+      nsec: "%Y%m%d%H%M%S%9N",
+      usec: "%Y%m%d%H%M%S%6N",
+      time: "%H:%M",
+      short: "%d %b %H:%M",
+      long: "%B %d, %Y %H:%M"
+    }.freeze
+    private_constant :FLAGGED_ZONE, :DASH_FLAGGED_OFFSET, :UTC_SAFE_FORMATS
+
     include Comparable
     attr_reader :time_zone
 
@@ -254,7 +267,11 @@ module ActiveSupport
       if format == :db
         utc.to_fs(format)
       elsif formatter = ::ActiveSupport::TimeFormats.lookup(format)
-        formatter.respond_to?(:call) ? formatter.call(self).to_s : strftime(formatter)
+        if @time_zone.utc? && UTC_SAFE_FORMATS[format] == formatter
+          utc.strftime(formatter)
+        else
+          formatter.respond_to?(:call) ? formatter.call(self).to_s : strftime(formatter)
+        end
       else
         to_s
       end
@@ -264,8 +281,14 @@ module ActiveSupport
     # Replaces `%Z` directive with +zone before passing to Time#strftime,
     # so that zone information is correct.
     def strftime(format)
-      format = format.gsub(/((?:\A|[^%])(?:%%)*)%Z/, "\\1#{zone}") if format.include?("%Z")
-      getlocal(utc_offset).strftime(format)
+      if @time_zone.utc? &&
+          !(format.include?("Z") && (format.match?(FLAGGED_ZONE) || (format.include?("%Z") && zone != "UTC"))) &&
+          !(format.include?("z") && format.include?("-") && format.match?(DASH_FLAGGED_OFFSET))
+        utc.strftime(format)
+      else
+        format = format.gsub(/((?:\A|[^%])(?:%%)*)%Z/, "\\1#{zone}") if format.include?("%Z")
+        getlocal(utc_offset).strftime(format)
+      end
     end
 
     # Use the time in UTC for comparisons.
