@@ -2129,7 +2129,7 @@
     ```ruby
     add_index :users, :email, algorithm: :inplace, lock: :none
     remove_index :users, :email, algorithm: :inplace, lock: :none
-    add_column :users, :name, :string, algorithm: :instant, lock: :none
+    add_column :users, :name, :string, algorithm: :instant
     change_column :users, :name, :string, null: false, algorithm: :inplace, lock: :none
     remove_column :users, :name, algorithm: :inplace, lock: :none
     rename_column :users, :name, :full_name, algorithm: :inplace, lock: :none
