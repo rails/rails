@@ -1408,6 +1408,14 @@ module ActiveRecord
       #
       #   ALTER TABLE "products" ADD CONSTRAINT price_check CHECK (price > 0)
       #
+      # ====== Creating a not enforced check constraint (PostgreSQL 18+)
+      #
+      #   add_check_constraint :products, "price > 0", name: "price_check", enforced: false
+      #
+      # generates:
+      #
+      #   ALTER TABLE "products" ADD CONSTRAINT price_check CHECK (price > 0) NOT ENFORCED
+      #
       # The +options+ hash can include the following keys:
       # [<tt>:name</tt>]
       #   The constraint name. Defaults to <tt>chk_rails_<identifier></tt>.
@@ -1415,6 +1423,10 @@ module ActiveRecord
       #   Silently ignore if the constraint already exists, rather than raise an error.
       # [<tt>:validate</tt>]
       #   (PostgreSQL only) Specify whether or not the constraint should be validated. Defaults to +true+.
+      # [<tt>:enforced</tt>]
+      #   (PostgreSQL 18+) Specify whether or not the constraint should be enforced. Defaults to +true+.
+      #   When set to +false+, the constraint is created as +NOT ENFORCED+, meaning it is not
+      #   checked when rows are inserted or updated.
       def add_check_constraint(table_name, expression, if_not_exists: false, **options)
         return unless supports_check_constraints?
 

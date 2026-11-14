@@ -139,6 +139,7 @@ module ActiveRecord
           supports_ddl_transactions?: supports_ddl_transactions?,
           supports_deferrable_constraints?: supports_deferrable_constraints?,
           supports_disabling_indexes?: supports_disabling_indexes?,
+          supports_enforced_check_constraints?: supports_enforced_check_constraints?,
           supports_enforced_foreign_keys?: supports_enforced_foreign_keys?,
           supports_exclusion_constraints?: supports_exclusion_constraints?,
           supports_explain?: supports_explain?,
@@ -608,6 +609,11 @@ module ActiveRecord
 
       # Does this adapter support NOT ENFORCED foreign key constraints?
       def supports_enforced_foreign_keys?
+        false
+      end
+
+      # Does this adapter support NOT ENFORCED check constraints?
+      def supports_enforced_check_constraints?
         false
       end
 
