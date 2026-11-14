@@ -2515,6 +2515,15 @@ The default value depends on the `config.load_defaults` target version:
 
 Enables writing cookies with the purpose metadata embedded.
 
+When enabled, signed and encrypted cookies include purpose metadata (`cookie.<name>`),
+binding the value to its specific cookie name and preventing it from being
+accepted under another cookie name.
+
+WARNING: Disabling `use_cookies_with_metadata` or staying on pre-6.0 defaults
+allows legacy signed and encrypted values to be replayed across different cookie
+names that share the same verifier. This configuration should only be set to
+`false` temporarily during deployment or rollback.
+
 The default value depends on the `config.load_defaults` target version:
 
 | Starting with version | The default value is |
