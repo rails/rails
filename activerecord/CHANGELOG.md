@@ -1,3 +1,7 @@
+*   Log source location when scoped order is ignored in batching.
+
+    *fatkodima*
+
 *   Fix joining through an association whose scope has references and includes
     aliasing a later join of an included table.
 
