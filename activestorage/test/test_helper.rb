@@ -45,7 +45,7 @@ class ActiveSupport::TestCase
     end
 
     def create_file_blob(key: nil, filename: "racecar.jpg", fixture: filename, content_type: "image/jpeg", identify: true, metadata: nil, service_name: nil, record: nil)
-      ActiveStorage::Blob.create_and_upload! io: file_fixture(fixture).open, filename: filename, content_type: content_type, identify: identify, metadata: metadata, service_name: service_name, record: record
+      ActiveStorage::Blob.create_and_upload! key: key, io: file_fixture(fixture).open, filename: filename, content_type: content_type, identify: identify, metadata: metadata, service_name: service_name, record: record
     end
 
     def create_blob_before_direct_upload(key: nil, filename: "hello.txt", byte_size:, checksum:, content_type: "text/plain", record: nil)
@@ -133,6 +133,22 @@ class ActiveSupport::TestCase
       yield
     ensure
       ActiveRecord::Base.strict_loading_by_default = strict_loading_was
+    end
+
+    def with_blob_prefix(prefix)
+      blob_prefix_was = ActiveStorage.blob_prefix
+      ActiveStorage.blob_prefix = prefix
+      yield
+    ensure
+      ActiveStorage.blob_prefix = blob_prefix_was
+    end
+
+    def with_direct_upload_prefix(prefix)
+      direct_upload_prefix_was = ActiveStorage.direct_upload_prefix
+      ActiveStorage.direct_upload_prefix = prefix
+      yield
+    ensure
+      ActiveStorage.direct_upload_prefix = direct_upload_prefix_was
     end
 
     def without_variant_tracking(&block)
@@ -250,6 +266,13 @@ class User < ActiveRecord::Base
 end
 
 class SpecialUser < User; end
+
+class PrefixedUser < User
+  has_one_attached :avatar_with_prefix, prefix: "avatars"
+  has_many_attached :highlights_with_prefix, prefix: ->(user, _attachable) { user.group_id }
+  has_one_attached :resume_with_prefix, prefix: ->(_user, attachable) { File.extname(attachable.original_filename).delete_prefix(".") }
+  has_one_attached :cover_photo_with_prefix, prefix: ->(user) { "groups/#{user.group_id}" }
+end
 
 class Group < ActiveRecord::Base
   has_one_attached :avatar

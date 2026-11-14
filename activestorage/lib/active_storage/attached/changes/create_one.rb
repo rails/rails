@@ -32,11 +32,36 @@ module ActiveStorage
     end
 
     def save
+      assign_prefixed_key
       record.public_send("#{name}_attachment=", attachment)
       record.public_send("#{name}_blob=", blob)
     end
 
+    # Generates the key of a new blob from the attachment's `:prefix` option. It's called once the record has been
+    # saved, rather than when the attachable is assigned, so the prefix can depend on attributes assigned after it.
+    # The blob isn't uploaded until the record's transaction commits, so it's uploaded under this key.
+    def assign_prefixed_key
+      if reflection.prefix && blob.new_record? && generates_key?
+        blob.key = ActiveStorage::Blob.generate_unique_key(prefix: evaluate_prefix)
+      end
+    end
+
     private
+      def evaluate_prefix
+        prefix = reflection.prefix
+        return prefix unless prefix.respond_to?(:call)
+
+        prefix.try(:arity) == 1 ? prefix.call(record) : prefix.call(record, attachable)
+      end
+
+      def generates_key?
+        case attachable
+        when ActiveStorage::Blob, String then false
+        when Hash then attachable.symbolize_keys[:key].nil?
+        else true
+        end
+      end
+
       def find_or_build_attachment
         find_attachment || build_attachment
       end

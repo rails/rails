@@ -150,6 +150,41 @@ config.active_storage.routes_prefix = "/files"
 config.active_storage.routes_prefix = { path: "/files", subdomain: "assets" }
 ```
 
+### Configuring Blob Key Prefixes
+
+By default, a blob's key is a random token, so all files are stored at the top
+level of the service, like `xtapjjcjiudrlk3tmwyjgpuobabd`. To store them under a
+common prefix, which most services present as a folder, set
+`config.active_storage.blob_prefix`:
+
+```ruby
+config.active_storage.blob_prefix = "active_storage"
+# => active_storage/xtapjjcjiudrlk3tmwyjgpuobabd
+```
+
+You can also set a prefix per attachment with the `:prefix` option. It accepts a
+string, or a proc that's called with the record (and the attachable, if it
+accepts a second argument) when the record is saved, which is useful to group
+files by tenant:
+
+```ruby
+class User < ApplicationRecord
+  belongs_to :account
+
+  has_one_attached :avatar, prefix: "avatars"
+  has_many_attached :documents, prefix: ->(user) { user.account_id }
+end
+# => active_storage/avatars/xtapjjcjiudrlk3tmwyjgpuobabd
+# => active_storage/42/xtapjjcjiudrlk3tmwyjgpuobabd
+```
+
+Variants and previews are stored under the same prefix as their blob.
+
+NOTE: Attachment prefixes only apply to blobs Active Storage creates when
+attaching a file. Blobs created by [direct uploads](#direct-uploads) exist
+before they're attached to a record, so they use the prefixes described in
+[Prefixing Direct Uploads](#prefixing-direct-uploads) instead.
+
 Attaching Files to Records
 --------------------------
 
@@ -1610,6 +1645,51 @@ Or, if you aren't using a `FormBuilder`, add the data attribute directly:
 
 Lastly, You'll need to configure CORS on third-party storage services to allow
 direct upload requests.
+
+### Prefixing Direct Uploads
+
+A directly uploaded blob is created before the form is submitted, so it doesn't
+know which record it will be attached to, and the `:prefix` option of
+`has_one_attached` and `has_many_attached` doesn't apply to it. Its key starts
+with `config.active_storage.blob_prefix`, followed by
+`config.active_storage.direct_upload_prefix`:
+
+```ruby
+config.active_storage.blob_prefix = "active_storage"
+config.active_storage.direct_upload_prefix = "direct_uploads"
+# => active_storage/direct_uploads/xtapjjcjiudrlk3tmwyjgpuobabd
+```
+
+Keeping direct uploads under their own prefix also lets you set up a lifecycle
+rule on your bucket to remove files that were uploaded but never attached.
+
+To choose the prefix for each request, for example to keep each tenant's files
+in its own folder, subclass `ActiveStorage::DirectUploadsController` and
+override `direct_upload_prefix`. It can return a single value or an array of
+segments:
+
+```ruby
+# app/controllers/direct_uploads_controller.rb
+class DirectUploadsController < ActiveStorage::DirectUploadsController
+  include Authentication
+
+  private
+    def direct_upload_prefix
+      [ super, Current.account.id ]
+    end
+end
+```
+
+Then turn off the built-in route and point `rails_direct_uploads` at your
+controller, so `direct_upload: true` fields use it:
+
+```ruby
+# config/application.rb
+config.active_storage.draw_direct_upload_route = false
+
+# config/routes.rb
+post "/rails/active_storage/direct_uploads" => "direct_uploads#create", as: :rails_direct_uploads
+```
 
 ### Cross-Origin Resource Sharing (CORS) Configuration
 
