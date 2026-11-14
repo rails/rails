@@ -1,3 +1,9 @@
+*   Skip looking up an existing attachment when a record is created with a `has_one_attached` attachment.
+
+    Creating a record with an attachment ran two `SELECT`s for the attachment the new record couldn't have yet.
+
+    *Andrew Fader*
+
 *   Preserve committed proxy responses when a storage error interrupts a
     streamed download.
 
@@ -119,6 +125,7 @@
     [GHSA-3f4q-8x5m-76v8]
 
     *Mike Dalessio*
+||||||| parent of 62c7208110 (Skip the attachment lookup when creating a record with has_one_attached)
 
 *   Detect axis-swapping orientations in the Vips image analyzer from libvips' normalized
     `orientation` field instead of parsing the `exif-ifd0-Orientation` label.
