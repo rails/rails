@@ -972,54 +972,35 @@ association callbacks:
 
 You can define association callbacks by adding options to the association.
 
-Suppose you have an example where an author can have many books. However, before
-adding a book to the authors collection, you want to ensure that the author has
-not reached their book limit. You can do this by adding a `before_add` callback
-to check the limit.
+Suppose you have an example where an author has many books. Before
+adding a book to the authors collection, you want to log the new addition.
+You can do this by adding a `before_add` callback. Rails passes the object 
+being added to the callback for you to use.
 
 ```ruby
 class Author < ApplicationRecord
-  has_many :books, before_add: :check_limit
+  has_many :books, before_add: :log_book_addition
 
   private
-    def check_limit(_book)
-      if books.count >= 5
-        errors.add(:base, "Cannot add more than 5 books for this author")
-        throw(:abort)
-      end
+    def log_book_addition(book)
+      puts "Adding '#{book.title}' to #{name}'s collection"
     end
+end
+```
+
+At times you may want to perform multiple actions on the associated object. In
+this case, you can stack callbacks on a single event by passing them as an
+array.
+
+```ruby
+class Author < ApplicationRecord
+  has_many :books, before_add: [:callback_one, :callback_two]
+  # ...
 end
 ```
 
 If a `before_add` callback throws `:abort`, the object does not get added to the
-collection.
-
-At times you may want to perform multiple actions on the associated object. In
-this case, you can stack callbacks on a single event by passing them as an
-array. Additionally, Rails passes the object being added or removed to the
-callback for you to use.
-
-```ruby
-class Author < ApplicationRecord
-  has_many :books, before_add: [:check_limit, :calculate_shipping_charges]
-
-  def check_limit(_book)
-    if books.count >= 5
-      errors.add(:base, "Cannot add more than 5 books for this author")
-      throw(:abort)
-    end
-  end
-
-  def calculate_shipping_charges(book)
-    weight_in_pounds = book.weight_in_pounds || 1
-    shipping_charges = weight_in_pounds * 2
-
-    shipping_charges
-  end
-end
-```
-
-Similarly, if a `before_remove` callback throws `:abort`, the object does not
+collection. Similarly, if a `before_remove` callback throws `:abort`, the object does not
 get removed from the collection.
 
 NOTE: These callbacks are called only when the associated objects are added or
