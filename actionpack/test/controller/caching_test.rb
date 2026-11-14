@@ -462,6 +462,8 @@ class FragmentCacheKeyTestController < CachingController
 end
 
 class FragmentCacheKeyTest < ActionController::TestCase
+  include ActiveSupport::Testing::RactorsAssertions
+
   def setup
     super
     @store = ActiveSupport::Cache::MemoryStore.new
@@ -486,5 +488,28 @@ class FragmentCacheKeyTest < ActionController::TestCase
     assert_equal [ :views, "66", "v1", "what a key" ], @controller.combined_fragment_cache_key("what a key")
   ensure
     ENV["RAILS_CACHE_ID"] = ENV["RAILS_APP_VERSION"] = nil
+  end
+
+  def test_combined_fragment_cache_key_without_fragment_cache_keys_from_a_non_main_ractor
+    assert_equal [ :views, "what a key" ], on_ractor { CachingController.new.combined_fragment_cache_key("what a key") }
+    assert_ractor_shareable CachingController.fragment_cache_keys
+  end
+
+  def test_fragment_cache_keys_are_ractor_safe
+    controller = ActiveSupport::Ractors.with(unshareable_proc_action: :raise) do
+      Class.new(CachingController) do
+        attr_accessor :account_id
+
+        fragment_cache_key "v1"
+        fragment_cache_key { account_id }
+      end
+    end
+
+    assert_equal [ :views, "v1", "123", "what a key" ], on_ractor(controller) { |klass|
+      instance = klass.new
+      instance.account_id = "123"
+      instance.combined_fragment_cache_key("what a key")
+    }
+    assert_ractor_shareable controller.fragment_cache_keys
   end
 end
