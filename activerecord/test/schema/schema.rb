@@ -1461,6 +1461,7 @@ ActiveRecord::Schema.define do
     t.string :string_with_default, default: "the original default"
     t.string :inferred_string, limit: 255
     t.boolean :overloaded_boolean, default: 0
+    t.boolean :overloaded_boolean_with_truthy_default, default: true
     t.datetime :starts_at, :ends_at
   end
 
