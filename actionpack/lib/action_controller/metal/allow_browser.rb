@@ -2,6 +2,7 @@
 
 require "active_support/core_ext/hash/indifferent_access"
 require "active_support/ractors"
+require "concurrent/map"
 
 module ActionController # :nodoc:
   module AllowBrowser
@@ -69,7 +70,7 @@ module ActionController # :nodoc:
 
     private
       def allow_browser(versions:, block:)
-        if BrowserBlocker.new(request, versions: versions).blocked?
+        if BrowserBlocker.blocked?(request, versions: versions)
           ActiveSupport::Notifications.instrument("browser_block.action_controller", request: request, versions: versions) do
             block.is_a?(Symbol) ? send(block) : instance_exec(&block)
           end
@@ -82,6 +83,27 @@ module ActionController # :nodoc:
         }.freeze
 
         EXPANDED_SETS = SETS.transform_values { |set| set.with_indifferent_access.freeze }.freeze
+
+        # The user agent comes from the client, so the kept verdicts are bounded.
+        VERDICTS_LIMIT = 1_000
+        VERDICT_USER_AGENT_MAX_BYTES = 512
+
+        def self.blocked?(request, versions:)
+          user_agent = request.user_agent
+          unless versions.is_a?(Symbol) && user_agent && user_agent.bytesize <= VERDICT_USER_AGENT_MAX_BYTES
+            return new(request, versions: versions).blocked?
+          end
+
+          verdicts = ActiveSupport::Ractors.store_if_absent(:action_controller_allow_browser_verdicts) { Concurrent::Map.new }
+          set_verdicts = verdicts.compute_if_absent(versions) { Concurrent::Map.new }
+          verdict = set_verdicts[user_agent]
+          if verdict.nil?
+            verdict = new(request, versions: versions).blocked?
+            set_verdicts.clear if set_verdicts.size >= VERDICTS_LIMIT
+            set_verdicts[user_agent] = verdict
+          end
+          verdict
+        end
 
         attr_reader :request, :versions
 

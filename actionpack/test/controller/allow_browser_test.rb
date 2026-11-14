@@ -28,6 +28,8 @@ end
 class AllowBrowserTest < ActionController::TestCase
   tests AllowBrowserController
 
+  setup { ActiveSupport::Ractors[:action_controller_allow_browser_verdicts]&.clear }
+
   CHROME_118    = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/118 Safari/537.36"
   CHROME_120    = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120 Safari/537.36"
   SAFARI_17_2_0 = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.2.0 Safari/605.1.15"
@@ -74,6 +76,19 @@ class AllowBrowserTest < ActionController::TestCase
 
     get_with_agent :modern, OPERA_106
     assert_response :ok
+  end
+
+  test "repeated requests against modern limit keep each user agent's verdict" do
+    2.times do
+      get_with_agent :modern, CHROME_118
+      assert_response :upgrade_required
+
+      get_with_agent :modern, CHROME_120
+      assert_response :ok
+    end
+
+    get_with_agent :modern, CHROME_118 + " (#{"x" * 600})"
+    assert_response :upgrade_required
   end
 
   test "bots" do
