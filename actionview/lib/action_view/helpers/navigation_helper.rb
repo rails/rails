@@ -456,7 +456,9 @@ module ActionView
         inner_tags = button
         if params
           to_form_params(params).each do |param|
-            inner_tags.safe_concat hidden_field_tag(param[:name], param[:value], id: nil)
+            input_options = { type: "hidden", name: param[:name], value: param[:value] }
+            input_options[:autocomplete] = "off" unless ActionView::Base.remove_hidden_field_autocomplete
+            inner_tags.safe_concat tag(:input, input_options)
           end
         end
         form_tag(url || false, form_options) { inner_tags }
