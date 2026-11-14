@@ -3,6 +3,7 @@
 require_relative "abstract_unit"
 require "active_support/number_helper"
 require "active_support/core_ext/string/output_safety"
+require "active_support/testing/ractors_assertions"
 
 module ActiveSupport
   module NumberHelper
@@ -521,6 +522,17 @@ module ActiveSupport
           assert_equal "11288E822220222%", number_helper.number_to_percentage("11288E822220222")
           assert_equal "-888E89789%", number_helper.number_to_percentage("-888E89789")
         end
+      end
+    end
+
+    class NumberConverterRactorTest < ActiveSupport::TestCase
+      include ActiveSupport::Testing::Isolation
+      include ActiveSupport::Testing::RactorsAssertions
+
+      test "the i18n format keys are built on eager_load! and readable from a non-main Ractor" do
+        NumberHelper.eager_load!
+
+        assert_equal :"number.currency.format", on_ractor { NumberToCurrencyConverter.i18n_format_key }
       end
     end
   end
