@@ -2,6 +2,7 @@
 
 require "active_support/rescuable"
 require "active_support/parameter_filter"
+require "concurrent/atomic/atomic_boolean"
 require "concurrent/atomic/atomic_fixnum"
 
 module ActionCable
@@ -178,6 +179,7 @@ module ActionCable
 
         @reject_subscription = nil
         @subscription_confirmation_sent = nil
+        @subscription_confirmation_claimed = Concurrent::AtomicBoolean.new
         @unsubscribed = false
 
         delegate_connection_identifiers
@@ -325,13 +327,15 @@ module ActionCable
         end
 
         def transmit_subscription_confirmation
-          unless subscription_confirmation_sent?
-            logger.debug "#{self.class.name} is transmitting the subscription confirmation"
+          # Callers can race (subscribe_to_channel and stream_from's pubsub callbacks run on
+          # different threads), so claim the confirmation before sending it.
+          return unless @subscription_confirmation_claimed.make_true
 
-            ActiveSupport::Notifications.instrument("transmit_subscription_confirmation.action_cable", channel_class: self.class.name, identifier: @identifier) do
-              connection.transmit identifier: @identifier, type: ActionCable::INTERNAL[:message_types][:confirmation]
-              @subscription_confirmation_sent = true
-            end
+          logger.debug "#{self.class.name} is transmitting the subscription confirmation"
+
+          ActiveSupport::Notifications.instrument("transmit_subscription_confirmation.action_cable", channel_class: self.class.name, identifier: @identifier) do
+            connection.transmit identifier: @identifier, type: ActionCable::INTERNAL[:message_types][:confirmation]
+            @subscription_confirmation_sent = true
           end
         end
 
