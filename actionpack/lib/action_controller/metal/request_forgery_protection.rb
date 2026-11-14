@@ -614,8 +614,16 @@ module ActionController # :nodoc:
       # any other POST.
       #
       def verified_request? # :doc:
-        request.get? || request.head? || verified_query_request? || !protect_against_forgery? ||
+        verified_safe_request? || verified_query_request? || !protect_against_forgery? ||
           (valid_request_origin? && verified_request_for_forgery_protection?)
+      end
+
+      # GET and HEAD requests are exempt from forgery protection, but only when
+      # the request actually arrived with that method. A POST tunneled through
+      # Rack::MethodOverride with `_method=get` or `_method=head` was submitted
+      # as an ordinary form POST and must be verified like one.
+      def verified_safe_request? # :doc:
+        (request.get? && request.method == "GET") || (request.head? && request.method == "HEAD")
       end
 
       # QUERY requests are exempt from forgery protection like GET and HEAD,
