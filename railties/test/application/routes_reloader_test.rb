@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require "abstract_unit"
+require "tempfile"
 
 class RoutesReloaderTest < ActiveSupport::TestCase
   class FakeFileWatcher
@@ -83,6 +84,48 @@ class RoutesReloaderTest < ActiveSupport::TestCase
 
     assert_equal(true, waiting.value)
     assert_equal(false, reloader.execute_unless_loaded)
+  end
+
+  test "execute_unless_loaded keeps disable_clear_and_finalize on the route sets that had it set" do
+    enabled = ActionDispatch::Routing::RouteSet.new
+    enabled.disable_clear_and_finalize = true
+    disabled = ActionDispatch::Routing::RouteSet.new
+
+    reloader = Rails::Application::RoutesReloader.new
+    reloader.route_sets.push(enabled, disabled)
+
+    assert_equal true, reloader.execute_unless_loaded
+    assert enabled.disable_clear_and_finalize
+    assert_not disabled.disable_clear_and_finalize
+  end
+
+  test "execute_unless_loaded keeps disable_clear_and_finalize when the load fails" do
+    routes = ActionDispatch::Routing::RouteSet.new
+    routes.disable_clear_and_finalize = true
+
+    Tempfile.create(["routes", ".rb"]) do |file|
+      file.write('raise "invalid routes"')
+      file.close
+
+      reloader = Rails::Application::RoutesReloader.new
+      reloader.route_sets << routes
+      reloader.paths << file.path
+
+      assert_raises(RuntimeError) { reloader.execute_unless_loaded }
+    end
+
+    assert routes.disable_clear_and_finalize
+  end
+
+  test "reload! resets disable_clear_and_finalize" do
+    routes = ActionDispatch::Routing::RouteSet.new
+    routes.disable_clear_and_finalize = true
+
+    reloader = Rails::Application::RoutesReloader.new
+    reloader.route_sets << routes
+    reloader.reload!
+
+    assert_not routes.disable_clear_and_finalize
   end
 
   private
