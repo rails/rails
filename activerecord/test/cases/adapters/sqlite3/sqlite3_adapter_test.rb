@@ -526,6 +526,8 @@ module ActiveRecord
           structure_query = [<<~SQL.squish, "SCHEMA", []]
             WITH master AS (
               SELECT name, type, sql FROM sqlite_master
+              WHERE type NOT IN ('table', 'view')
+                OR name NOT IN (SELECT name FROM sqlite_temp_master WHERE type IN ('table', 'view'))
               UNION ALL
               SELECT name, type, sql FROM sqlite_temp_master
             )
@@ -713,6 +715,8 @@ module ActiveRecord
           index_list_query = [<<~SQL.squish, "SCHEMA", []]
             WITH master AS (
               SELECT name, type, sql FROM sqlite_master
+              WHERE type NOT IN ('table', 'view')
+                OR name NOT IN (SELECT name FROM sqlite_temp_master WHERE type IN ('table', 'view'))
               UNION ALL
               SELECT name, type, sql FROM sqlite_temp_master
             )
@@ -889,6 +893,67 @@ module ActiveRecord
       def test_no_primary_key
         with_example_table "number integer not null" do
           assert_nil @conn.primary_key("ex")
+        end
+      end
+
+      def test_schema_readers_read_a_temporary_table_that_hides_a_permanent_one
+        with_example_table "id integer PRIMARY KEY, number integer, CONSTRAINT permanent_check CHECK (number > 0)", "shadowed" do
+          @conn.execute 'CREATE TEMP TABLE shadowed (temp_id integer PRIMARY KEY, "temp_name" text COLLATE "NOCASE", CONSTRAINT temp_check CHECK (temp_id > 0))'
+          @conn.execute "CREATE INDEX temp.index_shadowed_on_temp_name ON shadowed (temp_name)"
+
+          assert_equal %w[ temp_id temp_name ], @conn.columns("shadowed").map(&:name)
+          assert_equal "NOCASE", @conn.columns("shadowed").last.collation
+          assert_equal "temp_id", @conn.primary_key("shadowed")
+          assert_equal ["index_shadowed_on_temp_name"], @conn.indexes("shadowed").map(&:name)
+          assert_equal ["temp_check"], @conn.check_constraints("shadowed").map(&:name)
+        ensure
+          @conn.execute "DROP TABLE IF EXISTS temp.shadowed"
+        end
+      end
+
+      def test_schema_readers_read_a_temporary_view_that_hides_a_permanent_table
+        with_example_table "id integer PRIMARY KEY, number integer", "shadowed" do
+          @conn.execute "CREATE TEMP VIEW shadowed AS SELECT 1 AS view_column"
+
+          assert_equal %w[ view_column ], @conn.columns("shadowed").map(&:name)
+        ensure
+          @conn.execute "DROP VIEW IF EXISTS temp.shadowed"
+        end
+      end
+
+      def test_schema_readers_read_a_temporary_table_or_view_that_hides_a_permanent_view
+        @conn.execute "CREATE VIEW shadowed AS SELECT 1 AS permanent_column"
+
+        begin
+          @conn.execute "CREATE TEMP TABLE shadowed (temp_column integer)"
+          assert_equal %w[ temp_column ], @conn.columns("shadowed").map(&:name)
+        ensure
+          @conn.execute "DROP TABLE IF EXISTS temp.shadowed"
+        end
+
+        begin
+          @conn.execute "CREATE TEMP VIEW shadowed AS SELECT 1 AS temp_view_column"
+          assert_equal %w[ temp_view_column ], @conn.columns("shadowed").map(&:name)
+        ensure
+          @conn.execute "DROP VIEW IF EXISTS temp.shadowed"
+        end
+      ensure
+        @conn.execute "DROP VIEW IF EXISTS main.shadowed"
+      end
+
+      def test_schema_readers_are_not_hidden_by_temporary_indexes_triggers_or_tables_of_other_names
+        with_example_table "id integer PRIMARY KEY, number integer", "shadowed" do
+          @conn.add_index "shadowed", :number
+          @conn.execute "CREATE TEMP TABLE index_shadowed_on_number (other integer)"
+          @conn.execute "CREATE INDEX temp.shadowed ON index_shadowed_on_number (other)"
+          @conn.execute "CREATE TEMP TRIGGER shadowed AFTER INSERT ON main.shadowed BEGIN SELECT 1; END"
+
+          assert_equal %w[ id number ], @conn.columns("shadowed").map(&:name)
+          assert_equal "id", @conn.primary_key("shadowed")
+          assert_equal [%w[ number ]], @conn.indexes("shadowed").map(&:columns)
+        ensure
+          @conn.execute "DROP TABLE IF EXISTS temp.index_shadowed_on_number"
+          @conn.execute "DROP TRIGGER IF EXISTS temp.shadowed"
         end
       end
 
