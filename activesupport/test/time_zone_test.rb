@@ -87,6 +87,28 @@ class TimeZoneTest < ActiveSupport::TestCase
     assert_equal "EDT", zone.period_for_local(Time.utc(2000, 7)).abbreviation
   end
 
+  def test_periods_after_the_last_transition_of_a_zone_are_reused
+    zone = ActiveSupport::TimeZone["Tokyo"]
+    period = zone.period_for_utc(Time.utc(2000))
+
+    [Time.utc(1951, 9, 10, 15), Time.utc(2026, 10, 30, 12, 34, 56), Time.utc(2100)].each do |time|
+      assert_same period, zone.period_for_utc(time)
+      assert_same period, zone.period_for_local(time)
+    end
+
+    [
+      Time.utc(1951, 9, 8, 14, 59, 59), Time.utc(1951, 9, 8, 15),
+      Time.utc(1951, 9, 9, 0, 30), Time.utc(1951, 9, 10, 14, 59, 59), Time.utc(1951, 9, 10, 15),
+      DateTime.new(2026), Time.new(2026, 1, 1, 0, 0, 0, "+09:00")
+    ].each do |time|
+      assert_equal zone.tzinfo.period_for_utc(time), zone.period_for_utc(time), time.inspect
+      assert_equal zone.tzinfo.period_for_local(time, true) { |periods| periods.last }, zone.period_for_local(time), time.inspect
+    end
+
+    assert_equal "JST", zone.local(2026, 10, 30, 12).zone
+    assert_equal 32_400, Time.utc(2026, 10, 30, 12).in_time_zone(zone).utc_offset
+  end
+
   def test_period_for_local_with_ambiguous_time
     zone = ActiveSupport::TimeZone["Moscow"]
     period = zone.period_for_local(Time.utc(2015, 1, 1))
