@@ -398,7 +398,7 @@
 
     *Trevor Turk*
 
-*   Update the `.node-version` file conditionally generated for new applications to 22.21.1
+*   Update the `.node-version` file conditionally generated for new applications to 24.19.0
 
     *Taketo Takashima*
 
