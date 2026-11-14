@@ -28,7 +28,11 @@ module ActionDispatch
           attr_reader :parameter_parsers
         end
 
-        @parameter_parsers = DEFAULT_PARSERS
+        self.parameter_parsers = DEFAULT_PARSERS
+      end
+
+      class << self
+        attr_accessor :parameter_parsers_frozen # :nodoc:
       end
 
       module ClassMethods
@@ -42,7 +46,8 @@ module ActionDispatch
         #     new_parsers = original_parsers.merge(xml: xml_parser)
         #     ActionDispatch::Request.parameter_parsers = new_parsers
         def parameter_parsers=(parsers)
-          @parameter_parsers = parsers.transform_keys { |key| key.respond_to?(:symbol) ? key.symbol : key }.freeze
+          parsers = parsers.transform_keys { |key| key.respond_to?(:symbol) ? key.symbol : key }
+          @parameter_parsers = Parameters.parameter_parsers_frozen ? parsers.freeze : parsers
         end
       end
 

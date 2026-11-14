@@ -117,6 +117,55 @@ if RUBY_VERSION >= "4.0" && ENV["RACK"] == "head"
         assert_equal "post", on_ractor { PostsController._wrapper_options.name }
       end
 
+      test "ractorize! freezes the parameter parsers registered during boot" do
+        app_file "config/initializers/parameter_parsers.rb", <<~RUBY
+          ActionDispatch::Request.parameter_parsers[:xml] = Ractor.shareable_lambda { |raw_post| { "xml" => raw_post } }
+          $api_request = Class.new(ActionDispatch::Request) { self.parameter_parsers = ActionDispatch::Request.parameter_parsers }
+        RUBY
+
+        app "production"
+
+        assert_not_predicate ActionDispatch::Request.parameter_parsers, :frozen?
+
+        ractorize!
+
+        assert_predicate ActionDispatch::Request.parameter_parsers, :frozen?
+        assert_predicate $api_request.parameter_parsers, :frozen?
+        assert_equal [:json, :xml], on_ractor { ActionDispatch::Request.parameter_parsers.keys }
+        assert_equal({ "xml" => "<a/>" }, on_ractor { ActionDispatch::Request.parameter_parsers[:xml].call("<a/>") })
+
+        ActionDispatch::Request.parameter_parsers = { Mime[:json] => Ractor.shareable_lambda { |raw_post| { "json" => raw_post } } }
+
+        assert_predicate ActionDispatch::Request.parameter_parsers, :frozen?
+        assert_equal [:json], on_ractor { ActionDispatch::Request.parameter_parsers.keys }
+        assert_equal({ "json" => "{}" }, on_ractor { ActionDispatch::Request.parameter_parsers[:json].call("{}") })
+      end
+
+      test "ractorize! freezes the parameter parsers of every class that includes Parameters" do
+        app_file "config/initializers/parameter_parsers.rb", <<~RUBY
+          $includer = Class.new { include ActionDispatch::Http::Parameters }
+          $grandchild = Class.new(Class.new(ActionDispatch::Request)) { self.parameter_parsers = ActionDispatch::Request.parameter_parsers }
+        RUBY
+
+        app "production"
+
+        assert_not_predicate $includer.parameter_parsers, :frozen?
+        assert_not_predicate $grandchild.parameter_parsers, :frozen?
+
+        ractorize!
+
+        assert_predicate $grandchild.parameter_parsers, :frozen?
+        assert_predicate $includer.parameter_parsers, :frozen?
+
+        subclass = Class.new(ActionDispatch::Request)
+        subclass.parameter_parsers = ActionDispatch::Request.parameter_parsers
+        assert_predicate subclass.parameter_parsers, :frozen?
+
+        Object.const_set(:LateParameters, Class.new { include ActionDispatch::Http::Parameters })
+        assert_equal [:json], on_ractor { LateParameters.parameter_parsers.keys }
+        assert_equal({ "a" => 1 }, on_ractor { LateParameters.parameter_parsers[:json].call('{"a":1}') })
+      end
+
       test "ractorize! makes Rails.logger shareable" do
         app "production"
 
