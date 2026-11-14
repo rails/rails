@@ -418,6 +418,15 @@ class NavigationHelperTest < ActiveSupport::TestCase
     )
   end
 
+  def test_button_to_with_params_omits_autocomplete_when_remove_hidden_field_autocomplete_is_true
+    ActionView::Base.with(remove_hidden_field_autocomplete: true) do
+      assert_dom_equal(
+        %{<form action="http://www.example.com" accept-charset="UTF-8" class="button_to" method="post"><button type="submit">Hello</button><input type="hidden" name="foo" value="bar" /></form>},
+        button_to("Hello", "http://www.example.com", params: { foo: :bar })
+      )
+    end
+  end
+
   def test_button_to_with_block_and_hash_url
     assert_dom_equal(
       %{<form action="/other" accept-charset="UTF-8" class="button_to" method="post"><button class="button" type="submit">Hello</button></form>},
