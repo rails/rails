@@ -347,6 +347,23 @@ class EachTest < ActiveRecord::TestCase
     end
   end
 
+  def test_in_batches_logs_error_on_ignored_order
+    previous_logger = ActiveRecord::Base.logger
+    ActiveRecord::Base.logger = ActiveSupport::Logger.new(nil)
+
+    previous_backtrace_cleaner = ActiveRecord::LogSubscriber.backtrace_cleaner
+    backtrace_cleaner = ActiveSupport::BacktraceCleaner.new
+    backtrace_cleaner.add_silencer { |line| !line.include?(__FILE__) }
+    ActiveRecord::LogSubscriber.backtrace_cleaner = backtrace_cleaner
+
+    assert_called_with(ActiveRecord::Base.logger, :warn, [/Scoped order is ignored.+\(.+batches_test\.rb/]) do
+      Post.order("title").find_each { |post| post }
+    end
+  ensure
+    ActiveRecord::Base.logger = previous_logger
+    ActiveRecord::LogSubscriber.backtrace_cleaner = previous_backtrace_cleaner
+  end
+
   def test_in_batches_has_attribute_readers
     enumerator = Post.no_comments.in_batches(of: 2, start: 42, finish: 84, use_ranges: true)
     assert_equal Post.no_comments, enumerator.relation

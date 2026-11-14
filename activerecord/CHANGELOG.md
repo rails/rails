@@ -1,3 +1,7 @@
+*   Log source location when scoped order is ignored in batching.
+
+    *fatkodima*
+
 *   Add `config.active_record.association_scope_keeps_owner_conditions` to
     always apply the conditions tying the records of an association to the
     owner, and deprecate removing them with the association scope.

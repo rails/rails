@@ -376,7 +376,10 @@ module ActiveRecord
         if raise_error
           raise ArgumentError.new(ORDER_IGNORE_MESSAGE)
         elsif model.logger
-          model.logger.warn(ORDER_IGNORE_MESSAGE)
+          message = ORDER_IGNORE_MESSAGE
+          source_location = LogSubscriber.backtrace_cleaner.first_clean_frame
+          message += " (#{source_location})" if source_location
+          model.logger.warn(message)
         end
       end
 
