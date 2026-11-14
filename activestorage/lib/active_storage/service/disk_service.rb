@@ -12,6 +12,14 @@ module ActiveStorage
   class Service::DiskService < Service
     attr_accessor :root
 
+    def self.service_config_from_url(url) # :nodoc:
+      uri = parse_storage_url(url)
+      root = "#{uri.host}#{uri.path}"
+      raise ArgumentError, "STORAGE_URL must look like disk:///path/to/storage" if root.empty?
+
+      { root: URI.decode_uri_component(root) }
+    end
+
     def initialize(root:, public: false, **options)
       @root = root
       @public = public

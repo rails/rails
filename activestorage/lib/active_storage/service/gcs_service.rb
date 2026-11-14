@@ -14,6 +14,14 @@ module ActiveStorage
     class MetadataServerError < ActiveStorage::Error; end
     class MetadataServerNotFoundError < ActiveStorage::Error; end
 
+    # A keyfile path isn't valid userinfo, so these URLs can't go through URI.parse.
+    def self.service_config_from_url(url) # :nodoc:
+      match = url.match(%r{\Agcs://(?:(?<credentials>[^@?#]+)@)?(?<project>[^/@?#]+)/(?<bucket>[^/?#]+)\z})
+      raise ArgumentError, "STORAGE_URL must look like gcs://path/to/keyfile@project/bucket" unless match
+
+      match.named_captures(symbolize_names: true).compact.transform_values { |value| URI.decode_uri_component(value) }
+    end
+
     def initialize(public: false, **config)
       @public = public
       @config = config
