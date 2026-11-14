@@ -102,6 +102,90 @@ module ActiveRecord
         end
       end
 
+      def test_unreachable_host_containing_username_is_not_username_error
+        # libpq quotes the host; substring match on the bare username used to
+        # misclassify DNS failures when the hostname contains the role name.
+        message = %(could not translate host name "myapp-db.invalid" to address: Name or service not known)
+        connect_raises_error = proc { |**_conn_params| raise(PG::ConnectionBad, message) }
+        PG.stub(:connect, connect_raises_error) do
+          error = assert_raises ActiveRecord::DatabaseConnectionError do
+            ActiveRecord::ConnectionAdapters::PostgreSQLAdapter.new_client(
+              host: "myapp-db.invalid",
+              user: "myapp",
+              password: "correct-password",
+              dbname: "other_production"
+            )
+          end
+          assert_match(/hostname: myapp-db\.invalid/, error.message)
+          assert_no_match(/username\/password/, error.message)
+        end
+      end
+
+      def test_unreachable_host_containing_dbname_is_not_no_database_error
+        message = %(could not translate host name "myapp-db.invalid" to address: Name or service not known)
+        connect_raises_error = proc { |**_conn_params| raise(PG::ConnectionBad, message) }
+        PG.stub(:connect, connect_raises_error) do
+          error = assert_raises ActiveRecord::DatabaseConnectionError do
+            ActiveRecord::ConnectionAdapters::PostgreSQLAdapter.new_client(
+              host: "myapp-db.invalid",
+              user: "deploy",
+              password: "correct-password",
+              dbname: "myapp"
+            )
+          end
+          assert_match(/hostname: myapp-db\.invalid/, error.message)
+          assert_not_kind_of ActiveRecord::NoDatabaseError, error
+        end
+      end
+
+      def test_missing_database_quoted_message_still_raises_no_database_error
+        message = %(FATAL:  database "myapp" does not exist)
+        connect_raises_error = proc { |**_conn_params| raise(PG::ConnectionBad, message) }
+        PG.stub(:connect, connect_raises_error) do
+          error = assert_raises ActiveRecord::NoDatabaseError do
+            ActiveRecord::ConnectionAdapters::PostgreSQLAdapter.new_client(
+              host: "localhost",
+              user: "deploy",
+              password: "correct-password",
+              dbname: "myapp"
+            )
+          end
+          assert_match(/Database not found: myapp/, error.message)
+        end
+      end
+
+      def test_password_auth_failure_quoted_user_still_raises_username_error
+        message = %(FATAL:  password authentication failed for user "myapp")
+        connect_raises_error = proc { |**_conn_params| raise(PG::ConnectionBad, message) }
+        PG.stub(:connect, connect_raises_error) do
+          error = assert_raises ActiveRecord::DatabaseConnectionError do
+            ActiveRecord::ConnectionAdapters::PostgreSQLAdapter.new_client(
+              host: "localhost",
+              user: "myapp",
+              password: "wrong",
+              dbname: "myapp_production"
+            )
+          end
+          assert_match(/username\/password.*username: myapp/m, error.message)
+        end
+      end
+
+      def test_missing_role_quoted_message_still_raises_username_error
+        message = %(FATAL:  role "myapp" does not exist)
+        connect_raises_error = proc { |**_conn_params| raise(PG::ConnectionBad, message) }
+        PG.stub(:connect, connect_raises_error) do
+          error = assert_raises ActiveRecord::DatabaseConnectionError do
+            ActiveRecord::ConnectionAdapters::PostgreSQLAdapter.new_client(
+              host: "localhost",
+              user: "myapp",
+              password: "correct-password",
+              dbname: "myapp_production"
+            )
+          end
+          assert_match(/username\/password.*username: myapp/m, error.message)
+        end
+      end
+
       def test_reconnect_after_bad_connection_on_check_version_with_0_return
         db_config = ActiveRecord::Base.configurations.configs_for(env_name: "arunit", name: "primary")
         with_postgresql_adapter(db_config.configuration_hash.merge(connection_retries: 0)) do |connection|
