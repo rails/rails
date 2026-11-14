@@ -248,7 +248,7 @@ module ActionDispatch
             when false, "//"
               "//"
             when PROTOCOL_REGEXP
-              "#{$1}://"
+              $1 + "://"
             else
               raise ArgumentError, "Invalid :protocol option: #{protocol.inspect}"
             end
