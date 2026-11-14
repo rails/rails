@@ -722,9 +722,10 @@ NOTE: The default error messages are plural (e.g. "is too short (minimum is
 %{count} characters)"). For this reason, when `:minimum` is 1 you should provide
 a custom message or use `presence: true` instead. Similarly, when `:in` or
 `:within` have a lower limit of 1, you should either provide a custom message or
-call `presence` prior to `length`. Only one constraint option can be used at a
-time apart from the `:minimum` and `:maximum` options which can be combined
-together.
+call `presence` prior to `length`. The `:is`, `:minimum`, and `:maximum`
+options can be combined; each one is checked separately and adds its own error.
+`:in` and `:within` are shorthand for setting `:minimum` and `:maximum`, and
+take precedence over those options when both are given.
 
 ### `numericality`
 
@@ -754,8 +755,9 @@ end
 The default error message for `:only_integer` is _"must be an integer"_.
 
 Besides `:only_integer`, this validator also accepts the `:only_numeric` option
-which specifies the value must be an instance of `Numeric` and attempts to parse
-the value if it is a `String`.
+which specifies the value must be an instance of `Numeric`. Without this
+option, `String` values are parsed as numbers; with it, a `String` such as
+`"42"` is rejected with _"is not a number"_.
 
 NOTE: By default, `numericality` doesn't allow `nil` values. You can use
 `allow_nil: true` option to permit it. For `Integer` and `Float` columns empty
