@@ -225,8 +225,9 @@ module ActiveRecord
       #   Set to true to avoid raising an error when the table already exists.
       #   Defaults to false.
       # [<tt>:as</tt>]
-      #   SQL to use to generate the table. When this option is used, the block is
-      #   ignored, as are the <tt>:id</tt> and <tt>:primary_key</tt> options.
+      #   SQL to use to generate the table. When this option is used, the
+      #   <tt>:id</tt> and <tt>:primary_key</tt> options are ignored. The block is
+      #   still evaluated, allowing indexes to be defined on the generated table.
       #
       # ====== Add a backend specific option to the generated SQL (MySQL)
       #
