@@ -3,7 +3,7 @@
 require "isolation/abstract_unit"
 require "rails/command"
 
-class Rails::RunnerTest < ActiveSupport::TestCase
+class Rails::Command::RunnerTest < ActiveSupport::TestCase
   include ActiveSupport::Testing::Isolation
 
   setup :build_app
