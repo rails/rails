@@ -711,10 +711,14 @@ module ActiveRecord
       #
       # ====== Creating a column with a specific algorithm and lock mode
       #
-      #  add_column(:users, :age, :integer, algorithm: :instant, lock: :none)
-      #  # ALTER TABLE `users` ADD `age` int ALGORITHM = INSTANT LOCK = NONE
+      #  add_column(:users, :age, :integer, algorithm: :inplace, lock: :none)
+      #  # ALTER TABLE `users` ADD `age` int, ALGORITHM = INPLACE, LOCK = NONE
       #
-      # Note: only supported by MySQL.
+      #  add_column(:users, :age, :integer, algorithm: :instant)
+      #  # ALTER TABLE `users` ADD `age` int, ALGORITHM = INSTANT
+      #
+      # Note: only supported by MySQL. MySQL rejects any +lock+ other than
+      # +:default+ when combined with <tt>algorithm: :instant</tt>.
       def add_column(table_name, column_name, type, **options)
         return if options[:if_not_exists] == true && column_exists?(table_name, column_name)
 
