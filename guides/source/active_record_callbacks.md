@@ -916,7 +916,7 @@ This unexpectedly breaks code that does not expect methods like `create` and
 NOTE: If an exception occurs during the callback chain, Rails will re-raise it
 unless it is an `ActiveRecord::Rollback` or `ActiveRecord::RecordInvalid`
 exception. Instead, you should use `throw :abort` to intentionally halt the
-chain. If any callback throws `:abort`, the process will be aborted and `create`
+chain. If any callback throws `:abort`, the process will be aborted and `save`
 will return false.
 
 ```ruby
@@ -926,15 +926,34 @@ class Product < ActiveRecord::Base
   end
 end
 
-Product.create # => false
+product = Product.new(total_price: -1)
+product.save # => false
+
+Product.create(total_price: -1) # => #<Product id: nil, ...> (not persisted)
 ```
 
-However, it will raise an `ActiveRecord::RecordNotSaved` when calling `create!`.
-This exception indicates that the record was not saved due to the callback's
-interruption.
+Note that `create` always returns the object, so check `persisted?` to find
+out whether it was saved.
+
+Because the chain was halted in a validation callback, the record is treated
+as invalid, and `save!` and `create!` raise an `ActiveRecord::RecordInvalid`:
 
 ```ruby
-Product.create! # => raises an ActiveRecord::RecordNotSaved
+Product.create!(total_price: -1) # => raises an ActiveRecord::RecordInvalid
+```
+
+If instead `:abort` is thrown from a `before_save` or `before_create` callback,
+`save!` and `create!` raise an `ActiveRecord::RecordNotSaved`, which indicates
+that the record was not saved due to the callback's interruption.
+
+```ruby
+class Product < ActiveRecord::Base
+  before_save do
+    throw :abort if total_price < 0
+  end
+end
+
+Product.create!(total_price: -1) # => raises an ActiveRecord::RecordNotSaved
 ```
 
 
