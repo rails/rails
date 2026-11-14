@@ -1295,7 +1295,7 @@ amazon:
 
 NOTE: The above configuration assumes that AWS secrets are stored using
 `bin/rails credentials:edit` with the appropriate keys. See the [Security
-Guide](security.html#custom-credentials) for more.
+Guide](security.html#encrypted-credentials-file) for more.
 
 There are other optional configurations as well - such as HTTP timeouts, retry
 limits, and upload options - that can be included:

@@ -369,7 +369,7 @@ Refer to the [Using Hotwire in Rails](using_hotwire_in_rails.html) guide for det
 
 Rails protects against
 [CSRF attacks](security.html#cross-site-request-forgery-csrf) by
-[validating non-`GET` requests with a token](security.html#required-security-token).
+[validating non-`GET` requests with a token](security.html#rails-authenticity-token).
 The [`request.js`](https://github.com/rails/request.js) library automatically
 adds the CSRF token to HTTP requests, making it easier to trigger HTTP requests
 using JavaScript.

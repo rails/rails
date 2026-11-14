@@ -76,7 +76,7 @@ Furthermore, Rails 5.2
 [opens API underlying Credentials](https://github.com/rails/rails/pull/30940),
 so you can easily deal with other encrypted configurations, keys, and files.
 You can read more about this in the
-[Securing Rails Applications](security.html#custom-credentials)
+[Securing Rails Applications](security.html#encrypted-credentials-file)
 guide.
 
 ### Content Security Policy
