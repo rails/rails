@@ -1,3 +1,11 @@
+*   Preserve nested parameter permissions in `deep_transform_values` and `deep_transform_values!`.
+
+    Reading a permitted nested parameter after transforming its values no longer makes
+    `to_h` raise `ActionController::UnfilteredParameters`. Unpermitted nested parameters
+    retain their own permission status.
+
+    *Andrii Furmanets*
+
 *   Apply `config.action_dispatch.cookies_same_site_protection` to every session
     store.
 

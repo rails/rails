@@ -152,8 +152,37 @@ class ParametersMutatorsTest < ActiveSupport::TestCase
     assert_predicate @params.deep_transform_values! { |v| v }, :permitted?
   end
 
+  test "deep_transform_values! retains permitted status of nested parameters" do
+    params = ActionController::Parameters.new(user: { name: " Alice " }).permit(user: [:name])
+
+    assert_same params, params.deep_transform_values!(&:strip)
+
+    assert_equal "Alice", params[:user][:name]
+    assert_equal({ "user" => { "name" => "Alice" } }, params.to_h)
+  end
+
+  test "deep_transform_values! retains permitted status of parameters in arrays" do
+    params = ActionController::Parameters.new(users: [{ name: " Alice " }]).permit(users: [:name])
+
+    assert_same params, params.deep_transform_values!(&:strip)
+
+    assert_equal "Alice", params[:users].first[:name]
+    assert_equal({ "users" => [{ "name" => "Alice" }] }, params.to_h)
+  end
+
   test "deep_transform_values! retains unpermitted status" do
     assert_not_predicate @params.deep_transform_values! { |v| v }, :permitted?
+  end
+
+  test "deep_transform_values! does not permit unpermitted nested parameters" do
+    params = ActionController::Parameters.new(name: " Alice ").permit(:name)
+    params[:extra] = ActionController::Parameters.new(role: " admin ")
+
+    params.deep_transform_values!(&:strip)
+
+    assert_raises(ActionController::UnfilteredParameters) { params.to_h }
+    assert_not_predicate params[:extra], :permitted?
+    assert_equal "admin", params[:extra][:role]
   end
 
   test "deep_transform_values! transforms nested values" do
