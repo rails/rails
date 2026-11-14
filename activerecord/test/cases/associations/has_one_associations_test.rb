@@ -221,6 +221,17 @@ class HasOneAssociationsTest < ActiveRecord::TestCase
     assert_equal 1, chapter.author_id
   end
 
+  def test_nullification_on_cpk_association_with_pk_column_when_owner_is_destroyed
+    chapter = Cpk::Chapter.create!(id: [1, 2])
+    book = Cpk::NullifiedBook.create!(id: [1, 3], chapter: chapter)
+
+    book.destroy
+
+    chapter.reload
+    assert_nil chapter.book_id
+    assert_equal 1, chapter.author_id
+  end
+
   def test_has_one_for_new_record_owner_with_composite_primary_key_present
     order = Cpk::Order.create!(id: [1, 10])
     book = order.create_book!(id: [1, 100], title: "Some book")
