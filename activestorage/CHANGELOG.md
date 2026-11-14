@@ -1,3 +1,17 @@
+*   Stream single byte ranges from `ActiveStorage::Blobs::ProxyController` instead of loading them into memory.
+
+    A single range is now read in steps of `ActiveStorage.streaming_chunk_max_size` rather than being
+    refused with `416 Range Not Satisfiable` when it is at least that size, so open-ended
+    requests like `bytes=1000-` work on large files.
+
+    *Andrew Fader*
+
+*   Keep the `Content-Length` header on responses streamed by `ActiveStorage::Blobs::ProxyController`.
+
+    `ActionController::Live` dropped the header before the first write, so proxied blobs were sent chunked with no length.
+
+    *Andrew Fader*
+
 *   Preserve committed proxy responses when a storage error interrupts a
     streamed download.
 
@@ -119,6 +133,7 @@
     [GHSA-3f4q-8x5m-76v8]
 
     *Mike Dalessio*
+||||||| parent of d4a6f02b18 (Keep Content-Length on Active Storage proxy responses)
 
 *   Detect axis-swapping orientations in the Vips image analyzer from libvips' normalized
     `orientation` field instead of parsing the `exif-ifd0-Orientation` label.
