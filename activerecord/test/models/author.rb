@@ -79,11 +79,14 @@ class Author < ActiveRecord::Base
     disable_joins: true
 
   has_many :ratings, through: :comments
+  has_many :post_comment_ratings, through: :posts, source: :comment_ratings
   has_many :ratings_desc, -> { order(value: :desc) }, through: :posts, source: :comment_ratings
   has_many :good_ratings,
     -> { where("ratings.value > 5").order(:id) },
     through: :comments,
     source: :ratings
+  has_many :welcome_post_comments, -> { where("posts.title = 'Welcome to the weblog'") }, through: :posts, source: :comments
+  has_many :good_welcome_post_ratings, -> { where("ratings.value > 5") }, through: :welcome_post_comments, source: :ratings
 
   has_many :no_joins_ratings, through: :no_joins_comments, disable_joins: :true, source: :ratings
   has_many :no_joins_good_ratings,
@@ -213,6 +216,8 @@ class Author < ActiveRecord::Base
   has_many :tags,            through: :posts
   has_many :ordered_tags,    through: :posts
   has_many :post_categories, through: :posts, source: :categories
+  has_many :post_categories_desc, -> { order(id: :desc) }, through: :posts, source: :categories
+  has_many :readonly_post_categories, -> { readonly.order(:id) }, through: :posts, source: :categories
   has_many :tagging_tags,    through: :taggings, source: :tag
 
   has_many :similar_posts, -> { distinct }, through: :tags, source: :tagged_posts
