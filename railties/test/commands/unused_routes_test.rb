@@ -52,6 +52,73 @@ class Rails::Command::UnusedRoutesTest < ActiveSupport::TestCase
     OUTPUT
   end
 
+  test "action defined on the controller" do
+    app_file "app/controllers/my_controller.rb", <<-RUBY
+      class MyController < ActionController::Base
+        def index; end
+      end
+    RUBY
+
+    app_file "config/routes.rb", <<-RUBY
+      Rails.application.routes.draw do
+        get "/", to: "my#index", as: :my_route
+      end
+    RUBY
+
+    assert_includes run_unused_routes_command, "No unused routes found."
+  end
+
+  test "action defined on a parent class or included module" do
+    app_file "app/controllers/concerns/indexable.rb", <<-RUBY
+      module Indexable
+        def index; end
+      end
+    RUBY
+
+    app_file "app/controllers/base_controller.rb", <<-RUBY
+      class BaseController < ActionController::Base
+        def show; end
+      end
+    RUBY
+
+    app_file "app/controllers/my_controller.rb", <<-RUBY
+      class MyController < BaseController
+        include Indexable
+      end
+    RUBY
+
+    app_file "config/routes.rb", <<-RUBY
+      Rails.application.routes.draw do
+        get "/", to: "my#index"
+        get "/show", to: "my#show"
+      end
+    RUBY
+
+    assert_includes run_unused_routes_command, "No unused routes found."
+  end
+
+  test "private action" do
+    app_file "app/controllers/my_controller.rb", <<-RUBY
+      class MyController < ActionController::Base
+        private
+          def index; end
+      end
+    RUBY
+
+    app_file "config/routes.rb", <<-RUBY
+      Rails.application.routes.draw do
+        get "/", to: "my#index", as: :my_route
+      end
+    RUBY
+
+    assert_includes run_unused_routes_command(allow_failure: true), <<~OUTPUT
+      Found 1 unused route:
+
+        Prefix Verb URI Pattern Controller#Action
+      my_route GET  /           my#index
+    OUTPUT
+  end
+
   test "implicit render" do
     app_file "app/controllers/my_controller.rb", <<-RUBY
       class MyController < ActionController::Base
