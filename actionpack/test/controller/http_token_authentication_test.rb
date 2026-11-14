@@ -351,6 +351,16 @@ class HttpTokenAuthenticationTest < ActionController::TestCase
     assert_equal(expected, actual)
   end
 
+  test "TOKEN_REGEX matches the Token and Bearer schemes, as in 8.1" do
+    regex = ActionController::HttpAuthentication::Token::TOKEN_REGEX
+
+    assert_match regex, %{Token token="lifo"}
+    assert_match regex, "Bearer lifo"
+    assert_no_match regex, "Basic dXNlcjpwYXNz"
+    assert_no_match regex, "DPoP lifo"
+    assert_no_match regex, "bearer lifo"
+  end
+
   private
     def sample_request(token, options = { nonce: "def" })
       authorization = options.inject([%{Token token="#{token}"}]) do |arr, (k, v)|
