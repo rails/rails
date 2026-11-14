@@ -9,8 +9,8 @@ module ActionCable
       #
       # Wrap the real socket to minimize the externally-presented API
       class WebSocket # :nodoc:
-        def initialize(env, event_target, event_loop, protocols: ActionCable::INTERNAL[:protocols])
-          @websocket = ::WebSocket::Driver.websocket?(env) ? ClientSocket.new(env, event_target, event_loop, protocols) : nil
+        def initialize(env, event_target, event_loop, protocols: ActionCable::INTERNAL[:protocols], max_message_size: nil)
+          @websocket = ::WebSocket::Driver.websocket?(env) ? ClientSocket.new(env, event_target, event_loop, protocols, max_message_size: max_message_size) : nil
         end
 
         def possible?

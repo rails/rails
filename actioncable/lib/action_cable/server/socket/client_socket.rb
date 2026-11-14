@@ -32,7 +32,7 @@ module ActionCable
 
         attr_reader :env, :url
 
-        def initialize(env, event_target, event_loop, protocols)
+        def initialize(env, event_target, event_loop, protocols, max_message_size: nil)
           @env          = env
           @event_target = event_target
           @event_loop   = event_loop
@@ -44,8 +44,9 @@ module ActionCable
 
           @ready_state = CONNECTING
 
-          # The driver calls `env`, `url`, and `write`
-          @driver = ::WebSocket::Driver.rack(self, protocols: protocols)
+          # The driver calls `env`, `url`, and `write`. A nil `max_length` keeps
+          # the driver's own limit.
+          @driver = ::WebSocket::Driver.rack(self, protocols: protocols, max_length: max_message_size)
 
           @driver.on(:open)    { |e| open }
           @driver.on(:message) { |e| receive_message(e.data) }

@@ -3620,6 +3620,12 @@ only the configured origins.
 Determines the request origins which will be accepted by the cable server.
 The default value is `/https?:\/\/localhost:\d+/` in the `development` environment.
 
+#### `config.action_cable.max_message_size`
+
+The maximum size, in bytes, of a message the cable server accepts from a client.
+A larger message closes the connection with status 1009 (Message Too Big). The
+default value is `nil`, which keeps the WebSocket driver's own limit of 64 MiB.
+
 ### Configuring Active Storage
 
 `config.active_storage` provides the following configuration options:
