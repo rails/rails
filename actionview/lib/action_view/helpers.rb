@@ -68,3 +68,5 @@ module ActionView # :nodoc:
     include UrlHelper
   end
 end
+
+ActiveSupport.run_load_hooks(:action_view_helpers, ActionView::Helpers)
