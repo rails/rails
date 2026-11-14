@@ -1,3 +1,12 @@
+*   Render no `data-disable-with` on a `submit_tag` without a value.
+
+    `submit_tag nil` rendered `data-disable-with=""`, so a button left with its
+    browser default label lost that label on submit. The attribute is now
+    skipped when there is no value to swap in, as the documentation already
+    showed.
+
+    *Carlos Daniel Pohlod*
+
 *   Implement `button_to` in terms of `form_tag`.
 
     Forms rendered by `button_to` include `[accept-charset="UTF-8"]` and

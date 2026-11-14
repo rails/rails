@@ -862,6 +862,31 @@ class FormTagHelperTest < ActionView::TestCase
     )
   end
 
+  def test_submit_tag_without_value_has_no_data_disable_with
+    assert_dom_equal(
+      %(<input name="commit" type="submit" class="form_submit" />),
+      submit_tag(nil, class: "form_submit")
+    )
+  end
+
+  def test_submit_tag_with_empty_value_has_no_data_disable_with
+    assert_dom_equal(
+      %(<input name="commit" type="submit" value="" />),
+      submit_tag("")
+    )
+  end
+
+  def test_submit_tag_without_value_keeps_the_given_data_disable_with
+    assert_dom_equal(
+      %(<input name="commit" type="submit" data-disable-with="Wait" />),
+      submit_tag(nil, data: { disable_with: "Wait" })
+    )
+    assert_dom_equal(
+      %(<input name="commit" type="submit" data-disable-with="Wait" />),
+      submit_tag(nil, "data-disable-with" => "Wait")
+    )
+  end
+
   def test_button_tag
     assert_dom_equal(
       %(<button name="button" type="submit">Button</button>),
