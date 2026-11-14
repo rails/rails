@@ -40,6 +40,24 @@ class PermissionsPolicyTest < ActiveSupport::TestCase
     assert_equal "Invalid HTTP permissions policy source: [:non_existent]", exception.message
   end
 
+  def test_unknown_source_mapping
+    exception = assert_raises(ArgumentError) do
+      @policy.geolocation :non_existent
+    end
+
+    assert_equal "Unknown HTTP permissions policy source mapping: :non_existent", exception.message
+  end
+
+  def test_missing_context_for_dynamic_source
+    @policy.geolocation -> { :self }
+
+    exception = assert_raises(RuntimeError) do
+      @policy.build
+    end
+
+    assert_match %r{\AMissing context for the dynamic permissions policy source:}, exception.message
+  end
+
   def test_dynamic_directive
     context = Object.new
 
@@ -63,12 +81,13 @@ class PermissionsPolicyMiddlewareTest < ActionDispatch::IntegrationTest
   end
 
   class PolicyConfigMiddleware
-    def initialize(app)
+    def initialize(policy, app)
+      @policy = policy
       @app = app
     end
 
     def call(env)
-      env["action_dispatch.permissions_policy"] = POLICY
+      env["action_dispatch.permissions_policy"] = @policy
       env["action_dispatch.show_exceptions"] = :none
 
       @app.call(env)
@@ -99,9 +118,17 @@ class PermissionsPolicyMiddlewareTest < ActionDispatch::IntegrationTest
     assert_equal "gyroscope 'none'", response.headers[ActionDispatch::Constants::FEATURE_POLICY]
   end
 
+  test "empty policies will not set a header" do
+    @app = build_app(->(env) { [200, { Rack::CONTENT_TYPE => "text/html" }, []] }, ActionDispatch::PermissionsPolicy.new)
+
+    get "/index"
+
+    assert_nil response.headers[ActionDispatch::Constants::FEATURE_POLICY]
+  end
+
   private
-    def build_app(app)
-      PolicyConfigMiddleware.new(
+    def build_app(app, policy = POLICY)
+      PolicyConfigMiddleware.new(policy,
         Rack::Lint.new(
           ActionDispatch::PermissionsPolicy::Middleware.new(
             Rack::Lint.new(app),
