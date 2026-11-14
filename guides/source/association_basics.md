@@ -1963,7 +1963,8 @@ unintentionally shared among all subclasses.
 
 ### Generating Models
 
-In order to apply this to our example above, we need to regenerate our models.
+This section uses a new example, unrelated to the `Vehicle` models above. We
+will model an `Entry` that delegates to either a `Message` or a `Comment`.
 
 First, let's generate the base `Entry` model which will act as our superclass:
 
