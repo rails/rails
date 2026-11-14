@@ -202,21 +202,27 @@ module ActiveRecord
             MSG
           end
 
-          column_serializer = build_column_serializer(attr_name, coder, type, yaml)
+          column_serializer = ActiveSupport::Ractors.try_make_shareable(build_column_serializer(attr_name, coder, type, yaml))
 
           attribute(attr_name, **options)
 
-          decorate_attributes([attr_name]) do |attr_name, cast_type|
-            if type_incompatible_with_serialize?(cast_type, column_serializer, type)
-              raise ColumnNotSerializableError.new(attr_name, cast_type)
-            end
-
-            cast_type = cast_type.subtype if Type::Serialized === cast_type
-            Type::Serialized.new(cast_type, column_serializer, comparable: comparable)
-          end
+          decorate_attributes([attr_name], &serialized_type_decorator(column_serializer, type, comparable))
         end
 
         private
+          # Built here rather than in +serialize+: a Ractor-shareable proc cannot
+          # capture a keyword argument with a default, such as +type+ or +comparable+.
+          def serialized_type_decorator(column_serializer, type, comparable)
+            proc do |attr_name, cast_type|
+              if type_incompatible_with_serialize?(cast_type, column_serializer, type)
+                raise ColumnNotSerializableError.new(attr_name, cast_type)
+              end
+
+              cast_type = cast_type.subtype if Type::Serialized === cast_type
+              Type::Serialized.new(cast_type, column_serializer, comparable: comparable)
+            end
+          end
+
           def build_column_serializer(attr_name, coder, type, yaml = nil)
             # When ::JSON is used, force it to go through the Active Support JSON encoder
             # to ensure special objects (e.g. Active Record models) are dumped correctly
