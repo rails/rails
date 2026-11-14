@@ -67,7 +67,9 @@ const extend = function(object, properties) {
 }
 
 export default class Subscription {
-  constructor(consumer, params = {}, mixin) {
+  #observer = new SubscriptionObserver(this, null, String);
+  
+  constructor(consumer, params = {}, coder = String, mixin) {
     this.consumer = consumer
     this.identifier = JSON.stringify(params)
     extend(this, mixin)
@@ -85,5 +87,10 @@ export default class Subscription {
 
   unsubscribe() {
     return this.consumer.subscriptions.remove(this)
+  }
+
+  observer(parser = String) {
+    #observer.parser = parser
+    return #observer
   }
 }
