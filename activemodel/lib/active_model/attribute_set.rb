@@ -409,7 +409,7 @@ module ActiveModel
       if (attrs = @attributes) && (attr = attrs[index])
         cache_value_at(index, attr.value!)
       else
-        cast_value(@ctx.name_at(index), index, &:value!)
+        cast_value(@ctx.name_at(index), index) { |attribute| attribute.value! }
       end
     end
 
@@ -441,7 +441,7 @@ module ActiveModel
 
     #: () -> ActiveModel::LazyIndexedAttributeSet
     def deep_dup
-      map(&:deep_dup)
+      map { |attribute| attribute.deep_dup }
     end
 
     #: () { (ActiveModel::Attribute) -> ActiveModel::Attribute } -> ActiveModel::LazyIndexedAttributeSet
@@ -531,7 +531,7 @@ module ActiveModel
         if (attrs = @attributes) && (attr = attrs[index])
           cache_value_at(index, attr.value!)
         else
-          cast_value(name, index, &:value!)
+          cast_value(name, index) { |attribute| attribute.value! }
         end
       end
 
