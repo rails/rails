@@ -154,6 +154,39 @@ be done by not calling `config.load_defaults` or calling it with a version older
 you MUST opt-in to the newer `7.1` marshal format before upgrading, and ensure all caches were
 either flushed or upgraded.
 
+### Loading fixtures on PostgreSQL 18.4+ acquires more locks
+
+On PostgreSQL 18.4 and later, Active Record turns off foreign key checks while it
+loads fixtures or empties tables through `truncate_tables` by switching enforced
+foreign keys on tables whose owner the connection can use, in the current
+schemas, to `NOT ENFORCED` and back, instead of disabling triggers. This no longer
+requires a superuser, but switching off drops the constraint triggers and
+switching back recreates them, and the locks this takes on the triggers,
+constraints, tables and indexes are held until the transaction ends. That can
+be substantially more locks than disabling triggers took.
+
+PostgreSQL keeps object locks in one server-wide shared table. Its capacity
+depends on `max_locks_per_transaction` (64 by default), the configured number of
+server processes (mostly `max_connections`) and prepared transactions.
+Concurrent fixture loading by parallel test workers can exhaust this shared lock
+table, causing intermittent failures such as:
+
+```
+PG::OutOfMemory: ERROR:  out of shared memory
+HINT:  You might need to increase "max_locks_per_transaction".
+```
+
+If fixture loading fails with this error, increase the setting on the
+PostgreSQL server that runs the tests, for example in `postgresql.conf`, and
+restart the server:
+
+```
+max_locks_per_transaction = 256
+```
+
+The value you need depends on your schema, mostly its number of foreign keys,
+and on the number of test workers that load fixtures at the same time.
+
 ### The negative scopes for enums now include records with `nil` values.
 
 Active Record negative scopes for enums now include records with `nil` values.
