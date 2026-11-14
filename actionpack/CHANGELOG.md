@@ -1,3 +1,12 @@
+*   Only redirect to a path on the same host from `ActionDispatch::ActionableExceptions`.
+
+    The middleware accepted any `http` or `https` URL, as well as
+    protocol-relative locations such as `//example.com`, as the `location` to
+    redirect to after running an action from the development error page. The
+    error page only ever submits the current request path.
+
+    *Richard Desmarais*
+
 *   Apply `config.action_dispatch.cookies_same_site_protection` to every session
     store.
 
