@@ -1695,6 +1695,41 @@ class TransactionsWithTransactionalFixturesTest < ActiveRecord::TestCase
 
     assert_not_predicate @first.reload, :approved?
   end
+
+  def test_transaction_does_not_join_a_transaction_opened_by_another_thread
+    # Threads share the pinned connection in transactional tests, as a system
+    # test's server thread does with the test thread.
+    committed = []
+    topic_class = Class.new(Topic) do
+      after_commit { committed << title }
+    end
+
+    in_transaction = Queue.new
+    release = Queue.new
+    other_thread = Thread.new do
+      topic_class.transaction do
+        topic_class.create!(title: "other thread")
+        in_transaction << true
+        release.pop
+      end
+    end
+    in_transaction.pop
+
+    # Let the other thread commit once this thread waits on the connection.
+    current_thread = Thread.current
+    releaser = Thread.new do
+      Thread.pass until current_thread.stop?
+      release.close
+    end
+
+    topic_class.create!(title: "current thread")
+
+    assert_equal ["other thread", "current thread"], committed
+  ensure
+    release&.close
+    other_thread&.join
+    releaser&.join
+  end
 end if Topic.lease_connection.supports_savepoints?
 
 class TransactionUUIDTest < ActiveRecord::TestCase
