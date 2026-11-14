@@ -39,6 +39,9 @@ module ActiveRecord
 
         def decrypt_data_key(encrypted_message)
           encrypted_data_key = encrypted_message.headers.encrypted_data_key
+
+          raise Errors::Decryption if encrypted_data_key.nil?
+
           key = primary_key_provider.decryption_keys(encrypted_message)&.collect(&:secret)
           ActiveRecord::Encryption.cipher.decrypt encrypted_data_key, key: key if key
         end
