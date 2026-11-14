@@ -6,6 +6,11 @@ Files can be uploaded from the server to the cloud or directly from the client t
 
 Image files can furthermore be transformed using on-demand variants for quality, aspect ratio, size, or any other [MiniMagick](https://github.com/minimagick/minimagick) or [Vips](https://www.rubydoc.info/gems/ruby-vips/Vips/Image) supported transformation.
 
+Active Storage depend on third-party softwares to be installed separately:
+* [libvips](https://github.com/libvips/libvips) v8.6+ and [ImageMagick](https://imagemagick.org/index.php) for image analysis and transformations
+* [ffmpeg](http://ffmpeg.org/) v3.4+ for video previews
+* [poppler](https://poppler.freedesktop.org/) or [muPDF](https://mupdf.com/) for PDF previews
+
 You can read more about Active Storage in the [Active Storage Overview](https://guides.rubyonrails.org/active_storage_overview.html) guide.
 
 ## Compared to other storage solutions
@@ -16,9 +21,11 @@ A key difference to how Active Storage works compared to other attachment soluti
 
 ## Installation
 
-Run `bin/rails active_storage:install` to copy over active_storage migrations.
+* Run `bin/rails active_storage:install` to copy over active_storage migrations.
 
 NOTE: If the task cannot be found, verify that `require "active_storage/engine"` is present in `config/application.rb`.
+
+* Run `npm install` to install all active_storage dependencies.
 
 ## Examples
 
