@@ -1551,7 +1551,7 @@ module ActionView
             next if name.blank?
 
             type = TAG_TYPES[key]
-            if type != :aria && type != :class && value.is_a?(Hash)
+            if !(type == :aria || type == :class) && value.is_a?(Hash)
               value.each_pair do |k, v|
                 next if k.blank? || v.nil?
 
