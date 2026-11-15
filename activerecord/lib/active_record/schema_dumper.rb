@@ -361,6 +361,7 @@ module ActiveRecord
         check_parts = [ check.expression.inspect ]
         check_parts << "name: #{check.name.inspect}" if check.export_name_on_schema_dump?
         check_parts << "validate: #{check.validate?.inspect}" unless check.validate?
+        check_parts << "enforced: #{check.enforced?.inspect}" unless check.enforced?
         check_parts
       end
 

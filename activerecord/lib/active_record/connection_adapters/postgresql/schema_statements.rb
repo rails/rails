@@ -661,6 +661,19 @@ module ActiveRecord
           super
         end
 
+        def check_constraint_options(table_name, expression, options) # :nodoc:
+          if options.key?(:enforced) && !supports_enforced_check_constraints?
+            raise ArgumentError, "NOT ENFORCED check constraints require PostgreSQL 18+ (got #{database_version})"
+          end
+
+          # PostgreSQL always stores NOT ENFORCED constraints as not valid.
+          if options[:enforced] == false && options[:validate]
+            raise ArgumentError, "NOT ENFORCED check constraints cannot be validated, remove `validate: true`"
+          end
+
+          super
+        end
+
         def foreign_keys(table_name)
           result = fetch_foreign_keys(Array(table_name).map(&:to_s))
           table_name.is_a?(Array) ? result : result[table_name.to_s]
@@ -1246,9 +1259,11 @@ module ActiveRecord
 
           def fetch_check_constraints(tables)
             fetch_by_schema(tables) do |schema, group|
+              conenforced_column = supports_enforced_check_constraints? ? ", c.conenforced AS enforced" : ""
+
               rows = query_all(<<~SQL)
                 #{resolved_tables(schema, group)}
-                SELECT t.relname AS table_name, conname, pg_get_constraintdef(c.oid, true) AS constraintdef, c.convalidated AS valid
+                SELECT t.relname AS table_name, conname, pg_get_constraintdef(c.oid, true) AS constraintdef, c.convalidated AS valid#{conenforced_column}
                 FROM pg_constraint c
                 JOIN tables t ON c.conrelid = t.oid
                 WHERE c.contype = 'c'
@@ -1265,6 +1280,7 @@ module ActiveRecord
                 name: row["conname"],
                 validate: row["valid"]
               }
+              options[:enforced] = row["enforced"] if supports_enforced_check_constraints?
               expression = row["constraintdef"][/CHECK \((.+)\)/m, 1]
 
               CheckConstraintDefinition.new(table_name, expression, options)

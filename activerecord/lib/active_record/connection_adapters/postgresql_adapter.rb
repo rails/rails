@@ -296,6 +296,10 @@ module ActiveRecord
         database_version >= 18_00_04
       end
 
+      def supports_enforced_check_constraints?
+        database_version >= 18_00_00
+      end
+
       def supports_views?
         true
       end

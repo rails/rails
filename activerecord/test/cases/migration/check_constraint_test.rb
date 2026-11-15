@@ -224,6 +224,97 @@ if ActiveRecord::Base.lease_connection.supports_check_constraints?
           end
         end
 
+        if ActiveRecord::Base.lease_connection.supports_enforced_check_constraints?
+          def test_enforced_check_constraint_default
+            @connection.add_check_constraint :trades, "quantity > 0", name: "quantity_check"
+
+            assert_predicate @connection.check_constraints("trades").first, :enforced?
+          end
+
+          def test_not_enforced_check_constraint
+            assert_queries_match(/CHECK \(quantity > 0\) NOT ENFORCED\z/) do
+              @connection.add_check_constraint :trades, "quantity > 0", name: "quantity_check", enforced: false
+            end
+
+            check_constraints = @connection.check_constraints("trades")
+            assert_equal 1, check_constraints.size
+
+            cc = check_constraints.first
+            assert_equal "quantity > 0", cc.expression
+            assert_not_predicate cc, :enforced?
+            assert_not_predicate cc, :validate?
+            assert @connection.check_constraint_exists?(:trades, name: "quantity_check", enforced: false)
+            assert_not @connection.check_constraint_exists?(:trades, name: "quantity_check", enforced: true)
+          end
+
+          def test_not_enforced_check_constraint_allows_invalid_values
+            @connection.add_check_constraint :trades, "quantity > 0", name: "quantity_check", enforced: false
+
+            assert_nothing_raised do
+              Trade.create!(quantity: -1)
+            end
+          end
+
+          def test_not_enforced_check_constraint_with_validate_false
+            assert_queries_match(/CHECK \(quantity > 0\) NOT ENFORCED NOT VALID\z/) do
+              @connection.add_check_constraint :trades, "quantity > 0", name: "quantity_check", enforced: false, validate: false
+            end
+
+            cc = @connection.check_constraints("trades").first
+            assert_not_predicate cc, :enforced?
+            assert_not_predicate cc, :validate?
+          end
+
+          def test_not_enforced_check_constraint_with_validate_true_raises
+            error = assert_raises(ArgumentError) do
+              @connection.add_check_constraint :trades, "quantity > 0", name: "quantity_check", enforced: false, validate: true
+            end
+            assert_match(/NOT ENFORCED check constraints cannot be validated/, error.message)
+            assert_empty @connection.check_constraints("trades")
+          end
+
+          def test_create_table_with_not_enforced_check_constraint
+            @connection.create_table :test_check_constraints, force: true do |t|
+              t.integer :quantity
+              t.check_constraint "quantity > 0", name: "quantity_check", enforced: false
+            end
+
+            cc = @connection.check_constraints("test_check_constraints").first
+            assert_not_predicate cc, :enforced?
+          ensure
+            @connection.drop_table :test_check_constraints, if_exists: true
+          end
+
+          # PostgreSQL marks NOT ENFORCED constraints as NOT VALID, so they are dumped after the table.
+          def test_schema_dumping_with_enforced_false
+            @connection.add_check_constraint :trades, "quantity > 0", name: "quantity_check", enforced: false
+
+            output = dump_table_schema "trades"
+
+            assert_match %r{\s+add_check_constraint "trades", "quantity > 0", name: "quantity_check", validate: false, enforced: false$}, output
+          end
+        end
+
+        if current_adapter?(:PostgreSQLAdapter)
+          def test_not_enforced_check_constraint_raises_when_unsupported
+            @connection.stub(:supports_enforced_check_constraints?, false) do
+              error = assert_raises(ArgumentError) do
+                @connection.add_check_constraint :trades, "quantity > 0", name: "quantity_check", enforced: false
+              end
+              assert_match(/NOT ENFORCED check constraints require PostgreSQL 18\+/, error.message)
+
+              assert_raises(ArgumentError) do
+                @connection.create_table :test_check_constraints, force: true do |t|
+                  t.integer :quantity
+                  t.check_constraint "quantity > 0", enforced: false
+                end
+              end
+            end
+          ensure
+            @connection.drop_table :test_check_constraints, if_exists: true
+          end
+        end
+
         def test_check_constraint_exists
           @connection.add_check_constraint :trades, "quantity > 0", name: "quantity_check"
 
