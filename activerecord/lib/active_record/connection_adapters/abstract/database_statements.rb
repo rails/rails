@@ -514,37 +514,42 @@ module ActiveRecord
       # isolation level.
       #  :args: (requires_new: nil, isolation: nil, &block)
       def transaction(requires_new: nil, isolation: nil, joinable: true, &block)
-        # If we're running inside the single, non-joinable transaction that
-        # ActiveRecord::TestFixtures starts around each example (depth == 1),
-        # an `isolation:` hint must be validated then ignored so that the
-        # adapter isn't asked to change the isolation level mid-transaction.
-        isolation_override = false
-        if isolation && open_transactions == 1 && !current_transaction.joinable?
-          iso = isolation.to_sym
+        # When threads share a connection (e.g. the test and server threads of
+        # a system test), the current transaction may belong to another thread.
+        # Hold the lock so we wait for it to finish instead of joining it.
+        @lock.synchronize do
+          # If we're running inside the single, non-joinable transaction that
+          # ActiveRecord::TestFixtures starts around each example (depth == 1),
+          # an `isolation:` hint must be validated then ignored so that the
+          # adapter isn't asked to change the isolation level mid-transaction.
+          isolation_override = false
+          if isolation && open_transactions == 1 && !current_transaction.joinable?
+            iso = isolation.to_sym
 
-          unless transaction_isolation_levels.include?(iso)
-            raise ActiveRecord::TransactionIsolationError,
-                  "invalid transaction isolation level: #{iso.inspect}"
+            unless transaction_isolation_levels.include?(iso)
+              raise ActiveRecord::TransactionIsolationError,
+                    "invalid transaction isolation level: #{iso.inspect}"
+            end
+
+            isolation_override = true
+            old_isolation = current_transaction.isolation
+            current_transaction.isolation = iso
+            isolation = nil
           end
 
-          isolation_override = true
-          old_isolation = current_transaction.isolation
-          current_transaction.isolation = iso
-          isolation = nil
-        end
-
-        if !requires_new && current_transaction.joinable?
-          if isolation && current_transaction.isolation != isolation
-            raise ActiveRecord::TransactionIsolationError, "cannot set isolation when joining a transaction"
+          if !requires_new && current_transaction.joinable?
+            if isolation && current_transaction.isolation != isolation
+              raise ActiveRecord::TransactionIsolationError, "cannot set isolation when joining a transaction"
+            end
+            yield current_transaction.user_transaction
+          else
+            within_new_transaction(isolation: isolation, joinable: joinable, &block)
           end
-          yield current_transaction.user_transaction
-        else
-          within_new_transaction(isolation: isolation, joinable: joinable, &block)
+        rescue ActiveRecord::Rollback
+          # rollbacks are silently swallowed
+        ensure
+          current_transaction.isolation = old_isolation if isolation_override
         end
-      rescue ActiveRecord::Rollback
-        # rollbacks are silently swallowed
-      ensure
-        current_transaction.isolation = old_isolation if isolation_override
       end
 
       attr_reader :transaction_manager # :nodoc:

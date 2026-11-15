@@ -1,3 +1,13 @@
+*   Fix a thread joining a transaction that another thread has open on a
+    shared connection.
+
+    In transactional system tests, the test thread could join a transaction
+    the server thread had open, and the records it saved then missed their
+    `after_commit` callbacks. It now waits for that transaction to finish and
+    opens its own.
+
+    *Wei-Lun Li*
+
 *   Fix joining through an association whose scope has references and includes
     aliasing a later join of an included table.
 
