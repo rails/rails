@@ -1,3 +1,9 @@
+*   Fix preloading a `has_many :through` with conditions ignoring them when its
+    through association is a `has_many :through` with conditions that preloads
+    (or includes, or eager loads) the source association.
+
+    *Ryuta Kamizono*
+
 *   Fix preloading a scoped nested `has_many :through` association after a
     sibling association loaded its records.
 

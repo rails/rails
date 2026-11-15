@@ -80,6 +80,12 @@ module ActiveRecord
             end
           end
 
+          def through_scope_filters_source?
+            !reflection.options[:disable_joins] &&
+              through_reflection.klass.table_name != klass.table_name &&
+              !reflection_scope.where_clause.empty?
+          end
+
         private
           def destination_fixed_values
             EMPTY_FIXED_VALUES
@@ -92,7 +98,7 @@ module ActiveRecord
 
           def source_preloaders
             @source_preloaders ||= ActiveRecord::Associations::Preloader.new(records: middle_records, associations: source_reflection.name, scope: scope, associate_by_default: false).loaders.tap do |loaders|
-              loaders.each(&:ignore_loaded_target!) if source_scope_filters_source?
+              loaders.each(&:ignore_loaded_target!) if source_scope_filters_source? || through_scope_skipped?
             end
           end
 
@@ -140,12 +146,6 @@ module ActiveRecord
             end
           end
 
-          def through_scope_filters_source?
-            !reflection.options[:disable_joins] &&
-              through_reflection.klass.table_name != klass.table_name &&
-              !reflection_scope.where_clause.empty?
-          end
-
           # When the through scope doesn't eager load the source records, already
           # loaded ones are reused only if the scope can't change which records
           # come back or how they're built, and never by a nested through
@@ -154,6 +154,14 @@ module ActiveRecord
           def source_scope_filters_source?
             !through_scope_filters_source? &&
               (!@reuse_loaded_target || !reflection_scope.values.except(*SOURCE_REUSING_SCOPE_VALUES).empty?)
+          end
+
+          # A nested through association filtered on its own through table loads
+          # its source records with its own query, without the through scope
+          # passed down to it, so what they have loaded isn't filtered by ours.
+          def through_scope_skipped?
+            through_scope_filters_source? &&
+              through_preloaders.any? { |loader| loader.is_a?(ThroughAssociation) && loader.through_scope_filters_source? }
           end
 
           # As in SQL, an explicit order on the through association beats the
