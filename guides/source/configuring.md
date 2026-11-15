@@ -1895,6 +1895,10 @@ ActiveSupport.on_load(:active_record_postgresqladapter) do
 end
 ```
 
+Individual tables can be created as unlogged regardless of this setting by
+passing `unlogged: true` to `create_table`, or as regular tables by passing
+`unlogged: false`.
+
 #### `ActiveRecord::ConnectionAdapters::PostgreSQLAdapter.datetime_type`
 
 Controls what native type the Active Record PostgreSQL adapter should use when you call `datetime` in

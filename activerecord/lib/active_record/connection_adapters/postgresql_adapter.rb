@@ -118,6 +118,9 @@ module ActiveRecord
       #   self.create_unlogged_tables = true
       # end
       # ```
+      #
+      # To create individual unlogged tables, pass <tt>unlogged: true</tt> to
+      # +create_table+ instead.
       class_attribute :create_unlogged_tables, default: false
 
       ##

@@ -2,6 +2,7 @@
 
 require "cases/helper"
 require "support/schema_dumping_helper"
+require "active_support/core_ext/object/with"
 
 class UnloggedTablesTest < ActiveRecord::PostgreSQLTestCase
   include SchemaDumpingHelper
@@ -48,6 +49,77 @@ class UnloggedTablesTest < ActiveRecord::PostgreSQLTestCase
     @connection.create_table(TABLE_NAME) do |t|
     end
     assert_no_match(/unlogged/i, dump_table_schema(TABLE_NAME))
+  end
+
+  def test_unlogged_option_creates_unlogged_table
+    @connection.create_table(TABLE_NAME, unlogged: true) do |t|
+    end
+    assert_equal UNLOGGED, @connection.execute(LOGGED_QUERY).first[LOGGED_FIELD]
+  end
+
+  def test_unlogged_option_false_overrides_unlogged_setting
+    ActiveRecord::ConnectionAdapters::PostgreSQLAdapter.with(create_unlogged_tables: true) do
+      @connection.create_table(TABLE_NAME, unlogged: false) do |t|
+      end
+    end
+    assert_equal LOGGED, @connection.execute(LOGGED_QUERY).first[LOGGED_FIELD]
+  end
+
+  def test_temporary_takes_precedence_over_unlogged_option
+    @connection.create_table(TABLE_NAME, temporary: true, unlogged: true) do |t|
+    end
+    assert_equal TEMPORARY, @connection.execute(LOGGED_QUERY).first[LOGGED_FIELD]
+  end
+
+  def test_unlogged_option_with_as
+    @connection.create_table(TABLE_NAME, unlogged: true, as: "SELECT 1 AS one")
+    assert_equal UNLOGGED, @connection.execute(LOGGED_QUERY).first[LOGGED_FIELD]
+  end
+
+  def test_unlogged_option_included_in_schema_dump
+    @connection.create_table(TABLE_NAME, unlogged: true) do |t|
+    end
+    assert_match(/create_table "#{TABLE_NAME}", unlogged: true, force: :cascade/, dump_table_schema(TABLE_NAME))
+  end
+
+  def test_logged_table_not_dumped_as_unlogged
+    @connection.create_table(TABLE_NAME) do |t|
+    end
+    assert_no_match(/unlogged/i, dump_table_schema(TABLE_NAME))
+  end
+
+  def test_unlogged_table_round_trips_through_schema_dump
+    @connection.create_table(TABLE_NAME, unlogged: true) do |t|
+      t.string :name
+    end
+    schema = dump_table_schema(TABLE_NAME)
+    @connection.drop_table TABLE_NAME
+
+    ActiveRecord::Migration.suppress_messages { eval(schema) }
+
+    assert_equal UNLOGGED, @connection.execute(LOGGED_QUERY).first[LOGGED_FIELD]
+  end
+
+  def test_logged_table_dumped_as_logged_when_unlogged_setting_enabled
+    ActiveRecord::ConnectionAdapters::PostgreSQLAdapter.with(create_unlogged_tables: true) do
+      @connection.create_table(TABLE_NAME, unlogged: false) do |t|
+      end
+      assert_match(/create_table "#{TABLE_NAME}", unlogged: false, force: :cascade/, dump_table_schema(TABLE_NAME))
+    end
+  end
+
+  def test_logged_table_round_trips_through_schema_dump_when_unlogged_setting_enabled
+    ActiveRecord::ConnectionAdapters::PostgreSQLAdapter.with(create_unlogged_tables: true) do
+      @connection.create_table(TABLE_NAME, unlogged: false) do |t|
+        t.string :name
+      end
+      schema = dump_table_schema(TABLE_NAME)
+      @connection.drop_table TABLE_NAME
+
+      ActiveRecord::Migration.suppress_messages { eval(schema) }
+    end
+
+    assert_equal LOGGED, @connection.execute(LOGGED_QUERY).first[LOGGED_FIELD]
   end
 
   def test_not_changed_in_change_table

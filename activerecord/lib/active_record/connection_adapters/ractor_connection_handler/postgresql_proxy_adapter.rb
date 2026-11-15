@@ -439,6 +439,10 @@ module ActiveRecord
             remote_dispatch(:search_path_tables)
           end
 
+          def valid_table_definition_options
+            remote_dispatch(:valid_table_definition_options)
+          end
+
           def validate_table_length!(...)
             remote_dispatch(:validate_table_length!, ...)
           end

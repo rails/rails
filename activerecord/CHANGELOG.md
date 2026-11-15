@@ -1,3 +1,22 @@
+*   Allow creating individual unlogged tables on PostgreSQL.
+
+    `create_table` now accepts an `unlogged:` option, so specific tables (such
+    as import staging tables or caches) can be unlogged in any environment,
+    not just when `create_unlogged_tables` is enabled globally:
+
+    ```ruby
+    create_table :import_rows, unlogged: true do |t|
+      t.jsonb :payload
+    end
+    ```
+
+    Passing `unlogged: false` creates a regular table even when
+    `create_unlogged_tables` is enabled. Tables whose persistence differs from
+    `create_unlogged_tables` are dumped to `schema.rb` with `unlogged: true` or
+    `unlogged: false`.
+
+    *Bart de Water*
+
 *   Fix grouped calculations and `pluck` returning uncast values for a column
     unknown to the schema.
 
