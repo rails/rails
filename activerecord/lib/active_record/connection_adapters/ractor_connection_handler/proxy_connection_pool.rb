@@ -395,22 +395,18 @@ module ActiveRecord
           end
 
           def pin_main_connection!(lock_thread)
-            connection_name, role, shard = @connection_name, @role, @shard
+            connection_name, role, shard, key = @connection_name, @role, @shard, @key
             pin_lock_thread = !!lock_thread
             main_operation(connection_pool: self) do
-              main_pool(connection_name, role, shard).pin_connection!(pin_lock_thread)
+              pin_main_pool(key, main_pool(connection_name, role, shard), pin_lock_thread)
               nil
             end
           end
 
-          # Nothing to unpin when the named pool was replaced or removed (pool token mismatch).
           def unpin_main_connection!
-            connection_name, role, shard, pool_token = @connection_name, @role, @shard, @pool_token
+            key = @key
             main_operation(connection_pool: self) do
-              pool = main_connection_handler.retrieve_connection_pool(
-                connection_name, role: role, shard: shard, strict: false
-              )
-              pool.unpin_connection! if pool && pool.pool_config.pool_token == pool_token
+              unpin_main_pool(key)
               nil
             end
           end
