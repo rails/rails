@@ -13,6 +13,17 @@ require "models/rating"
 class RelationMergingTest < ActiveRecord::TestCase
   fixtures :developers, :comments, :authors, :author_addresses, :posts, :ratings
 
+  def test_merge_relation_without_values
+    relation = Post.where(id: 1).where(id: 1)
+    assert_equal Post.where(id: 1).to_sql, relation.merge(Post.all).to_sql
+
+    relation = Post.group(:id).having("id > 0")
+    assert_equal relation.to_sql, relation.having("id > 0").merge(Post.all).to_sql
+
+    assert_predicate Post.all.merge(Post.none.only(:order)), :null_relation?
+    assert_empty Post.all.merge(Post.none.except(:where))
+  end
+
   def test_merge_in_clause
     david, mary, bob = authors = authors(:david, :mary, :bob)
 

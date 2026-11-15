@@ -57,6 +57,9 @@ module ActiveRecord
       NORMAL_VALUE_BANG_METHODS = NORMAL_VALUES.index_with { |name| :"#{name}!" }.freeze
 
       def merge
+        return relation if values.empty? && !other.null_relation? &&
+          relation.where_clause.empty? && relation.having_clause.empty?
+
         # Merging a relation's values into themselves is a no-op, and `unscope!`
         # would delete them while they are read.
         return relation if values.equal?(relation.values_for_merge)
