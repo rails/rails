@@ -792,6 +792,21 @@ strings or regular expressions, against which a check for the match will be perf
 config.action_cable.allowed_request_origins = ["https://rubyonrails.com", %r{http://ruby.*}]
 ```
 
+Browsers always send an `Origin` header when they open a WebSocket connection,
+but clients that aren't browsers, such as mobile apps, devices, or other
+servers, often don't, and Action Cable rejects their connections. To accept
+connections without an `Origin` header, while still checking the ones that
+send it:
+
+```ruby
+config.action_cable.allow_missing_origin = true
+```
+
+The origin check protects against cross-site WebSocket hijacking, where another
+website opens a connection with your users' cookies. That attack needs a
+browser, so this setting doesn't weaken the protection, unless something
+between your users' browsers and your app removes the `Origin` header.
+
 To disable and allow requests from any origin:
 
 ```ruby

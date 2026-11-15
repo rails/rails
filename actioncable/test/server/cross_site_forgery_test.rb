@@ -20,6 +20,7 @@ class ActionCable::Server::Base::CrossSiteForgeryTest < ActionCable::TestCase
     @server.config.disable_request_forgery_protection = false
     @server.config.allowed_request_origins = []
     @server.config.allow_same_origin_as_host = true
+    @server.config.allow_missing_origin = false
   end
 
   test "disable forgery protection" do
@@ -95,6 +96,43 @@ class ActionCable::Server::Base::CrossSiteForgeryTest < ActionCable::TestCase
     assert_origin_not_allowed "http://#{HOST}", forwarded_proto: "https"
   end
 
+  test "missing origin is not allowed by default" do
+    assert_not ActionCable::Configuration.new.allow_missing_origin
+    assert_origin_not_allowed nil
+  end
+
+  test "missing origin is allowed when nil is an allowed origin" do
+    @server.config.allowed_request_origins = [nil, "http://rubyonrails.com"]
+    assert_origin_allowed nil
+    assert_origin_allowed "http://rubyonrails.com"
+    assert_origin_not_allowed "http://hax.com"
+  end
+
+  test "allow missing origin" do
+    @server.config.allow_missing_origin = true
+    assert_origin_allowed nil
+    assert_origin_allowed "http://rubyonrails.com"
+    assert_origin_not_allowed "http://hax.com"
+    assert_origin_not_allowed "null"
+    assert_origin_not_allowed ""
+  end
+
+  test "allow missing origin with same origin as host" do
+    @server.config.allowed_request_origins = []
+    @server.config.allow_same_origin_as_host = true
+    @server.config.allow_missing_origin = true
+    assert_origin_allowed nil
+    assert_origin_allowed "http://#{HOST}"
+    assert_origin_not_allowed "http://hax.com"
+  end
+
+  test "log a missing origin" do
+    log = capture_log
+    assert_origin_not_allowed nil
+    assert_match "the request has no Origin header", log.string
+    assert_match "config.action_cable.allow_missing_origin", log.string
+  end
+
   private
     def assert_origin_allowed(origin, **options)
       response = connect_with_origin origin, **options
@@ -116,9 +154,16 @@ class ActionCable::Server::Base::CrossSiteForgeryTest < ActionCable::TestCase
       response
     end
 
+    def capture_log
+      log = StringIO.new
+      @server.instance_variable_set(:@logger, ActiveSupport::TaggedLogging.new(ActiveSupport::Logger.new(log)))
+      log
+    end
+
     def env_for_origin(origin, forwarded_host: nil, forwarded_proto: nil)
       env = Rack::MockRequest.env_for "/test", "HTTP_CONNECTION" => "upgrade", "HTTP_UPGRADE" => "websocket", "SERVER_NAME" => HOST,
-        "HTTP_HOST" => HOST, "HTTP_ORIGIN" => origin
+        "HTTP_HOST" => HOST
+      env["HTTP_ORIGIN"] = origin if origin
       env["HTTP_X_FORWARDED_HOST"] = forwarded_host if forwarded_host
       env["HTTP_X_FORWARDED_PROTO"] = forwarded_proto if forwarded_proto
       env
