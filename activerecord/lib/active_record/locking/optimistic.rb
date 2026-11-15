@@ -94,15 +94,6 @@ module ActiveRecord
         self.class.locking_enabled?
       end
 
-      def increment!(*, **) # :nodoc:
-        super.tap do
-          if locking_enabled?
-            self[self.class.locking_column] += 1
-            clear_attribute_change(self.class.locking_column)
-          end
-        end
-      end
-
       def initialize_dup(other) # :nodoc:
         super
         _clear_locking_column if locking_enabled?
@@ -116,6 +107,20 @@ module ActiveRecord
             attribute_names |= [self.class.locking_column]
           end
           super
+        end
+
+        def _increment_row(counters)
+          affected_rows = super
+
+          # Only advance the in-memory lock version when the row was actually
+          # updated, otherwise it would drift from the database value.
+          if affected_rows > 0 && locking_enabled?
+            locking_column = self.class.locking_column
+            self[locking_column] += 1
+            clear_attribute_change(locking_column)
+          end
+
+          affected_rows
         end
 
         def _touch_row(attribute_names, time)

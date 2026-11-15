@@ -694,9 +694,7 @@ module ActiveRecord
       change = public_send(attribute) - (public_send(:"#{attribute}_in_database") || 0)
       counters = { attribute => change, touch: touch }
 
-      # Counters are updated atomically, so the optimistic locking predicate is
-      # not needed here; the row is still identified by its query constraints.
-      self.class.all_queries_scope._where!(_identity_query_constraints_hash).update_counters(counters)
+      _increment_row(counters)
       public_send(:"clear_#{attribute}_change")
       self
     end
@@ -947,6 +945,13 @@ module ActiveRecord
 
       def _delete_row
         self.class._delete_record(_query_constraints_hash)
+      end
+
+      # Counters are updated atomically, so the optimistic locking predicate is
+      # not needed here; the row is still identified by its query constraints.
+      # Returns the number of affected rows.
+      def _increment_row(counters)
+        self.class.all_queries_scope._where!(_identity_query_constraints_hash).update_counters(counters)
       end
 
       def _touch_row(attribute_names, time)
