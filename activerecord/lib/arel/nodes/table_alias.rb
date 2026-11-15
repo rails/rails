@@ -23,8 +23,8 @@ module Arel # :nodoc: all
         relation.type_cast_for_database(attr_name, value)
       end
 
-      def type_for_attribute(name)
-        relation.type_for_attribute(name)
+      def type_for_attribute(name, &block)
+        relation.type_for_attribute(name, &block)
       end
 
       def able_to_type_cast?

@@ -1,3 +1,17 @@
+*   Fix grouped calculations and `pluck` returning uncast values for a column
+    unknown to the schema.
+
+    Grouping by or plucking a column of a joined subquery or a CTE now casts
+    it with the column type the database reports for the result.
+
+    ```ruby
+    Topic.with(read_topics: Topic.select("id AS topic_id", :last_read)).joins(:read_topics).where(id: 1).pluck("read_topics.last_read")
+    # => ["2004-04-15"] before
+    # => [Thu, 15 Apr 2004] now
+    ```
+
+    *Ryuta Kamizono*
+
 *   Fix preloading a `has_many :through` with conditions ignoring them when its
     through association is a `has_many :through` with conditions that preloads
     (or includes, or eager loads) the source association.

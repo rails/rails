@@ -584,10 +584,8 @@ module ActiveRecord
             end
 
             key_types = group_columns.each_with_object({}) do |(aliaz, col_name), types|
-              types[aliaz] = col_name.try(:type_caster) ||
-                type_for(col_name) do
-                  calculated_data.column_types.fetch(aliaz, Type.default_value)
-                end
+              result_type = proc { calculated_data.column_types.fetch(aliaz, Type.default_value) }
+              types[aliaz] = col_name.try(:type_caster, &result_type) || type_for(col_name, &result_type)
             end
 
             hash_rows = calculated_data.cast_values(key_types).map! do |row|
@@ -632,7 +630,7 @@ module ActiveRecord
         else
           join_dependencies = nil
           columns.map.with_index do |column, i|
-            column.try(:type_caster) ||
+            column.try(:type_caster) { result.column_types[i] || Type.default_value } ||
               model.attribute_types.fetch(name = result.columns[i]) do
                 join_dependencies ||= build_join_dependencies
                 lookup_cast_type_from_join_dependencies(name, join_dependencies) ||

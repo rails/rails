@@ -21,7 +21,7 @@ module ActiveRecord
           type = column.cast_type if column
         end
 
-        type || Type.default_value
+        type || (block_given? ? yield(attr_name) : Type.default_value)
       end
 
       private
