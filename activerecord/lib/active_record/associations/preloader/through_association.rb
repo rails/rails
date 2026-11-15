@@ -148,10 +148,12 @@ module ActiveRecord
 
           # When the through scope doesn't eager load the source records, already
           # loaded ones are reused only if the scope can't change which records
-          # come back or how they're built.
+          # come back or how they're built, and never by a nested through
+          # association whose loaded targets are ignored: the source records
+          # loaded on its middle records don't reflect the scope passed down to it.
           def source_scope_filters_source?
             !through_scope_filters_source? &&
-              !reflection_scope.values.except(*SOURCE_REUSING_SCOPE_VALUES).empty?
+              (!@reuse_loaded_target || !reflection_scope.values.except(*SOURCE_REUSING_SCOPE_VALUES).empty?)
           end
 
           # As in SQL, an explicit order on the through association beats the

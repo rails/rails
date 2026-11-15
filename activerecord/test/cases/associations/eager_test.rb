@@ -1365,6 +1365,35 @@ class EagerAssociationTest < ActiveRecord::TestCase
     end
   end
 
+  def test_preload_customized_nested_has_many_through_after_uncustomized_one_on_the_same_through_association
+    %i[post_categories_desc readonly_post_categories].each do |association|
+      expected = authors(:david).public_send(association).to_a
+      preloaded = Author.preload(:post_categories, association).find(authors(:david).id).public_send(association)
+
+      assert_equal expected, preloaded, association
+      assert_equal expected.map(&:readonly?), preloaded.map(&:readonly?), association
+    end
+  end
+
+  def test_preload_filtered_has_many_through_a_nested_one_after_a_sibling
+    Rating.create!(comment: comments(:greetings), value: 9)
+    expected = authors(:david).good_ratings.to_a
+    assert_not_empty expected
+
+    assert_equal expected, Author.preload(:post_comment_ratings, :good_ratings).find(authors(:david).id).good_ratings
+  end
+
+  # The nested through's own conditions need its through table, so the source
+  # records its through scope eager loads are reused rather than queried alone.
+  def test_preload_filtered_has_many_through_a_nested_one_filtered_on_its_through_table
+    Rating.create!(comment: comments(:greetings), value: 9)
+    Rating.create!(comment: comments(:greetings), value: 1)
+    expected = authors(:david).good_welcome_post_ratings.to_a
+    assert_equal [9], expected.map(&:value)
+
+    assert_equal expected, Author.preload(:good_welcome_post_ratings).find(authors(:david).id).good_welcome_post_ratings
+  end
+
   def test_preload_has_many_through_with_default_order
     author = Author.create!(name: "Preload Test")
     [posts(:welcome), posts(:sti_post_and_comments), posts(:sti_comments), posts(:thinking)].each do |post|

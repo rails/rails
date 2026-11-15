@@ -1,3 +1,26 @@
+*   Fix preloading a scoped nested `has_many :through` association after a
+    sibling association loaded its records.
+
+    When its source association was itself a through association (or a
+    `has_and_belongs_to_many`), its order or `readonly` was dropped; when its
+    through association was, its conditions were.
+
+    ```ruby
+    class Magazine < ActiveRecord::Base
+      has_many :sections
+      has_many :articles, through: :sections
+      has_many :latest_articles, -> { order(id: :desc) }, through: :sections, source: :articles
+    end
+
+    class Section < ActiveRecord::Base
+      has_and_belongs_to_many :articles
+    end
+
+    Magazine.preload(:articles, :latest_articles).first.latest_articles # => now sorted by id desc
+    ```
+
+    *Clément Joubert*
+
 *   Fix joining through an association whose scope has references and includes
     aliasing a later join of an included table.
 
