@@ -104,6 +104,7 @@ class CommentOnPostWithWhereDefaultScope < Comment
   default_scope { where(deleted_at: nil) }
 
   belongs_to :post, class_name: "PostWithWhereDefaultScope", foreign_key: :post_id
+  belongs_to :post_including_deleted, -> { unscope(where: :deleted_at) }, class_name: "PostWithWhereDefaultScope", foreign_key: :post_id
 end
 
 class PolymorphicComment < Comment

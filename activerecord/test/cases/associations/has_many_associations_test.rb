@@ -3062,6 +3062,21 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     assert_equal [bulb1, bulb2], Car.eager_load(:all_bulbs).find(car.id).all_bulbs.sort_by(&:id)
   end
 
+  test "can unscope the default scope of the associated model when joined under an alias" do
+    car = Car.create!
+    Bulb.create! name: "other", car: car
+
+    assert_equal [car], Car.joins(:all_bulbs).where(all_bulbs: { name: "other" }).to_a
+  end
+
+  test "unscoping the default scope of an aliased join keeps it on another join of the same table" do
+    car = Car.create!
+    Bulb.create! name: "defaulty", car: car
+    Bulb.create! name: "other",    car: car
+
+    assert_equal 2, Car.joins(:bulbs, :all_bulbs).where(id: car.id).count
+  end
+
   test "can unscope and where the default scope of the associated model" do
     car = Car.create!
     bulb1 = Bulb.create! name: "defaulty", car: car

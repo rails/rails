@@ -547,6 +547,13 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
     assert_equal developers(:jamis), ship.developer
   end
 
+  def test_association_unscope_removes_default_scope_condition_when_joined_under_an_alias
+    post = PostWithWhereDefaultScope.create!(author: authors(:david), title: "title", body: "body", deleted_at: Time.now)
+    comment = CommentOnPostWithWhereDefaultScope.create!(body: "comment", post_id: post.id)
+
+    assert_equal [comment], CommentOnPostWithWhereDefaultScope.joins(:post_including_deleted).where(post_including_deleted: { id: post.id }).to_a
+  end
+
   def test_default_scope_on_relations_is_not_cached
     counter = 0
 
