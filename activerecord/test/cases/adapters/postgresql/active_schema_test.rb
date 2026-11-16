@@ -82,6 +82,12 @@ class PostgresqlActiveSchemaTest < ActiveRecord::PostgreSQLTestCase
       assert_equal expected, add_index(:people, :last_name, nulls_not_distinct: true)
     end
 
+    expected = %(CREATE INDEX "index_people_on_last_name" ON "people" USING brin ("last_name") WITH (autosummarize = on, pages_per_range = 32))
+    assert_equal expected, add_index(:people, :last_name, using: :brin, with: "autosummarize = on, pages_per_range = 32")
+
+    expected = %(CREATE INDEX "index_people_on_last_name" ON "people" ("last_name") WITH (fillfactor = 70) WHERE state = 'active')
+    assert_equal expected, add_index(:people, :last_name, with: "fillfactor = 70", where: "state = 'active'")
+
     assert_raise ArgumentError do
       add_index(:people, :last_name, algorithm: :copy)
     end

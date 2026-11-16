@@ -123,6 +123,7 @@ module ActiveRecord
           def add_index_options!(sql, index)
             sql << "INCLUDE (#{quoted_include_columns(index.include)})" if supports_index_include? && index.include
             sql << "NULLS NOT DISTINCT" if supports_nulls_not_distinct? && index.nulls_not_distinct
+            sql << "WITH (#{index.storage_parameters})" if index.storage_parameters
             super
           end
 

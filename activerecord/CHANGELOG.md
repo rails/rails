@@ -1,3 +1,15 @@
+*   Add `:with` option to `add_index` for PostgreSQL index storage parameters.
+
+    ```ruby
+    add_index :events, :created_at, using: :brin, with: "autosummarize = on, pages_per_range = 32"
+    # CREATE INDEX ... USING brin ("created_at") WITH (autosummarize = on, pages_per_range = 32)
+    ```
+
+    The storage parameters are dumped to `schema.rb` in the form PostgreSQL
+    prints them.
+
+    *Ryuta Kamizono*
+
 *   Add `config.active_record.association_scope_keeps_owner_conditions` to
     always apply the conditions tying the records of an association to the
     owner, and deprecate removing them with the association scope.

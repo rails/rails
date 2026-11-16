@@ -240,13 +240,14 @@ module ActiveRecord
       # Active Record PostgreSQL Adapter \Index Definition
       # ==================================================
       class IndexDefinition < ActiveRecord::ConnectionAdapters::IndexDefinition # :nodoc:
-        attr_reader :opclasses, :include, :nulls_not_distinct
+        attr_reader :opclasses, :include, :nulls_not_distinct, :storage_parameters
 
-        def initialize(*args, opclasses: {}, include: nil, nulls_not_distinct: nil, **kwargs)
+        def initialize(*args, opclasses: {}, include: nil, nulls_not_distinct: nil, storage_parameters: nil, **kwargs)
           super(*args, **kwargs)
           @opclasses = concise_options(opclasses)
           @include = include
           @nulls_not_distinct = nulls_not_distinct
+          @storage_parameters = storage_parameters.presence
         end
 
         def column_options
@@ -264,6 +265,7 @@ module ActiveRecord
           json["opclasses"] = @opclasses.presence
           json["include"] = @include
           json["nulls_not_distinct"] = @nulls_not_distinct
+          json["storage_parameters"] = @storage_parameters
           json
         end
 
@@ -272,6 +274,7 @@ module ActiveRecord
           @opclasses = symbolize_concise_options(coder["opclasses"])
           @include = coder["include"]
           @nulls_not_distinct = coder["nulls_not_distinct"]
+          @storage_parameters = coder["storage_parameters"]
         end
       end
 

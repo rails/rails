@@ -1157,7 +1157,7 @@ module ActiveRecord
               nulls_not_distinct = row[7]
               using = row[8]
               where = row[9]
-              storage_parameters = row[10]
+              storage_parameters = index_storage_parameters(inddef, where) if row[10]
               key_columns = decode_string_array(row[11])
               include_columns = key_columns.slice!(key_count..)
               include_definitions = decode_string_array(row[12]).drop(key_count)
@@ -1201,10 +1201,19 @@ module ActiveRecord
                 using: using.to_sym,
                 include: include_columns.presence,
                 nulls_not_distinct: nulls_not_distinct,
+                storage_parameters: storage_parameters,
                 comment: comment.presence,
                 valid: valid
               )
             end
+          end
+
+          # Cuts the storage parameters out of a pg_get_indexdef result, the
+          # WITH (...) clause that is left at the end once the WHERE clause is
+          # removed.
+          def index_storage_parameters(inddef, where)
+            inddef = inddef.delete_suffix(" WHERE #{where}") if where
+            inddef[(inddef.rindex(" WITH (") + " WITH (".size)...-1]
           end
 
           # Cuts the key list out of a pg_get_indexdef result by removing the
@@ -1472,6 +1481,7 @@ module ActiveRecord
               opclasses: options[:opclass] || {},
               include: options[:include],
               nulls_not_distinct: options[:nulls_not_distinct],
+              storage_parameters: options[:with],
             )
           end
 

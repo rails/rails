@@ -122,6 +122,7 @@ module ActiveRecord
           def add_index_option_parts!(index_parts, index)
             index_parts << "include: #{index.include.inspect}" if index.include
             index_parts << "nulls_not_distinct: #{index.nulls_not_distinct.inspect}" if index.nulls_not_distinct
+            index_parts << "with: #{index.storage_parameters.inspect}" if index.storage_parameters
             super
           end
 
