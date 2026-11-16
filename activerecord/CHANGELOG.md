@@ -1,3 +1,21 @@
+*   Fix a `has_many :through` applying the default scope and STI type condition
+    of its through model to the wrong table when the same table appears more
+    than once in the chain.
+
+    ```ruby
+    class Comment < ActiveRecord::Base
+      default_scope { where(deleted_at: nil) }
+      has_many :children, class_name: "Comment", foreign_key: :parent_id
+      has_many :grandchildren, through: :children, source: :children
+    end
+
+    comment.grandchildren
+    # Before: grandchildren of deleted children were included
+    # After:  the default scope also applies to the children
+    ```
+
+    *Ryuta Kamizono*
+
 *   Fix grouped calculations and `pluck` returning uncast values for a column
     unknown to the schema.
 
