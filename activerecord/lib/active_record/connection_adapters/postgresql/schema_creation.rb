@@ -6,7 +6,7 @@ module ActiveRecord
       class SchemaCreation < SchemaCreation # :nodoc:
         private
           delegate :quoted_include_columns_for_index, to: :@conn
-          delegate :database_version, to: :@conn
+          delegate :database_version, :supports_index_include?, :supports_nulls_not_distinct?, to: :@conn, private: true
 
           def visit_AddForeignKey(o)
             super.dup.tap do |sql|
@@ -113,6 +113,12 @@ module ActiveRecord
             else
               sql << "SET DEFAULT #{quote_default_expression(o.default, o.column)}"
             end
+          end
+
+          def add_index_options!(sql, index)
+            sql << "INCLUDE (#{quoted_include_columns(index.include)})" if supports_index_include? && index.include
+            sql << "NULLS NOT DISTINCT" if supports_nulls_not_distinct? && index.nulls_not_distinct
+            super
           end
 
           def add_column_options!(sql, options)

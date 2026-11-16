@@ -16,8 +16,7 @@ module ActiveRecord
       delegate :quote_column_name, :quote_table_name, :quote_default_expression, :type_to_sql,
         :options_include_default?, :supports_indexes_in_create?, :use_foreign_keys?,
         :quoted_columns_for_index, :supports_partial_index?, :supports_check_constraints?,
-        :supports_index_include?, :supports_exclusion_constraints?, :supports_unique_constraints?,
-        :supports_nulls_not_distinct?, :lookup_cast_type,
+        :supports_exclusion_constraints?, :supports_unique_constraints?, :lookup_cast_type,
         to: :@conn, private: true
 
       private
@@ -121,9 +120,7 @@ module ActiveRecord
           sql << "#{quote_column_name(index.name)} ON #{quote_table_name(index.table)}"
           sql << "USING #{index.using}" if supports_index_using? && index.using
           sql << "(#{quoted_columns(index)})"
-          sql << "INCLUDE (#{quoted_include_columns(index.include)})" if supports_index_include? && index.include
-          sql << "NULLS NOT DISTINCT" if supports_nulls_not_distinct? && index.nulls_not_distinct
-          sql << "WHERE #{index.where}" if supports_partial_index? && index.where
+          add_index_options!(sql, index)
 
           sql.join(" ")
         end
@@ -142,6 +139,11 @@ module ActiveRecord
 
         def supports_index_using?
           true
+        end
+
+        def add_index_options!(sql, index)
+          sql << "WHERE #{index.where}" if supports_partial_index? && index.where
+          sql
         end
 
         def add_table_options!(create_sql, o)
