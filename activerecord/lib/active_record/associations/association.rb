@@ -237,7 +237,7 @@ module ActiveRecord
         _create_record(attributes, true, &block)
       end
 
-      def violates_strict_loading?
+      def violates_strict_loading?(n_plus_one: false)
         return unless find_target?
 
         return if @skip_strict_loading
@@ -246,7 +246,7 @@ module ActiveRecord
 
         return reflection.strict_loading? if reflection.options.key?(:strict_loading)
 
-        owner.strict_loading? && !owner.strict_loading_n_plus_one_only?
+        owner.strict_loading? && (!owner.strict_loading_n_plus_one_only? || (n_plus_one && owner.loaded_in_collection?))
       end
 
       # Whether the association represents a single record

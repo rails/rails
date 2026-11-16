@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require "cases/helper"
+require "active_support/core_ext/object/with"
 require "models/developer"
 require "models/contract"
 require "models/company"
@@ -138,6 +139,53 @@ class StrictLoadingTest < ActiveRecord::TestCase
     end.new
 
     assert_predicate developer, :strict_loading_n_plus_one_only?
+  end
+
+  def test_strict_loading_n_plus_one_only_mode_by_default_raises_when_lazy_loading_collection_associations
+    Developer.with(strict_loading_by_default: true, strict_loading_mode: :n_plus_one_only) do
+      records = Developer.all.to_a
+      assert_operator records.size, :>, 1
+      assert records.all?(&:strict_loading_n_plus_one_only?)
+
+      assert_raises ActiveRecord::StrictLoadingViolationError, match: /`Developer` is marked for strict_loading/ do
+        records.flat_map { |record| record.audit_logs.to_a }
+      end
+
+      assert_nothing_raised do
+        records.each { |record| record.ship }
+      end
+    end
+  end
+
+  def test_strict_loading_n_plus_one_only_mode_by_default_does_not_raise_when_destroying_collection_records
+    Developer.with(strict_loading_by_default: true, strict_loading_mode: :n_plus_one_only) do
+      records = Developer.all
+
+      assert_nothing_raised { records.each(&:destroy) }
+    end
+  end
+
+  def test_strict_loading_n_plus_one_only_mode_by_default_does_not_raise_when_lazy_loading_a_single_record
+    Developer.with(strict_loading_by_default: true, strict_loading_mode: :n_plus_one_only) do
+      [
+        Developer.first,
+        Developer.find(developers(:david).id),
+        Developer.where(id: developers(:david).id).to_a.sole
+      ].each do |record|
+        assert_predicate record, :strict_loading_n_plus_one_only?
+
+        assert_nothing_raised { record.audit_logs.to_a }
+        assert_nothing_raised { record.ship }
+      end
+    end
+  end
+
+  def test_strict_loading_n_plus_one_only_mode_by_default_does_not_raise_when_preloading_collection_associations
+    Developer.with(strict_loading_by_default: true, strict_loading_mode: :n_plus_one_only) do
+      records = Developer.preload(:audit_logs)
+
+      assert_nothing_raised { records.flat_map { |record| record.audit_logs.to_a } }
+    end
   end
 
   def test_strict_loading

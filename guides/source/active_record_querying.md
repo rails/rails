@@ -2888,8 +2888,32 @@ user.comments.to_a # => [#<Comment:0x00...]
 user.comments.first.likes.to_a # raises an ActiveRecord::StrictLoadingViolationError
 ```
 
+Records that are in `:n_plus_one_only` mode when a query loads more than one of
+them will also raise an error when lazily loading a `has_many` association,
+since doing so for each record leads to an N + 1 query. For example, when
+[`config.active_record.strict_loading_by_default`][] is `true` and
+[`config.active_record.strict_loading_mode`][] is `:n_plus_one_only`:
+
+```ruby
+User.first.comments.to_a # => [#<Comment:0x00...]
+
+users = User.all.to_a
+users.first.address.city # => "Tatooine"
+users.first.comments.to_a # raises an ActiveRecord::StrictLoadingViolationError
+```
+
+To avoid the error, eager load the association with `includes`, `preload`, or
+`eager_load`:
+
+```ruby
+users = User.includes(:comments).to_a
+users.first.comments.to_a # => [#<Comment:0x00...]
+```
+
 [`strict_loading!`]:
     https://api.rubyonrails.org/classes/ActiveRecord/Core.html#method-i-strict_loading-21
+[`config.active_record.strict_loading_mode`]:
+    configuring.html#config-active-record-strict-loading-mode
 
 ### `strict_loading` option on an association
 

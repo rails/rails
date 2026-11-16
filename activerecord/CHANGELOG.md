@@ -1,3 +1,16 @@
+*   Detect N+1 queries in collections with `:n_plus_one_only` strict loading
+    mode
+
+    ```ruby
+    Post.strict_loading_by_default = true
+    Post.strict_loading_mode = :n_plus_one_only
+
+    Post.first.comments.to_a                    # => [#<Comment ...>]
+    Post.all.each { |post| post.comments.to_a } # => ActiveRecord::StrictLoadingViolationError
+    ```
+
+    *Sean Doyle*
+
 *   Ignore `validate:` and `enforced:` when `remove_foreign_key` looks up the
     foreign key to remove.
 

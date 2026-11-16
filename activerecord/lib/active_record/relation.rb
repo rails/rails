@@ -1486,7 +1486,11 @@ module ActiveRecord
           preload_associations(records) unless skip_preloading_value
 
           records.each(&:readonly!) if readonly_value
-          records.each { |record| record.strict_loading!(strict_loading_value) } unless strict_loading_value.nil?
+          if !strict_loading_value.nil?
+            records.each { |record| record.strict_loading!(strict_loading_value) }
+          elsif records.many?
+            records.each { |record| record.loaded_in_collection! if record.strict_loading? && record.strict_loading_n_plus_one_only? }
+          end
 
           records
         end
