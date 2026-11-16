@@ -1,7 +1,6 @@
 # frozen_string_literal: true
 
 require "rails"
-require "active_job/railtie"
 require "action_mailer"
 require "abstract_controller/railties/routes_helpers"
 
