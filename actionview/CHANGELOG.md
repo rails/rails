@@ -1,3 +1,7 @@
+*   Support `Set` values in class attributes and token lists.
+
+    *Alexander Senko*
+
 *   Implement `button_to` in terms of `form_tag`.
 
     Forms rendered by `button_to` include `[accept-charset="UTF-8"]` and

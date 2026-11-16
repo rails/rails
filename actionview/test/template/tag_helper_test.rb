@@ -598,7 +598,40 @@ class TagHelperTest < ActionView::TestCase
       assert_equal "song", helper.("song", "song")
       assert_equal "song", helper.("song song")
       assert_equal "song", helper.("song\nsong")
+      assert_equal "song play", helper.(Set["song", { play: true, hidden: false }])
+      assert_equal "1..2", helper.(1..2)
+      assert_equal "1..2", helper.([1..2])
     end
+  end
+
+  def test_set_class_attributes
+    classes = Set["song", { "play>" => true, hidden: false }, nil]
+    assert_equal '<p class="song play&gt;"></p>', tag.p(class: classes)
+    assert_equal '<p class="song play&gt;">limelight</p>', content_tag("p", "limelight", class: classes)
+    assert_equal '<p class="song play&gt;" />', tag("p", class: classes)
+    assert_equal '<p class="song play>"></p>', tag.p(class: classes, escape: false)
+    assert_equal '<p class=""></p>', tag.p(class: Set.new)
+    assert_equal '<p class="before song play&gt;"></p>', tag.p(class: ["before", classes])
+    assert_equal '<p class="song play>"></p>', tag.p(class: [classes], escape: false)
+    assert_equal '<p title="song play&gt;"></p>', tag.p(title: Set["song", "play>"])
+    assert_equal '<p title="song play>"></p>', tag.p(title: Set["song", "play>"], escape: false)
+  end
+
+  def test_class_attribute_preserves_scalar_values
+    collection = Class.new do
+      include Enumerable
+      def each(&block) = ["song", "play"].each(&block)
+      def to_s = "collection"
+    end.new
+
+    assert_equal '<p class="false"></p>', tag.p(class: false)
+    assert_equal '<p class=" "></p>', tag.p(class: " ")
+    assert_equal '<p class="song"></p>', tag.p(class: /song/)
+    assert_equal '<p class="1..2"></p>', tag.p(class: 1..2)
+    assert_equal '<p class="1..2"></p>', tag.p(class: [1..2])
+    assert_equal '<p class="collection"></p>', tag.p(class: collection)
+    assert_equal "collection", class_names(collection)
+    assert_equal '<p title="1..2"></p>', tag.p(title: 1..2)
   end
 
   def test_token_list_and_class_names_returns_an_html_safe_string
