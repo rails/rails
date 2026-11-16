@@ -1394,6 +1394,18 @@ class EagerAssociationTest < ActiveRecord::TestCase
     assert_equal expected, Author.preload(:good_welcome_post_ratings).find(authors(:david).id).good_welcome_post_ratings
   end
 
+  # The nested through loads the comments with its own query, which loads their
+  # ratings without the condition of the outer association.
+  def test_preload_filtered_has_many_through_a_nested_one_loading_the_source_records
+    Rating.create!(comment: comments(:greetings), value: 9)
+    Rating.create!(comment: comments(:greetings), value: 1)
+
+    %i[good_ratings_of_comments_with_preload good_ratings_of_comments_with_eager_load].each do |association|
+      preloaded = Author.preload(association).find(authors(:david).id).public_send(association)
+      assert_equal [9], preloaded.map(&:value), association
+    end
+  end
+
   def test_preload_has_many_through_with_default_order
     author = Author.create!(name: "Preload Test")
     [posts(:welcome), posts(:sti_post_and_comments), posts(:sti_comments), posts(:thinking)].each do |post|
