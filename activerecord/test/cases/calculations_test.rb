@@ -590,6 +590,13 @@ class CalculationsTest < ActiveRecord::TestCase
     assert_equal 60,  c[2]
   end
 
+  def test_should_group_by_field_of_common_table_expression
+    relation = Topic.with(read_topics: Topic.select("id AS topic_id", :last_read)).joins(:read_topics)
+
+    assert_equal({ nil => 4, Date.new(2004, 4, 15) => 1 }, relation.group("read_topics.last_read").count)
+    assert_equal({ [nil, true] => 4, [Date.new(2004, 4, 15), false] => 1 }, relation.group("read_topics.last_read", :approved).count)
+  end if ActiveRecord::Base.lease_connection.supports_common_table_expressions?
+
   def test_should_calculate_grouped_with_longer_field
     field = "a" * Account.lease_connection.max_identifier_length
 
@@ -1048,6 +1055,14 @@ class CalculationsTest < ActiveRecord::TestCase
 
     assert_equal expected, actual
   end
+
+  def test_pluck_type_cast_with_field_of_common_table_expression
+    topic = topics(:first)
+    relation = Topic.with(read_topics: Topic.select("id AS topic_id", :last_read)).joins(:read_topics).where(id: topic.id)
+
+    assert_equal [Date.new(2004, 4, 15)], relation.pluck("read_topics.last_read")
+    assert_equal Date.new(2004, 4, 15), relation.pick("read_topics.last_read")
+  end if ActiveRecord::Base.lease_connection.supports_common_table_expressions?
 
   def test_pluck_type_cast_with_joins_without_table_name_qualified_column
     assert_pluck_type_cast_without_table_name_qualified_column(AuthorAddress.joins(author: :books))
