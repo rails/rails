@@ -122,7 +122,7 @@ module ActionView
           end
 
           def sanitized_method_name
-            @sanitized_method_name ||= @method_name.delete_suffix("?")
+            @sanitized_method_name ||= @method_name.end_with?("?") ? @method_name.delete_suffix("?") : @method_name
           end
 
           def sanitized_value(value)
