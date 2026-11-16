@@ -228,6 +228,14 @@ module ActiveRecord
       #   SQL to use to generate the table. When this option is used, the
       #   <tt>:id</tt> and <tt>:primary_key</tt> options are ignored. The block is
       #   still evaluated, allowing indexes to be defined on the generated table.
+      # [<tt>:unlogged</tt>]
+      #   (PostgreSQL only) Set to true to create an +UNLOGGED+ table, which is
+      #   not written to the write-ahead log. This makes writes considerably
+      #   faster, but the table is truncated after a crash or unclean shutdown
+      #   and is not replicated to standby servers. Set to false to create a
+      #   regular table even when
+      #   ActiveRecord::ConnectionAdapters::PostgreSQLAdapter.create_unlogged_tables
+      #   is enabled. Defaults to the value of that setting.
       #
       # ====== Add a backend specific option to the generated SQL (MySQL)
       #
@@ -305,6 +313,19 @@ module ActiveRecord
       #
       #   CREATE TEMPORARY TABLE long_query AS
       #     SELECT * FROM orders INNER JOIN line_items ON order_id=orders.id
+      #
+      # ====== Create an unlogged table (PostgreSQL)
+      #
+      #   create_table(:import_rows, unlogged: true) do |t|
+      #     t.jsonb :payload
+      #   end
+      #
+      # generates:
+      #
+      #   CREATE UNLOGGED TABLE import_rows (
+      #     id bigserial primary key,
+      #     payload jsonb
+      #   )
       #
       # See also TableDefinition#column for details on how to create columns.
       def create_table(table_name, id: :primary_key, primary_key: nil, force: nil, **options, &block)

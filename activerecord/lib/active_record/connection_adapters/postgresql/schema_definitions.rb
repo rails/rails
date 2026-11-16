@@ -248,11 +248,11 @@ module ActiveRecord
 
         attr_reader :exclusion_constraints, :unique_constraints, :unlogged
 
-        def initialize(*, **)
+        def initialize(*, unlogged: nil, **)
           super
           @exclusion_constraints = []
           @unique_constraints = []
-          @unlogged = ActiveRecord::ConnectionAdapters::PostgreSQLAdapter.create_unlogged_tables
+          @unlogged = unlogged.nil? ? ActiveRecord::ConnectionAdapters::PostgreSQLAdapter.create_unlogged_tables : unlogged
         end
 
         def exclusion_constraint(expression, **options)

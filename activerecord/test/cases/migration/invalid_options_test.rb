@@ -41,6 +41,8 @@ module ActiveRecord
 
         if current_adapter?(:Mysql2Adapter, :TrilogyAdapter)
           primary_keys.concat([":unsigned", ":auto_increment"])
+        elsif current_adapter?(:PostgreSQLAdapter)
+          table_keys.concat([":unlogged"])
         elsif current_adapter?(:SQLite3Adapter)
           table_keys.concat([":rename"])
         end

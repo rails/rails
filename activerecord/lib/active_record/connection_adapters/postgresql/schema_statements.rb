@@ -1046,7 +1046,7 @@ module ActiveRecord
           def resolved_tables(schema, tables)
             <<~SQL.chomp
               WITH tables AS (
-                SELECT DISTINCT ON (c.relname) c.oid, c.relname, c.relkind
+                SELECT DISTINCT ON (c.relname) c.oid, c.relname, c.relkind, c.relpersistence
                 FROM pg_class c
                 JOIN pg_namespace n ON n.oid = c.relnamespace
                 WHERE n.nspname = #{schema}
@@ -1091,6 +1091,7 @@ module ActiveRecord
                 SELECT t.relname AS table_name,
                        pg_catalog.obj_description(t.oid, 'pg_class') AS comment,
                        pg_catalog.pg_get_partkeydef(t.oid) AS partition_key,
+                       t.relpersistence = 'u' AS unlogged,
                        i.inhparent::regclass::text AS parent
                 FROM tables t
                 LEFT JOIN pg_inherits i ON i.inhrelid = t.oid
@@ -1108,6 +1109,12 @@ module ActiveRecord
             return options unless first
 
             options[:comment] = first["comment"] if first["comment"]
+
+            # Only dump persistence that differs from what create_table would
+            # produce by default, so create_unlogged_tables doesn't flag every table.
+            if first["unlogged"] != PostgreSQLAdapter.create_unlogged_tables
+              options[:unlogged] = first["unlogged"]
+            end
 
             parents = rows.filter_map { |row| row["parent"] }
 
@@ -1342,6 +1349,10 @@ module ActiveRecord
 
               UniqueConstraintDefinition.new(table_name, columns, options)
             end
+          end
+
+          def valid_table_definition_options
+            super + [:unlogged]
           end
 
           def create_table_definition(name, **options)
