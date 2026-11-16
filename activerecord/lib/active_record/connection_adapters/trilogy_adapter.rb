@@ -126,7 +126,12 @@ module ActiveRecord
         end
 
         def connect
-          @raw_connection = self.class.new_client(@config)
+          config = @config
+          if config[:connect_timeout]
+            config = config.dup
+            config[:connect_timeout] = @deadline.clamp(config[:connect_timeout], minimum: 0.05, error: ConnectionTimeoutError)
+          end
+          @raw_connection = self.class.new_client(config)
         rescue ConnectionNotEstablished => ex
           raise ex.set_pool(@pool)
         end

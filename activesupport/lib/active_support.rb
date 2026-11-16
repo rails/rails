@@ -43,6 +43,7 @@ module ActiveSupport
   autoload :ContinuousIntegration
   autoload :CurrentAttributes
   autoload :DateFormats
+  autoload :Deadline
   autoload :Dependencies
   autoload :DescendantsTracker
   autoload :Editor
