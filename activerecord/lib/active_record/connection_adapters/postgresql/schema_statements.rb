@@ -1058,19 +1058,31 @@ module ActiveRecord
 
           def fetch_indexes(tables)
             fetch_by_schema(tables) do |schema, group|
+              key_count = supports_index_include? ? "d.indnkeyatts" : "d.indnatts"
+              nulls_not_distinct = supports_nulls_not_distinct? ? "d.indnullsnotdistinct" : "false"
+
+              # Each part of the index is read from the catalogs rather than parsed out
+              # of pg_get_indexdef, whose expressions and predicate can contain anything.
+              #
               # t.relname comes last so #build_indexes can keep reading columns by position.
               rows = query_rows(<<~SQL)
                 #{resolved_tables(schema, group)}
-                SELECT distinct i.relname, d.indisunique, d.indkey, pg_get_indexdef(d.indexrelid),
+                SELECT distinct i.relname, d.indisunique, d.indoption, pg_get_indexdef(d.indexrelid),
                                 pg_catalog.obj_description(i.oid, 'pg_class') AS comment, d.indisvalid,
-                                ARRAY(
-                                  SELECT pg_get_indexdef(d.indexrelid, k + 1, true)
-                                  FROM generate_subscripts(d.indkey, 1) AS k
-                                  ORDER BY k
-                                ) AS columns, t.relname
+                                #{key_count}, #{nulls_not_distinct}, am.amname,
+                                pg_get_expr(d.indpred, d.indrelid), i.reloptions IS NOT NULL,
+                                c.columns, c.definitions, c.collated, t.relname
                 FROM tables t
                 INNER JOIN pg_index d ON t.oid = d.indrelid
                 INNER JOIN pg_class i ON d.indexrelid = i.oid
+                INNER JOIN pg_am am ON i.relam = am.oid
+                CROSS JOIN LATERAL (
+                  SELECT array_agg(a.attname ORDER BY k) AS columns,
+                         array_agg(pg_get_indexdef(d.indexrelid, k, false) ORDER BY k) AS definitions,
+                         array_agg(d.indcollation[k - 1] <> 0 AND d.indcollation[k - 1] IS DISTINCT FROM a.attcollation ORDER BY k) AS collated
+                  FROM generate_series(1, d.indnatts) AS k
+                  LEFT JOIN pg_attribute a ON a.attrelid = d.indrelid AND a.attnum = d.indkey[k - 1] AND d.indkey[k - 1] <> 0
+                ) c
                 WHERE i.relkind IN ('i', 'I')
                   AND d.indisprimary = 'f'
                 ORDER BY i.relname
@@ -1142,35 +1154,45 @@ module ActiveRecord
             result.map do |row|
               index_name = row[0]
               unique = row[1]
-              indkey = row[2].split(" ").map(&:to_i)
+              indoption = row[2].split(" ").map(&:to_i)
               inddef = row[3]
               comment = row[4]
               valid = row[5]
-              columns = decode_string_array(row[6]).map { |c| Utils.unquote_identifier(c.strip.gsub('""', '"')) }
-
-              using, expressions, include, nulls_not_distinct, where = inddef.scan(/ USING (\w+?) \((.+?)\)(?: INCLUDE \((.+?)\))?( NULLS NOT DISTINCT)?(?: WHERE (.+))?\z/m).flatten
+              key_count = row[6].to_i
+              nulls_not_distinct = row[7]
+              using = row[8]
+              where = row[9]
+              storage_parameters = row[10]
+              key_columns = decode_string_array(row[11])
+              include_columns = key_columns.slice!(key_count..)
+              include_definitions = decode_string_array(row[12]).drop(key_count)
+              collated = decode_string_array(row[13])
+              key_definition = index_key_definition(inddef, using, where, storage_parameters, nulls_not_distinct, include_definitions)
 
               orders = {}
               opclasses = {}
-              include_columns = include ? include.split(",").map { |c| Utils.unquote_identifier(c.strip.gsub('""', '"')) } : []
 
-              if indkey.include?(0)
-                columns = expressions
-              else
-                # prevent INCLUDE columns from being matched
-                columns.reject! { |c| include_columns.include?(c) }
+              # An expression, or a collation the index options cannot express,
+              # keeps the SQL of the key list.
+              if key_columns.all? && collated.none?("t")
+                columns = key_columns
+                columns.each_with_index do |column, i|
+                  desc = indoption[i] & 1 != 0
+                  nulls_first = indoption[i] & 2 != 0
 
-                # add info on sort order (only desc order is explicitly specified, asc is the default)
-                # and non-default opclasses
-                expressions.scan(/(?<column>\w+)"?\s?(?<opclass>(?:\w+\.)?\w+_ops(_\w+)?)?\s?(?<desc>DESC)?\s?(?<nulls>NULLS (?:FIRST|LAST))?/).each do |column, opclass, desc, nulls|
-                  opclasses[column] = opclass.split(".").last.to_sym if opclass
-
-                  if nulls
-                    orders[column] = [desc, nulls].compact.join(" ")
-                  else
-                    orders[column] = :desc if desc
+                  if desc
+                    orders[column] = nulls_first ? :desc : "DESC NULLS LAST"
+                  elsif nulls_first
+                    orders[column] = "NULLS FIRST"
                   end
                 end
+
+                # add info on non-default opclasses
+                key_definition.scan(/(?<column>\w+)"?\s?(?<opclass>(?:\w+\.)?\w+_ops(_\w+)?)?\s?(?<desc>DESC)?\s?(?<nulls>NULLS (?:FIRST|LAST))?/).each do |column, opclass|
+                  opclasses[column] = opclass.split(".").last.to_sym if opclass
+                end
+              else
+                columns = key_definition
               end
 
               IndexDefinition.new(
@@ -1183,11 +1205,26 @@ module ActiveRecord
                 where: where,
                 using: using.to_sym,
                 include: include_columns.presence,
-                nulls_not_distinct: nulls_not_distinct.present?,
+                nulls_not_distinct: nulls_not_distinct,
                 comment: comment.presence,
                 valid: valid
               )
             end
+          end
+
+          # Cuts the key list out of a pg_get_indexdef result by removing the
+          # clauses that follow it, which are known exactly from the catalogs:
+          #
+          #   CREATE INDEX ... USING am (<key list>) [INCLUDE (...)]
+          #     [NULLS NOT DISTINCT] [WITH (...)] [WHERE ...]
+          def index_key_definition(inddef, using, where, storage_parameters, nulls_not_distinct, include_definitions)
+            inddef = inddef.delete_suffix(" WHERE #{where}") if where
+            inddef = inddef[0, inddef.rindex(" WITH (")] if storage_parameters
+            inddef = inddef.delete_suffix(" NULLS NOT DISTINCT") if nulls_not_distinct
+            inddef = inddef.delete_suffix(" INCLUDE (#{include_definitions.join(", ")})") if include_definitions.any?
+
+            head = " USING #{using} ("
+            inddef[(inddef.index(head) + head.size)...-1]
           end
 
           def fetch_foreign_keys(tables)
