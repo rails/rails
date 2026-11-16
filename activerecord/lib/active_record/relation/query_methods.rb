@@ -2594,7 +2594,7 @@ module ActiveRecord
       def qualify_attribute_with_table_name(attr)
         case attr
         when Symbol, String
-          attr.to_s.include?(".") ? attr : predicate_builder.resolve_arel_attribute(table_name, attr)
+          attr.to_s.include?(".") ? attr : table[attr]
         else
           attr
         end
