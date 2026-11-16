@@ -3095,6 +3095,30 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     assert_equal [bulb2], car.old_bulbs
   end
 
+  test "the association scope can't unscope the foreign key" do
+    car = Car.create!
+    bulb = Bulb.create! name: "defaulty", car: car
+    Bulb.create! name: "defaulty", car: Car.create!
+
+    assert_equal [bulb], car.bulbs_unscoping_car_id
+    assert_equal 1, car.bulbs_unscoping_car_id.count
+    assert_equal [bulb], Car.preload(:bulbs_unscoping_car_id).find(car.id).bulbs_unscoping_car_id
+    assert_equal [bulb], Car.eager_load(:bulbs_unscoping_car_id).find(car.id).bulbs_unscoping_car_id
+    assert_equal car.id, car.bulbs_unscoping_car_id.build.car_id
+  end
+
+  test "unscoping the where clause in the association scope keeps the foreign key" do
+    car = Car.create!
+    bulb1 = Bulb.create! name: "defaulty", car: car
+    bulb2 = Bulb.create! name: "other",    car: car
+    other_bulb = Bulb.create! name: "other", car: Car.create!
+
+    assert_equal [bulb1, bulb2], car.all_bulbs2.sort_by(&:id)
+
+    car.all_bulbs2.update_all(name: "updated")
+    assert_equal "other", other_bulb.reload.name
+  end
+
   test "unscopes the default scope of associated model when used with include" do
     car = Car.create!
     bulb1 = Bulb.create! name: "defaulty", car: car

@@ -1066,6 +1066,15 @@ class HasOneAssociationsTest < ActiveRecord::TestCase
     end
   end
 
+  def test_association_scope_cannot_unscope_foreign_key
+    Bulb.create!(name: "other", car: Car.create!)
+    car = Car.create!
+    bulb = Bulb.create!(name: "other", car: car)
+
+    assert_equal bulb, car.any_bulb
+    assert_equal bulb, Car.preload(:any_bulb).find(car.id).any_bulb
+  end
+
   class SpecialCar < ActiveRecord::Base
     self.table_name = "cars"
     has_one :special_bulb, inverse_of: :car, dependent: :destroy, class_name: "SpecialBulb", foreign_key: "car_id"

@@ -32,6 +32,10 @@ class Author < ActiveRecord::Base
   has_many :comments_with_foreign_key, through: :posts, source: :comments, foreign_key: :post_id
   has_many :no_joins_comments_with_foreign_key, through: :posts, disable_joins: :true, source: :comments, foreign_key: :post_id
 
+  has_many :posts_with_unscoped_where, -> { unscope(:where) }, class_name: "Post"
+  has_many :comments_on_posts_with_unscoped_where, through: :posts_with_unscoped_where, source: :comments
+  has_many :no_joins_comments_on_posts_with_unscoped_where, through: :posts_with_unscoped_where, source: :comments, disable_joins: true
+
   has_many :members,
     through: :comments_with_order,
     source: :origin,

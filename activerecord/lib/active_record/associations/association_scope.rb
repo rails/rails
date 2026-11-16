@@ -42,9 +42,12 @@ module ActiveRecord
           Arel::Nodes::LeadingJoin.new(table, Arel::Nodes::On.new(constraint))
         end
 
+        # Returns the scope with the conditions that tie the records to the owner,
+        # and the key conditions among them.
         def last_chain_scope(scope, reflection, owner)
           table = reflection.aliased_table
           route = reflection.association_route
+          where_clause = scope.where_clause
 
           route.each_constraint do |origin_column, destination_column|
             value = value_reader.call(owner, origin_column)
@@ -56,11 +59,13 @@ module ActiveRecord
             scope = apply_scope(scope, table, destination_column, value)
           end
 
+          key_clause = scope.where_clause - where_clause
+
           route.destination_fixed_values.each do |column, value|
             scope = apply_scope(scope, table, column, value)
           end
 
-          scope
+          [scope, key_clause]
         end
 
         def next_chain_scope(scope, reflection, next_reflection)
@@ -116,7 +121,7 @@ module ActiveRecord
         end
 
         def add_constraints(scope, owner, chain)
-          scope = last_chain_scope(scope, chain.last, owner)
+          scope, key_clause = last_chain_scope(scope, chain.last, owner)
 
           chain.each_cons(2) do |reflection, next_reflection|
             scope = next_chain_scope(scope, reflection, next_reflection)
@@ -150,6 +155,10 @@ module ActiveRecord
               scope.default_order_values = item.default_order_values | scope.default_order_values
             end
           end
+
+          # The association scope can't remove the key conditions tying the
+          # records to the owner, like it can't on joins or preloading.
+          scope.where_clause += key_clause - scope.where_clause
 
           scope
         end

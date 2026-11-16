@@ -34,6 +34,7 @@ module ActiveRecord
           scope = reflection.build_scope(reflection.aliased_table)
           predicate = scope.where(key => lookup.ids).where_clause.ast
           scope._where!(query_constraint(predicate))
+          key_clause = scope.where_clause
 
           relation = reflection.klass.scope_for_association
           scope.merge!(
@@ -48,6 +49,7 @@ module ActiveRecord
             scope.default_order_values = item.default_order_values | scope.default_order_values
             scope
           end
+          scope.where_clause += key_clause - scope.where_clause
 
           if order_rank(scope) < lookup.order_rank
             split_scope = DisableJoinsAssociationRelation.create(scope.model, key, lookup.ids)
