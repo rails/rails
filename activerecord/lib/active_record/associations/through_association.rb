@@ -43,11 +43,7 @@ module ActiveRecord
             table = alias_tracker.aliased_table_for(refl.klass.arel_table) do
               refl.alias_candidate(reflection.name)
             end
-            relation = refl.build_scope(table)
-            if refl.klass.finder_needs_type_condition?
-              relation._where!(refl.klass.send(:type_condition, table))
-            end
-            relation = refl.klass.scope_for_association(relation)
+            relation = refl.klass_join_scope(table)
             scope.merge!(
               relation.except(:select, :create_with, :includes, :preload, :eager_load, :joins, :left_outer_joins)
             )
