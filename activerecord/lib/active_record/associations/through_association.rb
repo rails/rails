@@ -32,10 +32,18 @@ module ActiveRecord
         #
         #   1. To get the default_scope conditions for any of the other reflections in the chain
         #   2. To get the type conditions for any STI models in the chain
+        #
+        # Each scope is built on the same table alias that AssociationScope gives
+        # that reflection, so that the conditions apply to the right table when
+        # the same table appears more than once in the chain.
         def target_scope
           scope = super
-          reflection.chain.drop(1).each do |reflection|
-            relation = reflection.klass.scope_for_association
+          alias_tracker = scope.alias_tracker
+          reflection.chain.drop(1).each do |refl|
+            table = alias_tracker.aliased_table_for(refl.klass.arel_table) do
+              refl.alias_candidate(reflection.name)
+            end
+            relation = refl.klass_join_scope(table)
             scope.merge!(
               relation.except(:select, :create_with, :includes, :preload, :eager_load, :joins, :left_outer_joins)
             )

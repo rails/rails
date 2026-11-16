@@ -241,10 +241,6 @@ module ActiveRecord
           klass_scope._where!(destination_attribute.eq(origin_attribute))
         end
 
-        if klass.finder_needs_type_condition?
-          klass_scope._where!(klass.send(:type_condition, table))
-        end
-
         klass_scope
       end
 
@@ -267,8 +263,14 @@ module ActiveRecord
         end
       end
 
+      # The klass's own scope on `table`: its STI type condition and default
+      # scopes, built on `table` (which may be an alias) like `klass.all` is
+      # built on its arel_table.
       def klass_join_scope(table, predicate_builder = nil) # :nodoc:
         relation = build_scope(table, predicate_builder)
+        if klass.finder_needs_type_condition?
+          relation._where!(klass.send(:type_condition, table))
+        end
         klass.scope_for_association(relation)
       end
 

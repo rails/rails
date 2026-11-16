@@ -1609,6 +1609,16 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
     assert_equal 2, author.comments_on_posts_with_where_default_scope.count
   end
 
+  def test_has_many_through_applies_join_model_default_scope_to_aliased_table
+    root = CommentOnPostWithWhereDefaultScope.create!(post_id: 1, body: "root")
+    child = CommentOnPostWithWhereDefaultScope.create!(post_id: 1, body: "child", parent: root)
+    deleted_child = CommentOnPostWithWhereDefaultScope.create!(post_id: 1, body: "deleted child", parent: root, deleted_at: Time.now)
+    grandchild = CommentOnPostWithWhereDefaultScope.create!(post_id: 1, body: "grandchild", parent: child)
+    CommentOnPostWithWhereDefaultScope.create!(post_id: 1, body: "grandchild of deleted child", parent: deleted_child)
+
+    assert_equal [grandchild], root.grandchildren.to_a
+  end
+
   def test_has_many_through_add_with_sti_middle_relation
     club = SuperClub.create!(name: "Fight Club")
     member = Member.create!(name: "Tyler Durden")
