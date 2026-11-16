@@ -126,7 +126,17 @@ module ActiveRecord
         end
 
         def connect
-          @raw_connection = self.class.new_client(@config)
+          config = @config
+
+          connect_timeout_was = config.fetch(:connect_timeout, 5) || config[:write_timeout] # From trilogy source
+
+          connect_timeout = @deadline.clamp(connect_timeout || Float::INFINITY, error: DeadlineExceededError)
+          connect_timeout = nil if connect_timeout.infinite?
+          if connect_timeout_was != connect_timeout
+            config = config.merge(connect_timeout: connect_timeout)
+          end
+
+          @raw_connection = self.class.new_client(config)
         rescue ConnectionNotEstablished => ex
           raise ex.set_pool(@pool)
         end

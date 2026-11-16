@@ -18,7 +18,22 @@ module ActiveRecord
             @config[:multi_statement]
           end
 
+          def clamp_timeout(deadline, timeout)
+            if timeout > 0.0
+              deadline.clamp(timeout, error: ::Trilogy::TimeoutError)
+            else
+              new_timeout = deadline.clamp(Float::INFINITY, error: ::Trilogy::TimeoutError)
+              new_timeout.finite? ? new_timeout : timeout
+            end
+          end
+
           def perform_query(raw_connection, intent)
+            read_timeout_was, write_timeout_was = raw_connection.read_timeout, raw_connection.write_timeout
+
+            # Trilogy use 0.0 as "No Timeout"
+            raw_connection.read_timeout = clamp_timeout(intent.deadline, read_timeout_was)
+            raw_connection.write_timeout = clamp_timeout(intent.deadline, write_timeout_was)
+
             reset_multi_statement = if intent.batch && !@config[:multi_statement]
               raw_connection.set_server_option(::Trilogy::SET_SERVER_MULTI_STATEMENTS_ON)
               true
@@ -42,6 +57,11 @@ module ActiveRecord
             intent.notification_payload[:row_count] = result.count
             result
           ensure
+            if raw_connection
+              raw_connection.read_timeout = read_timeout_was
+              raw_connection.write_timeout = write_timeout_was
+            end
+
             if reset_multi_statement && active?
               raw_connection.set_server_option(::Trilogy::SET_SERVER_MULTI_STATEMENTS_OFF)
             end

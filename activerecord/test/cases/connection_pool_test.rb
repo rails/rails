@@ -1800,6 +1800,14 @@ module ActiveRecord
         assert_equal(expected, order)
       end
 
+      def test_checkout_deadline
+        ConnectionPool.with(deadline: ActiveSupport::Deadline::Over) do
+          assert_raises ActiveRecord::ConnectionTimeoutError, match: /Execution terminated/ do
+            @pool.checkout
+          end
+        end
+      end
+
       # As mentioned in #test_checkout_fairness, we don't care about
       # strict fairness.  This test creates two groups of threads:
       # group1 whose members all start waiting before any thread in
