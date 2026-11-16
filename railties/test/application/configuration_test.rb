@@ -886,6 +886,18 @@ module ApplicationTests
       assert_equal "some_value", verifier.verify(message)
     end
 
+    test "local secret is alphanumeric and reused" do
+      require "rails/application/configuration"
+
+      configuration = Rails::Application::Configuration.new(Pathname.new(app_path))
+      secret = "Z" * 128
+
+      assert_called_with(SecureRandom, :alphanumeric, [128], returns: secret) do
+        2.times { assert_equal secret, configuration.send(:generate_local_secret) }
+      end
+      assert_equal secret, File.binread(app_path("tmp/local_secret.txt"))
+    end
+
     test "application will generate secret_key_base in tmp file if blank in development" do
       app_file "config/initializers/secret_token.rb", <<-RUBY
         Rails.application.config.secret_key_base = nil

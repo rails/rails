@@ -716,7 +716,7 @@ module Rails
           end
 
           if random_key.blank?
-            random_key = SecureRandom.hex(64)
+            random_key = SecureRandom.alphanumeric(128)
             FileUtils.mkdir_p(key_file.dirname)
             File.binwrite(key_file, random_key, perm: 0o600)
           end
