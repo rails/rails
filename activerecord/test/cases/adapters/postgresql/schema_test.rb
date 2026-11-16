@@ -863,6 +863,77 @@ class SchemaIndexOpclassTest < ActiveRecord::PostgreSQLTestCase
   end
 end
 
+class SchemaIndexDefinitionRoundTripTest < ActiveRecord::PostgreSQLTestCase
+  include SchemaDumpingHelper
+
+  setup do
+    @connection = ActiveRecord::Base.lease_connection
+    @connection.create_table "trains" do |t|
+      t.string :name
+      t.string :position
+      t.integer "a,b"
+    end
+  end
+
+  teardown do
+    @connection.drop_table "trains", if_exists: true
+  end
+
+  def test_expression_containing_a_where_clause_is_dumped
+    assert_index_round_trip "CREATE INDEX trains_index ON trains (coalesce(name, ') WHERE ('))"
+
+    index = @connection.indexes("trains").first
+    assert_equal "COALESCE(name, ') WHERE ('::character varying)", index.columns
+    assert_nil index.where
+  end
+
+  def test_expression_containing_an_include_clause_is_dumped
+    assert_index_round_trip "CREATE INDEX trains_index ON trains (coalesce(name, ') INCLUDE (x'))"
+  end
+
+  def test_collation_is_dumped
+    assert_index_round_trip 'CREATE INDEX trains_index ON trains (name COLLATE "C" DESC)'
+  end
+
+  def test_included_columns_are_read_from_the_catalog
+    skip unless @connection.supports_index_include?
+
+    assert_index_round_trip 'CREATE INDEX trains_index ON trains (name) INCLUDE (name, "a,b")'
+  end
+
+  def test_storage_parameters_do_not_break_the_index_definition
+    skip unless @connection.supports_index_include?
+
+    @connection.execute "CREATE INDEX trains_include ON trains (name DESC) INCLUDE (position) WITH (fillfactor = 70)"
+    @connection.execute "CREATE INDEX trains_expression ON trains (lower(name)) WITH (fillfactor = 70) WHERE position IS NOT NULL"
+
+    indexes = @connection.indexes("trains").index_by(&:name)
+    include_index, expression_index = indexes.values_at("trains_include", "trains_expression")
+    assert_equal ["name"], include_index.columns
+    assert_equal :desc, include_index.orders
+    assert_equal ["position"], include_index.include
+    assert_equal "lower((name)::text)", expression_index.columns
+    assert_equal '("position" IS NOT NULL)', expression_index.where
+  end
+
+  private
+    def assert_index_round_trip(sql)
+      @connection.execute sql
+      definition = index_definition("trains_index")
+
+      line = dump_table_schema("trains")[/^\s*t\.index (.*)$/, 1]
+      @connection.remove_index "trains", name: "trains_index"
+      @connection.instance_eval("add_index 'trains', #{line}", __FILE__, __LINE__)
+
+      assert_equal definition, index_definition("trains_index")
+      line
+    end
+
+    def index_definition(name)
+      @connection.select_value("SELECT pg_get_indexdef(#{@connection.quote(name)}::regclass)")
+    end
+end
+
 class SchemaIndexNullsOrderTest < ActiveRecord::PostgreSQLTestCase
   include SchemaDumpingHelper
 
