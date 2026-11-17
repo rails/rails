@@ -123,6 +123,7 @@ class Post < ActiveRecord::Base
 
   has_many :special_comments_ratings, through: :special_comments, source: :ratings
   has_many :comment_ratings, through: :comments, source: :ratings
+  has_many :plain_comment_ratings, -> { where(comments: { type: "Comment" }) }, through: :comments, source: :ratings
   has_many :special_comments_ratings_taggings, through: :special_comments_ratings, source: :taggings
 
   has_many :category_posts, class_name: "CategoryPost"
