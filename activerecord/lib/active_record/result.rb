@@ -44,6 +44,25 @@ module ActiveRecord
   class Result
     include Enumerable
 
+    # Rails 8.0 and 8.1 kept loaded values in this class, and the 6.1 Marshal
+    # format dumps it by name. It only loads those dumps: LazyAttributeSet
+    # reads it with the same methods as a Hash.
+    class IndexedRow # :nodoc:
+      def keys
+        @column_indexes.keys
+      end
+
+      def key?(column)
+        @column_indexes.key?(column)
+      end
+
+      def [](column)
+        if index = @column_indexes[column]
+          @row[index]
+        end
+      end
+    end
+
     attr_reader :columns, :rows, :affected_rows
 
     def self.empty(async: false, affected_rows: nil) # :nodoc:

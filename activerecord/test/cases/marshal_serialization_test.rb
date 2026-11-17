@@ -47,6 +47,17 @@ class MarshalSerializationTest < ActiveRecord::TestCase
     assert_equal "Renamed", Topic.find(topic.id).title
   end
 
+  def test_deserializing_rails_8_1_marshal_6_1_format
+    # Rails 8.1 kept loaded values in an ActiveRecord::Result::IndexedRow,
+    # and the 6.1 format dumps it by class name.
+    topic = Marshal.load(marshal_fixture("rails_8_1_topic"))
+
+    assert_not_predicate topic, :new_record?
+    assert_equal 1, topic.id
+    assert_equal "The First Topic", topic.title
+    assert_equal "Have a nice day", topic.content
+  end
+
   def test_deserializing_rails_7_1_marshal_basic
     Topic.undefine_attribute_methods
     topic = Marshal.load(marshal_fixture("rails_7_1_topic"))
