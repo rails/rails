@@ -484,25 +484,32 @@ module ActionController
       #
       def authenticate(controller, scheme: nil, &login_procedure)
         request = controller.request
-        request_scheme = normalize_scheme(request.authorization.to_s[AUTH_SCHEME_REGEX, 1])
-        schemes = normalize_schemes(scheme.presence || SCHEMES)
+        authorization_request = request.authorization.to_s
+        request_scheme = normalize_scheme(authorization_request[AUTH_SCHEME_REGEX, 1])
 
-        token, options = token_and_options(request)
-        unless token.blank? || !schemes.include?(request_scheme)
+        # Without `scheme`, rely on token_and_options alone, as apps may override it.
+        token, options = if scheme.blank?
+          token_and_options(request)
+        elsif normalize_schemes(scheme).include?(request_scheme)
+          parse_token_and_options(authorization_request)
+        end
+
+        unless token.blank?
           login_procedure.call(token, options, request_scheme)
         end
       end
 
       # Parses the token and options out of the token Authorization header. The value
-      # for the Authorization header is expected to have the scheme name as a prefix,
-      # for example `"Token"`, `"Bearer"` or `"DPoP"`. If the header looks like this:
+      # for the Authorization header is expected to have one of the schemes `"Token"`,
+      # `"Bearer"` or `"DPoP"` as a prefix (case-insensitive). If the header looks
+      # like this:
       #
       #     Authorization: Token token="abc", nonce="def"
       #
       # Then the returned token is `"abc"`, and the options are `{nonce: "def"}`.
       #
       # Returns an `Array` of `[String, Hash]` if a token is present. Returns `nil` if
-      # no token is found.
+      # no token is found, or for any other scheme.
       #
       # #### Parameters
       #
@@ -510,9 +517,8 @@ module ActionController
       #
       def token_and_options(request)
         authorization_request = request.authorization.to_s
-        if authorization_request[AUTH_SCHEME_REGEX]
-          params = token_params_from authorization_request
-          [params.shift[1], Hash[params].with_indifferent_access]
+        if normalize_schemes(SCHEMES).include?(normalize_scheme(authorization_request[AUTH_SCHEME_REGEX, 1]))
+          parse_token_and_options(authorization_request)
         end
       end
 
@@ -581,8 +587,13 @@ module ActionController
       end
 
       private
+        def parse_token_and_options(authorization_request)
+          params = token_params_from authorization_request
+          [params.shift[1], Hash[params].with_indifferent_access]
+        end
+
         def normalize_schemes(schemes)
-          Array(schemes).map { |scheme| normalize_scheme(scheme) }
+          Array(schemes).filter_map { |scheme| normalize_scheme(scheme) }
         end
 
         def normalize_scheme(scheme)
