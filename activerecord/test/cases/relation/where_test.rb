@@ -534,6 +534,14 @@ module ActiveRecord
       assert_equal [4], Edge.where(condition).merge(edges).pluck(:sink_id)
     end
 
+    def test_where_with_sql_literal_and_bind_values
+      condition = Arel.sql("sink_id = ? OR sink_id = ?")
+      edges = Edge.where(sink_id: [3, 4])
+
+      assert_equal edges.where("sink_id = ? OR sink_id = ?", 2, 4).to_sql, edges.where(condition, 2, 4).to_sql
+      assert_equal [4], edges.where(condition, 2, 4).pluck(:sink_id)
+    end
+
     def test_where_with_integer_for_string_column
       count = Post.where(title: 0).count
       assert_equal 0, count
