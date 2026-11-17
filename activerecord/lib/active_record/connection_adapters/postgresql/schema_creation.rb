@@ -5,7 +5,6 @@ module ActiveRecord
     module PostgreSQL
       class SchemaCreation < SchemaCreation # :nodoc:
         private
-          delegate :quoted_include_columns_for_index, to: :@conn
           delegate :database_version, :supports_index_include?, :supports_nulls_not_distinct?, to: :@conn, private: true
 
           def visit_AddForeignKey(o)
@@ -149,7 +148,7 @@ module ActiveRecord
           end
 
           def quoted_include_columns(o)
-            String === o ? o : quoted_include_columns_for_index(o)
+            String === o ? o : Array(o).map { |c| quote_column_name(c) }.join(", ")
           end
 
           # Returns any SQL string to go between CREATE and TABLE. May be nil.
