@@ -38,13 +38,19 @@ module Arel
     class DummySubNode < DummySuperNode
     end
 
-    class DispatchContaminationTest < Arel::Spec
-      before do
+    class RactorDummyVisitor < Visitor
+      def visit_Arel_Visitors_DummySuperNode(node)
+        42
+      end
+    end
+
+    class DispatchContaminationTest < Arel::Test
+      setup do
         @connection = Table.engine.lease_connection
-        @table = Table.new(:users)
+        @table = Table.new(name: :users)
       end
 
-      it "dispatches properly after failing upwards" do
+      test "dispatches properly after failing upwards" do
         node = Nodes::Union.new(Nodes::True.new, Nodes::False.new)
         assert_equal "( TRUE UNION FALSE )", node.to_sql
 
@@ -59,7 +65,7 @@ module Arel
         assert_equal "( TRUE UNION FALSE )", node.to_sql
       end
 
-      it "is threadsafe when implementing superclass fallback" do
+      test "is threadsafe when implementing superclass fallback" do
         visitor = DummyVisitor.new
         main_thread_finished = Concurrent::Event.new
 
@@ -72,6 +78,18 @@ module Arel
         main_thread_finished.set
 
         assert_equal 42, racing_thread.value
+      end
+
+      test "dispatches on non-main Ractors" do
+        # Exercises both cache-miss paths on a worker Ractor's cold cache:
+        # the default proc (DummySuperNode) and the superclass fallback,
+        # which writes the corrected entry back (DummySubNode).
+        result = on_ractor do
+          visitor = RactorDummyVisitor.new
+          [visitor.accept(DummySuperNode.new), visitor.accept(DummySubNode.new)]
+        end
+
+        assert_equal [42, 42], result
       end
     end
   end

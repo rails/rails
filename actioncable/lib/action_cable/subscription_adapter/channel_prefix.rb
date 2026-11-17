@@ -1,7 +1,5 @@
 # frozen_string_literal: true
 
-# :markup: markdown
-
 module ActionCable
   module SubscriptionAdapter
     module ChannelPrefix # :nodoc:
@@ -23,7 +21,7 @@ module ActionCable
       private
         # Returns the channel name, including channel_prefix specified in cable.yml
         def channel_with_prefix(channel)
-          [@server.config.cable[:channel_prefix], channel].compact.join(":")
+          [config.cable[:channel_prefix], channel].compact.join(":")
         end
     end
   end

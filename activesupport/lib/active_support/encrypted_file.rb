@@ -3,6 +3,7 @@
 require "pathname"
 require "tempfile"
 require "active_support/message_encryptor"
+require "active_support/inspect_backport"
 
 module ActiveSupport
   class EncryptedFile
@@ -46,15 +47,15 @@ module ActiveSupport
     end
 
     # Returns the encryption key, first trying the environment variable
-    # specified by +env_key+, then trying the key file specified by +key_path+.
-    # If +raise_if_missing_key+ is true, raises MissingKeyError if the
+    # specified by `env_key`, then trying the key file specified by `key_path`.
+    # If `raise_if_missing_key` is true, raises MissingKeyError if the
     # environment variable is not set and the key file does not exist.
     def key
       read_env_key || read_key_file || handle_missing_key
     end
 
     # Returns truthy if #key is truthy. Returns falsy otherwise. Unlike #key,
-    # does not raise MissingKeyError when +raise_if_missing_key+ is true.
+    # does not raise MissingKeyError when `raise_if_missing_key` is true.
     def key?
       read_env_key || read_key_file
     end
@@ -62,7 +63,8 @@ module ActiveSupport
     # Reads the file and returns the decrypted content.
     #
     # Raises:
-    # - MissingKeyError if the key is missing and +raise_if_missing_key+ is true.
+    #
+    # - MissingKeyError if the key is missing and `raise_if_missing_key` is true.
     # - MissingContentError if the encrypted file does not exist or otherwise
     #   if the key is missing.
     # - ActiveSupport::MessageEncryptor::InvalidMessage if the content cannot be
@@ -84,8 +86,14 @@ module ActiveSupport
       writing read, &block
     end
 
+    ActiveSupport::InspectBackport.apply(self)
+
 
     private
+      def instance_variables_to_inspect
+        [:@content_path, :@key_path].freeze
+      end
+
       def writing(contents)
         Tempfile.create(["", "-" + content_path.basename.to_s.chomp(".enc")]) do |tmp_file|
           tmp_path = Pathname.new(tmp_file)
@@ -110,7 +118,12 @@ module ActiveSupport
       end
 
       def encryptor
-        @encryptor ||= ActiveSupport::MessageEncryptor.new([ key ].pack("H*"), cipher: CIPHER, serializer: Marshal)
+        @encryptor ||= begin
+          keys = key.split(",")
+          encryptor = ActiveSupport::MessageEncryptor.new([ keys.shift ].pack("H*"), cipher: CIPHER, serializer: Marshal)
+          keys.each { |key| encryptor.rotate([ key ].pack("H*")) }
+          encryptor
+        end
       end
 
 

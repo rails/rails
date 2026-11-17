@@ -1,14 +1,18 @@
 # frozen_string_literal: true
 
+require "rails"
 require "global_id/railtie"
 require "active_job"
 
 module ActiveJob
-  # = Active Job Railtie
+  # Active Job Railtie
+  # ==================
   class Railtie < Rails::Railtie # :nodoc:
     config.active_job = ActiveSupport::OrderedOptions.new
     config.active_job.custom_serializers = []
     config.active_job.log_query_tags_around_perform = true
+
+    guard_load_hooks(:active_job, :active_job_arguments, :active_job_continuable, :active_job_test_case)
 
     initializer "active_job.deprecator", before: :load_environment_config do |app|
       app.deprecators[:active_job] = ActiveJob.deprecator
@@ -19,7 +23,7 @@ module ActiveJob
     end
 
     initializer "active_job.custom_serializers" do |app|
-      config.after_initialize do
+      ActiveSupport.on_load(:active_job_arguments) do
         custom_serializers = app.config.active_job.custom_serializers
         ActiveJob::Serializers.add_serializers custom_serializers
       end
@@ -31,23 +35,17 @@ module ActiveJob
           ActiveJob::Base.include EnqueueAfterTransactionCommit
 
           if app.config.active_job.key?(:enqueue_after_transaction_commit)
-            ActiveJob.deprecator.warn(<<~MSG.squish)
-              `config.active_job.enqueue_after_transaction_commit` is deprecated and will be removed in Rails 8.1.
-              This configuration can still be set on individual jobs using `self.enqueue_after_transaction_commit=`,
-              but due the nature of this behavior, it is not recommended to be set globally.
-            MSG
-
-            value = case app.config.active_job.enqueue_after_transaction_commit
-            when :always
-              true
-            when :never
-              false
-            else
-              false
-            end
-
-            ActiveJob::Base.enqueue_after_transaction_commit = value
+            ActiveJob::Base.enqueue_after_transaction_commit =
+              app.config.active_job.enqueue_after_transaction_commit
           end
+        end
+      end
+    end
+
+    initializer "active_job.action_controller_parameters" do |app|
+      ActiveSupport.on_load(:active_job) do
+        ActiveSupport.on_load(:action_controller) do
+          ActiveJob::Serializers.add_serializers ActiveJob::Serializers::ActionControllerParametersSerializer
         end
       end
     end
@@ -70,6 +68,7 @@ module ActiveJob
         options = options.except(
           :log_query_tags_around_perform,
           :custom_serializers,
+          # This config can't be applied globally, so we need to remove otherwise it will be applied to `ActiveJob::Base`.
           :enqueue_after_transaction_commit
         )
 
@@ -90,8 +89,9 @@ module ActiveJob
 
     initializer "active_job.set_reloader_hook" do |app|
       ActiveSupport.on_load(:active_job) do
+        reloader = app.reloader
         ActiveJob::Callbacks.singleton_class.set_callback(:execute, :around, prepend: true) do |_, inner|
-          app.reloader.wrap do
+          reloader.wrap do
             inner.call
           end
         end
@@ -117,6 +117,15 @@ module ActiveJob
     initializer "active_job.backtrace_cleaner" do
       ActiveSupport.on_load(:active_job) do
         LogSubscriber.backtrace_cleaner = ::Rails.backtrace_cleaner
+      end
+    end
+
+    initializer "active_job.ractorize" do
+      ActiveSupport.on_load(:before_ractorize) do
+        [ActiveJob::Base, *ActiveJob::Base.descendants].each do |job|
+          Ractor.make_shareable(job.queue_adapter)
+        end
+        ActiveJob::Serializers.make_shareable!
       end
     end
   end

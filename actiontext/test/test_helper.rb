@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require "active_support/testing/strict_warnings"
+require_relative "../../tools/strict_warnings"
 
 # Configure Rails Environment
 ENV["RAILS_ENV"] = "test"
@@ -33,6 +33,15 @@ class ActiveSupport::TestCase
   private
     def create_file_blob(filename:, content_type:, metadata: nil)
       ActiveStorage::Blob.create_and_upload! io: file_fixture(filename).open, filename: filename, content_type: content_type, metadata: metadata
+    end
+
+    def without_direct_upload_route(&block)
+      ActiveStorage.with(draw_direct_upload_route: false) do
+        Rails.application.reload_routes!
+        block.call
+      end
+    ensure
+      Rails.application.reload_routes!
     end
 end
 

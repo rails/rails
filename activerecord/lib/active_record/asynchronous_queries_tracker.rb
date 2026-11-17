@@ -47,12 +47,13 @@ module ActiveRecord
     end
 
     def current_session
-      @stack.last or raise ActiveRecordError, "Can't perform asynchronous queries without a query session"
+      raise ActiveRecordError, "Can't perform asynchronous queries without a query session" if @stack.empty?
+
+      @stack[-1] ||= Session.new
     end
 
     def start_session
-      session = Session.new
-      @stack << session
+      @stack << nil
     end
 
     def finalize_session(wait = false)

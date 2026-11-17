@@ -36,7 +36,7 @@ module RailInspector
       end
 
       private
-        ATTRIBUTE_METHODS = %i[attr_accessor attr_reader attr_writer]
+        ATTRIBUTE_METHODS = %i[attr_accessor attr_reader attr_writer].freeze
     end
   end
 end

@@ -1,7 +1,5 @@
 # frozen_string_literal: true
 
-# :markup: markdown
-
 module ActionText
   # # Action Text FixtureSet
   #
@@ -62,7 +60,7 @@ module ActionText
       signed_global_id = ActiveRecord::FixtureSet.signed_global_id fixture_set_name, label,
         column_type: column_type, for: ActionText::Attachable::LOCATOR_NAME
 
-      %(<action-text-attachment sgid="#{signed_global_id}"></action-text-attachment>)
+      %(<#{Attachment.tag_name} sgid="#{signed_global_id}"></#{Attachment.tag_name}>)
     end
   end
 end

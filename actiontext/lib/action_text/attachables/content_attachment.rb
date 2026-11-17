@@ -1,7 +1,5 @@
 # frozen_string_literal: true
 
-# :markup: markdown
-
 module ActionText
   module Attachables
     class ContentAttachment # :nodoc:
@@ -19,6 +17,10 @@ module ActionText
 
       def attachable_plain_text_representation(caption)
         content_instance.fragment.source
+      end
+
+      def attachable_markdown_representation(caption, attachment_links: false)
+        content_instance.fragment.to_markdown
       end
 
       def to_html

@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require "abstract_unit"
+require "active_support/testing/ractors_assertions"
 
 class ParamBuilderTest < ActiveSupport::TestCase
   # Much of the behavioral details are covered by long-standing
@@ -21,51 +22,25 @@ class ParamBuilderTest < ActiveSupport::TestCase
     assert_instance_of ActiveSupport::HashWithIndifferentAccess, result[:foo]
   end
 
-  if ::Rack::RELEASE.start_with?("2.")
-    test "(rack 2) defaults to ignoring leading bracket" do
-      assert_deprecated(ActionDispatch.deprecator) do
-        result = ActionDispatch::ParamBuilder.from_query_string("[foo]=bar")
-        assert_equal({ "foo" => "bar" }, result)
-      end
-
-      assert_deprecated(ActionDispatch.deprecator) do
-        result = ActionDispatch::ParamBuilder.from_query_string("[foo][bar]=baz")
-        assert_equal({ "foo" => { "bar" => "baz" } }, result)
-      end
-    end
-  else
-    test "(rack 3) defaults to retaining leading bracket" do
-      result = ActionDispatch::ParamBuilder.from_query_string("[foo]=bar")
-      assert_equal({ "[foo]" => "bar" }, result)
-
-      result = ActionDispatch::ParamBuilder.from_query_string("[foo][bar]=baz")
-      assert_equal({ "[foo]" => { "bar" => "baz" } }, result)
-    end
-  end
-
-  test "configured for strict brackets" do
-    previous_brackets = ActionDispatch::ParamBuilder.ignore_leading_brackets
-    ActionDispatch::ParamBuilder.ignore_leading_brackets = false
-
+  test "retaining leading bracket" do
     result = ActionDispatch::ParamBuilder.from_query_string("[foo]=bar")
     assert_equal({ "[foo]" => "bar" }, result)
 
     result = ActionDispatch::ParamBuilder.from_query_string("[foo][bar]=baz")
     assert_equal({ "[foo]" => { "bar" => "baz" } }, result)
-  ensure
-    ActionDispatch::ParamBuilder.ignore_leading_brackets = previous_brackets
   end
 
-  test "configured for ignoring leading brackets" do
-    previous_brackets = ActionDispatch::ParamBuilder.ignore_leading_brackets
-    ActionDispatch::ParamBuilder.ignore_leading_brackets = true
+  class RactorTest < ActiveSupport::TestCase
+    include ActiveSupport::Testing::RactorsAssertions
 
-    result = ActionDispatch::ParamBuilder.from_query_string("[foo]=bar")
-    assert_equal({ "foo" => "bar" }, result)
+    test "default builder is Ractor shareable" do
+      assert_ractor_shareable ActionDispatch::ParamBuilder.default
+    end
 
-    result = ActionDispatch::ParamBuilder.from_query_string("[foo][bar]=baz")
-    assert_equal({ "foo" => { "bar" => "baz" } }, result)
-  ensure
-    ActionDispatch::ParamBuilder.ignore_leading_brackets = previous_brackets
+    test "parses a query string through the default builder on a non-main Ractor" do
+      params = on_ractor { ActionDispatch::ParamBuilder.from_query_string("a=1&b[c]=2") }
+
+      assert_equal({ "a" => "1", "b" => { "c" => "2" } }, params)
+    end
   end
 end

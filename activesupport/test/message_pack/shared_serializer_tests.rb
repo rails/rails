@@ -24,6 +24,7 @@ module MessagePackSharedSerializerTests
         15  => Pathname,
         16  => Regexp,
         17  => ActiveSupport::HashWithIndifferentAccess,
+        18  => ActiveSupport::SafeBuffer,
         127 => Object,
       }
 
@@ -97,6 +98,14 @@ module MessagePackSharedSerializerTests
       assert_roundtrip Time.current
     end
 
+    test "roundtrips ActiveSupport::TimeWithZone whose UTC time was moved to another offset" do
+      utc = Time.utc(2024, 6, 1, 12)
+      time_with_zone = utc.in_time_zone("Europe/Paris")
+      utc.localtime("+09:00")
+
+      assert_roundtrip time_with_zone
+    end
+
     test "roundtrips ActiveSupport::TimeZone" do
       assert_roundtrip ActiveSupport::TimeZone["Eastern Time (US & Canada)"]
     end
@@ -145,6 +154,33 @@ module MessagePackSharedSerializerTests
 
     test "roundtrips ActiveSupport::HashWithIndifferentAccess" do
       assert_roundtrip ActiveSupport::HashWithIndifferentAccess.new(a: true, b: 2, c: "three")
+    end
+
+    test "roundtrips ActiveSupport::SafeBuffer preserving encoding" do
+      deserialized = load(dump(ActiveSupport::SafeBuffer.new("Mäßig")))
+
+      assert_instance_of ActiveSupport::SafeBuffer, deserialized
+      assert_predicate deserialized, :html_safe?
+      assert_equal Encoding::UTF_8, deserialized.encoding
+      assert_equal "prefix Mäßig", "prefix " + deserialized
+    end
+
+    test "roundtrips ActiveSupport::SafeBuffer preserving html_safe?" do
+      deserialized = load(dump(["other", "Mäßig".html_safe, "other"]))[1]
+
+      assert_instance_of ActiveSupport::SafeBuffer, deserialized
+      assert_predicate deserialized, :html_safe?
+      assert_equal Encoding::UTF_8, deserialized.encoding
+      assert_equal "prefix Mäßig", "prefix " + deserialized
+
+      str = "Mäßig".html_safe
+      str.sub!(/Z/, "Z") # Mark unsafe
+      deserialized = load(dump(["other", str, "other"]))[1]
+
+      assert_instance_of String, deserialized
+      assert_not_predicate deserialized, :html_safe?
+      assert_equal Encoding::UTF_8, deserialized.encoding
+      assert_equal "prefix Mäßig", "prefix " + deserialized
     end
 
     test "works with ENV['RAILS_MAX_THREADS']" do

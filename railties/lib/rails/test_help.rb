@@ -19,12 +19,12 @@ if defined?(ActiveRecord::Base)
     include ActiveRecord::TestFixtures
     include ActiveRecord::Assertions::QueryAssertions
 
-    self.fixture_paths << "#{Rails.root}/test/fixtures/"
+    self.fixture_paths = [*self.fixture_paths, "#{Rails.root}/test/fixtures/"].uniq
     self.file_fixture_path = "#{Rails.root}/test/fixtures/files"
   end
 
   ActiveSupport.on_load(:action_dispatch_integration_test) do
-    self.fixture_paths += ActiveSupport::TestCase.fixture_paths
+    self.fixture_paths |= ActiveSupport::TestCase.fixture_paths
   end
 else
   ActiveSupport.on_load(:active_support_test_case) do

@@ -38,7 +38,7 @@ class ActiveStorage::BlobTest < ActiveSupport::TestCase
 
     assert_equal data, blob.download
     assert_equal data.length, blob.byte_size
-    assert_equal ActiveStorage.checksum_implementation.base64digest(data), blob.checksum
+    assert_equal OpenSSL::Digest::MD5.base64digest(data), blob.checksum
   end
 
   test "create_and_upload extracts content type from data" do
@@ -84,6 +84,17 @@ class ActiveStorage::BlobTest < ActiveSupport::TestCase
     assert_equal data, blob.download
   end
 
+  test "create_and_upload! with a path traversal key raises on Disk service" do
+    assert_raises ActiveStorage::InvalidKeyError do
+      ActiveStorage::Blob.create_and_upload!(
+        key: "../../etc/passwd",
+        io: StringIO.new("malicious content"),
+        filename: "exploit.txt",
+        content_type: "text/plain"
+      )
+    end
+  end
+
   test "create_and_upload accepts a record for overrides" do
     assert_nothing_raised do
       create_blob(record: User.new)
@@ -108,6 +119,42 @@ class ActiveStorage::BlobTest < ActiveSupport::TestCase
 
     assert_changes -> { user.reload.updated_at } do
       user.avatar.blob.analyze
+    end
+  end
+
+  test "analyze does not bump lock_version on the attachment record" do
+    user = User.create!(
+      name: "Nate",
+      avatar: {
+        content_type: "image/jpeg",
+        filename: "racecar.jpg",
+        io: file_fixture("racecar.jpg").open,
+      }
+    )
+    original_lock_version = user.reload.lock_version
+
+    assert_changes -> { user.reload.updated_at } do
+      user.avatar.blob.analyze
+    end
+
+    assert_equal original_lock_version, user.reload.lock_version
+  end
+
+  test "saving a stale-but-lock-valid record after analyze does not raise StaleObjectError" do
+    user = User.create!(
+      name: "Nate",
+      avatar: {
+        content_type: "image/jpeg",
+        filename: "racecar.jpg",
+        io: file_fixture("racecar.jpg").open,
+      }
+    )
+    stale_user = User.find(user.id)
+
+    user.avatar.blob.analyze
+
+    assert_nothing_raised do
+      stale_user.update!(name: "Nathan")
     end
   end
 
@@ -161,6 +208,21 @@ class ActiveStorage::BlobTest < ActiveSupport::TestCase
     assert_not_predicate blob, :audio?
   end
 
+  test "blob type methods return false for nil content type" do
+    blob = create_blob_before_direct_upload(
+      filename: "unknown_file",
+      byte_size: 100,
+      checksum: "test_checksum",
+      content_type: nil
+    )
+
+    assert_nil blob.content_type
+    assert_not_predicate blob, :image?
+    assert_not_predicate blob, :video?
+    assert_not_predicate blob, :audio?
+    assert_not_predicate blob, :text?
+  end
+
   test "download yields chunks" do
     blob   = create_blob data: "a" * 5.0625.megabytes
     chunks = []
@@ -174,7 +236,7 @@ class ActiveStorage::BlobTest < ActiveSupport::TestCase
     assert_equal "a" * 64.kilobytes, chunks.second
   end
 
-  test "open with integrity" do
+  test "open yielding with integrity" do
     create_file_blob(filename: "racecar.jpg").tap do |blob|
       blob.open do |file|
         assert_predicate file, :binmode?
@@ -186,13 +248,96 @@ class ActiveStorage::BlobTest < ActiveSupport::TestCase
     end
   end
 
+  test "open returning with integrity" do
+    file = nil
+    create_file_blob(filename: "racecar.jpg").tap do |blob|
+      file = blob.open
+
+      assert_predicate file, :binmode?
+      assert_equal 0, file.pos
+      assert File.basename(file.path).start_with?("ActiveStorage-#{blob.id}-")
+      assert file.path.end_with?(".jpg")
+      assert_equal file_fixture("racecar.jpg").binread, file.read, "Expected downloaded file to match fixture file"
+    ensure
+      file&.close!
+    end
+  end
+
   test "open without integrity" do
     create_blob(data: "Hello, world!").tap do |blob|
-      blob.update! checksum: ActiveStorage.checksum_implementation.base64digest("Goodbye, world!")
+      blob.update! checksum: OpenSSL::Digest::MD5.base64digest("Goodbye, world!")
 
       assert_raises ActiveStorage::IntegrityError do
         blob.open { |file| flunk "Expected integrity check to fail" }
       end
+    end
+  end
+
+  test "open drops a filename extension the content type does not account for" do
+    blob = create_blob(data: 'Import("/etc/passwd")', filename: "attack.avs", content_type: "video/mp4")
+
+    assert_equal "video/mp4", blob.content_type
+
+    blob.open do |file|
+      assert File.basename(file.path).start_with?("ActiveStorage-#{blob.id}-")
+      assert_equal "", File.extname(file.path)
+    end
+  end
+
+  test "open drops a filename extension Marcel does not recognize" do
+    blob = create_blob(data: 'Import("/etc/passwd")', filename: "attack.avs", content_type: "application/octet-stream")
+
+    blob.open { |file| assert_equal "", File.extname(file.path) }
+  end
+
+  test "open drops a filename extension that denotes a different content type" do
+    blob = create_blob(data: "Hello world!", filename: "hello.jpg", content_type: "video/mp4", identify: false)
+
+    blob.open { |file| assert_equal "", File.extname(file.path) }
+  end
+
+  test "open drops a video extension from an image blob before ImageMagick can delegate it to ffmpeg" do
+    blob = create_blob(data: "#EXTM3U\n#EXTINF:1,\nfile:///etc/hostname\n", filename: "evil.mp4", content_type: "image/png", identify: false)
+
+    blob.open { |file| assert_equal "", File.extname(file.path) }
+  end
+
+  test "open compares the filename extension against the media type alone" do
+    blob = create_file_blob(filename: "icon.svg", content_type: "image/SVG+XML; charset=utf-8", identify: false)
+
+    blob.open { |file| assert_equal ".svg", File.extname(file.path) }
+  end
+
+  test "open copies a local io whose path extension the content type does not account for" do
+    blob = create_blob(data: 'Import("/etc/passwd")', filename: "attack.avs", content_type: "video/mp4")
+
+    Tempfile.open([ "RackMultipart", ".avs" ]) do |io|
+      io.write 'Import("/etc/passwd")'
+      io.rewind
+      blob.local_io = io
+
+      blob.open do |file|
+        assert_not_equal io.path, file.path
+        assert_equal "", File.extname(file.path)
+      end
+    end
+  end
+
+  test "open yields a local io whose path extension the content type accounts for" do
+    blob = create_file_blob(filename: "racecar.jpg", content_type: "image/jpeg")
+
+    Tempfile.open([ "RackMultipart", ".jpg" ], binmode: true) do |io|
+      io.write file_fixture("racecar.jpg").binread
+      io.rewind
+      blob.local_io = io
+
+      blob.open { |file| assert_equal io.path, file.path }
+    end
+  end
+
+  test "open keeps a filename extension the content type accounts for" do
+    create_file_blob(filename: "racecar.jpg", content_type: "image/jpeg").open do |file|
+      assert file.path.end_with?(".jpg")
     end
   end
 
@@ -318,29 +463,26 @@ class ActiveStorage::BlobTest < ActiveSupport::TestCase
     assert_equal ["is invalid"], blob.errors[:service_name]
   end
 
-  test "updating the content_type updates service metadata" do
+  test "sync_metadata uploads metadata to service" do
+    blob = directly_upload_file_blob(filename: "racecar.jpg")
+
+    assert_notification("service_update_metadata.active_storage", key: blob.key, content_type: "image/jpeg", custom_metadata: {}) do
+      blob.sync_metadata
+    end
+  end
+
+  test "updating the content_type enqueues sync metadata job" do
     blob = directly_upload_file_blob(filename: "racecar.jpg", content_type: "application/octet-stream")
 
-    assert_called_with(blob.service, :update_metadata, [blob.key], content_type: "image/jpeg", custom_metadata: {}) do
+    assert_enqueued_with(job: ActiveStorage::SyncMetadataJob, args: [blob]) do
       blob.update!(content_type: "image/jpeg")
     end
   end
 
-  test "updating the metadata updates service metadata" do
-    blob = directly_upload_file_blob(filename: "racecar.jpg", content_type: "application/octet-stream")
+  test "updating the metadata enqueues sync metadata job" do
+    blob = directly_upload_file_blob(filename: "racecar.jpg")
 
-    expected_arguments = [
-      blob.key
-    ]
-
-    expected_kwargs = {
-      content_type: "application/octet-stream",
-      disposition: :attachment,
-      filename: blob.filename,
-      custom_metadata: { "test" => true }
-    }
-
-    assert_called_with(blob.service, :update_metadata, expected_arguments, **expected_kwargs) do
+    assert_enqueued_with(job: ActiveStorage::SyncMetadataJob, args: [blob]) do
       blob.update!(metadata: { custom: { "test" => true } })
     end
   end

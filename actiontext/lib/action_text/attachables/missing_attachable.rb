@@ -1,7 +1,5 @@
 # frozen_string_literal: true
 
-# :markup: markdown
-
 module ActionText
   module Attachables
     class MissingAttachable
@@ -19,6 +17,14 @@ module ActionText
         else
           DEFAULT_PARTIAL_PATH
         end
+      end
+
+      def attachable_plain_text_representation(caption = nil)
+        "☒"
+      end
+
+      def attachable_markdown_representation(caption = nil, attachment_links: false)
+        "☒"
       end
 
       def model

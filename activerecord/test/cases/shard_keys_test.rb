@@ -83,16 +83,19 @@ module ActiveRecord
     end
 
     def test_connected_to_all_shards
-      unsharded_results = UnshardedBase.connected_to_all_shards do
-        UnshardedBase.connection_pool.db_config.name
-      end
-
       sharded_results = ShardedBase.connected_to_all_shards do
         ShardedBase.connection_pool.db_config.name
       end
 
-      assert_empty unsharded_results
       assert_equal(["shard_one", "shard_two"], sharded_results)
+    end
+
+    def test_connected_to_all_shards_raises_when_not_sharded
+      error = assert_raises ArgumentError do
+        UnshardedBase.connected_to_all_shards { }
+      end
+
+      assert_equal "`connected_to_all_shards` cannot be called on a model that is not connected to any shards.", error.message
     end
 
     def test_connected_to_all_shards_can_switch_each_to_reading_role
@@ -120,6 +123,22 @@ module ActiveRecord
       end
 
       assert_equal([true, true], results)
+    end
+
+    def test_connected_to_all_shards_sets_prevent_writes_if_role_is_reading
+      assert_not ShardedBase.current_preventing_writes
+
+      ShardedBase.connected_to_all_shards(role: :reading) do
+        assert ShardedBase.current_preventing_writes
+      end
+    end
+
+    def test_connected_to_all_shards_cannot_be_called_with_the_reading_role_and_prevent_writes_false
+      error = assert_raises ArgumentError do
+        ShardedBase.connected_to_all_shards(role: :reading, prevent_writes: false) { }
+      end
+
+      assert_equal "cannot set `prevent_writes` to false when `role` is `reading`.", error.message
     end
   end
 end

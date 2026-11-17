@@ -17,10 +17,7 @@ module ActiveRecord
       end
 
       def register(type_name, klass = nil, **options, &block)
-        unless block_given?
-          block = proc { |_, *args| klass.new(*args) }
-          block.ruby2_keywords if block.respond_to?(:ruby2_keywords)
-        end
+        block ||= proc { |_, *args, **kwargs| klass.new(*args, **kwargs) }
         registrations << Registration.new(type_name, block, **options)
       end
 

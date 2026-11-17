@@ -50,6 +50,47 @@ class SerializedAttributeTest < ActiveRecord::TestCase
     assert_equal(myobj, topic.content)
   end
 
+  def test_in_place_changes_to_an_assigned_value_before_it_is_read_are_saved
+    Topic.serialize(:content, coder: JSON)
+    topic = Topic.find(Topic.create!(content: nil).id)
+
+    content = (topic.content = {})
+    content["some"] = "action"
+    topic.save!
+
+    assert_equal({ "some" => "action" }, Topic.find(topic.id).content)
+  end
+
+  class HashOnlyCoder
+    def self.load(value) = value && JSON.parse(value)
+
+    def self.dump(value)
+      raise ArgumentError, "not a Hash" unless value.nil? || value.is_a?(Hash)
+      JSON.dump(value)
+    end
+  end
+
+  def test_a_value_the_coder_rejects_raises_when_it_is_read_not_when_it_is_assigned
+    Topic.serialize(:content, coder: HashOnlyCoder)
+    topic = Topic.find(Topic.create!(content: nil).id)
+
+    assert_nothing_raised { topic.content = "not a hash" }
+    assert_raise(ArgumentError) { topic.content }
+  end
+
+  def test_reading_an_assigned_value_caches_its_cast_value
+    Topic.serialize(:content, coder: JSON)
+    topic = Topic.find(Topic.create!(content: nil).id)
+
+    topic.content = { "a" => 1 }
+    assert_same topic.content, topic.content
+    topic.content["b"] = 2
+    assert_predicate topic, :content_changed?
+    topic.save!
+
+    assert_equal({ "a" => 1, "b" => 2 }, Topic.find(topic.id).content)
+  end
+
   def test_serialized_attribute_on_alias_attribute
     klass = Class.new(ActiveRecord::Base) do
       self.table_name = Topic.table_name
@@ -156,7 +197,7 @@ class SerializedAttributeTest < ActiveRecord::TestCase
   end
 
   def test_json_symbolize_names_returns_symbolized_names
-    Topic.serialize :content, coder: ActiveRecord::Coders::JSON.new(symbolize_names: true)
+    Topic.serialize :content, coder: ActiveRecord::Coders::JSON.new(decode_options: { symbolize_names: true })
     my_post = posts(:welcome)
 
     t = Topic.new(content: my_post)
@@ -180,6 +221,25 @@ class SerializedAttributeTest < ActiveRecord::TestCase
     myobj = Time.local(2008, 1, 1, 1, 0)
     topic = Topic.create("content" => myobj).reload
     assert_equal(myobj, topic.content)
+  end
+
+  def test_serialized_json_column_direct_attribute_assignment
+    Topic.serialize :content, coder: JSON, type: Hash
+
+    topic = Topic.new(content: { foo: "bar" })
+    topic.save!
+    topic.reload
+
+    assert_equal({ "foo" => "bar" }, topic.content)
+
+    topic.content = { baz: "qux" }
+
+    assert_equal({ "baz" => "qux" }, topic.content)
+
+    topic.save
+    topic.reload
+
+    assert_equal({ "baz" => "qux" }, topic.content)
   end
 
   def test_serialized_string_attribute
@@ -562,6 +622,42 @@ class SerializedAttributeTest < ActiveRecord::TestCase
     topic = model.create!(foo: "bar")
     topic.foo
     assert_not_predicate topic, :changed?
+  end
+
+  def test_mutation_detection_with_immutable_string
+    model = Class.new(Topic) do
+      attribute :content, ActiveModel::Type::ImmutableString.new
+      serialize :content, coder: JSON
+    end
+    topic = model.create!(content: { "foo" => "bar" })
+    assert_not_predicate topic, :changed?
+
+    topic.content["foo"] = "plop"
+    assert_predicate topic, :changed?
+  end
+
+  def test_mutation_detection_with_immutable_strings_by_default
+    model = Class.new(Topic) do
+      self.immutable_strings_by_default = true
+      serialize :content, coder: JSON
+    end
+    topic = model.create!(content: { "foo" => "bar" })
+    assert_not_predicate topic, :changed?
+
+    topic.content["foo"] = "plop"
+    assert_predicate topic, :changed?
+  end
+
+  def test_mutation_detection_with_immutable_string_on_array
+    model = Class.new(Topic) do
+      attribute :content, ActiveModel::Type::ImmutableString.new
+      serialize :content, type: Array, coder: YAML
+    end
+    topic = model.create!(content: ["first"])
+    assert_not_predicate topic, :changed?
+
+    topic.content << "second"
+    assert_predicate topic, :changed?
   end
 
   def test_serialized_attribute_works_under_concurrent_initial_access

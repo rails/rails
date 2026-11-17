@@ -53,4 +53,107 @@ class IsolatedExecutionStateTest < ActiveSupport::TestCase
     ActiveSupport::IsolatedExecutionState.isolation_level = original
     assert_nil ActiveSupport::IsolatedExecutionState[:test]
   end
+
+  test "#share_with copies state from another thread" do
+    ActiveSupport::IsolatedExecutionState[:foo] = "bar"
+    ActiveSupport::IsolatedExecutionState[:baz] = "qux"
+
+    t1 = Thread.current
+    result = nil
+
+    Thread.new do
+      ActiveSupport::IsolatedExecutionState.share_with(t1) do
+        result = {
+          foo: ActiveSupport::IsolatedExecutionState[:foo],
+          baz: ActiveSupport::IsolatedExecutionState[:baz]
+        }
+      end
+    end.join
+
+    assert_equal "bar", result[:foo]
+    assert_equal "qux", result[:baz]
+  end
+
+  test "#share_with restores original state after block" do
+    ActiveSupport::IsolatedExecutionState[:original] = "value"
+
+    t1 = Thread.current
+    ActiveSupport::IsolatedExecutionState[:foo] = "parent"
+
+    Thread.new do
+      ActiveSupport::IsolatedExecutionState[:foo] = "child"
+      ActiveSupport::IsolatedExecutionState[:bar] = "child_only"
+
+      ActiveSupport::IsolatedExecutionState.share_with(t1) do
+        assert_equal "parent", ActiveSupport::IsolatedExecutionState[:foo]
+        assert_nil ActiveSupport::IsolatedExecutionState[:bar]
+      end
+
+      # After block, child thread should have its original state back
+      assert_equal "child", ActiveSupport::IsolatedExecutionState[:foo]
+      assert_equal "child_only", ActiveSupport::IsolatedExecutionState[:bar]
+    end.join
+  end
+
+  test "#share_with with except parameter accepts single key or array" do
+    ActiveSupport::IsolatedExecutionState[:foo] = "bar"
+    ActiveSupport::IsolatedExecutionState[:secret1] = "should not copy"
+    ActiveSupport::IsolatedExecutionState[:secret2] = "also should not copy"
+    ActiveSupport::IsolatedExecutionState[:keep] = "keep this"
+
+    t1 = Thread.current
+    result = nil
+
+    Thread.new do
+      ActiveSupport::IsolatedExecutionState.share_with(t1, except: [:secret1, :secret2]) do
+        result = {
+          foo: ActiveSupport::IsolatedExecutionState[:foo],
+          secret1: ActiveSupport::IsolatedExecutionState[:secret1],
+          secret2: ActiveSupport::IsolatedExecutionState[:secret2],
+          keep: ActiveSupport::IsolatedExecutionState[:keep]
+        }
+      end
+    end.join
+
+    assert_equal "bar", result[:foo]
+    assert_nil result[:secret1]
+    assert_nil result[:secret2]
+    assert_equal "keep this", result[:keep]
+  end
+
+  test "#key? returns true for existing key" do
+    ActiveSupport::IsolatedExecutionState[:test] = 42
+    assert ActiveSupport::IsolatedExecutionState.key?(:test)
+  end
+
+  test "#key? returns false for non-existing key" do
+    assert_not ActiveSupport::IsolatedExecutionState.key?(:nonexistent)
+  end
+
+  test "#key? returns false/nil when no state initialized" do
+    ActiveSupport::IsolatedExecutionState.clear
+    Thread.current.active_support_execution_state = nil
+    assert_not ActiveSupport::IsolatedExecutionState.key?(:anything)
+  end
+
+  test "#delete removes key and returns its value" do
+    ActiveSupport::IsolatedExecutionState[:test] = 42
+    result = ActiveSupport::IsolatedExecutionState.delete(:test)
+    assert_equal 42, result
+    assert_nil ActiveSupport::IsolatedExecutionState[:test]
+  end
+
+  test "#delete returns nil for non-existing key" do
+    assert_nil ActiveSupport::IsolatedExecutionState.delete(:nonexistent)
+  end
+
+  test "#context returns the current thread when isolation level is :thread" do
+    ActiveSupport::IsolatedExecutionState.isolation_level = :thread
+    assert_equal Thread.current, ActiveSupport::IsolatedExecutionState.context
+  end
+
+  test "#context returns the current fiber when isolation level is :fiber" do
+    ActiveSupport::IsolatedExecutionState.isolation_level = :fiber
+    assert_equal Fiber.current, ActiveSupport::IsolatedExecutionState.context
+  end
 end

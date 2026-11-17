@@ -143,6 +143,78 @@ module ActiveModel
           type.serialize_cast_value(2147483648)
         end
       end
+
+      test "deserialising type without @max/@min" do
+        type = Integer.new
+
+        # Simulate a Marshal-loaded object from Rails
+        # 8.0 which has @range but not @max/@min
+        type.remove_instance_variable(:@max)
+        type.remove_instance_variable(:@min)
+        type.instance_variable_set(
+          :@range,
+          type.send(:min_value)...type.send(:max_value)
+        )
+
+        assert_equal 42, type.serialize(42)
+        assert_equal(-1, type.serialize(-1))
+        assert_nil type.serialize(nil)
+
+        assert_raises(ActiveModel::RangeError) do
+          type.serialize(2**31)
+        end
+      end
+
+      test "long strings are truncated before being cast" do
+        type = Type::Integer.new(limit: 4) # byte cap: 16
+        # Only the first limit * 4 == 16 bytes should be considered
+        assert_equal ("1" * 16).to_i, type.cast("1" * 17)
+      end
+
+      test "long strings are truncated to 32 bytes without a limit" do
+        type = Type::Integer.new # byte cap: 8 * 4 == 32
+        assert_equal ("1" * 32).to_i, type.cast("1" * 33)
+      end
+
+      test "strings within the byte cap are cast normally" do
+        type = Type::Integer.new(limit: 4) # byte cap: 16
+        # A 16-byte numeric string is at the cap and should not be truncated
+        assert_equal 1234567890123456, type.cast("1234567890123456")
+        # Shorter strings are unaffected
+        assert_equal 42, type.cast("42-some-slug")
+      end
+
+      test "64-bit integer strings are not truncated without a limit" do
+        type = Type::Integer.new
+        assert_equal 9223372036854775807, type.cast("9223372036854775807")
+        assert_equal(-9223372036854775808, type.cast("-9223372036854775808"))
+        assert_equal 18446744073709551615, type.cast("18446744073709551615")
+      end
+
+      test "truncated strings stay out of range for explicit limits" do
+        [2, 4].each do |limit|
+          type = Type::Integer.new(limit: limit)
+          value = type.cast("9223372036854775807")
+
+          assert_not_equal 9223372036854775807, value
+          assert_raises(ActiveModel::RangeError) do
+            type.serialize_cast_value(value)
+          end
+        end
+      end
+
+      test "Marshal round-trip preserves behaviour" do
+        type = Integer.new
+        restored = Marshal.load(Marshal.dump(type))
+
+        assert_equal 42, restored.serialize(42)
+        assert_equal(-1, restored.serialize(-1))
+        assert_nil restored.serialize(nil)
+
+        assert_raises(ActiveModel::RangeError) do
+          restored.serialize(2**31)
+        end
+      end
     end
   end
 end

@@ -8,28 +8,34 @@ module ActiveRecord
       # Accepts an array of SQL conditions and sanitizes them into a valid
       # SQL fragment for a WHERE clause.
       #
-      #   sanitize_sql_for_conditions(["name=? and group_id=?", "foo'bar", 4])
-      #   # => "name='foo''bar' and group_id=4"
+      # ```
+      # sanitize_sql_for_conditions(["name=? and group_id=?", "foo'bar", 4])
+      # # => "name='foo''bar' and group_id=4"
       #
-      #   sanitize_sql_for_conditions(["name=:name and group_id=:group_id", name: "foo'bar", group_id: 4])
-      #   # => "name='foo''bar' and group_id='4'"
+      # sanitize_sql_for_conditions(["name=:name and group_id=:group_id", name: "foo'bar", group_id: 4])
+      # # => "name='foo''bar' and group_id=4"
       #
-      #   sanitize_sql_for_conditions(["name='%s' and group_id='%s'", "foo'bar", 4])
-      #   # => "name='foo''bar' and group_id='4'"
+      # sanitize_sql_for_conditions(["name='%s' and group_id='%s'", "foo'bar", 4])
+      # # => "name='foo''bar' and group_id='4'"
+      # ```
       #
       # This method will NOT sanitize an SQL string since it won't contain
       # any conditions in it and will return the string as is.
       #
-      #   sanitize_sql_for_conditions("name='foo''bar' and group_id='4'")
-      #   # => "name='foo''bar' and group_id='4'"
+      # ```
+      # sanitize_sql_for_conditions("name='foo''bar' and group_id='4'")
+      # # => "name='foo''bar' and group_id='4'"
+      # ```
       #
       # Note that this sanitization method is not schema-aware, hence won't do any type casting
-      # and will directly use the database adapter's +quote+ method.
+      # and will directly use the database adapter's `quote` method.
       # For MySQL specifically this means that numeric parameters will be quoted as strings
       # to prevent query manipulation attacks.
       #
-      #   sanitize_sql_for_conditions(["role = ?", 0])
-      #   # => "role = '0'"
+      # ```
+      # sanitize_sql_for_conditions(["role = ?", 0])
+      # # => "role = '0'"
+      # ```
       def sanitize_sql_for_conditions(condition)
         return nil if condition.blank?
 
@@ -43,28 +49,34 @@ module ActiveRecord
       # Accepts an array or hash of SQL conditions and sanitizes them into
       # a valid SQL fragment for a SET clause.
       #
-      #   sanitize_sql_for_assignment(["name=? and group_id=?", nil, 4])
-      #   # => "name=NULL and group_id=4"
+      # ```
+      # sanitize_sql_for_assignment(["name=? and group_id=?", nil, 4])
+      # # => "name=NULL and group_id=4"
       #
-      #   sanitize_sql_for_assignment(["name=:name and group_id=:group_id", name: nil, group_id: 4])
-      #   # => "name=NULL and group_id=4"
+      # sanitize_sql_for_assignment(["name=:name and group_id=:group_id", name: nil, group_id: 4])
+      # # => "name=NULL and group_id=4"
       #
-      #   Post.sanitize_sql_for_assignment({ name: nil, group_id: 4 })
-      #   # => "`posts`.`name` = NULL, `posts`.`group_id` = 4"
+      # Post.sanitize_sql_for_assignment({ name: nil, group_id: 4 })
+      # # => "`posts`.`name` = NULL, `posts`.`group_id` = 4"
+      # ```
       #
       # This method will NOT sanitize an SQL string since it won't contain
       # any conditions in it and will return the string as is.
       #
-      #   sanitize_sql_for_assignment("name=NULL and group_id='4'")
-      #   # => "name=NULL and group_id='4'"
+      # ```
+      # sanitize_sql_for_assignment("name=NULL and group_id='4'")
+      # # => "name=NULL and group_id='4'"
+      # ```
       #
       # Note that this sanitization method is not schema-aware, hence won't do any type casting
-      # and will directly use the database adapter's +quote+ method.
+      # and will directly use the database adapter's `quote` method.
       # For MySQL specifically this means that numeric parameters will be quoted as strings
       # to prevent query manipulation attacks.
       #
-      #   sanitize_sql_for_assignment(["role = ?", 0])
-      #   # => "role = '0'"
+      # ```
+      # sanitize_sql_for_assignment(["role = ?", 0])
+      # # => "role = '0'"
+      # ```
       def sanitize_sql_for_assignment(assignments, default_table_name = table_name)
         case assignments
         when Array; sanitize_sql_array(assignments)
@@ -76,11 +88,13 @@ module ActiveRecord
       # Accepts an array, or string of SQL conditions and sanitizes
       # them into a valid SQL fragment for an ORDER clause.
       #
-      #   sanitize_sql_for_order([Arel.sql("field(id, ?)"), [1,3,2]])
-      #   # => "field(id, 1,3,2)"
+      # ```
+      # sanitize_sql_for_order([Arel.sql("field(id, ?)"), [1,3,2]])
+      # # => "field(id, 1,3,2)"
       #
-      #   sanitize_sql_for_order("id ASC")
-      #   # => "id ASC"
+      # sanitize_sql_for_order("id ASC")
+      # # => "id ASC"
+      # ```
       def sanitize_sql_for_order(condition)
         if condition.is_a?(Array) && condition.first.to_s.include?("?")
           disallow_raw_sql!(
@@ -102,8 +116,10 @@ module ActiveRecord
 
       # Sanitizes a hash of attribute/value pairs into SQL conditions for a SET clause.
       #
-      #   sanitize_sql_hash_for_assignment({ status: nil, group_id: 1 }, "posts")
-      #   # => "`posts`.`status` = NULL, `posts`.`group_id` = 1"
+      # ```
+      # sanitize_sql_hash_for_assignment({ status: nil, group_id: 1 }, "posts")
+      # # => "`posts`.`status` = NULL, `posts`.`group_id` = 1"
+      # ```
       def sanitize_sql_hash_for_assignment(attrs, table)
         with_connection do |c|
           attrs.map do |attr, value|
@@ -114,21 +130,23 @@ module ActiveRecord
         end
       end
 
-      # Sanitizes a +string+ so that it is safe to use within an SQL
-      # LIKE statement. This method uses +escape_character+ to escape all
-      # occurrences of itself, "_" and "%".
+      # Sanitizes a `string` so that it is safe to use within an SQL
+      # LIKE statement. This method uses `escape_character` to escape all
+      # occurrences of itself, "\_" and "%".
       #
-      #   sanitize_sql_like("100% true!")
-      #   # => "100\\% true!"
+      # ```
+      # sanitize_sql_like("100% true!")
+      # # => "100\\% true!"
       #
-      #   sanitize_sql_like("snake_cased_string")
-      #   # => "snake\\_cased\\_string"
+      # sanitize_sql_like("snake_cased_string")
+      # # => "snake\\_cased\\_string"
       #
-      #   sanitize_sql_like("100% true!", "!")
-      #   # => "100!% true!!"
+      # sanitize_sql_like("100% true!", "!")
+      # # => "100!% true!!"
       #
-      #   sanitize_sql_like("snake_cased_string", "!")
-      #   # => "snake!_cased!_string"
+      # sanitize_sql_like("snake_cased_string", "!")
+      # # => "snake!_cased!_string"
+      # ```
       def sanitize_sql_like(string, escape_character = "\\")
         if string.include?(escape_character) && escape_character != "%" && escape_character != "_"
           string = string.gsub(escape_character, '\0\0')
@@ -142,27 +160,31 @@ module ActiveRecord
       # variables in SQL statements where a colon is required verbatim use a
       # backslash to escape.
       #
-      #   sanitize_sql_array(["name=? and group_id=?", "foo'bar", 4])
-      #   # => "name='foo''bar' and group_id=4"
+      # ```
+      # sanitize_sql_array(["name=? and group_id=?", "foo'bar", 4])
+      # # => "name='foo''bar' and group_id=4"
       #
-      #   sanitize_sql_array(["name=:name and group_id=:group_id", name: "foo'bar", group_id: 4])
-      #   # => "name='foo''bar' and group_id=4"
+      # sanitize_sql_array(["name=:name and group_id=:group_id", name: "foo'bar", group_id: 4])
+      # # => "name='foo''bar' and group_id=4"
       #
-      #   sanitize_sql_array(["TO_TIMESTAMP(:date, 'YYYY/MM/DD HH12\\:MI\\:SS')", date: "foo"])
-      #   # => "TO_TIMESTAMP('foo', 'YYYY/MM/DD HH12:MI:SS')"
+      # sanitize_sql_array(["TO_TIMESTAMP(:date, 'YYYY/MM/DD HH12\\:MI\\:SS')", date: "foo"])
+      # # => "TO_TIMESTAMP('foo', 'YYYY/MM/DD HH12:MI:SS')"
       #
-      #   sanitize_sql_array(["name='%s' and group_id='%s'", "foo'bar", 4])
-      #   # => "name='foo''bar' and group_id='4'"
+      # sanitize_sql_array(["name='%s' and group_id='%s'", "foo'bar", 4])
+      # # => "name='foo''bar' and group_id='4'"
+      # ```
       #
       # Note that this sanitization method is not schema-aware, hence won't do any type casting
-      # and will directly use the database adapter's +quote+ method.
+      # and will directly use the database adapter's `quote` method.
       # For MySQL specifically this means that numeric parameters will be quoted as strings
       # to prevent query manipulation attacks.
       #
-      #   sanitize_sql_array(["role = ?", 0])
-      #   # => "role = '0'"
+      # ```
+      # sanitize_sql_array(["role = ?", 0])
+      # # => "role = '0'"
+      # ```
       #
-      #   Before using this method, please consider if Arel.sql would be better for your use-case
+      # Before using this method, please consider if Arel.sql would be better for your use-case
       def sanitize_sql_array(ary)
         statement, *values = ary
         if values.first.is_a?(Hash) && /:\w+/.match?(statement)
@@ -180,6 +202,20 @@ module ActiveRecord
             statement % values.collect { |value| c.quote_string(value.to_s) }
           end
         end
+      end
+
+      def bound_sql_literal_for(statement, values) # :nodoc:
+        if values.first.is_a?(Hash) && /:\w+/.match?(statement)
+          bound_values = values.first.transform_values { bind_value_for_sql_literal(_1) }
+          Arel::Nodes::BoundSqlLiteral.new(statement, nil, bound_values)
+        elsif statement.include?("?")
+          bound_values = values.map { bind_value_for_sql_literal(_1) }
+          Arel::Nodes::BoundSqlLiteral.new(statement, bound_values, nil)
+        else
+          Arel.sql(sanitize_sql([statement, *values]))
+        end
+      rescue Arel::BindError => error
+        raise ActiveRecord::PreparedStatementInvalid, error.message
       end
 
       def disallow_raw_sql!(args, permit: adapter_class.column_name_matcher) # :nodoc:
@@ -202,6 +238,17 @@ module ActiveRecord
       end
 
       private
+        def bind_value_for_sql_literal(value)
+          if ActiveRecord::Relation === value
+            Arel.sql(value.to_sql)
+          elsif value.respond_to?(:map) && !value.acts_like?(:string)
+            values = value.map { |v| v.respond_to?(:id_for_database) ? v.id_for_database : v }
+            values.empty? ? nil : values
+          else
+            value.respond_to?(:id_for_database) ? value.id_for_database : value
+          end
+        end
+
         def replace_bind_variables(connection, statement, values)
           raise_if_bind_arity_mismatch(statement, statement.count("?"), values.size)
           bound = values.dup
@@ -223,7 +270,7 @@ module ActiveRecord
             if $1 == ":" # skip PostgreSQL casts
               match # return the whole match
             elsif $1 == "\\" # escaped literal colon
-              match[1..-1] # return match with escaping backlash char removed
+              match[1..-1] # return match with escaping backslash char removed
             elsif bind_vars.include?(match = $2.to_sym)
               replace_bind_variable(connection, bind_vars[match])
             else

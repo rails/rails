@@ -14,6 +14,12 @@ module ActiveRecord
         clean_up_connection_handler
       end
 
+      # Physical pool-manager access: bypass the Ractor facade a self-proxy
+      # run resolves by default.
+      def pool_manager(connection_name)
+        without_ractor_proxy { ActiveRecord::Base.connection_handler.send(:get_pool_manager, connection_name) }
+      end
+
       unless in_memory_db?
         def test_establishing_a_connection_in_connected_to_block_uses_current_role_and_shard
           ActiveRecord::Base.connected_to(role: :writing, shard: :shard_one) do
@@ -21,7 +27,7 @@ module ActiveRecord
             ActiveRecord::Base.establish_connection(db_config)
             assert_nothing_raised { Person.first }
 
-            assert_equal [:default, :shard_one].sort, ActiveRecord::Base.connection_handler.send(:get_pool_manager, "ActiveRecord::Base").shard_names.sort
+            assert_equal [:default, :shard_one].sort, pool_manager("ActiveRecord::Base").shard_names.sort
           end
         end
 
@@ -45,7 +51,7 @@ module ActiveRecord
           base_pool = ActiveRecord::Base.connection_handler.retrieve_connection_pool("ActiveRecord::Base")
           default_pool = ActiveRecord::Base.connection_handler.retrieve_connection_pool("ActiveRecord::Base", shard: :default)
 
-          assert_equal [:default, :shard_one], ActiveRecord::Base.connection_handler.send(:get_pool_manager, "ActiveRecord::Base").shard_names
+          assert_equal [:default, :shard_one], pool_manager("ActiveRecord::Base").shard_names.sort
           assert_equal base_pool, default_pool
           assert_equal "test/db/primary.sqlite3", default_pool.db_config.database
           assert_equal "primary", default_pool.db_config.name
@@ -98,6 +104,67 @@ module ActiveRecord
           assert_equal "test/db/primary_shard_one.sqlite3", pool.db_config.database
           assert_equal "primary_shard_one_replica", pool.db_config.name
         ensure
+          ActiveRecord::Base.configurations = @prev_configs
+          ActiveRecord::Base.establish_connection(:arunit)
+          ENV["RAILS_ENV"] = previous_env
+        end
+
+        class IntegerKeysBase < ActiveRecord::Base
+          self.abstract_class = true
+        end
+
+        def test_establish_connection_using_3_levels_config_with_integer_keys
+          previous_env, ENV["RAILS_ENV"] = ENV["RAILS_ENV"], "default_env"
+          default_shard_was = ActiveRecord::Base.default_shard
+          ActiveRecord::Base.default_shard = 0
+
+          config = {
+            "default_env" => {
+              "primary" => { "adapter" => "sqlite3", "database" => "test/db/primary.sqlite3" },
+              "primary_shard_one" => { "adapter" => "sqlite3", "database" => "test/db/primary_shard_one.sqlite3" },
+              "primary_shard_one_replica" => { "adapter" => "sqlite3", "database" => "test/db/primary_shard_one_replica.sqlite3", "replica" => true }
+            }
+          }
+
+          @prev_configs, ActiveRecord::Base.configurations = ActiveRecord::Base.configurations, config
+
+          IntegerKeysBase.connects_to(shards: {
+            0 => { writing: :primary, reading: :primary },
+            1 => { writing: :primary_shard_one, reading: :primary_shard_one_replica }
+          })
+
+          connection_description_name = "ActiveRecord::ConnectionAdapters::ConnectionHandlersShardingDbTest::IntegerKeysBase"
+          base_pool = ActiveRecord::Base.connection_handler.retrieve_connection_pool(connection_description_name)
+          default_pool = ActiveRecord::Base.connection_handler.retrieve_connection_pool(connection_description_name, shard: 0)
+
+          assert_equal [0, 1], pool_manager(connection_description_name).shard_names.sort
+          assert_equal base_pool, default_pool
+          assert_equal "test/db/primary.sqlite3", default_pool.db_config.database
+          assert_equal "primary", default_pool.db_config.name
+
+          assert_not_nil pool = ActiveRecord::Base.connection_handler.retrieve_connection_pool(connection_description_name, shard: 1)
+          assert_equal "test/db/primary_shard_one.sqlite3", pool.db_config.database
+          assert_equal "primary_shard_one", pool.db_config.name
+
+          assert_not_nil pool = ActiveRecord::Base.connection_handler.retrieve_connection_pool(connection_description_name, role: :reading, shard: 1)
+          assert_equal "test/db/primary_shard_one_replica.sqlite3", pool.db_config.database
+          assert_equal "primary_shard_one_replica", pool.db_config.name
+
+          IntegerKeysBase.connected_to(shard: 1) do
+            assert_includes IntegerKeysBase.lease_connection.select_value("SELECT file FROM pragma_database_list;"), "primary_shard_one.sqlite3"
+          end
+
+          IntegerKeysBase.connected_to(role: :reading, shard: 1) do
+            assert_includes IntegerKeysBase.lease_connection.select_value("SELECT file FROM pragma_database_list;"), "primary_shard_one_replica.sqlite3"
+          end
+
+          assert_raises(ActiveRecord::ConnectionNotDefined) do
+            IntegerKeysBase.connected_to(shard: 2) do
+              IntegerKeysBase.lease_connection.select_value("SELECT file FROM pragma_database_list;")
+            end
+          end
+        ensure
+          ActiveRecord::Base.default_shard = default_shard_was
           ActiveRecord::Base.configurations = @prev_configs
           ActiveRecord::Base.establish_connection(:arunit)
           ENV["RAILS_ENV"] = previous_env
@@ -297,7 +364,7 @@ module ActiveRecord
             shard_one: { writing: :primary_shard_one }
           })
 
-          assert_raises(ArgumentError) do
+          assert_raises(ShardSwapProhibitedError) do
             ActiveRecord::Base.prohibit_shard_swapping do
               ActiveRecord::Base.connected_to(role: :reading, shard: :default) do
               end
@@ -369,8 +436,8 @@ module ActiveRecord
           ShardConnectionTestModelB.lease_connection.execute("CREATE TABLE `shard_connection_test_model_bs` (shard_key VARCHAR (255))")
           ShardConnectionTestModelB.create!(shard_key: "test_model_b_default")
 
-          assert_equal "test_model_default", ShardConnectionTestModel.where(shard_key: "test_model_default").first.shard_key
-          assert_equal "test_model_b_default", ShardConnectionTestModelB.where(shard_key: "test_model_b_default").first.shard_key
+          assert_equal "test_model_default", ShardConnectionTestModel.where(shard_key: "test_model_default").take.shard_key
+          assert_equal "test_model_b_default", ShardConnectionTestModelB.where(shard_key: "test_model_b_default").take.shard_key
         end
       end
 

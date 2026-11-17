@@ -5,6 +5,11 @@ module ActiveRecord
     module MySQL
       class SchemaDumper < ConnectionAdapters::SchemaDumper # :nodoc:
         private
+          def read_schema_metadata(tables)
+            super
+            @table_collations = @connection.table_collation(tables)
+          end
+
           def prepare_column_options(column)
             spec = super
             spec[:unsigned] = "true" if column.unsigned?
@@ -63,33 +68,22 @@ module ActiveRecord
           end
 
           def schema_collation(column)
-            if column.collation
-              @table_collation_cache ||= {}
-              @table_collation_cache[table_name] ||=
-                @connection.internal_exec_query("SHOW TABLE STATUS LIKE #{@connection.quote(table_name)}", "SCHEMA").first["Collation"]
-              column.collation.inspect if column.collation != @table_collation_cache[table_name]
-            end
+            return unless column.collation
+
+            column.collation.inspect if column.collation != @table_collations[table_name]
           end
 
           def extract_expression_for_virtual_column(column)
-            if @connection.mariadb? && @connection.database_version < "10.2.5"
-              create_table_info = @connection.send(:create_table_info, table_name)
-              column_name = @connection.quote_column_name(column.name)
-              if %r/#{column_name} #{Regexp.quote(column.sql_type)}(?: COLLATE \w+)? AS \((?<expression>.+?)\) #{column.extra}/ =~ create_table_info
-                $~[:expression].inspect
-              end
-            else
-              scope = @connection.send(:quoted_scope, table_name)
-              column_name = @connection.quote(column.name)
-              sql = "SELECT generation_expression FROM information_schema.columns" \
-                    " WHERE table_schema = #{scope[:schema]}" \
-                    "   AND table_name = #{scope[:name]}" \
-                    "   AND column_name = #{column_name}"
-              # Calling .inspect leads into issues with the query result
-              # which already returns escaped quotes.
-              # We remove the escape sequence from the result in order to deal with double escaping issues.
-              @connection.query_value(sql, "SCHEMA").gsub("\\'", "'").inspect
-            end
+            scope = @connection.send(:quoted_scope, table_name)
+            column_name = @connection.quote(column.name)
+            sql = "SELECT generation_expression FROM information_schema.columns" \
+                  " WHERE table_schema = #{scope[:schema]}" \
+                  "   AND table_name = #{scope[:name]}" \
+                  "   AND column_name = #{column_name}"
+            # Calling .inspect leads into issues with the query result
+            # which already returns escaped quotes.
+            # We remove the escape sequence from the result in order to deal with double escaping issues.
+            @connection.query_value(sql).gsub("\\'", "'").inspect
           end
       end
     end

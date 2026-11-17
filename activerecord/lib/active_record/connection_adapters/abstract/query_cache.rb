@@ -9,12 +9,18 @@ module ActiveRecord
       DEFAULT_SIZE = 100 # :nodoc:
 
       class << self
-        def included(base) # :nodoc:
-          dirties_query_cache base, :exec_query, :execute, :create, :insert, :update, :delete, :truncate,
-            :truncate_tables, :rollback_to_savepoint, :rollback_db_transaction, :restart_db_transaction,
-            :exec_insert_all
+        def enabled_by_default # :nodoc:
+          ActiveSupport::IsolatedExecutionState[:active_record_query_cache_enabled] || false
+        end
 
-          base.set_callback :checkin, :after, :unset_query_cache!
+        def enabled_by_default=(enabled) # :nodoc:
+          ActiveSupport::IsolatedExecutionState[:active_record_query_cache_enabled] = enabled
+        end
+
+        def included(base) # :nodoc:
+          dirties_query_cache base, :exec_query, :execute, :create, :insert, :update, :update_with_result,
+            :delete, :truncate, :truncate_tables, :rollback_to_savepoint, :rollback_db_transaction,
+            :restart_db_transaction, :exec_insert_all
         end
 
         def dirties_query_cache(base, *method_names)
@@ -31,6 +37,18 @@ module ActiveRecord
         end
       end
 
+      # This is the actual query cache store.
+      #
+      # It has an internal hash whose keys are either SQL strings, or arrays of
+      # two elements [SQL string, binds], if there are binds. The hash values
+      # are their corresponding ActiveRecord::Result objects.
+      #
+      # Keeping the hash size under max size is achieved with LRU eviction.
+      #
+      # The store gets passed a version object, which is shared among the query
+      # cache stores of a given connection pool (see ConnectionPoolConfiguration
+      # down below). The version value may be externally changed as a way to
+      # signal cache invalidation, that is why all methods have a guard for it.
       class Store # :nodoc:
         attr_accessor :enabled, :dirties
         alias_method :enabled?, :enabled
@@ -77,7 +95,7 @@ module ActiveRecord
             @map.shift # evict the oldest entry
           end
 
-          @map[key] ||= yield
+          @map[key] = yield
         end
 
         def clear
@@ -94,30 +112,10 @@ module ActiveRecord
           end
       end
 
-      class QueryCacheRegistry # :nodoc:
-        def initialize
-          @mutex = Mutex.new
-          @map = ConnectionPool::WeakThreadKeyMap.new
-        end
-
-        def compute_if_absent(context)
-          @map[context] || @mutex.synchronize do
-            @map[context] ||= yield
-          end
-        end
-
-        def clear
-          @map.synchronize do
-            @map.clear
-          end
-        end
-      end
-
       module ConnectionPoolConfiguration # :nodoc:
         def initialize(...)
           super
           @query_cache_version = Concurrent::AtomicFixnum.new
-          @thread_query_caches = QueryCacheRegistry.new
           @query_cache_max_size = \
             case query_cache = db_config&.query_cache
             when 0, false
@@ -166,6 +164,11 @@ module ActiveRecord
           query_cache.dirties = true
         end
 
+        def reset_query_cache! # :nodoc:
+          prepare_query_cache(query_cache)
+          clear_query_cache
+        end
+
         def query_cache_enabled
           query_cache.enabled
         end
@@ -185,21 +188,40 @@ module ActiveRecord
         end
 
         def query_cache
-          @thread_query_caches.compute_if_absent(ActiveSupport::IsolatedExecutionState.context) do
-            Store.new(@query_cache_version, @query_cache_max_size)
-          end
+          ConnectionPool.used_pools!.query_cache_for(self)
+        end
+
+        def build_query_cache # :nodoc:
+          Store.new(@query_cache_version, @query_cache_max_size).tap { |cache| prepare_query_cache(cache) }
+        end
+
+        def prepare_query_cache(cache) # :nodoc:
+          cache.enabled = QueryCache.enabled_by_default && db_config&.query_cache != false
+          cache.dirties = true
+          cache.clear
         end
       end
-
-      attr_accessor :query_cache
 
       def initialize(*)
         super
         @query_cache = nil
       end
 
+      attr_writer :query_cache
+
+      def query_cache
+        if @pinned && @owner != ActiveSupport::IsolatedExecutionState.context
+          # With transactional tests, if the connection is pinned, any thread
+          # other than the one that pinned the connection need to go through the
+          # query cache pool, so each thread get a different cache.
+          pool.query_cache
+        else
+          @query_cache
+        end
+      end
+
       def query_cache_enabled
-        @query_cache&.enabled?
+        query_cache&.enabled?
       end
 
       # Enable the query cache within the block.
@@ -213,7 +235,7 @@ module ActiveRecord
 
       # Disable the query cache within the block.
       #
-      # Set <tt>dirties: false</tt> to prevent query caches on all connections from being cleared by write operations.
+      # Set `dirties: false` to prevent query caches on all connections from being cleared by write operations.
       # (By default, write operations dirty all connections' query caches in case they are replicas whose cache would now be outdated.)
       def uncached(dirties: true, &block)
         pool.disable_query_cache(dirties: dirties, &block)
@@ -238,14 +260,15 @@ module ActiveRecord
 
         # If arel is locked this is a SELECT ... FOR UPDATE or somesuch.
         # Such queries should not be cached.
-        if @query_cache&.enabled? && !(arel.respond_to?(:locked) && arel.locked)
-          sql, binds, preparable, allow_retry = to_sql_and_binds(arel, binds, preparable)
+        if query_cache_enabled && !(arel.respond_to?(:locked) && arel.locked)
+          sql, binds, preparable, allow_retry = to_sql_and_binds(arel, binds, preparable, allow_retry)
 
           if async
             result = lookup_sql_cache(sql, name, binds) || super(sql, name, binds, preparable: preparable, async: async, allow_retry: allow_retry)
             FutureResult.wrap(result)
           else
-            cache_sql(sql, name, binds) { super(sql, name, binds, preparable: preparable, async: async, allow_retry: allow_retry) }
+            result = cache_sql(sql, name, binds) { super(sql, name, binds, preparable: preparable, async: async, allow_retry: allow_retry) }
+            result.shuffle_rows(arel)
           end
         else
           super
@@ -262,7 +285,7 @@ module ActiveRecord
 
           result = nil
           @lock.synchronize do
-            result = @query_cache[key]
+            result = query_cache[key]
           end
 
           if result
@@ -281,7 +304,7 @@ module ActiveRecord
           hit = true
 
           @lock.synchronize do
-            result = @query_cache.compute_if_absent(key) do
+            result = query_cache.compute_if_absent(key) do
               hit = false
               yield
             end

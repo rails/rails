@@ -1,7 +1,5 @@
 # frozen_string_literal: true
 
-# :markup: markdown
-
 module ActionCable
   module SubscriptionAdapter
     # ## Test adapter for Action Cable
@@ -21,11 +19,11 @@ module ActionCable
       end
 
       def broadcasts(channel)
-        channels_data[channel] ||= []
+        channels_data[String(channel)] ||= []
       end
 
       def clear_messages(channel)
-        channels_data[channel] = []
+        channels_data[String(channel)] = []
       end
 
       def clear

@@ -4,12 +4,10 @@ module ActiveModel
   class AttributeSet
     # Attempts to do more intelligent YAML dumping of an
     # ActiveModel::AttributeSet to reduce the size of the resulting string
-    class YAMLEncoder # :nodoc:
-      def initialize(default_types)
-        @default_types = default_types
-      end
+    module YAMLEncoder # :nodoc:
+      extend self
 
-      def encode(attribute_set, coder)
+      def encode(attribute_set, coder, default_types)
         coder["concise_attributes"] = attribute_set.each_value.map do |attr|
           if attr.type.equal?(default_types[attr.name])
             attr.with_type(nil)
@@ -19,7 +17,8 @@ module ActiveModel
         end
       end
 
-      def decode(coder)
+      #: (Psych::Coder, Hash[String, Type::Value]) -> AttributeSet
+      def decode(coder, default_types)
         if coder["attributes"]
           coder["attributes"]
         else
@@ -29,12 +28,9 @@ module ActiveModel
             end
             [attr.name, attr]
           end]
-          AttributeSet.new(attributes_hash)
+          AttributeSet.new(IndexedRow::Mutable[attributes_hash])
         end
       end
-
-      private
-        attr_reader :default_types
     end
   end
 end

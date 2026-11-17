@@ -6,8 +6,9 @@ require "active_support/core_ext/erb/util"
 module ActionView
   class Template
     module Handlers
-      class ERB
+      class ERB # :nodoc:
         autoload :Erubi, "action_view/template/handlers/erb/erubi"
+        autoload :Herb, "action_view/template/handlers/erb/herb"
 
         # Specify trim mode for the ERB compiler. Defaults to '-'.
         # See ERB documentation for suitable values.
@@ -22,7 +23,7 @@ module ActionView
         # Strip trailing newlines from rendered output
         class_attribute :strip_trailing_newlines, default: false
 
-        ENCODING_TAG = Regexp.new("\\A(<%#{ENCODING_FLAG}-?%>)[ \\t]*")
+        ENCODING_TAG = Regexp.new("\\A(<%#{ENCODING_FLAG}-?%>)[ \\t]*").freeze
 
         LocationParsingError = Class.new(StandardError) # :nodoc:
 
@@ -62,7 +63,7 @@ module ActionView
           nil
         end
 
-        def call(template, source)
+        def call(template, source, implementation: nil, **overrides)
           # First, convert to BINARY, so in case the encoding is
           # wrong, we can still find an encoding tag
           # (<%# encoding %>) inside the String using a regular
@@ -82,18 +83,31 @@ module ActionView
 
           options = {
             escape: (self.class.escape_ignore_list.include? template.type),
-            trim: (self.class.erb_trim_mode == "-")
+            trim: (self.class.erb_trim_mode == "-"),
+            filename: template.identifier
           }
 
           if ActionView::Base.annotate_rendered_view_with_filenames && template.format == :html
-            options[:preamble] = "@output_buffer.safe_append='<!-- BEGIN #{template.short_identifier} -->';"
+            options[:preamble] = "@output_buffer.safe_append='<!-- BEGIN #{template.short_identifier}\n-->';"
             options[:postamble] = "@output_buffer.safe_append='<!-- END #{template.short_identifier} -->';@output_buffer"
           end
 
-          self.class.erb_implementation.new(erb, options).src
+          (implementation || implementation_for(template)).new(erb, options.merge(overrides)).src
         end
 
       private
+        def implementation_for(template)
+          implementation = self.class.erb_implementation
+
+          # Referencing Herb triggers its autoload, which requires the herb gem.
+          # If it hasn't been loaded yet, the implementation can't be Herb.
+          if !ERB.autoload?(:Herb) && implementation == Herb && template.format != :html
+            Erubi
+          else
+            implementation
+          end
+        end
+
         def valid_encoding(string, encoding)
           # If a magic encoding comment was found, tag the
           # String with this encoding. This is for a case
@@ -139,11 +153,12 @@ module ActionView
         # a match of the first token before matching either token.
         #
         # For example, if we want to find tokens A, B, C, we do the following:
+        #
         # 1. Find a match for A: test error_column or advance scanner.
         # 2. Find a match for B or A:
-        #   a. If B: start over with next token set (B, C).
-        #   b. If A: test error_column or advance scanner.
-        #   c. Otherwise: Advance 1 byte
+        #   1.  If B: start over with next token set (B, C).
+        #   1.  If A: test error_column or advance scanner.
+        #   1.  Otherwise: Advance 1 byte
         #
         # Prioritize matching the next token over the current token once
         # a match for the current token has been found. This is to prevent

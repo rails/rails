@@ -38,6 +38,22 @@
       padding: 0.5em 1.5em;
     }
 
+    header button {
+      appearance: none;
+      background-color: hsl(0 0% 0% / 0.2);
+      border: 0;
+      border-radius: 14px;
+      color: white;
+      float: right;
+      font-weight: 500;
+      height: 28px;
+      padding-inline: 14px;
+      margin: 0.35em 0;
+    }
+    header button:active {
+      background-color: hsl(0 0% 0% / 0.25);
+    }
+
     h1 {
       overflow-wrap: break-word;
       margin: 0.2em 0;
@@ -52,6 +68,30 @@
 
     code.traces {
       font-size: 11px;
+    }
+
+    .trace-container {
+      margin-top: 10px;
+    }
+
+    code.traces .trace {
+      display: flex;
+      align-items: center;
+      gap: 2px;
+    }
+
+    .edit-icon {
+      width: 16px;
+      height: 16px;
+      display: flex;
+      font-size: 13px;
+      align-items: center;
+      justify-content: center;
+      text-decoration: none;
+    }
+
+    .edit-icon:hover {
+      scale: 1.05;
     }
 
     .response-heading, .request-heading {
@@ -89,6 +129,20 @@
       text-decoration: none;
       background: #C52F24;
       border-bottom: none;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    a.summary::before {
+      content: "▶";
+      font-size: 0.9em;
+      transition: transform 0.2s ease;
+      display: inline-block;
+    }
+
+    a.summary.expanded::before {
+      transform: rotate(90deg);
     }
 
     .details pre {
@@ -258,8 +312,11 @@
   </style>
 
   <script>
-    var toggle = function(id) {
+    var toggle = function(id, element) {
       document.getElementById(id).classList.toggle('hidden');
+      if (element) {
+        element.classList.toggle('expanded');
+      }
       return false;
     }
     var show = function(id) {
@@ -274,11 +331,21 @@
     var toggleEnvDump = function() {
       return toggle('env_dump');
     }
+    var copyAsText = function() {
+      const text = document.getElementById("exception-message-for-copy").value;
+
+      navigator.clipboard.writeText(text).then(() => {
+        const beforeText = this.innerText;
+        this.innerText = "Copied!"
+        setTimeout(() => this.innerText = beforeText, 1000)
+      })
+    }
   </script>
 </head>
 <body>
 
   <%= yield %>
+  <textarea hidden id="exception-message-for-copy"><%= @exception_message_for_copy %></textarea>
 
 </body>
 </html>

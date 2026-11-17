@@ -6,7 +6,7 @@ module ActionMailbox
     extend ActiveSupport::Concern
 
     included do
-      cattr_accessor :router, default: ActionMailbox::Router.new
+      class_attribute :router, default: ActionMailbox::Router.new
     end
 
     class_methods do

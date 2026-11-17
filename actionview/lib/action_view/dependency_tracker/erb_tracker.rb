@@ -2,7 +2,17 @@
 
 module ActionView
   class DependencyTracker # :nodoc:
-    class ERBTracker # :nodoc:
+    # Action View ERB Dependency Tracker
+    # ==================================
+    #
+    # Finds the dependencies of an ERB template by scanning its source with
+    # regular expressions for `render` calls and `# Template Dependency:`
+    # comments.
+    #
+    # Because it matches against the source, it also handles template languages
+    # whose `render` calls look like Ruby.
+    class ERBTracker
+      # :stopdoc:
       EXPLICIT_DEPENDENCY = /# Template Dependency: (\S+)/
 
       # A valid ruby identifier - suitable for class, method and specially variable names
@@ -39,16 +49,19 @@ module ActionView
       /x
 
       # Matches:
-      #   partial: "comments/comment", collection: @all_comments => "comments/comment"
-      #   (object: @single_comment, partial: "comments/comment") => "comments/comment"
       #
-      #   "comments/comments"
-      #   'comments/comments'
-      #   ('comments/comments')
+      # ```
+      # partial: "comments/comment", collection: @all_comments => "comments/comment"
+      # (object: @single_comment, partial: "comments/comment") => "comments/comment"
       #
-      #   (@topic)         => "topics/topic"
-      #    topics          => "topics/topic"
-      #   (message.topics) => "topics/topic"
+      # "comments/comments"
+      # 'comments/comments'
+      # ('comments/comments')
+      #
+      # (@topic)         => "topics/topic"
+      #  topics          => "topics/topic"
+      # (message.topics) => "topics/topic"
+      # ```
       RENDER_ARGUMENTS = /\A
         (?:\s*\(?\s*)                                  # optional opening paren surrounded by spaces
         (?:.*?#{PARTIAL_HASH_KEY}|#{LAYOUT_HASH_KEY})? # optional hash, up to the partial or layout key declaration
@@ -91,7 +104,7 @@ module ActionView
 
         def render_dependencies
           dependencies = []
-          render_calls = source.split(/\brender\b/).drop(1)
+          render_calls = source.scan(/<%(?:(?:(?!<%).)*?\brender\b((?:(?!%>).)*?))%>/m).flatten
 
           render_calls.each do |arguments|
             add_dependencies(dependencies, arguments, LAYOUT_DEPENDENCY)

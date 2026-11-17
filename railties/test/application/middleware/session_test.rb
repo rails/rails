@@ -57,8 +57,8 @@ module ApplicationTests
     test "session is empty and isn't saved on unverified request when using :null_session protect method" do
       app_file "config/routes.rb", <<-RUBY
         Rails.application.routes.draw do
-          get  ':controller(/:action)'
-          post ':controller(/:action)'
+          match 'foo/write_session', to: 'foo#write_session', via: [:get, :post]
+          match 'foo/read_session', to: 'foo#read_session', via: [:get, :post]
         end
       RUBY
 
@@ -83,14 +83,16 @@ module ApplicationTests
 
       require "#{app_path}/config/environment"
 
+      header "Sec-Fetch-Site", "cross-site"
+
       get "/foo/write_session"
       get "/foo/read_session"
       assert_equal "1", last_response.body
 
-      post "/foo/read_session"               # Read session using POST request without CSRF token
+      post "/foo/read_session"               # Read session using POST request failing CSRF check
       assert_equal "nil", last_response.body # Stored value shouldn't be accessible
 
-      post "/foo/write_session" # Write session using POST request without CSRF token
+      post "/foo/write_session" # Write session using POST request failing CSRF check
       get "/foo/read_session"   # Session shouldn't be changed
       assert_equal "1", last_response.body
     end
@@ -98,8 +100,8 @@ module ApplicationTests
     test "cookie jar is empty and isn't saved on unverified request when using :null_session protect method" do
       app_file "config/routes.rb", <<-RUBY
         Rails.application.routes.draw do
-          get  ':controller(/:action)'
-          post ':controller(/:action)'
+          match 'foo/write_cookie', to: 'foo#write_cookie', via: [:get, :post]
+          match 'foo/read_cookie', to: 'foo#read_cookie', via: [:get, :post]
         end
       RUBY
 
@@ -124,14 +126,16 @@ module ApplicationTests
 
       require "#{app_path}/config/environment"
 
+      header "Sec-Fetch-Site", "cross-site"
+
       get "/foo/write_cookie"
       get "/foo/read_cookie"
       assert_equal '"1"', last_response.body
 
-      post "/foo/read_cookie"                # Read cookie using POST request without CSRF token
+      post "/foo/read_cookie"                # Read cookie using POST request failing CSRF check
       assert_equal "nil", last_response.body # Stored value shouldn't be accessible
 
-      post "/foo/write_cookie" # Write cookie using POST request without CSRF token
+      post "/foo/write_cookie" # Write cookie using POST request failing CSRF check
       get "/foo/read_cookie"   # Cookie shouldn't be changed
       assert_equal '"1"', last_response.body
     end
@@ -139,7 +143,11 @@ module ApplicationTests
     test "session using encrypted cookie store with JSON serializer" do
       app_file "config/routes.rb", <<-RUBY
         Rails.application.routes.draw do
-          get ':controller(/:action)'
+          get 'foo/write_raw_session', to: 'foo#write_raw_session'
+          get 'foo/write_session', to: 'foo#write_session'
+          get 'foo/read_session', to: 'foo#read_session'
+          get 'foo/read_encrypted_cookie', to: 'foo#read_encrypted_cookie'
+          get 'foo/read_raw_cookie', to: 'foo#read_raw_cookie'
         end
       RUBY
 
@@ -191,7 +199,11 @@ module ApplicationTests
     test "session using encrypted cookie store with marshal serializer" do
       app_file "config/routes.rb", <<-RUBY
         Rails.application.routes.draw do
-          get ':controller(/:action)'
+          get 'foo/write_raw_session', to: 'foo#write_raw_session'
+          get 'foo/write_session', to: 'foo#write_session'
+          get 'foo/read_session', to: 'foo#read_session'
+          get 'foo/read_encrypted_cookie', to: 'foo#read_encrypted_cookie'
+          get 'foo/read_raw_cookie', to: 'foo#read_raw_cookie'
         end
       RUBY
 
@@ -243,7 +255,11 @@ module ApplicationTests
     test "session upgrading signature to encryption cookie store works the same way as encrypted cookie store" do
       app_file "config/routes.rb", <<-RUBY
         Rails.application.routes.draw do
-          get ':controller(/:action)'
+          get 'foo/write_raw_session', to: 'foo#write_raw_session'
+          get 'foo/write_session', to: 'foo#write_session'
+          get 'foo/read_session', to: 'foo#read_session'
+          get 'foo/read_encrypted_cookie', to: 'foo#read_encrypted_cookie'
+          get 'foo/read_raw_cookie', to: 'foo#read_raw_cookie'
         end
       RUBY
 
@@ -294,7 +310,11 @@ module ApplicationTests
     test "session upgrading from AES-CBC-HMAC encryption to AES-GCM encryption" do
       app_file "config/routes.rb", <<-RUBY
         Rails.application.routes.draw do
-          get ':controller(/:action)'
+          get 'foo/write_raw_session', to: 'foo#write_raw_session'
+          get 'foo/write_session', to: 'foo#write_session'
+          get 'foo/read_session', to: 'foo#read_session'
+          get 'foo/read_encrypted_cookie', to: 'foo#read_encrypted_cookie'
+          get 'foo/read_raw_cookie', to: 'foo#read_raw_cookie'
         end
       RUBY
 

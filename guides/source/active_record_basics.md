@@ -205,6 +205,8 @@ SQL. A migration for the `books` table above can be generated like this:
 $ bin/rails generate migration CreateBooks title:string author:string
 ```
 
+NOTE: If you don't specify a type for a field (e.g., `title` instead of `title:string`), Rails will default to type `string`.
+
 and results in this:
 
 ```ruby
@@ -213,7 +215,7 @@ and results in this:
 # Columns `created_at` and `updated_at` are added by `t.timestamps`.
 
 # db/migrate/20240220143807_create_books.rb
-class CreateBooks < ActiveRecord::Migration[8.1]
+class CreateBooks < ActiveRecord::Migration[8.2]
   def change
     create_table :books do |t|
       t.string :title
@@ -337,7 +339,7 @@ end
 ```
 
 If you do so, you will have to manually define the class name that is hosting
-[the fixtures](testing.html#the-low-down-on-fixtures) (`my_books.yml`) using the
+[the fixtures](testing.html#fixtures) (`my_books.yml`) using the
 `set_fixture_class` method in your test definition:
 
 ```ruby
@@ -366,9 +368,7 @@ complicates the access to the column value. The application will have to use the
 [`id_value`]: https://api.rubyonrails.org/classes/ActiveRecord/ModelSchema.html#method-i-id_value
 
 NOTE: If you try to create a column named `id` which is not the primary key,
-Rails will throw an error during migrations such as: `you can't redefine the
-primary key column 'id' on 'my_books'.` `To define a custom primary key, pass {
-id: false } to create_table.`
+Rails will throw an error during migrations such as: `you can't redefine the primary key column 'id' on 'my_books'. To define a custom primary key, pass { id: false } to create_table.`
 
 CRUD: Reading and Writing Data
 ------------------------------
@@ -436,7 +436,7 @@ end
 book.save
 ```
 
-The resulting SQL statement from both `book.save` and `Book.create` look
+The resulting SQL statement from both `book.save` and `Book.create` looks
 something like this:
 
 ```sql
@@ -496,7 +496,7 @@ book = Book.find_by(title: "Metaprogramming Ruby 2")
 book = Book.find(42)
 ```
 
-The above resulting in this SQL:
+The above results in this SQL:
 
 ```sql
 -- Book.find_by(title: "Metaprogramming Ruby 2")
@@ -574,7 +574,7 @@ DELETE FROM "books" WHERE "books"."id" = ?  [["id", 104]]
 ```
 
 If you'd like to delete several records in bulk, you may use `destroy_by`
-or `destroy_all` method:
+or `destroy_all` methods:
 
 ```ruby
 # Find and delete all books by Douglas Adams.
@@ -673,7 +673,7 @@ files which are executed against any database that Active Record supports.
 Here's a migration that creates a new table called `publications`:
 
 ```ruby
-class CreatePublications < ActiveRecord::Migration[8.1]
+class CreatePublications < ActiveRecord::Migration[8.2]
   def change
     create_table :publications do |t|
       t.string :title

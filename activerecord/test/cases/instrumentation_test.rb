@@ -4,9 +4,13 @@ require "cases/helper"
 require "models/author"
 require "models/book"
 require "models/clothing_item"
+require "models/lesson"
+require "models/student"
 
 module ActiveRecord
   class InstrumentationTest < ActiveRecord::TestCase
+    skip_under_ractor_proxy :test_payload_affected_rows
+
     def setup
       ActiveRecord::Base.schema_cache.add(Book.table_name)
     end
@@ -46,7 +50,8 @@ module ActiveRecord
     def test_payload_name_on_eager_load
       ActiveRecord::Base.schema_cache.add(Author.table_name)
       notification = capture_notifications("sql.active_record") { Book.eager_load(:author).to_a }
-      assert_equal "Book Eager Load", notification.first.payload[:name]
+        .find { _1.payload[:sql].match?("SELECT") }
+      assert_equal "Book Eager Load", notification.payload[:name]
     end
 
     def test_payload_name_on_destroy
@@ -114,6 +119,19 @@ module ActiveRecord
       assert_equal 10, notification.payload[:row_count]
     end
 
+    def test_payload_exception_on_failed_query
+      error = nil
+      notifications = capture_notifications("sql.active_record") do
+        error = assert_raises(ActiveRecord::StatementInvalid) do
+          ActiveRecord::Base.lease_connection.select_all("SELECT * FROM non_existent_table_for_notification")
+        end
+      end
+
+      notification = notifications.find { _1.payload[:sql].match?("non_existent_table_for_notification") }
+      assert_equal [error.class.name, error.message], notification.payload[:exception]
+      assert_same error, notification.payload[:exception_object]
+    end
+
     def test_payload_row_count_on_cache
       Book.create!(name: "row count book")
 
@@ -155,15 +173,12 @@ module ActiveRecord
     end
 
     def test_payload_affected_rows
-      affected_row_values = []
-
-      ActiveSupport::Notifications.subscribed(
-        -> (event) { affected_row_values << event.payload[:affected_rows] },
-        "sql.active_record",
-      ) do
-        # The combination of MariaDB + Trilogy returns 0 for affected_rows with
-        # INSERT ... RETURNING
+      # The combination of MariaDB + Trilogy returns 0 for affected_rows with
+      # INSERT ... RETURNING
+      events = capture_notifications("sql.active_record") do
         Book.insert_all!([{ name: "One" }, { name: "Two" }, { name: "Three" }, { name: "Four" }], returning: false)
+
+        Book.where(name: ["One", "Two", "Three"]).pluck(:id)
 
         Book.where(name: ["One", "Two", "Three"]).update_all(status: :published)
 
@@ -171,8 +186,28 @@ module ActiveRecord
 
         Book.where(name: ["Three", "Four"]).delete_all
       end
+      affected_row_values = events.map { |e| e.payload[:affected_rows] }
 
-      assert_equal [4, 3, 2, 0], affected_row_values
+      assert_equal 4, affected_row_values.first
+      assert_not_equal affected_row_values.first, affected_row_values.second
+      assert_equal 3, affected_row_values.third
+      assert_equal 2, affected_row_values.fourth
+      assert_equal 0, affected_row_values.fifth
+    end
+
+    def test_payload_affected_rows_cascade
+      events = capture_notifications("sql.active_record") do
+        l = Lesson.create!(name: "Algebra")
+        l.students.create!(name: "Jim")
+
+        Student.delete_all
+      end
+      affected_row_values = events
+        .reject { |e| e.payload[:name].in?(["SCHEMA", "TRANSACTION"]) }
+        .map { |e| e.payload[:affected_rows] }
+
+      assert_equal 4, affected_row_values.length
+      assert_equal 1, affected_row_values.fourth
     end
 
     def test_no_instantiation_notification_when_no_records
@@ -187,41 +222,24 @@ module ActiveRecord
 
   module TransactionInSqlActiveRecordPayloadTests
     def test_payload_without_an_open_transaction
-      asserted = false
-
-      subscriber = ActiveSupport::Notifications.subscribe("sql.active_record") do |event|
-        if event.payload.fetch(:name) == "Book Count"
-          assert_nil event.payload.fetch(:transaction)
-          asserted = true
-        end
-      end
-
-      Book.count
-
-      assert asserted
-    ensure
-      ActiveSupport::Notifications.unsubscribe(subscriber)
-    end
-
-    def test_payload_with_an_open_transaction
-      asserted = false
-      expected_transaction = nil
-
-      subscriber = ActiveSupport::Notifications.subscribe("sql.active_record") do |event|
-        if event.payload.fetch(:name) == "Book Count"
-          assert_same expected_transaction, event.payload.fetch(:transaction)
-          asserted = true
-        end
-      end
-
-      Book.transaction do |transaction|
-        expected_transaction = transaction
+      notification = assert_notification("sql.active_record", name: "Book Count") do
         Book.count
       end
 
-      assert asserted
-    ensure
-      ActiveSupport::Notifications.unsubscribe(subscriber)
+      assert_nil notification.payload.fetch(:transaction)
+    end
+
+    def test_payload_with_an_open_transaction
+      expected_transaction = nil
+
+      notification = assert_notification("sql.active_record", name: "Book Count") do
+        Book.transaction do |transaction|
+          expected_transaction = transaction
+          Book.count
+        end
+      end
+
+      assert_same expected_transaction, notification.payload.fetch(:transaction)
     end
   end
 

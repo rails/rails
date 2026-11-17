@@ -1,46 +1,441 @@
-*   Update `rails new --minimal` option
+*   Detect Kamal in `bin/rails app:update`.
 
-    Extend the `--minimal` flag to exlcude recently added features:
-    `skip_brakeman`, `skip_ci`, `skip_docker`, `skip_kamal`, `skip_rubocop`, `skip_solid` and `skip_thruster`.
+    The update command didn't pass `skip_kamal`, so it rendered config files
+    as if every application deployed with Kamal. For applications without the
+    `kamal` gem, that proposed commenting out `config.assume_ssl` and
+    `config.force_ssl` in `config/environments/production.rb`.
 
-    *eelcoj*
+    *Richard Desmarais*
 
-*   Add `application-name` metadata to application layout
+*   Fix `/rails/info/notes` raising `Encoding::CompatibilityError` when notes
+    from Ruby and non-Ruby files contain non-ASCII characters.
 
-    The following metatag will be added to `app/views/layouts/application.html.erb`
+    Notes extracted from files such as ERB, YAML, JS or CSS are now UTF-8
+    like the ones extracted from Ruby files, with invalid bytes replaced.
 
-    ```html
-    <meta name="application-name" content="Name of Rails Application">
+    *alexandre184*
+
+*   Fix `bin/rails test -n ClassName#test_name` running no tests.
+
+    This has been broken since Rails 7.1. It also made isolated tests fail on
+    platforms without `fork`, like JRuby and Windows.
+
+    *Sampo Kuokkanen*
+
+*   Add support for comma-separated values in ENV["RAILS_MASTER_KEY"].
+
+    When multiple keys are provided as comma-separated values, Rails will
+    try each key until it finds one that works.
+
+    *Jeff Tsang*
+
+*   Don't load Capybara and Selenium on boot in new applications.
+
+    The generated `Gemfile` now declares `capybara` and `selenium-webdriver`
+    with `require: false`. `ActionDispatch::SystemTestCase` already requires
+    both when a system test is loaded, so `Bundler.require` no longer loads
+    them into test processes that don't run system tests. Code that uses
+    Capybara outside of system tests, such as `Capybara.string` in a view
+    test, needs to `require "capybara"` itself.
+
+    *Mick Zijdel*
+
+*   Create the local development/test secret file (`tmp/local_secret.txt`) with
+    owner-only permissions (`0600`) instead of inheriting the process umask,
+    and tighten the permissions of an existing file on read on non-Windows
+    platforms.
+
+    The file holds the `secret_key_base` used in development and test to derive
+    keys for signing and encrypting cookies. With a common umask of `022` it was
+    created world-readable, so other local users able to access the application's
+    directory could read it and forge signed or encrypted cookies.
+    This brings it in line with how `config/master.key` and the other
+    credentials key files are created.
+
+    *Sebastian Stange*
+
+*   Add `config.zjit` to enable ZJIT after the application has booted.
+
+    Like `config.yjit`, it enables the JIT once boot is done, so it doesn't
+    compile code that only runs while booting, as `--zjit` or
+    `RUBY_ZJIT_ENABLE` would. When ZJIT is available it takes precedence over
+    `config.yjit`, since only one JIT can be enabled.
+
+    ```ruby
+    config.zjit = true
+    ```
+
+    *Sampo Kuokkanen*
+
+*   Add a `before_ractorize` load hook that runs in `Rails::Application#ractorize!`
+    so frameworks, engines, and gems can prepare their own state to be shared
+    with Ractors.
+
+    Frameworks now use this hook instead of `ractorize!` reaching into them,
+    and gems can use it too:
+
+    ```ruby
+    ActiveSupport.on_load(:before_ractorize) do
+      MyGem.make_shareable!
+    end
+    ```
+
+    *Ben Sheldon*
+
+*   Automatically detect Aube as a javaScript package manager.
+
+    Rails generators now detect Aube as the javaScript package manager
+    when `aube-lock.yaml` is present.
+
+    *Florent Beaurain*
+
+*   Fix `rails.deprecation` structured events not being emitted.
+
+    *Azmi Muwahid*
+
+*   Log a warning on boot for each route that references a missing controller
+    when eager loading is enabled.
+
+    With `config.eager_load` on, every route that dispatches to a controller
+    now resolves it once the routes are loaded, so a typo or a deleted
+    controller is reported at boot rather than discovered on the first
+    request to that route:
+
+    ```
+    GET /photos(.:format) references a missing controller: uninitialized constant PhotosController
+    ```
+
+    *Aaron Patterson*
+
+*   Stop probing for a local MySQL socket when generating `config/database.yml`.
+
+    *Ryuta Kamizono*
+
+*   Mark the generated `public/*.html` error pages as `linguist-generated` in
+    the default `.gitattributes`.
+
+    The five error pages generated since Rails 8.0 total about 36 KB of HTML,
+    more than the Ruby in a freshly generated application, so GitHub reported
+    new Rails applications as HTML repositories. Marking the pages as generated
+    excludes them from language statistics, as is already done for
+    `db/schema.rb`.
+
+    *Irina Nazarova*
+
+*   A generated application's ci.yml file now sets `timeout-minutes: 15` for
+    each job to prevent transisent network errors, etc. from hanging the
+    action until the default 360 minutes kicks in and potentially eat up an
+    org's allotted runner minutes.
+
+    *Tony Drake*
+
+*   Make mounted route helpers (e.g. `main_app`, engine mount proxies) trigger
+    the lazy route load instead of raising `NoMethodError` when called before
+    routes are drawn.
+
+    Named url helpers already loaded routes on demand, but mounted helpers are
+    only defined when `mount` runs during the route draw, so calling one first
+    (in the console or a test) failed until something else drew the routes.
+
+    *Abdelkader Boudih*
+
+*   Report zero tests instead of raising a `LoadError` when a `bin/rails test:*`
+    folder command names a folder the application does not have.
+
+    A generated application has no `test/system` folder, so the `system-test`
+    job in the generated `.github/workflows/ci.yml` failed on the first push
+    with `cannot load such file -- <app>/test/system (LoadError)`. The same
+    happened for `bin/rails test:channels`, `test:jobs`, `test:mailboxes`,
+    `test:units`, `test:functionals`, and `test:generators`, which all name
+    folders that an application does not necessarily have.
+
+    *Ariel Rzezak*
+
+*   Add `--no-banner` to `bin/rails console` to suppress the startup banner.
+
+    Users can already set `IRB.conf[:SHOW_BANNER] = false` in `.irbrc`; this
+    flag is for one-off or scripted sessions without editing config.
+
+    ```bash
+    bin/rails console --no-banner
+    ```
+
+    *Said Kaldybaev*
+
+*   Show a Rails-flavored startup banner (a small logo, Rails/Ruby
+    version, a rotating tip about console helpers like `app`/`reload!`, and
+    `Rails.root`) when starting `bin/rails console`.
+
+    `rails console` bypassed IRB's normal startup path, so the banner IRB
+    shows when run directly via `irb` (see ruby/irb#1183) never appeared in
+    a Rails console session.
+
+    Set `RAILS_TIPS=false` to hide the rotating tip.
+
+    *Elia Gamberi*
+
+*   Don't filter nonexistent i18n paths on initialize. This negatively impacts
+    applications with lots of translation files.
+
+    *Gannon McGibbon*
+
+*   Validate subcommand in `rails plugin` command.
+
+    `rails plugin foo bar` silently ignored the invalid subcommand "foo"
+    and proceeded to create a plugin named "bar". Now it prints an error
+    and exits with status 1.
+
+    Fixes #57430.
+
+    *Ruy Rocha*
+
+*   Prevent the internal development welcome route from being duplicated on route reloads.
+
+    *Elliot Temple*
+
+*   Remove `new_framework_defaults` during `app:update` when `config.load_defaults`
+    already targets the current Rails version.
+
+    *Rune Philosof*
+
+*   Enable `config.asset_host` to read from environment by default
+
+    This makes it so no code changes are needed in order to setup a CDN to
+    serve static assets.
+
+    ```
+    config.asset_host = ENV["CDN_HOST"]
     ```
 
     *Steve Polito*
 
-*   Use `secret_key_base` from ENV or credentials when present locally.
+*   Skip `CreateUsers` migration when the User model already exists in the authentication generator.
 
-    When ENV["SECRET_KEY_BASE"] or
-    `Rails.application.credentials.secret_key_base` is set for test or
-    development, it is used for the `Rails.config.secret_key_base`,
-    instead of generating a `tmp/local_secret.txt` file.
+    *John Topley*
 
-    *Petrik de Heus*
+*   `app.reloaders` is now a `ReloadersCollection` that calls `deactivate`
+    on each reloader when `clear` or `delete` is called, giving reloaders a
+    chance to clean up external state.
 
-*   Introduce `RAILS_MASTER_KEY` placeholder in generated ci.yml files
+    *Dave Ariens*
+
+*   Enable Ruby `frozen_string_literal` by default.
+
+    New Rails apps now include a `config/bootsnap.rb` file that enables frozen string
+    literals. This only impact the application code, not the dependencies.
+
+    It is also possible to enable it for dependencies for reduce allocations, but
+    some older gems may not yet be compatible. If you do attempt this and run into
+    incompatibilities please do report it on the corresponding gem bug tracker.
+
+    Additionally, `.rubocop.yml` is configured to assume frozen string literals
+    are enabled, if you decide not to enable frozen string literals for your application,
+    make sure to update the rubocop configuration accordingly.
+
+    *Jean Boussier*
+
+*   Add offline fallback page to the PWA scaffold.
+
+    New Rails apps now include an `app/views/pwa/offline.html.erb` template and
+    a commented `get "offline"` route in `config/routes.rb`, alongside the existing
+    manifest and service worker. The service worker template also includes a
+    commented example for caching and serving the offline page.
+
+    *Juan Vasquez*
+
+*   Add `bin/rails query` command for running read-only database queries.
+
+    Supports ActiveRecord expressions and raw SQL with JSON output.
+    Connects to the reading replica role by default and prevents writes.
+    Includes subcommands for schema introspection, model listing, and EXPLAIN.
+
+    ```bash
+    $ bin/rails query "Account.where(plan: 'premium').limit(10)"
+    $ bin/rails query --sql "SELECT COUNT(*) FROM accounts"
+    $ bin/rails query schema accounts
+    $ bin/rails query models
+    $ bin/rails query explain "Account.where(plan: 'premium')"
+    ```
+
+    *Lewis Buckley*
+
+*   Avoid adding `Rack::Sendfile` to the middleware stack if `config.action_dispatch.x_sendfile_header` is `nil`.
+
+    The middleware behave as a noop in such case so it's pointless to have it in the stack.
+
+    *Jean Boussier*
+
+*   Set read-only permissions for GitHub Actions workflow generated by rails new
+
+    *Taketo Takashima*
+
+*   `Rails.app.revision` now checks `ENV["REVISION"]` before falling back to the `REVISION` file or git.
+
+    *Jonathan Baker*
+
+*   Detect JavaScript package manager from lockfiles in generators.
+
+    Rails generators now automatically detect bun, pnpm, npm, or yarn by looking
+    for project lockfiles instead of hardcoding `yarn`.
+
+    *David Lowenfels*
+
+*   Disable the Active Record query cache in the console by default when using the executor.
+
+    The query cache is now off by default in the console. Pass `--query-cache` to enable it for the session.
+
+    *Cam Allen*
+
+*   Console `reload!` will reset the console's executor, when present.
+
+    *Ben Sheldon*
+
+*   Add `libvips` to generated `ci.yml`
+
+    Conditionally adds `libvips` to `ci.yml`.
 
     *Steve Polito*
 
-*   Colorize the Rails console prompt even on non standard environments.
+*   Add `Rails.app.revision` to provide a version identifier for error reporting, monitoring, cache keys, etc.
 
-    *Lorenzo Zabot*
+    ```ruby
+    Rails.app.revision # => "3d31d593e6cf0f82fa9bd0338b635af2f30d627b"
+    ```
 
-*   Don't enable YJIT in development and test environments
+    By default it looks for a `REVISION` file at the root of the application, if absent it tries to extract
+    the revision from the local git repository.
 
-    Development and test environments tend to reload code and redefine methods (e.g. mocking),
-    hence YJIT isn't generally faster in these environments.
+    If none of that is adequate, it can be set in the application config:
 
-    *Ali Ismayilov*, *Jean Boussier*
+    ```ruby
+    # config/application.rb
+    module MyApp
+      class Application < Rails::Application
+        config.revision = ENV["GIT_SHA"]
+      end
+    end
+    ```
 
-*   Only include PermissionsPolicy::Middleware if policy is configured.
+    *Abdelkader Boudih*, *Jean Boussier*
+
+*   Add `Rails.app.creds` to provide combined access to credentials stored in either ENV or the encrypted credentials file,
+    and in development also .env credentials. Provides a new require/option API for accessing these values. Examples:
+
+    ```ruby
+    Rails.app.creds.require(:db_host) # ENV.fetch("DB_HOST") || Rails.app.credentials.require(:db_host)
+    Rails.app.creds.require(:aws, :access_key_id) # ENV.fetch("AWS__ACCESS_KEY_ID") || Rails.app.credentials.require(:aws, :access_key_id)
+    Rails.app.creds.option(:cache_host) # ENV["CACHE_HOST"] || Rails.app.credentials.option(:cache_host)
+    Rails.app.creds.option(:cache_host, default: "cache-host-1") # ENV["CACHE_HOST"] || Rails.app.credentials.option(:cache_host) || "cache-host-1"
+    Rails.app.creds.option(:cache_host, default: -> { "cache-host-1" }) # ENV["CACHE_HOST"] || Rails.app.credentials.option(:cache_host) || "cache-host-1"
+    ```
+
+    It's also possible to assign your own combined configuration, if you need to use a different backend than just ENVs + encrypted files:
+
+    ```ruby
+    Rails.app.creds = ActiveSupport::CombinedConfiguration.new(Rails.app.envs, OnePasswordConfiguration.new)
+    ```
+
+    *DHH*
+
+*   Add `Rails.app.dotenvs` to provide access to .env variables through symbol-based lookup with explicit methods
+    for required and optional values. This is the same interface offered by #credentials and can be accessed in a combined manner via #creds.
+
+    It supports both variable interpolation with ${VAR} and command interpolation with $(echo "hello"). Otherwise the same as `Rails.app.envs`.
+
+    *DHH*
+
+*   Add `Rails.app.envs` to provide access to ENV variables through symbol-based lookup with explicit methods
+    for required and optional values. This is the same interface offered by #credentials and can be accessed in a combined manner via #creds.
+
+    ```ruby
+    Rails.app.envs.require(:db_password) # ENV,fetch("DB_PASSWORD")
+    Rails.app.envs.require(:aws, :access_key_id) # ENV.fetch("AWS__ACCESS_KEY_ID")
+    Rails.app.envs.option(:cache_host) # ENV["CACHE_HOST"]
+    Rails.app.envs.option(:cache_host, default: "cache-host-1") # ENV.fetch("CACHE_HOST", "cache-host-1")
+    Rails.app.envs.option(:cache_host, default: -> { HostProvider.cache }) # ENV.fetch("CACHE_HOST") { HostProvider.cache }
+    ```
+
+    *DHH*
+
+*   Add `Rails.app` as alias for `Rails.application`. Particularly helpful when accessing nested accessors inside application code,
+    like when using `Rails.app.credentials`.
+
+    *DHH*
+
+*   Remove duplicate unique index for token migrations
+
+    *zzak*, *Dan Bota*
+
+*   Do not clean directories directly under the application root with `Rails::BacktraceCleaner`
+
+    Improved `Rails.backtrace_cleaner` so that most paths located directly under the application's root directory are no longer silenced.
+
+    *alpaca-tc*
+
+*   Add `Rails::CodeStatistics#register_extension` to register file extensions for `rails stats`
+
+    ```ruby
+    Rails::CodeStatistics.register_extension("txt")
+    ```
+
+    *Taketo Takashima*
+
+*   Wrap console command with an executor by default
+
+    This can be disabled with `-w` or `--skip_executor`, same as runner.
+
+    *zzak*
+
+*   Add a new internal route in development to respond to chromium devtools GET request.
+
+    This allows the app folder to be easily connected as a workspace in chromium-based browsers.
+
+    *coorasse*
+
+*   Set `config.rake_eager_load` in generated test environment to match `config.eager_load` behavior in CI.
+
+    This ensures eager loading works consistently in CI when rake tasks invoke the `:environment` task before tests run.
+
+    *Trevor Turk*
+
+*   Update the `.node-version` file conditionally generated for new applications to 22.21.1
+
+    *Taketo Takashima*
+
+*   Do not assume and force SSL in production by default when using Kamal, to allow for out of the box Kamal deployments.
+
+    It is still recommended to assume and force SSL in production as soon as you can.
+
+    *Jerome Dalbert*
+
+*   Add environment config file existence check
+
+    `Rails::Application` will raise an error if unable to load any environment file.
+
+    *Daniel Niknam*
+
+*   `Rails::Application::RoutesReloader` uses the configured `Rails.application.config.file_watcher`
+
+    *Jan Grodowski*
+
+*   Add structured event for Rails deprecations, when `config.active_support.deprecation` is set to `:notify`.
+
+    *zzak*
+
+*   Report unhandled exceptions to the Error Reporter when running rake tasks via Rails command.
+
+    *Akimichi Tanei*
+
+*   Show help hint when starting `bin/rails console`
 
     *Petrik de Heus*
 
-Please check [8-0-stable](https://github.com/rails/rails/blob/8-0-stable/railties/CHANGELOG.md) for previous changes.
+*   Persist `/rails/info/routes` search query and results between page reloads.
+
+    *Ryan Kulp*
+
+*   Add `--update` option to the `bin/bundler-audit` script.
+
+    *Julien ANNE*
+
+Please check [8-1-stable](https://github.com/rails/rails/blob/8-1-stable/railties/CHANGELOG.md) for previous changes.

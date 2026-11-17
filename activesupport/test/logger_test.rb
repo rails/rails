@@ -9,7 +9,9 @@ require "tmpdir"
 require "concurrent/atomics"
 
 class LoggerTest < ActiveSupport::TestCase
-  include MultibyteTestHelpers
+  # We use Symbol#to_s to create these strings so warnings are emitted if they are mutated
+  UNICODE_STRING = :"こにちわ".to_s
+  BYTE_STRING = "\270\236\010\210\245".b.freeze
 
   Logger = ActiveSupport::Logger
 
@@ -182,6 +184,19 @@ class LoggerTest < ActiveSupport::TestCase
 
     assert_not_includes @output.string, "NOT THERE"
     assert_includes @output.string, "THIS IS HERE"
+  end
+
+  def test_silencer_can_be_disabled_from_an_instance
+    @logger.silencer = false
+
+    assert_equal false, ActiveSupport::Logger.silencer
+    @logger.silence do
+      @logger.debug "NOT SILENCED"
+    end
+
+    assert_includes @output.string, "NOT SILENCED"
+  ensure
+    ActiveSupport::Logger.silencer = true
   end
 
   def test_unsilencing
@@ -380,6 +395,46 @@ class LoggerTest < ActiveSupport::TestCase
     assert_level(Logger::DEBUG)
   ensure
     ActiveSupport::IsolatedExecutionState.isolation_level = previous_isolation_level
+  end
+
+  def test_copied_logger_has_an_independent_local_level
+    copy = @logger.clone
+
+    copy.log_at(:fatal) do
+      assert_equal Logger::FATAL, copy.level
+      assert_equal Logger::DEBUG, @logger.level
+    end
+  end
+
+  def test_logger_freeze
+    logger = @logger.clone
+    logger.freeze
+
+    assert_nothing_raised do
+      assert_equal Logger::DEBUG, logger.level
+
+      logger.debug "I am frozen 1"
+      assert_includes @output.string, "I am frozen 1"
+
+      logger.debug { "I am frozen 2" }
+      assert_includes @output.string, "I am frozen 2"
+
+      logger.add Logger::INFO, "I am frozen 3"
+      assert_includes @output.string, "I am frozen 3"
+
+      logger.silence do
+        logger.debug "I am frozen 4"
+      end
+      assert_not_includes @output.string, "I am frozen 4"
+    end
+
+    assert_raises FrozenError do
+      logger.level = Logger::INFO
+    end
+
+    assert_raises FrozenError do
+      logger.formatter = Logger::Formatter.new
+    end
   end
 
   def test_temporarily_logging_at_a_noisier_level

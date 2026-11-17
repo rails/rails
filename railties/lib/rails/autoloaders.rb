@@ -1,6 +1,8 @@
 # frozen_string_literal: true
 
 module Rails
+  # This is a private class, Rails.autoloaders provides the interface available
+  # via a singleton instance.
   class Autoloaders # :nodoc:
     require_relative "autoloaders/inflector"
 

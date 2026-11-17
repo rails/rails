@@ -93,7 +93,7 @@ class PluginTestRunnerTest < ActiveSupport::TestCase
 
   def test_raise_error_when_specified_file_does_not_exist
     error = capture(:stderr) { run_test_command("test/not_exists.rb") }
-    assert_match(%r{cannot load such file.+test/not_exists\.rb}, error)
+    assert_match(%r{Could not load test file.+test/not_exists\.rb}, error)
   end
 
   def test_executed_only_once
@@ -120,7 +120,7 @@ class PluginTestRunnerTest < ActiveSupport::TestCase
 
     def run_test_command(arguments = "")
       Dir.chdir(plugin_path) do
-        switch_env("BUNDLE_GEMFILE", "") { `bin/test #{arguments}` }
+        Bundler.with_unbundled_env { `bin/test #{arguments}` }
       end
     end
 end

@@ -1,7 +1,5 @@
 # frozen_string_literal: true
 
-# :markup: markdown
-
 module ActionController
   # # Action Controller Implicit Render
   #
@@ -35,8 +33,9 @@ module ActionController
     include BasicImplicitRender
 
     def default_render
-      if template_exists?(action_name.to_s, _prefixes, variants: request.variant)
-        render
+      lookup_context.variants = request.variant if request.variant.present?
+      if (template = lookup_context.find(action_name.to_s, _prefixes))
+        render(template: template)
       elsif any_templates?(action_name.to_s, _prefixes)
         message = "#{self.class.name}\##{action_name} is missing a template " \
           "for this request format and variant.\n" \

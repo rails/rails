@@ -2,6 +2,7 @@
 
 require "ipaddr"
 require "active_support/core_ext/array/wrap"
+require "active_support/inspect_backport"
 require "active_support/core_ext/kernel/reporting"
 require "active_support/file_update_checker"
 require "active_support/configuration_file"
@@ -21,9 +22,10 @@ module Rails
                     :beginning_of_week, :filter_redirect, :x,
                     :content_security_policy_report_only,
                     :content_security_policy_nonce_generator, :content_security_policy_nonce_directives,
+                    :content_security_policy_nonce_auto,
                     :require_master_key, :credentials, :disable_sandbox, :sandbox_by_default,
                     :add_autoload_paths_to_load_path, :rake_eager_load, :server_timing, :log_file_size,
-                    :dom_testing_default_html_version, :yjit
+                    :dom_testing_default_html_version, :yjit, :zjit, :action_on_early_load_hook
 
       attr_reader :encoding, :api_only, :loaded_config_version, :log_level
 
@@ -72,6 +74,7 @@ module Rails
         @content_security_policy_report_only     = false
         @content_security_policy_nonce_generator = nil
         @content_security_policy_nonce_directives = nil
+        @content_security_policy_nonce_auto      = false
         @require_master_key                      = false
         @loaded_config_version                   = nil
         @credentials                             = ActiveSupport::InheritableOptions.new(credentials_defaults)
@@ -83,11 +86,13 @@ module Rails
         @server_timing                           = false
         @dom_testing_default_html_version        = :html4
         @yjit                                    = false
+        @zjit                                    = false
+        @action_on_early_load_hook               = :log
       end
 
       # Loads default configuration values for a target version. This includes
       # defaults for versions prior to the target version. See the
-      # {configuration guide}[https://guides.rubyonrails.org/configuring.html#versioned-default-values]
+      # [configuration guide](https://guides.rubyonrails.org/configuring.html#versioned-default-values)
       # for the default values associated with a particular version.
       def load_defaults(target_version)
         # To introduce a change in behavior, follow these steps:
@@ -115,11 +120,8 @@ module Rails
             action_controller.forgery_protection_origin_check = true
           end
 
-          if respond_to?(:active_support)
-            active_support.to_time_preserves_timezone = :offset
-          end
-
           if respond_to?(:active_record)
+            active_record.raise_on_assign_to_attr_readonly = false
             active_record.belongs_to_required_by_default = true
           end
 
@@ -265,7 +267,7 @@ module Rails
           end
 
           if respond_to?(:action_controller)
-            action_controller.raise_on_open_redirects = true
+            action_controller.action_on_open_redirect = :raise
             action_controller.wrap_parameters_by_default = true
           end
         when "7.1"
@@ -284,12 +286,12 @@ module Rails
             active_record.sqlite3_adapter_strict_strings_by_default = true
             active_record.query_log_tags_format = :sqlcommenter
             active_record.raise_on_assign_to_attr_readonly = true
+            active_record.delete(:raise_on_assign_to_attr_readonly)
             active_record.belongs_to_required_validates_foreign_key = false
             active_record.before_committed_on_all_records = true
             active_record.default_column_serializer = nil
             active_record.encryption.hash_digest_class = OpenSSL::Digest::SHA256
             active_record.encryption.support_sha1_for_non_deterministic_encryption = false
-            active_record.marshalling_format_version = 7.1
             active_record.run_after_transaction_callbacks_in_order_defined = true
             active_record.generate_secure_token_on = :initialize
           end
@@ -337,10 +339,6 @@ module Rails
         when "8.0"
           load_defaults "7.2"
 
-          if respond_to?(:active_support)
-            active_support.to_time_preserves_timezone = :zone
-          end
-
           if respond_to?(:action_dispatch)
             action_dispatch.strict_freshness = true
           end
@@ -353,6 +351,66 @@ module Rails
           # redefine methods (e.g. mocking), hence YJIT isn't generally
           # faster in these environments.
           self.yjit = !Rails.env.local?
+
+          if respond_to?(:action_controller)
+            action_controller.escape_json_responses = false
+            action_controller.action_on_path_relative_redirect = :raise
+          end
+
+          if respond_to?(:active_record)
+            active_record.raise_on_missing_required_finder_order_columns = true
+          end
+
+          if respond_to?(:active_support)
+            active_support.escape_js_separators_in_json = false
+          end
+
+          if respond_to?(:action_view)
+            action_view.render_tracker = :ruby
+            action_view.remove_hidden_field_autocomplete = true
+          end
+        when "8.2"
+          load_defaults "8.1"
+
+          if respond_to?(:action_controller)
+            action_controller.forgery_protection_verification_strategy = :header_only
+            action_controller.default_protect_from_forgery_with = :exception
+            action_controller.rescue_from_event_backtrace = :array
+          end
+
+          if respond_to?(:action_dispatch)
+            action_dispatch.strict_accept_header = true
+            action_dispatch.default_headers = {
+              "X-Frame-Options" => "SAMEORIGIN",
+              "X-Content-Type-Options" => "nosniff",
+              "X-Permitted-Cross-Domain-Policies" => "none",
+              "Referrer-Policy" => "strict-origin-when-cross-origin"
+            }
+          end
+
+          if respond_to?(:action_view)
+            action_view.erb_implementation = :herb
+          end
+
+          if respond_to?(:active_record)
+            active_record.postgresql_adapter_decode_bytea = true
+            active_record.postgresql_adapter_decode_money = true
+          end
+
+          if respond_to?(:active_storage)
+            active_storage.analyze = :immediately
+            active_storage.s3_public_uploads_via_acl = false
+          end
+
+          if respond_to?(:active_job)
+            active_job.enqueue_after_transaction_commit = true
+          end
+
+          if respond_to?(:active_support)
+            active_support.message_serializer = :json
+          end
+
+          ActiveSupport.raise_on_invalid_time_zone_parse = true
         else
           raise "Unknown version #{target_version.to_s.inspect}"
         end
@@ -415,7 +473,7 @@ module Rails
         end
       end
 
-      # Load the <tt>config/database.yml</tt> to create the Rake tasks for
+      # Load the `config/database.yml` to create the Rake tasks for
       # multiple databases without loading the environment and filling in the
       # environment specific configuration values.
       #
@@ -437,7 +495,7 @@ module Rails
       end
 
       # Loads and returns the entire raw configuration of database from
-      # values stored in <tt>config/database.yml</tt>.
+      # values stored in `config/database.yml`.
       def database_configuration
         path = paths["config/database"].existent.first
         yaml = Pathname.new(path) if path
@@ -449,7 +507,7 @@ module Rails
               if config.is_a?(Hash) && config.values.all?(Hash)
                 if shared.is_a?(Hash) && shared.values.all?(Hash)
                   config.map do |name, sub_config|
-                    sub_config.reverse_merge!(shared[name])
+                    sub_config.reverse_merge!(shared[name]) if shared[name]
                   end
                 else
                   config.map do |name, sub_config|
@@ -500,11 +558,11 @@ module Rails
       end
 
       def colorize_logging
-        ActiveSupport::LogSubscriber.colorize_logging
+        ActiveSupport.colorize_logging
       end
 
       def colorize_logging=(val)
-        ActiveSupport::LogSubscriber.colorize_logging = val
+        ActiveSupport.colorize_logging = val
         generators.colorize_logging = val
       end
 
@@ -526,27 +584,35 @@ module Rails
         elsif new_secret_key_base.is_a?(String) && new_secret_key_base.present?
           @secret_key_base = new_secret_key_base
         elsif new_secret_key_base
-          raise ArgumentError, "`secret_key_base` for #{Rails.env} environment must be a type of String`"
+          raise ArgumentError, "`secret_key_base` for #{Rails.env} environment must be a type of String, got: #{new_secret_key_base.inspect}`"
         else
           raise ArgumentError, "Missing `secret_key_base` for '#{Rails.env}' environment, set this string with `bin/rails credentials:edit`"
         end
       end
 
+      def revision=(val)
+        Rails.application.revision = val
+      end
+
       # Specifies what class to use to store the session. Possible values
-      # are +:cache_store+, +:cookie_store+, +:mem_cache_store+, a custom
-      # store, or +:disabled+. +:disabled+ tells \Rails not to deal with
+      # are `:cache_store`, `:cookie_store`, `:mem_cache_store`, a custom
+      # store, or `:disabled`. `:disabled` tells \Rails not to deal with
       # sessions.
       #
-      # Additional options will be set as +session_options+:
+      # Additional options will be set as `session_options`:
       #
-      #   config.session_store :cookie_store, key: "_your_app_session"
-      #   config.session_options # => {key: "_your_app_session"}
+      # ```
+      # config.session_store :cookie_store, key: "_your_app_session"
+      # config.session_options # => {key: "_your_app_session"}
+      # ```
       #
       # If a custom store is specified as a symbol, it will be resolved to
-      # the +ActionDispatch::Session+ namespace:
+      # the `ActionDispatch::Session` namespace:
       #
-      #   # use ActionDispatch::Session::MyCustomStore as the session store
-      #   config.session_store :my_custom_store
+      # ```
+      # # use ActionDispatch::Session::MyCustomStore as the session store
+      # config.session_store :my_custom_store
+      # ```
       def session_store(new_session_store = nil, **options)
         if new_session_store
           @session_store = new_session_store
@@ -601,9 +667,7 @@ module Rails
         f
       end
 
-      def inspect # :nodoc:
-        "#<#{self.class.name}:#{'%#016x' % (object_id << 1)}>"
-      end
+      ActiveSupport::InspectBackport.apply(self)
 
       class Custom # :nodoc:
         def initialize
@@ -628,6 +692,10 @@ module Rails
       end
 
       private
+        def instance_variables_to_inspect
+          [].freeze
+        end
+
         def credentials_defaults
           content_path = root.join("config/credentials/#{Rails.env}.yml.enc")
           content_path = root.join("config/credentials.yml.enc") if !content_path.exist?
@@ -641,13 +709,26 @@ module Rails
         def generate_local_secret
           key_file = root.join("tmp/local_secret.txt")
 
-          unless File.exist?(key_file)
-            random_key = SecureRandom.hex(64)
-            FileUtils.mkdir_p(key_file.dirname)
-            File.binwrite(key_file, random_key)
+          random_key = begin
+            File.binread(key_file)
+          rescue SystemCallError
+            nil
           end
 
-          File.binread(key_file)
+          if random_key.blank?
+            random_key = SecureRandom.hex(64)
+            FileUtils.mkdir_p(key_file.dirname)
+            File.binwrite(key_file, random_key, perm: 0o600)
+          end
+
+          unless Gem.win_platform?
+            begin
+              File.chmod(0o600, key_file) unless (File.stat(key_file).mode & 0o077).zero?
+            rescue SystemCallError
+            end
+          end
+
+          random_key
         end
     end
   end

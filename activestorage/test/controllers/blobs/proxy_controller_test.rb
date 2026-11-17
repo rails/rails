@@ -41,6 +41,22 @@ class ActiveStorage::Blobs::ProxyControllerTest < ActionDispatch::IntegrationTes
     assert_equal "no-cache", response.headers["Cache-Control"]
   end
 
+  test "preserves a committed HTTP/1.0 response when the file disappears during download" do
+    assert_committed_download_failure_preserves_response ActiveStorage::FileNotFoundError, protocol: "HTTP/1.0"
+  end
+
+  test "preserves a committed HTTP/1.1 response when the file disappears during download" do
+    assert_committed_download_failure_preserves_response ActiveStorage::FileNotFoundError, protocol: "HTTP/1.1"
+  end
+
+  test "preserves a committed HTTP/1.0 response when storage raises during download" do
+    assert_committed_download_failure_preserves_response StandardError, protocol: "HTTP/1.0"
+  end
+
+  test "preserves a committed HTTP/1.1 response when storage raises during download" do
+    assert_committed_download_failure_preserves_response StandardError, protocol: "HTTP/1.1"
+  end
+
 
   test "forcing Content-Type to binary" do
     get rails_storage_proxy_url(create_blob(content_type: "text/html"))
@@ -96,7 +112,24 @@ class ActiveStorage::Blobs::ProxyControllerTest < ActionDispatch::IntegrationTes
     assert_response :range_not_satisfiable
   end
 
+  test "Byte Range is too big" do
+    with_streaming_chunk_max_size(1.kilobyte) do
+      get rails_storage_proxy_url(create_file_blob(filename: "racecar.jpg")), headers: { "Range" => "bytes=0-" }
+      assert_response :range_not_satisfiable
+    end
+  end
+
+  test "Byte Range is too big overall" do
+    with_streaming_chunk_max_size(8.bytes) do
+      get rails_storage_proxy_url(create_file_blob(filename: "racecar.jpg")), headers: { "Range" => "bytes=0-5,6-12" }
+      assert_response :range_not_satisfiable
+    end
+  end
+
   test "multiple Byte Ranges" do
+    previous_streaming_max_ranges = ActiveStorage.streaming_max_ranges
+    ActiveStorage.streaming_max_ranges = 2
+
     boundary = SecureRandom.hex
     SecureRandom.stub :hex, boundary do
       get rails_storage_proxy_url(create_file_blob(filename: "racecar.jpg")), headers: { "Range" => "bytes=5-9,13-17" }
@@ -122,11 +155,13 @@ class ActiveStorage::Blobs::ProxyControllerTest < ActionDispatch::IntegrationTes
         response.body
       )
     end
+  ensure
+    ActiveStorage.streaming_max_ranges = previous_streaming_max_ranges
   end
 
   test "uses a Live::Response" do
     # This tests for a regression of #45102. If the controller doesn't respond
-    # with a ActionController::Live::Response, it will serve corrupted files
+    # with an ActionController::Live::Response, it will serve corrupted files
     # over 5mb when using S3 services.
     request = ActionController::TestRequest.create({})
     assert_instance_of ActionController::Live::Response, ActiveStorage::Blobs::ProxyController.make_response!(request)
@@ -137,6 +172,79 @@ class ActiveStorage::Blobs::ProxyControllerTest < ActionDispatch::IntegrationTes
     assert request.session_options[:skip],
       "Expected request.session_options[:skip] to be true"
   end
+
+  test "a session cookie under a rotated secret is not rewritten" do
+    old_key_generator = ActiveSupport::KeyGenerator.new("old secret key base", iterations: 1000)
+    old_secret = old_key_generator.generate_key("authenticated encrypted cookie", 32)
+    session_key = Rails.application.config.session_options[:key]
+
+    old_cookie_jar = ActionDispatch::Request.new(Rails.application.env_config.merge("action_dispatch.key_generator" => old_key_generator)).cookie_jar
+    old_cookie_jar.encrypted[session_key] = { value: { "session_id" => SecureRandom.hex(16) } }
+
+    rotations = ActiveSupport::Messages::RotationConfiguration.new
+    rotations.rotate :encrypted, old_secret
+
+    with_env_config("action_dispatch.cookies_rotations" => rotations) do
+      get rails_storage_proxy_url(create_file_blob(filename: "racecar.jpg")),
+        headers: { "Cookie" => "#{session_key}=#{Rack::Utils.escape(old_cookie_jar[session_key])}" }
+    end
+
+    assert_response :success
+    assert_nil response.headers["Set-Cookie"]
+  end
+
+  test "rails_storage_proxy include Content-Length header" do
+    Rails.application.config.active_storage.resolve_model_to_route = :rails_storage_proxy
+    blob = create_file_blob(filename: "racecar.jpg")
+
+    get rails_storage_proxy_url(blob)
+
+    assert_response :success
+    assert_not_nil response.headers["Content-Length"], "Content-Length header should be included in proxy mode"
+    assert_equal blob.byte_size.to_s, response.headers["Content-Length"], "Content-Length header should match blob size"
+  end
+
+  private
+    def assert_committed_download_failure_preserves_response(error_class, protocol:)
+      blob = create_file_blob(filename: "racecar.jpg")
+      mock_download = lambda do |_, &block|
+        block.call "first chunk"
+        raise error_class, "Something is not cool!"
+      end
+
+      live_buffers = []
+      new_live_buffer = ActionController::Live::Buffer.method(:new)
+      record_live_buffer = ->(*args) { new_live_buffer.call(*args).tap { |buffer| live_buffers << buffer } }
+
+      ActionController::Live::Buffer.stub(:new, record_live_buffer) do
+        blob.service.stub(:download, mock_download) do
+          get rails_storage_proxy_url(blob), env: { "SERVER_PROTOCOL" => protocol }
+        end
+      end
+
+      assert_response :ok
+      assert_equal "max-age=3155695200, public, immutable", response.headers["Cache-Control"]
+      assert_equal "first chunk", response.body
+      assert live_buffers.all?(&:closed?), "Expected each Live::Buffer to be closed"
+      assert_equal (protocol == "HTTP/1.1" ? 1 : 0), live_buffers.size
+    end
+
+    def with_streaming_chunk_max_size(size)
+      old_size = ActiveStorage.streaming_chunk_max_size
+      ActiveStorage.streaming_chunk_max_size = size
+      yield
+    ensure
+      ActiveStorage.streaming_chunk_max_size = old_size
+    end
+
+    def with_env_config(overrides)
+      env_config = Rails.application.env_config
+      original = env_config.slice(*overrides.keys)
+      env_config.merge!(overrides)
+      yield
+    ensure
+      env_config.except!(*overrides.keys).merge!(original)
+    end
 end
 
 class ActiveStorage::Blobs::ExpiringProxyControllerTest < ActionDispatch::IntegrationTest

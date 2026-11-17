@@ -1,9 +1,8 @@
 # frozen_string_literal: true
 
-require "active_support/testing/strict_warnings"
+require_relative "../../tools/strict_warnings"
 
 ENV["RAILS_ENV"] = "test"
-ENV["RAILS_INBOUND_EMAIL_PASSWORD"] = "tbsy84uSV1Kt3ZJZELY2TmShPRs91E3yL4tzf96297vBCkDWgL"
 
 require_relative "../test/dummy/config/environment"
 ActiveRecord::Migrator.migrations_paths = [ File.expand_path("../test/dummy/db/migrate", __dir__) ]
@@ -28,6 +27,15 @@ class ActiveSupport::TestCase
 end
 
 class ActionDispatch::IntegrationTest
+  setup do
+    @previous_inbound_email_password = ENV["RAILS_INBOUND_EMAIL_PASSWORD"]
+    ENV["RAILS_INBOUND_EMAIL_PASSWORD"] = "tbsy84uSV1Kt3ZJZELY2TmShPRs91E3yL4tzf96297vBCkDWgL"
+  end
+
+  teardown do
+    ENV["RAILS_INBOUND_EMAIL_PASSWORD"] = @previous_inbound_email_password
+  end
+
   private
     def credentials
       ActionController::HttpAuthentication::Basic.encode_credentials "actionmailbox", ENV["RAILS_INBOUND_EMAIL_PASSWORD"]

@@ -2,7 +2,7 @@
 
 module ActiveRecord
   module Encryption
-    # A +KeyProvider+ serves keys:
+    # A `KeyProvider` serves keys:
     #
     # * An encryption key
     # * A list of potential decryption keys. Serving multiple decryption keys supports rotation-schemes
@@ -14,7 +14,7 @@ module ActiveRecord
 
       # Returns the last key in the list as the active key to perform encryptions
       #
-      # When +ActiveRecord::Encryption.config.store_key_references+ is true, the key will include
+      # When `ActiveRecord::Encryption.config.store_key_references` is true, the key will include
       # a public tag referencing the key itself. That key will be stored in the public
       # headers of the encrypted message
       def encryption_key
@@ -23,6 +23,13 @@ module ActiveRecord
         end
 
         @encryption_key
+      end
+
+      def freeze
+        encryption_key
+        keys_grouped_by_id
+
+        super
       end
 
       # Returns the list of decryption keys

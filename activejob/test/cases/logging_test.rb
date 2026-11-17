@@ -3,56 +3,46 @@
 require "helper"
 require "active_support/log_subscriber/test_helper"
 require "active_support/core_ext/numeric/time"
+require "active_support/broadcast_logger"
+require "support/test_logger"
 require "jobs/hello_job"
 require "jobs/logging_job"
 require "jobs/overridden_logging_job"
 require "jobs/nested_job"
+require "jobs/configuration_job"
 require "jobs/rescue_job"
 require "jobs/retry_job"
 require "jobs/disable_log_job"
 require "jobs/abort_before_enqueue_job"
 require "jobs/enqueue_error_job"
 require "models/person"
+require "active_support/testing/ractors_assertions"
 
 class LoggingTest < ActiveSupport::TestCase
   include ActiveJob::TestHelper
-  include ActiveSupport::LogSubscriber::TestHelper
   include ActiveSupport::Logger::Severity
+  include TestLoggerHelper
 
-  class TestLogger < ActiveSupport::Logger
-    def initialize
-      @file = StringIO.new
-      super(@file)
-    end
-
-    def messages
-      @file.rewind
-      @file.read
-    end
+  setup do
+    ActiveJob::LogSubscriber.logger = @logger
   end
 
-  def setup
-    super
-    JobBuffer.clear
-    @old_logger = ActiveJob::Base.logger
-    @logger = ActiveSupport::TaggedLogging.new(TestLogger.new)
-    set_logger @logger
-    ActiveJob::LogSubscriber.attach_to :active_job
-  end
-
-  def teardown
-    super
-    ActiveJob::LogSubscriber.log_subscribers.pop
-    set_logger @old_logger
-  end
-
-  def set_logger(logger)
-    ActiveJob::Base.logger = logger
+  teardown do
+    ActiveJob::LogSubscriber.logger = nil
   end
 
   def test_uses_active_job_as_tag
     HelloJob.perform_later "Cristian"
     assert_match(/\[ActiveJob\]/, @logger.messages)
+  end
+
+  def test_broadcast_logger_wrapping_a_non_tagged_logger_does_not_raise
+    inner_logger = TestLogger.new
+    set_logger ActiveSupport::BroadcastLogger.new(inner_logger)
+
+    HelloJob.perform_now("Cristian")
+    assert_equal ["Cristian says hello"], JobBuffer.values
+    assert_match(/Performing HelloJob/, inner_logger.messages)
   end
 
   def test_uses_job_name_as_tag
@@ -106,6 +96,13 @@ class LoggingTest < ActiveSupport::TestCase
     end
 
     assert_match(/Enqueued HelloJob \(Job ID: .*?\) to .*?:.*Cristian/, @logger.messages)
+  end
+
+  def test_enqueue_job_with_no_arguments_omits_the_arguments_suffix
+    ConfigurationJob.perform_later
+
+    assert_match(/Enqueued ConfigurationJob/, @logger.messages)
+    assert_no_match(/with arguments:/, @logger.messages)
   end
 
   def test_enqueue_job_log_error_when_callback_chain_is_halted
@@ -284,6 +281,18 @@ class LoggingTest < ActiveSupport::TestCase
     end
   end
 
+  def test_job_error_logging_backtrace_cleaner
+    perform_enqueued_jobs do
+      assert_raises(RescueJob::OtherError) do
+        RescueJob.perform_later "other"
+      end
+    end
+
+    assert_match(/rescue_job\.rb:\d+:in .*perform'/, @logger.messages)
+    assert_empty(@logger.messages.lines.grep(/minitest\//))
+    assert_empty(@logger.messages.lines.grep(/gems\//))
+  end
+
   def test_job_no_error_logging_on_rescuable_job
     perform_enqueued_jobs { RescueJob.perform_later "david" }
     assert_match(/Performing RescueJob \(Job ID: .*?\) from .*? with arguments:.*david/, @logger.messages)
@@ -295,6 +304,16 @@ class LoggingTest < ActiveSupport::TestCase
       perform_enqueued_jobs do
         RetryJob.perform_later "DefaultsError", 2
         assert_match(/Retrying RetryJob \(Job ID: .*?\) after \d+ attempts in 3 seconds, due to a DefaultsError.*\./, @logger.messages)
+      end
+    end
+
+    def test_retry_different_queue_logging
+      perform_enqueued_jobs do
+        perform_enqueued_jobs do
+          RetryJob.perform_later("HeavyError", 2)
+          assert_match(/Performed RetryJob \(Job ID: .*?\) from .+\(default\) in .*ms/, @logger.messages)
+        end
+        assert_match(/Performed RetryJob \(Job ID: .*?\) from .+\(low\) in .*ms/, @logger.messages)
       end
     end
   end
@@ -491,5 +510,16 @@ class LoggingTest < ActiveSupport::TestCase
     @logger.level = ERROR
     perform_enqueued_jobs { RetryJob.perform_later "DiscardableError", 2 }
     assert_match(/Discarded RetryJob \(Job ID: .*?\) due to a DiscardableError.*\./, @logger.messages)
+  end
+end
+
+class LoggingRactorTest < ActiveSupport::TestCase
+  include ActiveSupport::Testing::Isolation
+  include ActiveSupport::Testing::RactorsAssertions
+
+  def test_logger_is_readable_from_a_non_main_ractor
+    ActiveJob::Base.logger = Ractor.make_shareable(ActiveSupport::Logger.new(nil))
+
+    assert on_ractor { ActiveJob::Base.logger.equal?(HelloJob.new.logger) }
   end
 end

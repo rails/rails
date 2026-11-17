@@ -34,10 +34,17 @@ module ActionView
         private
           # Grouped choices look like this:
           #
-          #   [nil, []]
-          #   { nil => [] }
+          # ```
+          # [nil, []]
+          # { nil => [] }
+          # ```
           def grouped_choices?
-            !@choices.blank? && @choices.first.respond_to?(:second) && Array === @choices.first.second
+            return false if @choices.blank?
+
+            first_choice = @choices.first
+            return false unless first_choice.is_a?(Enumerable)
+
+            first_choice.second.is_a?(Array)
           end
       end
     end

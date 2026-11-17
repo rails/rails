@@ -45,8 +45,6 @@ require "arel/nodes/cte"
 require "arel/nodes/nary"
 
 # function
-# FIXME: Function + Alias can be rewritten as a Function and Alias node.
-# We should make Function a Unary node and deprecate the use of "aliaz"
 require "arel/nodes/function"
 require "arel/nodes/count"
 require "arel/nodes/extract"

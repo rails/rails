@@ -17,7 +17,7 @@ if SERVICE_CONFIGURATIONS[:s3]
     test "direct upload" do
       key      = SecureRandom.base58(24)
       data     = "Something else entirely!"
-      checksum = ActiveStorage.checksum_implementation.base64digest(data)
+      checksum = OpenSSL::Digest::MD5.base64digest(data)
       url      = @service.url_for_direct_upload(key, expires_in: 5.minutes, content_type: "text/plain", content_length: data.size, checksum: checksum)
 
       uri = URI.parse url
@@ -37,7 +37,7 @@ if SERVICE_CONFIGURATIONS[:s3]
     test "direct upload with content disposition" do
       key      = SecureRandom.base58(24)
       data     = "Something else entirely!"
-      checksum = ActiveStorage.checksum_implementation.base64digest(data)
+      checksum = OpenSSL::Digest::MD5.base64digest(data)
       url      = @service.url_for_direct_upload(key, expires_in: 5.minutes, content_type: "text/plain", content_length: data.size, checksum: checksum)
 
       uri = URI.parse url
@@ -58,7 +58,7 @@ if SERVICE_CONFIGURATIONS[:s3]
     test "directly uploading file larger than the provided content-length does not work" do
       key      = SecureRandom.base58(24)
       data     = "Some text that is longer than the specified content length"
-      checksum = ActiveStorage.checksum_implementation.base64digest(data)
+      checksum = OpenSSL::Digest::MD5.base64digest(data)
       url      = @service.url_for_direct_upload(key, expires_in: 5.minutes, content_type: "text/plain", content_length: data.size - 1, checksum: checksum)
 
       uri = URI.parse url
@@ -76,6 +76,50 @@ if SERVICE_CONFIGURATIONS[:s3]
       end
     ensure
       @service.delete key
+    end
+
+    test "direct upload with sha256 checksum" do
+      service = build_service(default_digest_type: :sha256)
+
+      key      = SecureRandom.base58(24)
+      data     = "Something else entirely!"
+      checksum = OpenSSL::Digest::SHA256.base64digest(data)
+      url      = service.url_for_direct_upload(key, expires_in: 5.minutes, content_type: "text/plain", content_length: data.size, checksum: checksum)
+
+      uri = URI.parse url
+      request = Net::HTTP::Put.new uri.request_uri
+      request.body = data
+      request.add_field "Content-Type", "text/plain"
+
+      Net::HTTP.start(uri.host, uri.port, use_ssl: true) do |http|
+        http.request request
+      end
+
+      assert_equal data, service.download(key)
+    ensure
+      service.delete key
+    end
+
+    test "direct upload with sha256 checksum with invalid digest" do
+      service = build_service(default_digest_type: :sha256)
+
+      key      = SecureRandom.base58(24)
+      data     = "Something else entirely!"
+      checksum = OpenSSL::Digest::SHA256.base64digest(data)
+      url      = service.url_for_direct_upload(key, expires_in: 5.minutes, content_type: "text/plain", content_length: data.size, checksum: checksum)
+
+      uri = URI.parse url
+      request = Net::HTTP::Put.new uri.request_uri
+      request.body = "Something that doesnt match the digest"
+      request.add_field "Content-Type", "text/plain"
+
+      resp = Net::HTTP.start(uri.host, uri.port, use_ssl: true) do |http|
+        http.request request
+      end
+
+      assert resp.body.match?("SignatureDoesNotMatch")
+    ensure
+      service.delete key
     end
 
     test "upload a zero byte file" do
@@ -99,9 +143,24 @@ if SERVICE_CONFIGURATIONS[:s3]
       begin
         key  = SecureRandom.base58(24)
         data = "Something else entirely!"
-        service.upload key, StringIO.new(data), checksum: ActiveStorage.checksum_implementation.base64digest(data)
+        service.upload key, StringIO.new(data), checksum: OpenSSL::Digest::MD5.base64digest(data)
 
         assert_equal "AES256", service.bucket.object(key).server_side_encryption
+      ensure
+        service.delete key
+      end
+    end
+
+    test "uploading with sha256 checksum" do
+      service = build_service(default_digest_type: :sha256)
+
+      begin
+        key  = SecureRandom.base58(24)
+        data = "Something else entirely!"
+        service.upload key, StringIO.new(data), checksum: OpenSSL::Digest::SHA256.base64digest(data)
+
+
+        assert_equal data, service.download(key)
       ensure
         service.delete key
       end
@@ -115,7 +174,7 @@ if SERVICE_CONFIGURATIONS[:s3]
       @service.upload(
         key,
         StringIO.new(data),
-        checksum: ActiveStorage.checksum_implementation.base64digest(data),
+        checksum: OpenSSL::Digest::MD5.base64digest(data),
         filename: "cool_data.txt",
         content_type: content_type
       )
@@ -152,7 +211,7 @@ if SERVICE_CONFIGURATIONS[:s3]
       @service.upload(
         key,
         StringIO.new(data),
-        checksum: ActiveStorage.checksum_implementation.base64digest(data),
+        checksum: OpenSSL::Digest::MD5.base64digest(data),
         filename: ActiveStorage::Filename.new("cool_data.txt"),
         disposition: :attachment
       )
@@ -169,7 +228,7 @@ if SERVICE_CONFIGURATIONS[:s3]
         key  = SecureRandom.base58(24)
         data = SecureRandom.bytes(8.megabytes)
 
-        service.upload key, StringIO.new(data), checksum: ActiveStorage.checksum_implementation.base64digest(data)
+        service.upload key, StringIO.new(data), checksum: OpenSSL::Digest::MD5.base64digest(data)
         assert data == service.download(key)
       ensure
         service.delete key
@@ -183,11 +242,15 @@ if SERVICE_CONFIGURATIONS[:s3]
         key  = SecureRandom.base58(24)
         data = SecureRandom.bytes(3.megabytes)
 
-        service.upload key, StringIO.new(data), checksum: ActiveStorage.checksum_implementation.base64digest(data)
+        service.upload key, StringIO.new(data), checksum: OpenSSL::Digest::MD5.base64digest(data)
         assert data == service.download(key)
       ensure
         service.delete key
       end
+    end
+
+    test "raise error with unsupported digest type" do
+      assert_raises(ActiveStorage::IntegrityError, "Digest type invalid_digest is not supported") { build_service(default_digest_type: :invalid_digest) }
     end
 
     private

@@ -4,7 +4,8 @@ require "active_support/core_ext/digest"
 
 module ActiveRecord
   module ConnectionAdapters
-    # = Active Record Connection Adapters Transaction State
+    # Active Record Connection Adapters Transaction State
+    # ===================================================
     class TransactionState
       def initialize(state = nil)
         @state = state
@@ -74,6 +75,9 @@ module ActiveRecord
       def nullify!
         @state = nil
       end
+
+      deprecate :fully_committed?, :fully_rolledback?, :nullify!,
+        fully_completed?: :completed?, deprecator: ActiveRecord.deprecator
     end
 
     class TransactionInstrumenter
@@ -107,11 +111,17 @@ module ActiveRecord
       end
     end
 
+    module NullTransactionInstrumenter # :nodoc:
+      def self.start; end
+      def self.finish(_outcome); end
+    end
+
     class NullTransaction # :nodoc:
       def state; end
       def closed?; true; end
       def open?; false; end
       def joinable?; false; end
+      def isolation; nil; end
       def add_record(record, _ = true); end
       def restartable?; false; end
       def dirty?; false; end
@@ -123,6 +133,7 @@ module ActiveRecord
       def after_commit; yield; end
       def after_rollback; end
       def user_transaction; ActiveRecord::Transaction::NULL_TRANSACTION; end
+      def isolation=(_); end
     end
 
     class Transaction # :nodoc:
@@ -146,9 +157,17 @@ module ActiveRecord
       end
 
       attr_reader :connection, :state, :savepoint_name, :isolation_level, :user_transaction
-      attr_accessor :written
 
       delegate :invalidate!, :invalidated?, to: :@state
+
+      # Returns the isolation level if it was explicitly set, nil otherwise
+      def isolation
+        @isolation_level
+      end
+
+      def isolation=(isolation) # :nodoc:
+        @isolation_level = isolation
+      end
 
       def initialize(connection, isolation: nil, joinable: true, run_commit_callbacks: false)
         super()
@@ -163,7 +182,12 @@ module ActiveRecord
         @lazy_enrollment_records = nil
         @dirty = false
         @user_transaction = joinable ? ActiveRecord::Transaction.new(self) : ActiveRecord::Transaction::NULL_TRANSACTION
-        @instrumenter = TransactionInstrumenter.new(connection: connection, transaction: @user_transaction)
+        @instrumenter =
+          if connection.proxied?
+            NullTransactionInstrumenter
+          else
+            TransactionInstrumenter.new(connection: connection, transaction: @user_transaction)
+          end
       end
 
       def dirty!
@@ -372,7 +396,8 @@ module ActiveRecord
         end
     end
 
-    # = Active Record Restart Parent \Transaction
+    # Active Record Restart Parent \Transaction
+    # =========================================
     class RestartParentTransaction < Transaction
       def initialize(connection, parent_transaction, **options)
         super(connection, **options)
@@ -386,7 +411,7 @@ module ActiveRecord
         @parent.state.add_child(@state)
       end
 
-      delegate :materialize!, :materialized?, :restart, to: :@parent
+      delegate :materialize!, :materialized?, :restart, :isolation, to: :@parent
 
       def rollback
         @state.rollback!
@@ -400,11 +425,13 @@ module ActiveRecord
       def full_rollback?; false; end
     end
 
-    # = Active Record Savepoint \Transaction
+    # Active Record Savepoint \Transaction
+    # ====================================
     class SavepointTransaction < Transaction
       def initialize(connection, savepoint_name, parent_transaction, **options)
         super(connection, **options)
 
+        @parent_transaction = parent_transaction
         parent_transaction.state.add_child(@state)
 
         if isolation_level
@@ -414,8 +441,17 @@ module ActiveRecord
         @savepoint_name = savepoint_name
       end
 
+      # Delegates to parent transaction's isolation level
+      def isolation
+        @parent_transaction.isolation
+      end
+
+      def isolation=(isolation) # :nodoc:
+        @parent_transaction.isolation = isolation
+      end
+
       def materialize!
-        connection.create_savepoint(savepoint_name)
+        connection.begin_savepoint_transaction(savepoint_name)
         super
       end
 
@@ -430,14 +466,14 @@ module ActiveRecord
 
       def rollback
         unless @state.invalidated?
-          connection.rollback_to_savepoint(savepoint_name) if materialized? && connection.active?
+          connection.rollback_savepoint_transaction(savepoint_name) if materialized?
         end
         @state.rollback!
         @instrumenter.finish(:rollback) if materialized?
       end
 
       def commit
-        connection.release_savepoint(savepoint_name) if materialized?
+        connection.commit_savepoint_transaction(savepoint_name) if materialized?
         @state.commit!
         @instrumenter.finish(:commit) if materialized?
       end
@@ -445,7 +481,8 @@ module ActiveRecord
       def full_rollback?; false; end
     end
 
-    # = Active Record Real \Transaction
+    # Active Record Real \Transaction
+    # ===============================
     class RealTransaction < Transaction
       def materialize!
         if joinable?
@@ -477,7 +514,7 @@ module ActiveRecord
 
       def rollback
         if materialized?
-          connection.rollback_db_transaction
+          connection.rollback_db_transaction unless @state.invalidated?
           connection.reset_isolation_level if isolation_level
         end
         @state.full_rollback!
@@ -514,7 +551,7 @@ module ActiveRecord
                 joinable: joinable,
                 run_commit_callbacks: run_commit_callbacks
               )
-            elsif current_transaction.restartable?
+            elsif @connection.restart_parent_transactions? && current_transaction.restartable?
               RestartParentTransaction.new(
                 @connection,
                 current_transaction,
@@ -602,7 +639,15 @@ module ActiveRecord
 
           dirty_current_transaction if transaction.dirty?
 
-          transaction.commit
+          begin
+            transaction.commit
+          rescue ActiveRecord::TransactionRollbackError
+            # A failed COMMIT has already ended the transaction, so the caller
+            # should skip the ROLLBACK it would otherwise issue.
+            transaction.invalidate! unless transaction.state.completed?
+            raise
+          end
+
           transaction.commit_records
         end
       end
@@ -620,6 +665,7 @@ module ActiveRecord
       end
 
       def within_new_transaction(isolation: nil, joinable: true)
+        isolation ||= @connection.pool.pool_transaction_isolation_level
         @connection.lock.synchronize do
           transaction = begin_transaction(isolation: isolation, joinable: joinable)
           begin

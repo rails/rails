@@ -2,7 +2,8 @@
 
 module ActiveRecord
   module AttributeMethods
-    # = Active Record Attribute Methods Primary Key
+    # Active Record Attribute Methods Primary Key
+    # ===========================================
     module PrimaryKey
       extend ActiveSupport::Concern
 
@@ -58,13 +59,16 @@ module ActiveRecord
       end
 
       private
+        def primary_key_is_composite?
+          false
+        end
+
         def attribute_method?(attr_name)
           attr_name == "id" || super
         end
 
         module ClassMethods
-          ID_ATTRIBUTE_METHODS = %w(id id= id? id_before_type_cast id_was id_in_database id_for_database).to_set
-          PRIMARY_KEY_NOT_SET = BasicObject.new
+          ID_ATTRIBUTE_METHODS = %w(id id= id? id_before_type_cast id_was id_in_database id_for_database).to_set.freeze
 
           def instance_method_already_implemented?(method_name)
             super || primary_key && ID_ATTRIBUTE_METHODS.include?(method_name)
@@ -75,16 +79,53 @@ module ActiveRecord
           end
 
           # Defines the primary key field -- can be overridden in subclasses.
-          # Overwriting will negate any effect of the +primary_key_prefix_type+
+          # Overwriting will negate any effect of the `primary_key_prefix_type`
           # setting, though.
           def primary_key
-            reset_primary_key if PRIMARY_KEY_NOT_SET.equal?(@primary_key)
-            @primary_key
+            if table = loaded_mapped_table
+              table._primary_key
+            elsif @schema_context
+              schema_context.primary_key
+            elsif definition = configured_primary_key_definition
+              definition.name
+            else
+              schema_context.primary_key
+            end
           end
 
           def composite_primary_key? # :nodoc:
-            reset_primary_key if PRIMARY_KEY_NOT_SET.equal?(@primary_key)
-            @composite_primary_key
+            primary_key_definition&.composite?
+          end
+
+          def primary_key_definition # :nodoc:
+            if table = loaded_mapped_table
+              return table.primary_key_definition
+            end
+
+            definition =
+              if @schema_context
+                schema_context.primary_key_definition
+              else
+                configured_primary_key_definition || schema_context.primary_key_definition
+              end
+            key = primary_key
+            return definition if key == definition.name
+
+            definition = ActiveRecord::Key.for(key)
+            include CompositePrimaryKey if definition.composite?
+            definition
+          end
+
+          def declared_primary_key_definition # :nodoc:
+            @primary_key_definition || (superclass.declared_primary_key_definition unless self == Base)
+          end
+
+          def configured_primary_key_definition # :nodoc:
+            if definition = declared_primary_key_definition
+              definition
+            elsif key = primary_key_from_prefix(base_class.name)
+              ActiveRecord::Key.for(key)
+            end
           end
 
           # Returns a quoted version of the primary key name.
@@ -93,61 +134,40 @@ module ActiveRecord
           end
 
           def reset_primary_key # :nodoc:
-            if base_class?
-              self.primary_key = get_primary_key(base_class.name)
-            else
-              self.primary_key = base_class.primary_key
-            end
-          end
-
-          def get_primary_key(base_name) # :nodoc:
-            if base_name && primary_key_prefix_type == :table_name
-              base_name.foreign_key(false)
-            elsif base_name && primary_key_prefix_type == :table_name_with_underscore
-              base_name.foreign_key
-            elsif ActiveRecord::Base != self && table_exists?
-              schema_cache.primary_keys(table_name)
-            else
-              "id"
+            ActiveSupport::Ractors.on_main(self) do
+              @primary_key_definition = nil
+              reload_schema_from_cache
+              primary_key
             end
           end
 
           # Sets the name of the primary key column.
           #
-          #   class Project < ActiveRecord::Base
-          #     self.primary_key = 'sysid'
-          #   end
-          #
-          # You can also define the #primary_key method yourself:
-          #
-          #   class Project < ActiveRecord::Base
-          #     def self.primary_key
-          #       'foo_' + super
-          #     end
-          #   end
-          #
-          #   Project.primary_key # => "foo_id"
+          # ```
+          # class Project < ActiveRecord::Base
+          #   self.primary_key = 'sysid'
+          # end
+          # ```
           def primary_key=(value)
-            @primary_key = if value.is_a?(Array)
-              include CompositePrimaryKey
-              @primary_key = value.map { |v| -v.to_s }.freeze
-            elsif value
-              -value.to_s
-            end
-
-            @composite_primary_key = value.is_a?(Array)
-            @attributes_builder = nil
-          end
-
-          private
-            def inherited(base)
-              super
-              base.class_eval do
-                @primary_key = PRIMARY_KEY_NOT_SET
-                @composite_primary_key = false
-                @attributes_builder = nil
+            definition = ActiveRecord::Key.for(value)
+            @primary_key_definition = definition
+            include CompositePrimaryKey if definition.composite?
+            reload_schema_from_cache
+            # Regenerate so the id_value reader is replaced by an alias.
+            if definition.composite?
+              ([self] + descendants).each do |model|
+                model.undefine_attribute_methods if model.attribute_methods_generated?
               end
             end
+          end
+
+          def primary_key_from_prefix(base_name) # :nodoc:
+            if base_name && primary_key_prefix_type == :table_name
+              base_name.foreign_key(false)
+            elsif base_name && primary_key_prefix_type == :table_name_with_underscore
+              base_name.foreign_key
+            end
+          end
         end
     end
   end

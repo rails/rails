@@ -4,7 +4,7 @@ module Rails
   class CodeStatisticsCalculator # :nodoc:
     attr_reader :lines, :code_lines, :classes, :methods
 
-    PATTERNS = {
+    PATTERNS = { # rubocop:disable Style/MutableConstant
       rb: {
         line_comment: /^\s*#/,
         begin_block_comment: /^=begin/,

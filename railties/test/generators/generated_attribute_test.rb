@@ -263,4 +263,10 @@ class GeneratedAttributeTest < Rails::Generators::TestCase
     att = Rails::Generators::GeneratedAttribute.parse("name:references{polymorphic}")
     assert_equal "name:references{polymorphic}", att.to_s
   end
+
+  def test_generated_attribute_to_s_with_null_false_modifier
+    assert_equal "name:string!", Rails::Generators::GeneratedAttribute.parse("name:string!").to_s
+    assert_equal "name:integer{4}!", Rails::Generators::GeneratedAttribute.parse("name:integer{4}!").to_s
+    assert_equal "name:references{polymorphic}!", Rails::Generators::GeneratedAttribute.parse("name:references{polymorphic}!").to_s
+  end
 end

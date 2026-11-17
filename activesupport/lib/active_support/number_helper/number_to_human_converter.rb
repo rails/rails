@@ -6,7 +6,7 @@ module ActiveSupport
   module NumberHelper
     class NumberToHumanConverter < NumberConverter # :nodoc:
       DECIMAL_UNITS = { 0 => :unit, 1 => :ten, 2 => :hundred, 3 => :thousand, 6 => :million, 9 => :billion, 12 => :trillion, 15 => :quadrillion,
-        -1 => :deci, -2 => :centi, -3 => :mili, -6 => :micro, -9 => :nano, -12 => :pico, -15 => :femto }
+        -1 => :deci, -2 => :centi, -3 => :mili, -6 => :micro, -9 => :nano, -12 => :pico, -15 => :femto }.freeze
       INVERTED_DECIMAL_UNITS = DECIMAL_UNITS.invert
 
       self.namespace      = :human
@@ -25,7 +25,7 @@ module ActiveSupport
         exponent = calculate_exponent(units)
         @number = number / (10**exponent)
 
-        rounded_number = NumberToRoundedConverter.convert(number, options)
+        rounded_number = NumberToRoundedConverter.convert_with_resolved_options(number, options)
         unit = determine_unit(units, exponent)
         format.gsub("%n", rounded_number).gsub("%u", unit).strip
       end

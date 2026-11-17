@@ -69,6 +69,20 @@ module ActionView
       assert_nil ActionView::Base.empty.config.something_odd
     end
 
+    test "config is built from the controller's config on first read" do
+      controller = ActionView::TestCase::TestController.new
+      view = ActionView::Base.with_empty_template_cache.with_view_paths([], {}, controller)
+      assert_nil view.instance_variable_get(:@_config)
+
+      controller.config.asset_host = "assets.example.com"
+      assert_equal "assets.example.com", view.config.asset_host
+      assert_same view.config, view.config
+
+      view.config.asset_host = "view.example.com"
+      assert_equal "view.example.com", view.config.asset_host
+      assert_equal "assets.example.com", controller.config.asset_host
+    end
+
     test "works without testing a helper module" do
       assert_equal "Eloy", render("developers/developer", developer: DeveloperStruct.new("Eloy"))
     end
@@ -341,6 +355,14 @@ module ActionView
       end
     end
 
+    test "nested helper renders do not replace rendered" do
+      render(partial: "test/from_helper")
+
+      assert_equal 1, rendered.html.css("form").size
+      assert_equal 1, rendered.html.css("ul").size
+      assert_equal "/foo", rendered.html.at("form")["action"]
+    end
+
     test "do not memoize the document_root_element in view tests" do
       concat form_tag("/foo")
 
@@ -404,14 +426,14 @@ module ActionView
 
       render "developers/developer", developer: DeveloperStruct.new("second")
 
-      assert_includes rendered, "first"
+      assert_not_includes rendered, "first"
       assert_includes rendered, "second"
       assert_not_includes rendered, "third"
 
       render "developers/developer", developer: DeveloperStruct.new("third")
 
-      assert_includes rendered, "first"
-      assert_includes rendered, "second"
+      assert_not_includes rendered, "first"
+      assert_not_includes rendered, "second"
       assert_includes rendered, "third"
     end
   end

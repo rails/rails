@@ -49,7 +49,7 @@ class FixturesTest < ActiveRecord::TestCase
 
   FIXTURES = %w( accounts binaries companies customers
                  developers developers_projects entrants
-                 movies projects subscribers topics tasks )
+                 movies projects subscribers topics tasks ).freeze
   MATCH_ATTRIBUTE_NAME = /[a-zA-Z][-\w]*/
 
   def setup
@@ -417,7 +417,8 @@ class FixturesTest < ActiveRecord::TestCase
     # Reset cache to make finds on the new table work
     ActiveRecord::FixtureSet.reset_cache
 
-    ActiveRecord::Base.lease_connection.create_table :prefix_other_topics_suffix do |t|
+    # Schema statements never run through a Ractor proxy.
+    main_ractor_connection(ActiveRecord::Base.lease_connection).create_table :prefix_other_topics_suffix do |t|
       t.column :title, :string
       t.column :author_name, :string
       t.column :author_email_address, :string
@@ -505,6 +506,23 @@ class FixturesTest < ActiveRecord::TestCase
   def test_instantiation
     topics = create_fixtures("topics").first
     assert_kind_of Topic, topics["first"].find
+  end
+
+  def test_fixture_find_uses_only_all_query_default_scopes
+    topic_class = Class.new(ActiveRecord::Base) do
+      self.table_name = "topics"
+      self.inheritance_column = :_type_disabled
+
+      default_scope -> { where(approved: true) }
+      default_scope -> { where(id: 1) }, all_queries: true
+    end
+
+    ActiveRecord::FixtureSet.reset_cache
+    topics = ActiveRecord::FixtureSet.create_fixtures(fixture_paths, "topics", "topics" => topic_class).first
+
+    assert_kind_of topic_class, topics["first"].find
+  ensure
+    ActiveRecord::FixtureSet.reset_cache
   end
 
   def test_complete_instantiation
@@ -605,7 +623,9 @@ class FixturesTest < ActiveRecord::TestCase
     db_url_tmp = ENV["DATABASE_URL"]
     ENV["DATABASE_URL"] = "sqlite3::memory:"
     ActiveRecord::Base.stub(:configurations, {}) do
-      test_case = Class.new(ActiveRecord::TestCase) do
+      test_case = Class.new(ActiveSupport::TestCase) do
+        include ActiveRecord::TestFixtures
+        self.fixture_paths = [File.expand_path("../../fixtures", __FILE__)]
         fixtures :accounts
 
         def test_fixtures
@@ -628,7 +648,9 @@ class FixturesTest < ActiveRecord::TestCase
   end
 
   def test_fixture_method_does_not_clash_with_a_test_case_method
-    test_case = Class.new(ActiveRecord::TestCase) do
+    test_case = Class.new(ActiveSupport::TestCase) do
+      include ActiveRecord::TestFixtures
+      self.fixture_paths = [File.expand_path("../../fixtures", __FILE__)]
       fixtures :accounts
 
       def test_fixtures
@@ -894,7 +916,8 @@ class FixturesWithForeignKeyViolationsTest < ActiveRecord::TestCase
     # delete the irrelevant records here (this test is transactional so it's fine).
     Parrot.all.each(&:destroy)
 
-    @path = "/fk_pointing_to_non_existent_object.yml"
+    @fixtures_dir = Dir.mktmpdir
+    @path = File.join(@fixtures_dir, "fk_pointing_to_non_existent_object.yml")
   end
 
   def test_raises_fk_violations
@@ -902,24 +925,29 @@ class FixturesWithForeignKeyViolationsTest < ActiveRecord::TestCase
     first:
       fk_object_to_point_to: one
     FIXTURE
-    File.write(FIXTURES_ROOT + @path, fk_pointing_to_non_existent_object)
+    File.write(@path, fk_pointing_to_non_existent_object)
 
-    with_verify_foreign_keys_for_fixtures do
-      if current_adapter?(:SQLite3Adapter, :PostgreSQLAdapter)
-        error = assert_raise RuntimeError do
-          ActiveRecord::FixtureSet.create_fixtures(FIXTURES_ROOT, ["fk_pointing_to_non_existent_object"])
-        end
-        assert_includes error.message, "Foreign key violations found in your fixture data. Ensure you aren't referring to labels that don't exist on associations."
-        assert_includes error.message, "fk_pointing_to_non_existent_objects"
-      else
-        assert_nothing_raised do
-          ActiveRecord::FixtureSet.create_fixtures(FIXTURES_ROOT, ["fk_pointing_to_non_existent_object"])
+    ActiveRecord::FixtureSet.without_parsing_cache do
+      with_verify_foreign_keys_for_fixtures do
+        if current_adapter?(:PostgreSQLAdapter) && ActiveRecord::Base.lease_connection.supports_enforced_foreign_keys?
+          assert_raise ActiveRecord::InvalidForeignKey do
+            ActiveRecord::FixtureSet.create_fixtures(@fixtures_dir, ["fk_pointing_to_non_existent_object"])
+          end
+        elsif current_adapter?(:SQLite3Adapter, :PostgreSQLAdapter)
+          error = assert_raise RuntimeError do
+            ActiveRecord::FixtureSet.create_fixtures(@fixtures_dir, ["fk_pointing_to_non_existent_object"])
+          end
+          assert_includes error.message, "Foreign key violations found in your fixture data. Ensure you aren't referring to labels that don't exist on associations."
+          assert_includes error.message, "fk_pointing_to_non_existent_objects"
+        else
+          assert_nothing_raised do
+            ActiveRecord::FixtureSet.create_fixtures(@fixtures_dir, ["fk_pointing_to_non_existent_object"])
+          end
         end
       end
     end
-
   ensure
-    File.delete(FIXTURES_ROOT + @path)
+    FileUtils.rm_rf(@fixtures_dir)
     ActiveRecord::FixtureSet.reset_cache
   end
 
@@ -928,16 +956,16 @@ class FixturesWithForeignKeyViolationsTest < ActiveRecord::TestCase
     first:
       fk_object_to_point_to_id: 1
     FIXTURE
-    File.write(FIXTURES_ROOT + @path, fk_pointing_to_valid_object)
+    File.write(@path, fk_pointing_to_valid_object)
 
     with_verify_foreign_keys_for_fixtures do
       assert_nothing_raised do
-        ActiveRecord::FixtureSet.create_fixtures(FIXTURES_ROOT, ["fk_pointing_to_non_existent_object"])
+        ActiveRecord::FixtureSet.create_fixtures(@fixtures_dir, ["fk_pointing_to_non_existent_object"])
       end
     end
 
   ensure
-    File.delete(FIXTURES_ROOT + @path)
+    FileUtils.rm_rf(@fixtures_dir)
     ActiveRecord::FixtureSet.reset_cache
   end
 
@@ -1085,9 +1113,10 @@ class TransactionalFixturesOnConnectionNotification < ActiveRecord::TestCase
   def test_transaction_created_on_connection_notification
     connection = Class.new do
       attr_accessor :pool
+      attr_accessor :begin_transaction_called
 
-      def transaction_open?; end
-      def begin_transaction(*args); end
+      def transaction_open?; true; end
+      def begin_transaction(*args); @begin_transaction_called = true; end
       def rollback_transaction(*args); end
       def connect!; end
     end.new
@@ -1099,7 +1128,7 @@ class TransactionalFixturesOnConnectionNotification < ActiveRecord::TestCase
       def lease_connection; @connection; end
       def release_connection; end
       def pin_connection!(_); end
-      def unpin_connection!; @connection.rollback_transaction; true; end
+      def unpin_connection!; end
     end.new(connection)
 
     connection.pool.db_config = Class.new do
@@ -1110,6 +1139,8 @@ class TransactionalFixturesOnConnectionNotification < ActiveRecord::TestCase
     assert_called_with(pool, :pin_connection!, [true]) do
       fire_connection_notification(connection.pool)
     end
+
+    assert(connection.begin_transaction_called, "Expected <mock connection>#begin_transaction to be called but was not")
   end
 
   def test_notification_established_transactions_are_rolled_back
@@ -1133,7 +1164,7 @@ class TransactionalFixturesOnConnectionNotification < ActiveRecord::TestCase
       def lease_connection; @connection; end
       def release_connection; end
       def pin_connection!(_); end
-      def unpin_connection!; @connection.rollback_transaction; true; end
+      def unpin_connection!; end
     end.new(connection)
 
     connection.pool.db_config = Class.new do
@@ -1151,7 +1182,7 @@ class TransactionalFixturesOnConnectionNotification < ActiveRecord::TestCase
     connection = Class.new do
       attr_accessor :pool
 
-      def transaction_open?; end
+      def transaction_open?; true; end
       def begin_transaction(*args); end
       def rollback_transaction(*args); end
       def connect!; end
@@ -1164,7 +1195,7 @@ class TransactionalFixturesOnConnectionNotification < ActiveRecord::TestCase
       def lease_connection; @connection; end
       def release_connection; end
       def pin_connection!(_); end
-      def unpin_connection!; @connection.rollback_transaction; true; end
+      def unpin_connection!; end
     end.new(connection)
 
     connection.pool.db_config = Class.new do
@@ -1349,7 +1380,7 @@ class FoxyFixturesTest < ActiveRecord::TestCase
     assert_equal "b4b10018-ad47-595d-b42f-d8bdaa6d01bf", ActiveRecord::FixtureSet.identify(:sonny, :uuid)
   end
 
-  TIMESTAMP_COLUMNS = %w(created_at created_on updated_at updated_on)
+  TIMESTAMP_COLUMNS = %w(created_at created_on updated_at updated_on).freeze
 
   def test_populates_timestamp_columns
     TIMESTAMP_COLUMNS.each do |property|
@@ -1381,8 +1412,8 @@ class FoxyFixturesTest < ActiveRecord::TestCase
   end
 
   def test_preserves_existing_fixture_data
-    assert_equal(2.weeks.ago.to_date, pirates(:redbeard).created_on.to_date)
-    assert_equal(2.weeks.ago.to_date, pirates(:redbeard).updated_on.to_date)
+    assert_equal(Date.new(2004, 1, 1), pirates(:redbeard).created_on.to_date)
+    assert_equal(Date.new(2004, 1, 1), pirates(:redbeard).updated_on.to_date)
   end
 
   def test_generates_unique_ids
@@ -1456,6 +1487,10 @@ class FoxyFixturesTest < ActiveRecord::TestCase
     assert_equal("X marks the spot!", pirates(:mark).catchphrase)
   end
 
+  def test_label_interpolation_inserts_the_label_verbatim
+    assert_equal("back\\&ref", parrots("back\\&ref").name)
+  end
+
   def test_supports_label_interpolation_for_integer_label
     assert_equal("#1 pirate!", pirates(1).catchphrase)
   end
@@ -1467,7 +1502,7 @@ class FoxyFixturesTest < ActiveRecord::TestCase
 
   def test_only_generates_a_pk_if_necessary
     assert_nothing_raised do
-      m = Matey.first
+      m = Matey.take
       m.pirate = pirates(:blackbeard)
       m.target = pirates(:redbeard)
     end
@@ -1768,7 +1803,7 @@ class MultipleFixtureConnectionsTest < ActiveRecord::TestCase
       end
 
       def default_config
-        { "adapter" => "sqlite3", "database" => "test/fixtures/fixture_database.sqlite3" }
+        { "adapter" => "sqlite3", "database" => ARTest.test_configuration_hashes["arunit"]["database"] }
       end
 
       def readonly_config
@@ -1777,7 +1812,15 @@ class MultipleFixtureConnectionsTest < ActiveRecord::TestCase
   end
 
   class CompositePkFixturesTest < ActiveRecord::TestCase
-    fixtures :cpk_orders, :cpk_books, :cpk_authors, :cpk_reviews, :cpk_order_agreements
+    fixtures :cpk_orders, :cpk_books, :cpk_posts, :cpk_tags, :cpk_authors, :cpk_reviews, :cpk_order_agreements
+
+    def test_supports_inline_habtm
+      assert_includes cpk_posts(:welcome).tags, cpk_tags(:cpk_tag_ruby_on_rails)
+      assert_includes cpk_posts(:welcome).tags, cpk_tags(:cpk_tag_digital_product)
+      assert_not_includes cpk_posts(:welcome).tags, cpk_tags(:cpk_tag_loyal_customer)
+
+      assert_equal [cpk_tags(:cpk_tag_digital_product)], cpk_posts(:thinking).tags
+    end
 
     def test_generates_composite_primary_key_for_partially_filled_fixtures
       alice = cpk_authors(:cpk_great_author)

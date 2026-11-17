@@ -1,7 +1,5 @@
 # frozen_string_literal: true
 
-# :markup: markdown
-
 module ActionDispatch
   module Http
     module Parameters
@@ -10,11 +8,11 @@ module ActionDispatch
       PARAMETERS_KEY = "action_dispatch.request.path_parameters"
 
       DEFAULT_PARSERS = {
-        Mime[:json].symbol => -> (raw_post) {
+        Mime[:json].symbol => ActiveSupport::Ractors.shareable_lambda do |raw_post|
           data = ActiveSupport::JSON.decode(raw_post)
           data.is_a?(Hash) ? data : { _json: data }
-        }
-      }
+        end
+      }.freeze
 
       # Raised when raw data from the request cannot be parsed by the parser defined
       # for request's content MIME type.
@@ -30,7 +28,7 @@ module ActionDispatch
           attr_reader :parameter_parsers
         end
 
-        self.parameter_parsers = DEFAULT_PARSERS
+        @parameter_parsers = DEFAULT_PARSERS
       end
 
       module ClassMethods
@@ -44,11 +42,12 @@ module ActionDispatch
         #     new_parsers = original_parsers.merge(xml: xml_parser)
         #     ActionDispatch::Request.parameter_parsers = new_parsers
         def parameter_parsers=(parsers)
-          @parameter_parsers = parsers.transform_keys { |key| key.respond_to?(:symbol) ? key.symbol : key }
+          @parameter_parsers = parsers.transform_keys { |key| key.respond_to?(:symbol) ? key.symbol : key }.freeze
         end
       end
 
       # Returns both GET and POST parameters in a single hash.
+      #: () -> ActiveSupport::HashWithIndifferentAccess
       def parameters
         params = get_header("action_dispatch.request.parameters")
         return params if params
@@ -65,14 +64,18 @@ module ActionDispatch
       alias :params :parameters
 
       def path_parameters=(parameters) # :nodoc:
-        delete_header("action_dispatch.request.parameters")
+        @env.delete("action_dispatch.request.parameters")
+        @env.delete("action_dispatch.request.controller_class")
 
-        parameters = Request::Utils.set_binary_encoding(self, parameters, parameters[:controller], parameters[:action])
+        controller_class = controller_class_for_path_parameters(parameters)
+        parameters = Utils.set_binary_encoding(parameters, controller_class, parameters[:action])
         # If any of the path parameters has an invalid encoding then raise since it's
         # likely to trigger errors further on.
-        Request::Utils.check_param_encoding(parameters)
+        Utils.check_param_encoding(parameters)
 
-        set_header PARAMETERS_KEY, parameters
+        @env[PARAMETERS_KEY] = parameters
+        # Keep the class so `controller_class` does not look it up again.
+        @env["action_dispatch.request.controller_class"] = controller_class if controller_class
       rescue Rack::Utils::ParameterTypeError, Rack::Utils::InvalidParameterError => e
         raise ActionController::BadRequest.new("Invalid path parameters: #{e.message}")
       end
@@ -82,10 +85,17 @@ module ActionDispatch
       #
       #     { action: "my_action", controller: "my_controller" }
       def path_parameters
-        get_header(PARAMETERS_KEY) || set_header(PARAMETERS_KEY, {})
+        @env[PARAMETERS_KEY] ||= {}
       end
 
       private
+        def controller_class_for_path_parameters(parameters)
+          controller = parameters[:controller]
+          controller_class_for(controller) if controller&.valid_encoding?
+        rescue MissingController
+          nil
+        end
+
         def parse_formatted_parameters(parsers)
           return yield if content_length.zero? || content_mime_type.nil?
 

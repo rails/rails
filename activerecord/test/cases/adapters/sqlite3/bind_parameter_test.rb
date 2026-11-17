@@ -22,7 +22,7 @@ module ActiveRecord
         end
 
         def test_where_with_boolean_for_string_column_using_bind_parameters
-          assert_quoted_as "0", false
+          assert_quoted_as "FALSE", false
         end
 
         def test_where_with_decimal_for_string_column_using_bind_parameters

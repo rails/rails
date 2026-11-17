@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require "abstract_unit"
+require "active_support/testing/ractors_assertions"
 
 class ParameterEncodingController < ActionController::Base
   def test_undeclared_parameter
@@ -25,6 +26,8 @@ end
 
 class ParameterEncodingTest < ActionController::TestCase
   tests ParameterEncodingController
+
+  include ActiveSupport::Testing::RactorsAssertions
 
   test "properly transcodes undeclared parameters into UTF-8 encodings" do
     post :test_undeclared_parameter, params: { "foo" => "foo" }
@@ -60,5 +63,9 @@ class ParameterEncodingTest < ActionController::TestCase
 
     assert_response :success
     assert_equal "ASCII-8BIT", @response.body
+  end
+
+  test "parameter encodings are ractor safe" do
+    assert_ractor_shareable ParameterEncodingController._parameter_encodings
   end
 end

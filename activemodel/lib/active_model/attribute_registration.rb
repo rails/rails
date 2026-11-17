@@ -8,14 +8,23 @@ module ActiveModel
   module AttributeRegistration # :nodoc:
     extend ActiveSupport::Concern
 
+    included do
+      @pending_attribute_modifications = []
+    end
+
     module ClassMethods # :nodoc:
+      def inherited(base)
+        super
+        base.instance_variable_set(:@pending_attribute_modifications, [])
+      end
+
       def attribute(name, type = nil, default: (no_default = true), **options)
         name = resolve_attribute_name(name)
         type = resolve_type_name(type, **options) if type.is_a?(Symbol)
         type = hook_attribute_type(name, type) if type
 
-        pending_attribute_modifications << PendingType.new(name, type) if type || no_default
-        pending_attribute_modifications << PendingDefault.new(name, default) unless no_default
+        add_pending_attribute_modification(PendingType.new(name, type)) if type || no_default
+        add_pending_attribute_modification(PendingDefault.new(name, default)) unless no_default
 
         reset_default_attributes
       end
@@ -23,20 +32,20 @@ module ActiveModel
       def decorate_attributes(names = nil, &decorator) # :nodoc:
         names = names&.map { |name| resolve_attribute_name(name) }
 
-        pending_attribute_modifications << PendingDecorator.new(names, decorator)
+        add_pending_attribute_modification(PendingDecorator.new(names, decorator))
 
         reset_default_attributes
       end
 
+      #: () -> AttributeSet
       def _default_attributes # :nodoc:
-        @default_attributes ||= AttributeSet.new({}).tap do |attribute_set|
-          apply_pending_attribute_modifications(attribute_set)
-        end
+        @default_attributes ||= AttributeSet.new(IndexedRow::Mutable[apply_pending_attribute_modifications({})])
       end
 
       def attribute_types # :nodoc:
         @attribute_types ||= _default_attributes.cast_types.tap do |hash|
           hash.default = Type.default_value
+          ActiveSupport::Ractors.try_make_shareable(hash)
         end
       end
 
@@ -50,42 +59,57 @@ module ActiveModel
         end
       end
 
+      # Applies this class's (and its ancestors') attribute declarations to
+      # +attributes+, a hash of name => Attribute, and returns it.
+      def apply_pending_attribute_modifications(attributes) # :nodoc:
+        if superclass.respond_to?(:apply_pending_attribute_modifications, true)
+          superclass.send(:apply_pending_attribute_modifications, attributes)
+        end
+
+        pending_attribute_modifications.each do |modification|
+          modification.apply_to(attributes)
+        end
+
+        attributes
+      end
+
+      def make_pending_attribute_modifications_shareable # :nodoc:
+        if superclass.respond_to?(:make_pending_attribute_modifications_shareable, true)
+          superclass.send(:make_pending_attribute_modifications_shareable)
+        end
+
+        @pending_attribute_modifications = ActiveSupport::Ractors.try_make_shareable(@pending_attribute_modifications)
+      end
+
       private
         PendingType = Struct.new(:name, :type) do # :nodoc:
-          def apply_to(attribute_set)
-            attribute = attribute_set[name]
-            attribute_set[name] = attribute.with_type(type || attribute.type)
+          def apply_to(attributes)
+            attribute = attributes[name] || Attribute.null(name)
+            attributes[name] = attribute.with_type(type || attribute.type)
           end
         end
 
         PendingDefault = Struct.new(:name, :default) do # :nodoc:
-          def apply_to(attribute_set)
-            attribute_set[name] = attribute_set[name].with_user_default(default)
+          def apply_to(attributes)
+            attribute = attributes[name] || Attribute.null(name)
+            attributes[name] = attribute.with_user_default(default)
           end
         end
 
         PendingDecorator = Struct.new(:names, :decorator) do # :nodoc:
-          def apply_to(attribute_set)
-            (names || attribute_set.keys).each do |name|
-              attribute = attribute_set[name]
+          def apply_to(attributes)
+            (names || attributes.keys.select { |name| attributes[name].initialized? }).each do |name|
+              attribute = attributes[name] || Attribute.null(name)
               type = decorator.call(name, attribute.type)
-              attribute_set[name] = attribute.with_type(type) if type
+              attributes[name] = attribute.with_type(type) if type
             end
           end
         end
 
-        def pending_attribute_modifications
-          @pending_attribute_modifications ||= []
-        end
+        attr_reader :pending_attribute_modifications
 
-        def apply_pending_attribute_modifications(attribute_set)
-          if superclass.respond_to?(:apply_pending_attribute_modifications, true)
-            superclass.send(:apply_pending_attribute_modifications, attribute_set)
-          end
-
-          pending_attribute_modifications.each do |modification|
-            modification.apply_to(attribute_set)
-          end
+        def add_pending_attribute_modification(modification)
+          @pending_attribute_modifications = [*@pending_attribute_modifications, modification]
         end
 
         def reset_default_attributes

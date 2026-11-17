@@ -9,7 +9,7 @@ Gem::Specification.new do |s|
   s.summary     = "Tools for creating, working with, and running Rails applications."
   s.description = "Rails internals: application bootup, plugins, generators, and rake tasks."
 
-  s.required_ruby_version = ">= 3.2.0"
+  s.required_ruby_version = ">= 3.3.5"
 
   s.license = "MIT"
 
@@ -17,7 +17,7 @@ Gem::Specification.new do |s|
   s.email    = "david@loudthinking.com"
   s.homepage = "https://rubyonrails.org"
 
-  s.files        = Dir["CHANGELOG.md", "README.rdoc", "MIT-LICENSE", "RDOC_MAIN.md", "exe/**/*", "lib/**/{*,.[a-z]*}"]
+  s.files        = Dir["CHANGELOG.md", "README.md", "MIT-LICENSE", "RDOC_MAIN.md", "exe/**/*", "lib/**/{*,.[a-z]*}"]
   s.require_path = "lib"
 
   s.bindir      = "exe"
@@ -45,6 +45,7 @@ Gem::Specification.new do |s|
   s.add_dependency "thor", "~> 1.0", ">= 1.2.2"
   s.add_dependency "zeitwerk", "~> 2.6"
   s.add_dependency "irb", "~> 1.13"
+  s.add_dependency "tsort", ">= 0.2"
 
   s.add_development_dependency "actionview", version
 end

@@ -4,10 +4,12 @@ require "bigdecimal"
 require "date"
 require "ipaddr"
 require "pathname"
-require "uri/generic"
+require "uri"
 require "msgpack/bigint"
 require "active_support/hash_with_indifferent_access"
+require "active_support/core_ext/string/output_safety"
 require "active_support/time"
+require "active_support/core_ext/object/json"
 
 module ActiveSupport
   module MessagePack
@@ -102,6 +104,11 @@ module ActiveSupport
           packer: method(:write_hash_with_indifferent_access),
           unpacker: method(:read_hash_with_indifferent_access),
           recursive: true
+
+        registry.register_type 18, ActiveSupport::SafeBuffer,
+          packer: method(:write_safe_buffer),
+          unpacker: method(:read_safe_buffer),
+          recursive: true
       end
 
       def install_unregistered_type_error(registry)
@@ -173,7 +180,7 @@ module ActiveSupport
       end
 
       def read_time_with_zone(unpacker)
-        ActiveSupport::TimeWithZone.new(read_time(unpacker), read_time_zone(unpacker))
+        ActiveSupport::TimeWithZone.new(read_time(unpacker).utc, read_time_zone(unpacker))
       end
 
       def dump_time_zone(time_zone)
@@ -240,6 +247,22 @@ module ActiveSupport
 
       def read_hash_with_indifferent_access(unpacker)
         ActiveSupport::HashWithIndifferentAccess.new(unpacker.read)
+      end
+
+      def write_safe_buffer(buffer, packer)
+        unless buffer.html_safe?
+          packer.write(false)
+        end
+        packer.write(buffer.to_str)
+      end
+
+      def read_safe_buffer(unpacker)
+        string_or_safe = unpacker.read
+        if string_or_safe
+          ActiveSupport::SafeBuffer.new(string_or_safe)
+        else
+          unpacker.read
+        end
       end
 
       def raise_unserializable(object, *)

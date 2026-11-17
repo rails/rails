@@ -1,7 +1,5 @@
 # frozen_string_literal: true
 
-# :markup: markdown
-
 require "action_dispatch/journey/visitors"
 
 module ActionDispatch
@@ -74,6 +72,7 @@ module ActionDispatch
         def initialize(left)
           @left = left
           @memo = nil
+          @to_s = nil
         end
 
         def each(&block)
@@ -81,7 +80,7 @@ module ActionDispatch
         end
 
         def to_s
-          Visitors::String::INSTANCE.accept(self, "")
+          @to_s ||= Visitors::String::INSTANCE.accept(self, "".dup).freeze
         end
 
         def to_dot
@@ -104,7 +103,6 @@ module ActionDispatch
         def literal?; false; end
         def terminal?; false; end
         def star?; false; end
-        def cat?; false; end
         def group?; false; end
       end
 
@@ -190,7 +188,6 @@ module ActionDispatch
       end
 
       class Cat < Binary # :nodoc:
-        def cat?; true; end
         def type; :CAT; end
       end
 

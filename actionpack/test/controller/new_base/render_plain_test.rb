@@ -82,7 +82,7 @@ module RenderPlain
 
     test "rendering text from an action with default options renders the text with the layout" do
       with_routing do |set|
-        set.draw { ActionDispatch.deprecator.silence { get ":controller", action: "index" } }
+        set.draw { get "render_plain/simple", to: "render_plain/simple#index" }
 
         get "/render_plain/simple"
         assert_body "hello david"
@@ -92,7 +92,7 @@ module RenderPlain
 
     test "rendering text from an action with default options renders the text without the layout" do
       with_routing do |set|
-        set.draw { ActionDispatch.deprecator.silence { get ":controller", action: "index" } }
+        set.draw { get "render_plain/with_layout", to: "render_plain/with_layout#index" }
 
         get "/render_plain/with_layout"
 

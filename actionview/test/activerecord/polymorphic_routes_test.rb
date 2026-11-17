@@ -66,7 +66,9 @@ class PolymorphicRoutesTest < ActionController::TestCase
   Routes.draw { }
   include Routes.url_helpers
 
-  default_url_options[:host] = "example.com"
+  def default_url_options
+    { host: "example.com" }
+  end
 
   def setup
     super
@@ -83,7 +85,7 @@ class PolymorphicRoutesTest < ActionController::TestCase
   end
 
   def assert_url(url, args)
-    host = self.class.default_url_options[:host]
+    host = default_url_options[:host]
 
     assert_equal url.delete_prefix("http://#{host}"), polymorphic_path(args)
     assert_equal url, polymorphic_url(args)
@@ -379,6 +381,24 @@ class PolymorphicRoutesTest < ActionController::TestCase
   def test_new_with_array_and_namespace
     with_admin_test_routes do
       assert_equal "http://example.com/admin/projects/new", polymorphic_url([:admin, @project], action: "new")
+    end
+  end
+
+  def test_symbol_action_with_array
+    with_test_routes do
+      @project.save
+      @task.save
+      assert_equal "/projects/#{@project.id}/tasks/#{@task.id}/edit", polymorphic_path([@project, @task], action: :edit)
+      assert_equal "http://example.com/projects/#{@project.id}/tasks/#{@task.id}/edit", polymorphic_url([@project, @task], action: :edit)
+      assert_equal "/projects/#{@project.id}/tasks/new", polymorphic_path([@project, Task], action: :new)
+    end
+  end
+
+  def test_symbol_action_with_array_and_namespace
+    with_admin_test_routes do
+      assert_equal "/admin/projects/new", polymorphic_path([:admin, @project], action: :new)
+      @project.save
+      assert_equal "http://example.com/admin/projects/#{@project.id}/edit", polymorphic_url([:admin, @project], action: :edit)
     end
   end
 
@@ -741,7 +761,7 @@ class PolymorphicPathRoutesTest < PolymorphicRoutesTest
   attr_accessor :controller
 
   def assert_url(url, args)
-    host = self.class.default_url_options[:host]
+    host = default_url_options[:host]
 
     assert_equal url.delete_prefix("http://#{host}"), url_for(args)
   end

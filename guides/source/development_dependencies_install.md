@@ -38,7 +38,7 @@ $ cd rails
 
 Some Rails tests depend on additional tools that you need to install before running those specific tests.
 
-Here's the list of each gems' additional dependencies:
+Here's the list of each gem's additional dependencies:
 
 * Action Cable depends on Redis
 * Active Record depends on SQLite3, MySQL and PostgreSQL
@@ -117,7 +117,7 @@ $ sudo dnf install sqlite-devel sqlite-libs mysql-server mysql-devel postgresql-
 # Install Yarn
 # Use this command if you do not have Node.js installed
 # ref: https://github.com/nodesource/distributions#installation-instructions-1
-$ sudo dnf install https://rpm.nodesource.com/pub_20/nodistro/repo/nodesource-release-nodistro-1.noarch.rpm -y
+$ sudo dnf install https://rpm.nodesource.com/pub_20.x/nodistro/repo/nodesource-release-nodistro-1.noarch.rpm -y
 $ sudo dnf install nodejs -y --setopt=nodesource-nodejs.module_hotfixes=1
 
 # Once you have installed Node.js, install the yarn npm package
@@ -129,9 +129,10 @@ $ sudo npm install --global yarn
 To install all run:
 
 ```bash
-$ sudo pacman -S sqlite mariadb libmariadbclient mariadb-clients postgresql postgresql-libs redis memcached imagemagick ffmpeg mupdf mupdf-tools poppler yarn libxml2 libvips poppler
+$ sudo pacman -S sqlite mariadb libmariadbclient mariadb-clients postgresql postgresql-libs redis memcached imagemagick ffmpeg mupdf mupdf-tools poppler yarn libxml2 libvips
 $ sudo mariadb-install-db --user=mysql --basedir=/usr --datadir=/var/lib/mysql
-$ sudo systemctl start redis mariadb memcached
+$ sudo -u postgres initdb -D /var/lib/postgres/data
+$ sudo systemctl start redis mariadb memcached postgresql
 ```
 
 NOTE: If you are running Arch Linux, MySQL isn't supported anymore so you will need to
@@ -164,7 +165,7 @@ NOTE: If you are running Debian, MariaDB is the default MySQL server, so be awar
 
 ### Database Configuration
 
-There are couple of additional steps required to configure database engines
+There are a couple of additional steps required to configure database engines
 required for running Active Record tests.
 
 PostgreSQL's authentication works differently. To set up the development environment

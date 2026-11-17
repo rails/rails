@@ -49,6 +49,20 @@ class AssociationsTest < ActiveRecord::TestCase
            :comments, :posts, :sharded_blogs, :sharded_blog_posts, :sharded_comments, :sharded_tags, :sharded_blog_posts_tags,
            :cpk_orders, :cpk_books, :cpk_reviews
 
+  class BlogPostWithSingleColumnQueryConstraints < ActiveRecord::Base
+    self.table_name = "sharded_blog_posts"
+    query_constraints :title
+
+    has_many :comments, primary_key: [:blog_id, :id], class_name: "Sharded::Comment"
+  end
+
+  class BlogPostWithMultipleColumnQueryConstraints < ActiveRecord::Base
+    self.table_name = "sharded_blog_posts"
+    query_constraints :title, :revision
+
+    has_many :comments, primary_key: [:blog_id, :id], class_name: "Sharded::Comment"
+  end
+
   def test_eager_loading_should_not_change_count_of_children
     liquid = Liquid.create(name: "salty")
     molecule = liquid.molecules.create(name: "molecule_1")
@@ -57,6 +71,10 @@ class AssociationsTest < ActiveRecord::TestCase
 
     liquids = Liquid.includes(molecules: :electrons).references(:molecules).where("molecules.id is not null")
     assert_equal 1, liquids[0].molecules.length
+  end
+
+  def test_allocated_record_can_see_assocations
+    assert_not_nil Ship.allocate.association(:parts)
   end
 
   def test_subselect
@@ -149,6 +167,26 @@ class AssociationsTest < ActiveRecord::TestCase
     blog_post = sharded_blog_posts(:great_post_blog_one)
 
     assert_equal(blog_post, comment.blog_post)
+  end
+
+  def test_belongs_to_a_model_with_composite_primary_key_sets_inverse_of
+    order = cpk_orders(:cpk_groceries_order_1)
+    store_id, _order_id = order.id
+    book = order.books.create!(id: [store_id, 4], title: "Book")
+
+    assert_same book.order, book.order.books.first.order
+  end
+
+  def test_belongs_to_a_model_with_composite_association_primary_key_sets_inverse_of
+    cpk_order = cpk_orders(:cpk_groceries_order_1)
+    store_id, order_id = cpk_order.id
+    order = Cpk::NonCpkOrder.find(order_id)
+    book = order.books_with_composite_primary_key.create!(id: [store_id, 4], title: "Book")
+    book = Cpk::BookWithNonCpkOrder.find(book.id)
+    associated_order = book.non_cpk_order
+    associated_book = associated_order.books_with_composite_primary_key.to_a.find { |record| record.id == book.id }
+
+    assert_same associated_order, associated_book.non_cpk_order
   end
 
   def test_belongs_to_a_cpk_model_by_id_attribute
@@ -359,33 +397,23 @@ class AssociationsTest < ActiveRecord::TestCase
   end
 
   def test_query_constraints_that_dont_include_the_primary_key_raise_with_a_single_column
-    original = Sharded::BlogPost.instance_variable_get(:@query_constraints_list)
-    Sharded::BlogPost.query_constraints :title
-    Sharded::BlogPost.has_many :comments_without_single_column_query_constraints, primary_key: [:blog_id, :id], class_name: "Comment"
-    blog_post = sharded_blog_posts(:great_post_blog_one)
+    blog_post = BlogPostWithSingleColumnQueryConstraints.find(sharded_blog_posts(:great_post_blog_one).id)
 
     error = assert_raises ArgumentError do
-      blog_post.comments_without_single_column_query_constraints.to_a
+      blog_post.comments.to_a
     end
 
-    assert_equal "The query constraints on the `Sharded::BlogPost` model does not include the primary key so Active Record is unable to derive the foreign key constraints for the association. You need to explicitly define the query constraints for this association.", error.message
-  ensure
-    Sharded::BlogPost.instance_variable_set(:@query_constraints_list, original)
+    assert_equal "The query constraints on the `AssociationsTest::BlogPostWithSingleColumnQueryConstraints` model does not include the primary key so Active Record is unable to derive the foreign key constraints for the association. You need to explicitly define the query constraints for this association.", error.message
   end
 
   def test_query_constraints_that_dont_include_the_primary_key_raise_with_multiple_columns
-    original = Sharded::BlogPost.instance_variable_get(:@query_constraints_list)
-    Sharded::BlogPost.query_constraints :title, :revision
-    Sharded::BlogPost.has_many :comments_without_multiple_column_query_constraints, primary_key: [:blog_id, :id], class_name: "Comment"
-    blog_post = sharded_blog_posts(:great_post_blog_one)
+    blog_post = BlogPostWithMultipleColumnQueryConstraints.find(sharded_blog_posts(:great_post_blog_one).id)
 
     error = assert_raises ArgumentError do
-      blog_post.comments_without_multiple_column_query_constraints.to_a
+      blog_post.comments.to_a
     end
 
-    assert_equal "The query constraints on the `Sharded::BlogPost` model does not include the primary key so Active Record is unable to derive the foreign key constraints for the association. You need to explicitly define the query constraints for this association.", error.message
-  ensure
-    Sharded::BlogPost.instance_variable_set(:@query_constraints_list, original)
+    assert_equal "The query constraints on the `AssociationsTest::BlogPostWithMultipleColumnQueryConstraints` model does not include the primary key so Active Record is unable to derive the foreign key constraints for the association. You need to explicitly define the query constraints for this association.", error.message
   end
 
   def test_assign_belongs_to_cpk_model_by_id_attribute
@@ -802,8 +830,17 @@ end
 class PreloaderTest < ActiveRecord::TestCase
   fixtures :posts, :comments, :books, :authors, :tags, :taggings, :essays, :categories, :author_addresses,
            :sharded_blog_posts, :sharded_comments, :sharded_blog_posts_tags, :sharded_tags,
-           :members, :member_details, :organizations, :cpk_orders, :cpk_order_agreements,
+           :members, :member_details, :organizations, :cpk_authors, :cpk_orders, :cpk_books, :cpk_order_agreements,
            :dogs, :other_dogs
+
+  class SelfReferencingCompany < ActiveRecord::Base
+    self.table_name = "companies"
+    self.inheritance_column = nil
+
+    belongs_to :parent, class_name: name, foreign_key: :firm_id, optional: true
+    belongs_to :mentor, class_name: name, foreign_key: :client_of, optional: true
+    has_one :parents_mentor, through: :parent, source: :mentor
+  end
 
   def test_preload_with_scope
     post = posts(:welcome)
@@ -832,6 +869,58 @@ class PreloaderTest < ActiveRecord::TestCase
       preloader = ActiveRecord::Associations::Preloader.new(records: relation, associations: :comments)
       preloader.call
     end
+  end
+
+  def test_preload_skips_query_for_nil_foreign_key_even_when_key_types_differ
+    post = Postesque.new(author_id: nil)
+
+    assert_no_queries do
+      ActiveRecord::Associations::Preloader.new(records: [post], associations: :author_with_address).call
+    end
+
+    assert_predicate post.association(:author_with_address), :loaded?
+    assert_nil post.author_with_address
+  end
+
+  def test_preload_matches_a_false_key
+    book_class = Class.new(ActiveRecord::Base) do
+      self.table_name = "books"
+
+      def self.name; "BooleanStatusBook"; end
+
+      has_many :comments_by_status, class_name: "Comment", foreign_key: :author_type, primary_key: :boolean_status
+      has_many :books_by_status, -> { where(name: "Same status") }, anonymous_class: self, foreign_key: :boolean_status, primary_key: :boolean_status
+    end
+    book = book_class.create!(boolean_status: false)
+    comment = Comment.create!(post_id: -1, body: "Boolean key", author_type: "false")
+    same_status = book_class.create!(name: "Same status", boolean_status: false)
+
+    ActiveRecord::Associations::Preloader.new(records: [book], associations: [:comments_by_status, :books_by_status]).call
+
+    assert_equal [comment], book.comments_by_status
+    assert_equal [same_status], book.books_by_status
+  end
+
+  def test_preload_matches_composite_keys_of_different_types
+    comment_class = Class.new(ActiveRecord::Base) do
+      self.table_name = "comments"
+      self.inheritance_column = nil
+
+      def self.name; "TextKeyComment"; end
+
+      belongs_to :post, foreign_key: [:author_id, :body], primary_key: [:author_id, :id]
+    end
+    post = Post.create!(author_id: 9_000_901, title: "Composite key", body: "Composite key")
+    comment = comment_class.create!(post_id: -1, author_id: post.author_id, body: post.id.to_s)
+
+    ActiveRecord::Associations::Preloader.new(records: [comment], associations: :post).call
+    assert_equal post, comment.post
+
+    comment = comment_class.find(comment.id)
+    assert_no_queries do
+      ActiveRecord::Associations::Preloader.new(records: [comment], associations: :post, available_records: [post]).call
+    end
+    assert_equal post, comment.post
   end
 
   def test_preload_does_not_concatenate_duplicate_records
@@ -933,10 +1022,13 @@ class PreloaderTest < ActiveRecord::TestCase
       body: "this post is also about David"
     )
 
+    loaders = nil
     assert_queries_count(2) do
       preloader = ActiveRecord::Associations::Preloader.new(records: [david, david2, bob], associations: :posts_mentioning_author)
-      preloader.call
+      loaders = preloader.call
     end
+
+    assert_equal 2, loaders.size
 
     assert_predicate david.posts_mentioning_author, :loaded?
     assert_predicate david2.posts_mentioning_author, :loaded?
@@ -1189,7 +1281,9 @@ class PreloaderTest < ActiveRecord::TestCase
 
   def test_preload_does_not_group_same_class_different_scope
     post = posts(:welcome)
-    postesque = Postesque.create(author: Author.last)
+    david = authors(:david)
+    bob = authors(:bob)
+    postesque = Postesque.create(author_id: bob.id)
     postesque.reload
 
     # When the scopes differ in the generated SQL:
@@ -1201,8 +1295,8 @@ class PreloaderTest < ActiveRecord::TestCase
     end
 
     assert_no_queries do
-      post.author_with_the_letter_a
-      postesque.author_with_the_letter_a
+      assert_equal david, post.author_with_the_letter_a
+      assert_equal bob, postesque.author_with_the_letter_a
     end
 
     post.reload
@@ -1215,8 +1309,10 @@ class PreloaderTest < ActiveRecord::TestCase
     end
 
     assert_no_queries do
-      post.author_with_address
-      postesque.author_with_address
+      assert_equal david, post.author_with_address
+      assert_equal bob, postesque.author_with_address
+      assert_predicate post.author_with_address.association(:author_address), :loaded?
+      assert_not_predicate postesque.author_with_address.association(:author_address), :loaded?
     end
   end
 
@@ -1270,6 +1366,19 @@ class PreloaderTest < ActiveRecord::TestCase
 
       assert_predicate post.association(:author), :loaded?
       assert_same david, post.author
+    end
+  end
+
+  def test_preload_with_available_records_with_composite_key
+    comment = sharded_comments(:great_comment_blog_post_one)
+    blog_post = comment.blog_post
+    comment = Sharded::Comment.find(comment.id)
+
+    assert_no_queries do
+      ActiveRecord::Associations::Preloader.new(records: [comment], associations: :blog_post, available_records: [blog_post]).call
+
+      assert_predicate comment.association(:blog_post), :loaded?
+      assert_same blog_post, comment.blog_post
     end
   end
 
@@ -1336,6 +1445,28 @@ class PreloaderTest < ActiveRecord::TestCase
 
     assert_predicate author.association(:essay_category), :loaded?
     assert categories.map(&:__id__).include?(author.essay_category.__id__)
+  end
+
+  def test_preload_with_available_records_does_not_match_through_keys_against_the_owner
+    mentor = SelfReferencingCompany.create!(name: "Parent's mentor")
+    unrelated = SelfReferencingCompany.create!(name: "Owner's mentor")
+    parent = SelfReferencingCompany.create!(name: "Parent", mentor: mentor)
+    owner = SelfReferencingCompany.create!(name: "Owner", parent: parent, mentor: unrelated)
+
+    [:loaded, :unloaded].each do |state|
+      [owner, parent, mentor, unrelated].each(&:reload) if state == :unloaded
+
+      assert_no_queries do
+        ActiveRecord::Associations::Preloader.new(
+          records: [owner],
+          associations: :parents_mentor,
+          available_records: [parent, mentor, unrelated]
+        ).call
+      end
+
+      assert_predicate owner.association(:parents_mentor), :loaded?, state
+      assert_same mentor, owner.parents_mentor, state
+    end
   end
 
   def test_preload_with_only_some_records_available_with_through_associations
@@ -1422,6 +1553,20 @@ class PreloaderTest < ActiveRecord::TestCase
 
       assert_same author, new_post_with_author.author
       assert_nil new_post_without_author.author
+    end
+  end
+
+  def test_preload_with_unpersisted_records_with_composite_foreign_key_no_ops
+    order = Cpk::Order.new
+    new_book_with_order = Cpk::Book.new(order: order)
+    new_book_without_order = Cpk::Book.new
+    books = [new_book_with_order, new_book_without_order]
+
+    assert_no_queries do
+      ActiveRecord::Associations::Preloader.new(records: books, associations: :order).call
+
+      assert_same order, new_book_with_order.order
+      assert_nil new_book_without_order.order
     end
   end
 
@@ -1543,6 +1688,17 @@ class PreloaderTest < ActiveRecord::TestCase
     end
   end
 
+  def test_preload_keeps_built_has_many_records_with_composite_key_no_ops
+    order = Cpk::Order.new
+    book = order.books.build
+
+    assert_no_queries do
+      ActiveRecord::Associations::Preloader.new(records: [order], associations: :books).call
+
+      assert_equal [book], order.books.to_a
+    end
+  end
+
   def test_preload_keeps_built_has_many_records_after_query
     post = posts(:welcome)
     comment = post.comments.build
@@ -1575,6 +1731,17 @@ class PreloaderTest < ActiveRecord::TestCase
 
       assert_same author, post.author
     end
+  end
+
+  def test_preload_group_with_klass
+    published_author = PublishedAuthor.create!(name: "PublishedAuthor")
+    PublishedBook.create!(name: "PublishedBook", author_id: published_author.id, isbn: "12345")
+
+    author = Author.create!(name: "Author", published_author_id: published_author.id)
+    Book.create!(name: "Book", author_id: author.id, isbn: "67890")
+
+    result = Author.includes(books: [], published_author: { books: [] }).last
+    assert_equal [PublishedBook], result.published_author.books.map(&:class)
   end
 end
 

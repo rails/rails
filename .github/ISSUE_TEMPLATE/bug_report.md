@@ -4,6 +4,7 @@ about: Report an issue with Rails you've discovered
 ---
 
 ### Steps to reproduce
+
 <!-- (Guidelines for creating a bug report are [available
 here](https://edgeguides.rubyonrails.org/contributing_to_ruby_on_rails.html#creating-a-bug-report)) -->
 
@@ -13,12 +14,15 @@ here](https://edgeguides.rubyonrails.org/contributing_to_ruby_on_rails.html#crea
 ```
 
 ### Expected behavior
+
 <!-- Tell us what should happen -->
 
 ### Actual behavior
+
 <!-- Tell us what happens instead -->
 
 ### System configuration
-**Rails version**:
 
-**Ruby version**:
+**Rails version**: 
+
+**Ruby version**: 

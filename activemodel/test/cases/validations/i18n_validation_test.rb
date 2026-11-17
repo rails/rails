@@ -185,7 +185,7 @@ class I18nValidationTest < ActiveModel::TestCase
     [ "given if condition",                { if: lambda { true } },       {}],
     [ "given unless condition",            { unless: lambda { false } },  {}],
     [ "given option that is not reserved", { format: "jpg" },             { format: "jpg" }]
-  ]
+  ].freeze
 
   COMMON_CASES.each do |name, validation_options, generate_message_options|
     test "validates_confirmation_of on generated message #{name}" do
@@ -479,6 +479,21 @@ class I18nValidationTest < ActiveModel::TestCase
     @person.title = nil
     @person.valid?
     assert_equal ["I am a custom error"], @person.errors[:title]
+  end
+
+  def test_error_messages_prefer_each_models_attribute_then_model_before_its_ancestors
+    subclass = Class.new(person_class)
+    subclass.define_singleton_method(:model_name) { ActiveModel::Name.new(self, nil, "SpecialPerson") }
+
+    I18n.backend.store_translations "en", activemodel: { errors: { models: {
+      special_person: { blank: "child model", invalid: "child model", attributes: { title: { invalid: "child attribute" } } },
+      person: { too_short: "parent model", attributes: { title: { blank: "parent attribute", too_short: "parent fallback" } } }
+    } } }
+
+    person = subclass.new
+    assert_equal "child attribute", ActiveModel::Error.new(person, :title, :invalid).message
+    assert_equal "child model", ActiveModel::Error.new(person, :title, :blank).message
+    assert_equal "parent fallback", ActiveModel::Error.new(person, :title, :too_short).message
   end
 
   def test_validates_with_message_string

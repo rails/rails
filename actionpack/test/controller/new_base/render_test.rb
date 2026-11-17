@@ -49,6 +49,13 @@ module Render
     end
   end
 
+  class DoubleRenderWithHeadController < ActionController::Base
+    def index
+      render plain: "hello"
+      head :bad_request
+    end
+  end
+
   class ChildRenderController < BlankRenderController
     append_view_path ActionView::FixtureResolver.new("render/child_render/overridden_with_own_view_paths_appended.html.erb" => "child content")
     prepend_view_path ActionView::FixtureResolver.new("render/child_render/overridden_with_own_view_paths_prepended.html.erb" => "child content")
@@ -57,11 +64,7 @@ module Render
   class RenderTest < Rack::TestCase
     test "render with blank" do
       with_routing do |set|
-        set.draw do
-          ActionDispatch.deprecator.silence do
-            get ":controller", action: "index"
-          end
-        end
+        set.draw { get "render/blank_render", to: "render/blank_render#index" }
 
         get "/render/blank_render"
 
@@ -72,20 +75,31 @@ module Render
 
     test "rendering more than once raises an exception" do
       with_routing do |set|
-        set.draw do
-          ActionDispatch.deprecator.silence do
-            get ":controller", action: "index"
-          end
-        end
+        set.draw { get "render/double_render", to: "render/double_render#index" }
 
         assert_raises(AbstractController::DoubleRenderError) do
           get "/render/double_render", headers: { "action_dispatch.show_exceptions" => :none }
         end
       end
     end
+
+    test "using head after rendering raises an exception" do
+      with_routing do |set|
+        set.draw { get "render/double_render_with_head", to: "render/double_render_with_head#index" }
+
+        assert_raises(AbstractController::DoubleRenderError) do
+          get "/render/double_render_with_head", headers: { "action_dispatch.show_exceptions" => :none }
+        end
+      end
+    end
   end
 
   class TestOnlyRenderPublicActions < Rack::TestCase
+    draw do
+      get "/render/blank_render/clone", to: "render/blank_render#clone"
+      get "/render/blank_render/secretz", to: "render/blank_render#secretz"
+    end
+
     # Only public methods on actual controllers are callable actions
     test "raises an exception when a method of Object is called" do
       assert_raises(AbstractController::ActionNotFound) do
@@ -101,6 +115,10 @@ module Render
   end
 
   class TestVariousObjectsAvailableInView < Rack::TestCase
+    draw do
+      get "/render/blank_render/access_controller_name", to: "render/blank_render#access_controller_name"
+    end
+
     test "The request object is accessible in the view" do
       get "/render/blank_render/access_request"
       assert_body "The request: GET"

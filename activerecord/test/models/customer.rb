@@ -33,7 +33,7 @@ end
 class Money
   attr_reader :amount, :currency
 
-  EXCHANGE_RATES = { "USD_TO_DKK" => 6, "DKK_TO_USD" => 0.6 }
+  EXCHANGE_RATES = { "USD_TO_DKK" => 6, "DKK_TO_USD" => 0.6 }.freeze
 
   def initialize(amount, currency = "USD")
     @amount, @currency = amount, currency
@@ -41,6 +41,10 @@ class Money
 
   def exchange_to(other_currency)
     Money.new((amount * EXCHANGE_RATES["#{currency}_TO_#{other_currency}"]).floor, other_currency)
+  end
+
+  def <=>(other)
+    amount <=> other.amount if other.is_a?(Money)
   end
 end
 

@@ -1,7 +1,10 @@
 # frozen_string_literal: true
 
 require_relative "abstract_unit"
-require "active_support/configurable"
+
+ActiveSupport.deprecator.silence do
+  require "active_support/configurable"
+end
 
 class ConfigurableActiveSupport < ActiveSupport::TestCase
   class Parent

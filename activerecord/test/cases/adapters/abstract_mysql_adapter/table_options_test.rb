@@ -45,7 +45,7 @@ class TableOptionsTest < ActiveRecord::AbstractMysqlTestCase
   test "charset and collation options" do
     @connection.create_table "mysql_table_options", force: true, charset: "utf8mb4", collation: "utf8mb4_bin"
     output = dump_table_schema("mysql_table_options")
-    expected = /create_table "mysql_table_options", charset: "utf8mb4", collation: "utf8mb4_bin"(:?, options: "ENGINE=InnoDB ROW_FORMAT=DYNAMIC")?, force: :cascade/
+    expected = /create_table "mysql_table_options", charset: "utf8mb4", collation: "utf8mb4_bin", force: :cascade/
     assert_match expected, output
   end
 
@@ -62,7 +62,7 @@ class TableOptionsTest < ActiveRecord::AbstractMysqlTestCase
   test "schema dump works with NO_TABLE_OPTIONS sql mode" do
     skip "As of MySQL 5.7.22, NO_TABLE_OPTIONS is deprecated. It will be removed in a future version of MySQL." if @connection.database_version >= "5.7.22"
 
-    old_sql_mode = @connection.query_value("SELECT @@SESSION.sql_mode")
+    old_sql_mode = @connection.select_value("SELECT @@SESSION.sql_mode")
     new_sql_mode = old_sql_mode + ",NO_TABLE_OPTIONS"
 
     begin
@@ -81,16 +81,22 @@ class DefaultEngineOptionTest < ActiveRecord::AbstractMysqlTestCase
   include SchemaDumpingHelper
   self.use_transactional_tests = false
 
+  def run(*)
+    with_debug_event_reporting do
+      super
+    end
+  end
+
   def setup
-    @logger_was  = ActiveRecord::Base.logger
+    @logger_was  = ActiveRecord::LogSubscriber.logger
     @log         = StringIO.new
     @verbose_was = ActiveRecord::Migration.verbose
-    ActiveRecord::Base.logger = ActiveSupport::Logger.new(@log)
+    ActiveRecord::LogSubscriber.logger = ActiveSupport::Logger.new(@log)
     ActiveRecord::Migration.verbose = false
   end
 
   def teardown
-    ActiveRecord::Base.logger       = @logger_was
+    ActiveRecord::LogSubscriber.logger = @logger_was
     ActiveRecord::Migration.verbose = @verbose_was
     ActiveRecord::Base.lease_connection.drop_table "mysql_table_options", if_exists: true
     ActiveRecord::Base.connection_pool.schema_migration.delete_all_versions rescue nil
@@ -102,7 +108,7 @@ class DefaultEngineOptionTest < ActiveRecord::AbstractMysqlTestCase
     assert_no_match %r{ENGINE=InnoDB}, @log.string
 
     output = dump_table_schema("mysql_table_options")
-    expected = /create_table "mysql_table_options", charset: "utf8mb4"(?:, collation: "\w+")?(:?, options: "ENGINE=InnoDB ROW_FORMAT=DYNAMIC")?, force: :cascade/
+    expected = /create_table "mysql_table_options", charset: "utf8mb4"(?:, collation: "\w+")?, force: :cascade/
     assert_match expected, output
   end
 

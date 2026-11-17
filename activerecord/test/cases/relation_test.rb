@@ -44,10 +44,11 @@ module ActiveRecord
 
     def test_multi_values_deduplication_with_merge
       expected = {
-        unscope:   [ :where ],
-        extending: [ Module.new ],
-        with:      [ foo: Post.all ],
-        select:    [ :id, :id ],
+        order:         [ Arel.sql("id") ],
+        default_order: [ Arel.sql("id") ],
+        unscope:       [ :where ],
+        extending:     [ Module.new ],
+        with:          [ foo: Post.all ],
       }
       expected.default = [ Object.new ]
 
@@ -224,7 +225,7 @@ module ActiveRecord
 
       relation = Relation.new(klass)
       relation.merge!(where: ["foo = ?", "bar"])
-      assert_equal Relation::WhereClause.new([Arel.sql("(foo = ?)", "bar")]), relation.where_clause
+      assert_equal Relation::WhereClause.new([Arel.sql("foo = ?", "bar")]), relation.where_clause
     end
 
     def test_merging_readonly_false
@@ -268,7 +269,7 @@ module ActiveRecord
       assert_equal 3, nb_inner_join, "Wrong amount of INNER JOIN in query"
 
       # using `\W` as the column separator
-      assert queries.any? { |sql| %r[INNER\s+JOIN\s+#{Regexp.escape(Author.quoted_table_name)}\s+\Wauthors_categorizations\W]i.match?(sql) }, "Should be aliasing the child INNER JOINs in query"
+      assert queries.any? { |sql| %r[INNER\s+JOIN\s+#{Regexp.escape(Author.quoted_table_name)}\s+(AS\s+)?\Wauthors_categorizations\W]i.match?(sql) }, "Should be aliasing the child INNER JOINs in query"
     end
 
     def test_relation_with_merged_joins_aliased_works
@@ -375,6 +376,22 @@ module ActiveRecord
       end
     end
 
+    def test_relation_with_annotation_includes_comment_in_update_all_query
+      post_with_annotation = Post.annotate("foo")
+      all_count = Post.all.to_a.count
+      assert_queries_match(%r{/\* foo \*/}) do
+        assert_equal all_count, post_with_annotation.update_all(title: "Same title")
+      end
+    end
+
+    def test_relation_with_annotation_includes_comment_in_delete_all_query
+      post_with_annotation = Post.annotate("foo")
+      all_count = Post.all.to_a.count
+      assert_queries_match(%r{/\* foo \*/}) do
+        assert_equal all_count, post_with_annotation.delete_all
+      end
+    end
+
     def test_relation_without_annotation_does_not_include_an_empty_comment
       log = capture_sql do
         Post.where(id: 1).first
@@ -409,6 +426,7 @@ module ActiveRecord
       end
 
       def deserialize(value)
+        return unless value
         raise value unless value == "type cast for database"
         "type cast from database"
       end
@@ -445,7 +463,19 @@ module ActiveRecord
       end
     end
 
-    test "runs queries when using pick with expression column and empty IN" do
+    test "no queries when using pick with non-aggregate expression and empty IN" do
+      assert_queries_count(0) do
+        assert_nil Post.where(id: []).pick(Arel.sql("id"))
+      end
+    end
+
+    test "no queries when using pick with any non-aggregate expression and empty IN" do
+      assert_queries_count(0) do
+        assert_nil Post.where(id: []).pick(Arel.sql("id"), Arel.sql("LENGTH(title)"))
+      end
+    end
+
+    test "runs queries when using pick with aggregate expression despite empty IN" do
       assert_queries_count(1) do
         assert_equal 0, Post.where(id: []).pick(Arel.sql("COUNT(*)"))
       end

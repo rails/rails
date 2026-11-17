@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require "abstract_unit"
+require "active_support/core_ext/object/with"
 require "timeout"
 require "concurrent/atomic/count_down_latch"
 require "zeitwerk"
@@ -244,6 +245,11 @@ module ActionController
 
       def raw_isolated_state
         render plain: ActiveSupport::IsolatedExecutionState[:raw_isolated_state].inspect
+      end
+
+      def connected_to_stack_not_inherited
+        stack = ActiveSupport::IsolatedExecutionState[:active_record_connected_to_stack]
+        render plain: stack.inspect
       end
 
       def with_stale
@@ -570,6 +576,54 @@ module ActionController
       assert_stream_closed
     end
 
+    def test_isolated_state_with_isolation_level_fiber
+      previous_level = ActiveSupport::IsolatedExecutionState.isolation_level
+      ActiveSupport::IsolatedExecutionState.isolation_level = :fiber
+
+      @controller.tc = self
+      ActiveSupport::IsolatedExecutionState[:raw_isolated_state] = "buffy"
+
+      get :raw_isolated_state
+      assert_equal "buffy".inspect, response.body
+      assert_stream_closed
+
+      ActiveSupport::IsolatedExecutionState.clear
+
+      get :isolated_state
+      assert_equal nil.inspect, response.body
+      assert_stream_closed
+    ensure
+      ActiveSupport::IsolatedExecutionState.isolation_level = previous_level
+    end
+
+    def test_connected_to_stack_not_inherited
+      original = @controller.class.live_streaming_excluded_keys
+      @controller.class.live_streaming_excluded_keys = [:active_record_connected_to_stack]
+
+      stack = [{ role: :reading, shard: :default, prevent_writes: true, klasses: [] }]
+      ActiveSupport::IsolatedExecutionState[:active_record_connected_to_stack] = stack
+
+      get :connected_to_stack_not_inherited
+
+      assert_equal "nil", response.body
+      assert_stream_closed
+    ensure
+      @controller.class.live_streaming_excluded_keys = original
+      ActiveSupport::IsolatedExecutionState.delete(:active_record_connected_to_stack)
+    end
+
+    def test_live_streaming_doesnt_exclude_by_default
+      stack = [{ role: :reading, shard: :default, prevent_writes: true, klasses: [] }]
+      ActiveSupport::IsolatedExecutionState[:active_record_connected_to_stack] = stack
+
+      get :connected_to_stack_not_inherited
+
+      assert_match(/role.*reading/, response.body)
+      assert_stream_closed
+    ensure
+      ActiveSupport::IsolatedExecutionState.delete(:active_record_connected_to_stack)
+    end
+
     def test_live_stream_default_header
       get :default_header
       assert response.headers["Content-Type"]
@@ -684,12 +738,144 @@ module ActionController
 
       assert_equal "aaron", Thread.current[:setting]
     end
+
+    def test_isolated_state_does_not_get_reset_in_test_environment
+      ActiveSupport::IsolatedExecutionState[:setting] = "aaron"
+
+      get :greet
+
+      assert_equal "aaron", ActiveSupport::IsolatedExecutionState[:setting]
+    end
   end
 
   class BufferTest < ActionController::TestCase
     def test_nil_callback
       buf = ActionController::Live::Buffer.new nil
       assert buf.call_on_error
+    end
+
+    def test_write_returns_bytesize
+      response = ActionController::Live::Response.new
+      response.request = ActionDispatch::Request.empty
+      buf = ActionController::Live::Buffer.new response
+      result = buf.write "foo"
+      assert_equal 3, result
+    end
+
+    def test_write_dups_string_for_io_copy_stream_safety
+      response = ActionController::Live::Response.new
+      response.request = ActionDispatch::Request.empty
+      buf = response.stream
+      sio = StringIO.new("bar")
+      IO.copy_stream(sio, buf)
+      buf.write "baz"
+      buf.close
+
+      body = +""
+      response.each { |chunk| body << chunk }
+      assert_equal "barbaz", body
+    end
+
+    def test_abort_terminates_a_reader_blocked_on_the_buffer
+      response = ActionController::Live::Response.new
+      response.request = ActionDispatch::Request.empty
+      buf = response.stream
+
+      received = []
+      reader = Thread.new { response.each { |chunk| received << chunk } }
+
+      buf.write "hello"
+      Timeout.timeout(5) do
+        Thread.pass until received.any?             # reader drained the chunk...
+        Thread.pass until reader.status == "sleep"  # ...and is blocked on the queue
+      end
+
+      buf.abort
+
+      assert reader.join(5), "#abort did not release a reader blocked in each_chunk"
+      assert_equal ["hello"], received
+    ensure
+      reader&.kill
+    end
+
+    def test_close_then_abort_still_terminates_the_reader
+      response = ActionController::Live::Response.new
+      response.request = ActionDispatch::Request.empty
+      buf = response.stream
+
+      buf.write "final"
+      buf.close   # closes the queue after its final chunk
+      buf.abort   # clears that pending chunk without reopening the queue
+
+      reader = Thread.new { response.each { } }
+
+      assert reader.join(5), "#abort after #close left the reader blocked in each_chunk"
+    ensure
+      reader&.kill
+    end
+
+    def test_close_with_a_full_buffer_does_not_wait_for_a_reader
+      ActionController::Live::Buffer.with(queue_size: 1) do
+        response = ActionController::Live::Response.new
+        response.request = ActionDispatch::Request.empty
+        buf = response.stream
+        buf.write "final"
+
+        closer = Thread.new { buf.close }
+
+        assert closer.join(1), "#close waited for a reader to drain the full buffer"
+        chunks = []
+        response.each { |chunk| chunks << chunk }
+        assert_equal ["final"], chunks
+      ensure
+        closer&.kill
+      end
+    end
+
+    def test_close_and_abort_finish_when_a_single_slot_buffer_is_full
+      ActionController::Live::Buffer.with(queue_size: 1) do
+        response = ActionController::Live::Response.new
+        response.request = ActionDispatch::Request.empty
+        buf = response.stream
+        buf.write "queued"
+
+        start = Concurrent::CountDownLatch.new
+        closer = Thread.new { start.wait; buf.close }
+        aborter = Thread.new { start.wait; buf.abort }
+        start.count_down
+
+        assert closer.join(1), "#close remained blocked when raced with #abort"
+        assert aborter.join(1), "#abort remained blocked when raced with #close"
+
+        chunks = []
+        reader = Thread.new { response.each { |chunk| chunks << chunk } }
+        assert reader.join(1), "the aborted buffer did not terminate its reader"
+        assert_empty chunks
+      ensure
+        closer&.kill
+        aborter&.kill
+        reader&.kill
+      end
+    end
+
+    def test_write_after_abort_does_not_block_on_the_terminator
+      ActionController::Live::Buffer.with(queue_size: 1) do
+        response = ActionController::Live::Response.new
+        response.request = ActionDispatch::Request.empty
+        buf = response.stream
+        buf.abort
+
+        writer = Thread.new do
+          buf.write "late"
+        rescue => error
+          error
+        end
+
+        assert writer.join(1), "#write blocked after the buffer was aborted"
+        assert_instance_of ActionController::Live::ClientDisconnected, writer.value
+      ensure
+        writer&.kill
+      end
     end
   end
 end

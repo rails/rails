@@ -5,6 +5,7 @@ require "logger"
 require "stringio"
 require "active_support/core_ext/enumerable"
 require "active_support/testing/stream"
+require "active_support/testing/ractors_assertions"
 
 class Deprecatee
   attr_accessor :fubar, :foo_bar
@@ -24,6 +25,7 @@ end
 
 class DeprecationTest < ActiveSupport::TestCase
   include ActiveSupport::Testing::Stream
+  include ActiveSupport::Testing::RactorsAssertions
 
   def setup
     @deprecator = ActiveSupport::Deprecation.new
@@ -120,10 +122,36 @@ class DeprecationTest < ActiveSupport::TestCase
     assert_deprecated(/:bomb:/, @deprecator) { deprecated_object.to_s }
   end
 
+  test "DeprecatedObjectProxy can set the target afterwards" do
+    list = []
+    deprecated_object = ActiveSupport::Deprecation::DeprecatedObjectProxy.new(list, ":bomb:", @deprecator)
+
+    list = [1]
+    assert_deprecated(/:bomb:/, @deprecator) do
+      assert_not_includes(deprecated_object, 1)
+    end
+
+    deprecated_object.target = list
+
+    assert_deprecated(/:bomb:/, @deprecator) do
+      assert_includes(deprecated_object, 1)
+    end
+  end
+
   test "DeprecatedObjectProxy requires a deprecator" do
     assert_raises(ArgumentError) do
       ActiveSupport::Deprecation::DeprecatedObjectProxy.new(Object.new, ":bomb:")
     end
+  end
+
+  test "DeprecatedObjectProxy forwards keyword arguments" do
+    object = Object.new
+    def object.kw(a:)
+      a
+    end
+    deprecated_object = ActiveSupport::Deprecation::DeprecatedObjectProxy.new(object, ":bomb:", @deprecator)
+    result = assert_deprecated(/:bomb:/, @deprecator) { deprecated_object.kw(a: 42) }
+    assert_equal 42, result
   end
 
   test "nil behavior is ignored" do
@@ -306,6 +334,20 @@ class DeprecationTest < ActiveSupport::TestCase
 
     fubar_s = assert_deprecated("@fubar.to_s", @deprecator) { instance.fubar.to_s }
     assert_equal instance.foo_bar.to_s, fubar_s
+  end
+
+  test "DeprecatedInstanceVariableProxy forwards keyword arguments" do
+    instance = Deprecatee.new
+    instance.fubar = ActiveSupport::Deprecation::DeprecatedInstanceVariableProxy.new(instance, :foo_bar, "@fubar", deprecator: @deprecator)
+    instance.foo_bar = Object.new
+    def (instance.foo_bar).kw(a:)
+      a
+    end
+
+    result = assert_deprecated(/@fubar\.kw\. Args: #{Regexp.escape([{ a: 42 }].inspect)}/, @deprecator) do
+      instance.fubar.kw(a: 42)
+    end
+    assert_equal 42, result
   end
 
   test "DeprecatedInstanceVariableProxy does not warn on inspect" do
@@ -774,6 +816,41 @@ class DeprecationTest < ActiveSupport::TestCase
     end
   end
 
+  test "a frozen deprecator warns with its default behavior" do
+    @deprecator.freeze
+
+    assert_match(/fubar/, capture(:stderr) { @deprecator.warn("fubar") })
+  end
+
+  test "a frozen deprecator raises disallowed warnings with its default disallowed behavior" do
+    @deprecator.disallowed_warnings = :all
+    @deprecator.freeze
+
+    assert_raises(ActiveSupport::DeprecationException) { @deprecator.warn("fubar") }
+  end
+
+  test "warn from a non-main Ractor" do
+    @deprecator.behavior = :raise
+    ActiveSupport::Ractors.make_shareable(@deprecator)
+
+    message = on_ractor(@deprecator) do |deprecator|
+      deprecator.warn("fubar")
+    rescue ActiveSupport::DeprecationException => error
+      error.message
+    end
+
+    assert_match(/fubar/, message)
+  end
+
+  test "silence and allow from a non-main Ractor" do
+    @deprecator.behavior = :silence
+    @deprecator.disallowed_warnings = :all
+    ActiveSupport::Ractors.make_shareable(@deprecator)
+
+    assert_nil on_ractor(@deprecator) { |deprecator| deprecator.silence { deprecator.warn("fubar") } }
+    assert_match(/fubar/, on_ractor(@deprecator) { |deprecator| deprecator.allow { deprecator.warn("fubar") } })
+  end
+
   test "warn deprecation skips the internal caller locations" do
     @deprecator.behavior = ->(_, callstack, *) { @callstack = callstack }
     method_that_emits_deprecation(@deprecator)
@@ -815,12 +892,6 @@ class DeprecationTest < ActiveSupport::TestCase
       deprecator.warn
     end
 
-    def with_rails_application_deprecators(&block)
-      application = Struct.new(:deprecators).new(ActiveSupport::Deprecation::Deprecators.new)
-      rails = Struct.new(:application).new(application)
-      rails.application.deprecators[:deprecator] = @deprecator
-      stub_const(Object, :Rails, rails, &block)
-    end
 
     def deprecator_with_messages
       klass = Class.new(ActiveSupport::Deprecation)

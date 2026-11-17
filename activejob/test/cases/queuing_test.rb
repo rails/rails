@@ -66,6 +66,20 @@ class QueuingTest < ActiveSupport::TestCase
     end
   end
 
+  test "enqueue_error is cleared when the same job is successfully re-enqueued" do
+    EnqueueErrorJob::EnqueueErrorAdapter.should_raise_sequence = [ true, false ]
+    job = EnqueueErrorJob.new
+
+    assert_equal false, job.enqueue
+    assert_equal ActiveJob::EnqueueError, job.enqueue_error.class
+
+    assert_equal job, job.enqueue
+    assert job.successfully_enqueued?
+    assert_nil job.enqueue_error
+  ensure
+    EnqueueErrorJob::EnqueueErrorAdapter.should_raise_sequence = []
+  end
+
   test "run multiple queued jobs" do
     ActiveJob.perform_all_later(HelloJob.new("Jamie"), HelloJob.new("John"))
     assert_equal ["Jamie says hello", "John says hello"], JobBuffer.values.sort
@@ -102,5 +116,20 @@ class QueuingTest < ActiveSupport::TestCase
     end
 
     assert notification.payload[:adapter]
+  end
+
+  test "perform_all_later clears a stale enqueue_error when the job is successfully enqueued" do
+    EnqueueErrorJob::EnqueueErrorAdapter.should_raise_sequence = [ true, false ]
+    job = EnqueueErrorJob.new
+
+    assert_equal false, job.enqueue
+    assert_equal ActiveJob::EnqueueError, job.enqueue_error.class
+
+    ActiveJob.perform_all_later(job)
+
+    assert job.successfully_enqueued?
+    assert_nil job.enqueue_error
+  ensure
+    EnqueueErrorJob::EnqueueErrorAdapter.should_raise_sequence = []
   end
 end

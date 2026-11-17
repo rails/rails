@@ -29,3 +29,36 @@ class TestJob < ActiveJob::Base
   end
 end
 CODE
+
+file "app/jobs/continuable_test_job.rb", <<-CODE
+require "active_job/continuation"
+
+class ContinuableTestJob < ActiveJob::Base
+  include ActiveJob::Continuable
+
+  queue_as :integration_tests
+
+  def perform(x)
+    step :step_one do
+      raise "Rerunning step one!" if File.exist?(Rails.root.join("tmp/\#{x}.started"))
+      File.open(Rails.root.join("tmp/\#{x}.new"), "wb+") do |f|
+        f.write Marshal.dump({
+          "locale" => I18n.locale.to_s || "en",
+          "timezone" => Time.zone&.name || "UTC",
+          "executed_at" => Time.now.to_r
+        })
+      end
+      File.rename(Rails.root.join("tmp/\#{x}.new"), Rails.root.join("tmp/\#{x}.started"))
+    end
+    step :step_two do |step|
+      8.times do |i|
+        sleep 0.25
+        step.checkpoint!
+      end
+    end
+    step :step_three do
+      File.rename(Rails.root.join("tmp/\#{x}.started"), Rails.root.join("tmp/\#{x}"))
+    end
+  end
+end
+CODE

@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require "cases/helper"
+require "active_support/testing/ractors_assertions"
 
 module ActiveModel
   module Type
@@ -65,13 +66,23 @@ module ActiveModel
       end
 
       test "uses #serialize_cast_value when a delegate class prepends SerializeCastValue" do
-        delegate_class = DelegateClass(IncludesModule) { prepend SerializeCastValue }
+        delegate_class = ActiveSupport::Delegation::DelegateClass(IncludesModule) { prepend SerializeCastValue }
         assert_serializes_using :serialize_cast_value, delegate_class.new(IncludesModule.new)
       end
 
       test "uses #serialize_cast_value when a delegate class subclass includes SerializeCastValue" do
-        delegate_subclass = Class.new(DelegateClass(IncludesModule)) { include SerializeCastValue }
+        delegate_subclass = Class.new(ActiveSupport::Delegation::DelegateClass(IncludesModule)) { include SerializeCastValue }
         assert_serializes_using :serialize_cast_value, delegate_subclass.new(IncludesModule.new)
+      end
+
+      class RactorTest < ActiveModel::TestCase
+        include ActiveSupport::Testing::Isolation
+        include ActiveSupport::Testing::RactorsAssertions
+
+        test "computes compatibility on the main Ractor" do
+          type = Class.new(IncludesModule)
+          assert_equal "serialize_cast_value(foo)", on_ractor(type) { |klass| SerializeCastValue.serialize(klass.new, "foo") }
+        end
       end
 
       private

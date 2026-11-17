@@ -10,6 +10,17 @@ class TagHelperTest < ActionView::TestCase
   COMMON_DANGEROUS_CHARS = "&<>\"' %*+,/;=^|"
   INVALID_TAG_CHARS = "> /"
 
+  class NameThatChangesWhenConverted
+    def initialize
+      @conversions = 0
+    end
+
+    def to_s
+      @conversions += 1
+      @conversions == 1 ? "first" : " "
+    end
+  end
+
   def test_tag
     assert_equal "<br />", tag("br")
     assert_equal "<br clear=\"left\" />", tag(:br, clear: "left")
@@ -107,6 +118,27 @@ class TagHelperTest < ActionView::TestCase
     assert_equal "<p included=\"\" />", tag("p", included: "")
   end
 
+  def test_tag_options_rejects_blank_key
+    assert_equal "<p />", tag("p", "" => "value")
+    assert_equal "<p />", tag("p", nil => "value")
+    assert_equal '<p class="a" />', tag("p", "" => "value", "class" => "a")
+    assert_equal '<p class="a" />', tag("p", nil => "value", "class" => "a")
+  end
+
+  def test_tag_options_rejects_blank_data_key
+    assert_equal "<p />", tag("p", data: { "" => "value" })
+    assert_equal "<p />", tag("p", data: { nil => "value" })
+    assert_equal '<p data-x="y" />', tag("p", data: { "" => "value", "x" => "y" })
+    assert_equal '<p data-x="y" />', tag("p", data: { nil => "value", "x" => "y" })
+  end
+
+  def test_tag_options_rejects_blank_aria_key
+    assert_equal "<p />", tag("p", aria: { "" => "value" })
+    assert_equal "<p />", tag("p", aria: { nil => "value" })
+    assert_equal '<p aria-x="y" />', tag("p", aria: { "" => "value", "x" => "y" })
+    assert_equal '<p aria-x="y" />', tag("p", aria: { nil => "value", "x" => "y" })
+  end
+
   def test_tag_builder_options_accepts_blank_option
     assert_equal "<p included=\"\"></p>", tag.p(included: "")
   end
@@ -127,6 +159,24 @@ class TagHelperTest < ActionView::TestCase
   def test_tag_builder_options_converts_boolean_option
     assert_dom_equal '<p disabled="disabled" itemscope="itemscope" multiple="multiple" readonly="readonly" allowfullscreen="allowfullscreen" seamless="seamless" typemustmatch="typemustmatch" sortable="sortable" default="default" inert="inert" truespeed="truespeed" allowpaymentrequest="allowpaymentrequest" nomodule="nomodule" playsinline="playsinline" />',
       tag.p(disabled: true, itemscope: true, multiple: true, readonly: true, allowfullscreen: true, seamless: true, typemustmatch: true, sortable: true, default: true, inert: true, truespeed: true, allowpaymentrequest: true, nomodule: true, playsinline: true)
+  end
+
+  def test_tag_builder_options_converts_newer_html_boolean_options
+    assert_dom_equal '<template shadowrootmode="open" shadowrootclonable="shadowrootclonable" shadowrootcustomelementregistry="shadowrootcustomelementregistry"></template>',
+      tag.template(shadowrootmode: "open", shadowrootclonable: true, shadowrootcustomelementregistry: true, shadowrootdelegatesfocus: false, shadowrootserializable: false)
+    assert_dom_equal '<template shadowrootmode="open" shadowrootdelegatesfocus="shadowrootdelegatesfocus" shadowrootserializable="shadowrootserializable"></template>',
+      tag.template(shadowrootmode: "open", shadowrootdelegatesfocus: true, shadowrootserializable: true)
+    assert_dom_equal '<input type="color" alpha="alpha" />', tag.input(type: "color", alpha: true)
+    assert_dom_equal '<input type="color" />', tag.input(type: "color", alpha: false)
+    assert_dom_equal "<section></section>", tag.section(headingreset: false)
+  end
+
+  def test_tag_builder_options_hidden_with_keyword_value
+    assert_equal '<tr hidden="until-found"></tr>', tag.tr(hidden: "until-found")
+    assert_equal '<tr hidden="until-found"></tr>', tag.tr(hidden: :"until-found")
+    assert_equal '<tr hidden="hidden"></tr>', tag.tr(hidden: true)
+    assert_equal "<tr></tr>", tag.tr(hidden: false)
+    assert_equal '<div hidden="until-found"></div>', content_tag(:div, nil, "hidden" => "until-found")
   end
 
   def test_tag_builder_with_options_builds_p_elements
@@ -205,6 +255,44 @@ class TagHelperTest < ActionView::TestCase
                  tag("the-name", { COMMON_DANGEROUS_CHARS => "the value" }, false, false)
   end
 
+  def test_tag_with_blank_attribute_name_generates_valid_markup
+    # https://hackerone.com/reports/3078929
+    html = tag("img", "src" => "/nonexistent.png", "" => "/onerror=alert(1)")
+    fragment = Nokogiri::HTML5::DocumentFragment.parse(html)
+    attrs = fragment.at_css("img").attribute_nodes.map(&:name)
+    assert_equal [ "src" ], attrs
+  end
+
+  def test_tag_with_whitespace_symbol_attribute_name_generates_valid_markup
+    # https://hackerone.com/reports/3904103
+    html = tag("img", "src" => "/nonexistent.png", :" " => "/onerror=alert(1)//")
+    fragment = Nokogiri::HTML5::DocumentFragment.parse(html)
+    attrs = fragment.at_css("img").attribute_nodes.map(&:name)
+    assert_equal [ "src" ], attrs
+  end
+
+  def test_tag_with_whitespace_symbol_data_attribute_name_is_skipped
+    assert_equal "<img />", tag("img", data: { " ": "/onerror=alert(1)//" })
+  end
+
+  def test_tag_with_whitespace_symbol_aria_attribute_name_is_skipped
+    assert_equal "<img />", tag("img", aria: { " ": "/onerror=alert(1)//" })
+  end
+
+  def test_tag_with_attribute_name_that_is_blank_before_conversion_is_skipped
+    assert_equal "<img />", tag("img", { false => "/onerror=alert(1)//" })
+    assert_equal "<img />", tag("img", { [] => "/onerror=alert(1)//" })
+    assert_equal "<img />", tag("img", { data: { false => "x" } })
+    assert_equal "<img />", tag("img", { aria: { false => "x" } })
+  end
+
+  def test_tag_with_attribute_name_that_changes_when_converted_generates_valid_markup
+    html = tag("img", "src" => "/nonexistent.png", NameThatChangesWhenConverted.new => "/onerror=alert(1)//")
+    fragment = Nokogiri::HTML5::DocumentFragment.parse(html)
+    attrs = fragment.at_css("img").attribute_nodes.map(&:name)
+    assert_equal [ "src", "first" ], attrs
+  end
+
   def test_tag_builder_with_dangerous_unknown_attribute_name
     escaped_dangerous_chars = "_" * COMMON_DANGEROUS_CHARS.size
     assert_equal "<the-name #{escaped_dangerous_chars}=\"the value\"></the-name>",
@@ -237,6 +325,26 @@ class TagHelperTest < ActionView::TestCase
     assert_equal "<p><script>evil_js</script></p>",
                  tag.p("<script>evil_js</script>", escape: false)
     assert_equal '<input pattern="\w+">', tag.input(pattern: /\w+/)
+  end
+
+  def test_tags_can_be_appended_to_without_changing_later_tags
+    [
+      -> { content_tag(:div, "Content", class: "card") },
+      -> { tag.div("Content", id: "post_1", class: "card") },
+      -> { tag.input(type: "hidden", name: "authenticity_token") },
+      -> { tag("input", type: "hidden", name: "authenticity_token") },
+    ].each do |build|
+      html = build.call
+      original = String.new(html)
+
+      assert_not_predicate html, :frozen?
+      html << "<b>"
+      html.safe_concat("<i>")
+
+      assert_equal original + "&lt;b&gt;<i>", html
+      assert_predicate html, :html_safe?
+      assert_equal original, build.call
+    end
   end
 
   def test_tag_builder_nested
@@ -521,9 +629,23 @@ class TagHelperTest < ActionView::TestCase
       content_tag("p", "limelight", data: { number: 1, string: "hello", string_with_quotes: 'double"quote"party"' })
   end
 
+  def test_content_tag_with_both_argument_and_block
+    assert_dom_equal "<p>limelight shines!</p>", tag.p("limelight") { " shines!" }
+  end
+
+  def test_content_tag_with_nested_html_attributes
+    assert_dom_equal '<p hx-number="1" hx-string="hello" hx-string-with-quotes="double&quot;quote&quot;party&quot;" hx-data="{&quot;open&quot;:false}"></p>',
+      content_tag("p", "", hx: { number: 1, string: "hello", string_with_quotes: 'double"quote"party"', data: { open: false } })
+  end
+
   def test_tag_builder_with_data_attributes
     assert_dom_equal '<p data-number="1" data-string="hello" data-string-with-quotes="double&quot;quote&quot;party&quot;">limelight</p>',
       tag.p("limelight", data: { number: 1, string: "hello", string_with_quotes: 'double"quote"party"' })
+  end
+
+  def test_tag_builder_with_nested_html_attributes
+    assert_dom_equal '<p hx-number="1" hx-string="hello" hx-string-with-quotes="double&quot;quote&quot;party&quot;" hx-data="{&quot;open&quot;:false}"></p>',
+      tag.p("", hx: { number: 1, string: "hello", string_with_quotes: 'double"quote"party"', data: { open: false } })
   end
 
   def test_cdata_section

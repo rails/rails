@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+# :markup: rdoc
+
 require "zlib"
 
 module ActionView
@@ -119,7 +121,7 @@ module ActionView
     #   )
     #
     module AssetUrlHelper
-      URI_REGEXP = %r{^[-a-z]+://|^(?:cid|data):|^//}i
+      URI_REGEXP = %r{^(?:[-a-z]+://|(?:cid|data):|//)}i
 
       # This is the entry point for all assets.
       # When using an asset pipeline gem (e.g. propshaft or sprockets-rails), the
@@ -191,7 +193,9 @@ module ActionView
         return "" if source.blank?
         return source if URI_REGEXP.match?(source)
 
-        tail, source = source[/([?#].+)$/], source.sub(/([?#].+)$/, "")
+        if (tail = source[/[?#].+$/])
+          source = source[0, source.length - tail.length]
+        end
 
         if extname = compute_asset_extname(source, options)
           source = "#{source}#{extname}"
@@ -236,7 +240,7 @@ module ActionView
       ASSET_EXTENSIONS = {
         javascript: ".js",
         stylesheet: ".css"
-      }
+      }.freeze
 
       # Compute extname to append to asset path. Returns +nil+ if
       # nothing should be added.
@@ -258,7 +262,7 @@ module ActionView
         javascript: "/javascripts",
         stylesheet: "/stylesheets",
         video:      "/videos"
-      }
+      }.freeze
 
       # Computes asset path to public directory. Plugins and
       # extensions can override this method to point to custom assets

@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require "abstract_unit"
+require "active_support/log_subscriber/test_helper"
 
 class Workshop
   extend ActiveModel::Naming
@@ -154,6 +155,18 @@ class RedirectController < ActionController::Base
     redirect_to "//www.rubyonrails.org/"
   end
 
+  def redirect_to_path_relative_url
+    redirect_to "example.com"
+  end
+
+  def redirect_to_path_relative_url_starting_with_an_at
+    redirect_to "@example.com"
+  end
+
+  def redirect_to_query_string_url
+    redirect_to "?foo=bar"
+  end
+
   def redirect_to_existing_record
     redirect_to Workshop.new(5)
   end
@@ -210,15 +223,17 @@ class RedirectController < ActionController::Base
   end
 
   def rescue_errors(e) raise e end
-
-  private
-    def dashboard_url(id, message)
-      url_for action: "dashboard", params: { "id" => id, "message" => message }
-    end
 end
 
 class RedirectTest < ActionController::TestCase
   tests RedirectController
+
+  def setup
+    super
+    # Targets of `redirect_to action: ...` that are not themselves actions.
+    draw_routes_for RedirectController, :hello_world, :other_host
+    draw_routes_for ModuleTest::ModuleRedirectController, :hello_world, :other_host
+  end
 
   def test_simple_redirect
     get :simple_redirect
@@ -335,6 +350,24 @@ class RedirectTest < ActionController::TestCase
     assert_equal "x-test+scheme.complex:redirect", redirect_to_url
   end
 
+  def test_redirect_to_path_relative_url
+    get :redirect_to_path_relative_url
+    assert_response :redirect
+    assert_equal "http://test.hostexample.com", redirect_to_url
+  end
+
+  def test_redirect_to_url_with_path_relative_url_starting_with_an_at
+    get :redirect_to_path_relative_url_starting_with_an_at
+    assert_response :redirect
+    assert_equal "http://test.host@example.com", redirect_to_url
+  end
+
+  def test_redirect_to_query_string_url
+    get :redirect_to_query_string_url
+    assert_response :redirect
+    assert_equal "http://test.host?foo=bar", redirect_to_url
+  end
+
   def test_redirect_to_url_with_network_path_reference
     get :redirect_to_url_with_network_path_reference
     assert_response :redirect
@@ -416,10 +449,6 @@ class RedirectTest < ActionController::TestCase
     with_routing do |set|
       set.draw do
         resources :workshops
-
-        ActionDispatch.deprecator.silence do
-          get ":controller/:action"
-        end
       end
 
       get :redirect_to_existing_record
@@ -438,10 +467,6 @@ class RedirectTest < ActionController::TestCase
         namespace :internal do
           resources :workshops
         end
-
-        ActionDispatch.deprecator.silence do
-          get ":controller/:action"
-        end
       end
 
       get :redirect_to_polymorphic
@@ -455,10 +480,6 @@ class RedirectTest < ActionController::TestCase
       set.draw do
         namespace :internal do
           resources :workshops
-        end
-
-        ActionDispatch.deprecator.silence do
-          get ":controller/:action"
         end
       end
 
@@ -504,9 +525,7 @@ class RedirectTest < ActionController::TestCase
   def test_redirect_to_with_block_and_accepted_options
     with_routing do |set|
       set.draw do
-        ActionDispatch.deprecator.silence do
-          get ":controller/:action"
-        end
+        get "redirect/hello_world", to: "redirect#hello_world"
       end
 
       get :redirect_to_with_block_and_options
@@ -620,13 +639,355 @@ class RedirectTest < ActionController::TestCase
     assert_response :ok
   end
 
+  def test_redirect_to_path_relative_url_with_log
+    with_path_relative_redirect(:log) do
+      with_logger do |logger|
+        get :redirect_to_path_relative_url
+        assert_response :redirect
+        assert_equal "http://test.hostexample.com", redirect_to_url
+        assert_logged(/Path relative URL redirect detected: "example.com"/, logger)
+      end
+    end
+  end
+
+  def test_redirect_to_path_relative_url_starting_with_an_at_with_log
+    with_path_relative_redirect(:log) do
+      with_logger do |logger|
+        get :redirect_to_path_relative_url_starting_with_an_at
+        assert_response :redirect
+        assert_equal "http://test.host@example.com", redirect_to_url
+        assert_logged(/Path relative URL redirect detected: "@example.com"/, logger)
+      end
+    end
+  end
+
+  def test_redirect_to_path_relative_url_starting_with_an_at_with_notify
+    with_path_relative_redirect(:notify) do
+      events = capture_notifications("unsafe_redirect.action_controller") do
+        get :redirect_to_path_relative_url_starting_with_an_at
+      end
+
+      assert_response :redirect
+      assert_equal "http://test.host@example.com", redirect_to_url
+
+      assert_equal 1, events.size
+      event = events.first
+      assert_equal "@example.com", event.payload[:url]
+      assert_equal 'Path relative URL redirect detected: "@example.com"', event.payload[:message]
+      assert_kind_of Array, event.payload[:stack_trace]
+      assert event.payload[:stack_trace].any? { |line| line.include?("redirect_to_path_relative_url_starting_with_an_at") }
+    end
+  end
+
+  def test_redirect_to_path_relative_url_with_notify
+    with_path_relative_redirect(:notify) do
+      events = capture_notifications("unsafe_redirect.action_controller") do
+        get :redirect_to_path_relative_url
+      end
+
+      assert_response :redirect
+      assert_equal "http://test.hostexample.com", redirect_to_url
+
+      assert_equal 1, events.size
+      event = events.first
+      assert_equal "example.com", event.payload[:url]
+      assert_equal 'Path relative URL redirect detected: "example.com"', event.payload[:message]
+      assert_kind_of Array, event.payload[:stack_trace]
+      assert event.payload[:stack_trace].any? { |line| line.include?("redirect_to_path_relative_url") }
+    end
+  end
+
+  def test_redirect_to_path_relative_url_with_raise
+    with_path_relative_redirect(:raise) do
+      error = assert_raise(ActionController::Redirecting::UnsafeRedirectError) do
+        get :redirect_to_path_relative_url
+      end
+
+      assert_equal 'Path relative URL redirect detected: "example.com"', error.message
+    end
+  end
+
+  def test_redirect_to_path_relative_url_starting_with_an_at_with_raise
+    with_path_relative_redirect(:raise) do
+      error = assert_raise(ActionController::Redirecting::UnsafeRedirectError) do
+        get :redirect_to_path_relative_url_starting_with_an_at
+      end
+
+      assert_equal 'Path relative URL redirect detected: "@example.com"', error.message
+    end
+  end
+
+  def test_redirect_to_absolute_url_does_not_log
+    with_path_relative_redirect(:log) do
+      with_logger do |logger|
+        get :redirect_to_url
+        assert_response :redirect
+        assert_equal "http://www.rubyonrails.org/", redirect_to_url
+        assert_not_logged(/Path relative URL redirect detected/, logger)
+      end
+
+      with_logger do |logger|
+        get :relative_url_redirect_with_status
+        assert_response :redirect
+        assert_equal "http://test.host/things/stuff", redirect_to_url
+        assert_empty logger.logged(:warn)
+      end
+    end
+  end
+
+  def test_redirect_to_absolute_url_does_not_notify
+    with_path_relative_redirect(:notify) do
+      assert_no_notifications("unsafe_redirect.action_controller") do
+        get :redirect_to_url
+        assert_response :redirect
+        assert_equal "http://www.rubyonrails.org/", redirect_to_url
+      end
+
+      assert_no_notifications("unsafe_redirect.action_controller") do
+        get :relative_url_redirect_with_status
+        assert_response :redirect
+        assert_equal "http://test.host/things/stuff", redirect_to_url
+      end
+    end
+  end
+
+  def test_redirect_to_absolute_url_does_not_raise
+    with_path_relative_redirect(:raise) do
+      get :redirect_to_url
+      assert_response :redirect
+      assert_equal "http://www.rubyonrails.org/", redirect_to_url
+
+      get :relative_url_redirect_with_status
+      assert_response :redirect
+      assert_equal "http://test.host/things/stuff", redirect_to_url
+
+      get :redirect_to_url_with_network_path_reference
+      assert_response :redirect
+      assert_equal "//www.rubyonrails.org/", redirect_to_url
+    end
+  end
+
+  def test_redirect_to_query_string_url_does_not_trigger_path_relative_warning_with_log
+    with_path_relative_redirect(:log) do
+      with_logger do |logger|
+        get :redirect_to_query_string_url
+        assert_response :redirect
+        assert_equal "http://test.host?foo=bar", redirect_to_url
+        assert_not_logged(/Path relative URL redirect detected/, logger)
+      end
+    end
+  end
+
+  def test_redirect_to_query_string_url_does_not_trigger_path_relative_warning_with_notify
+    with_path_relative_redirect(:notify) do
+      assert_no_notifications("unsafe_redirect.action_controller") do
+        get :redirect_to_query_string_url
+        assert_response :redirect
+        assert_equal "http://test.host?foo=bar", redirect_to_url
+      end
+    end
+  end
+
+  def test_redirect_to_query_string_url_does_not_trigger_path_relative_warning_with_raise
+    with_path_relative_redirect(:raise) do
+      get :redirect_to_query_string_url
+      assert_response :redirect
+      assert_equal "http://test.host?foo=bar", redirect_to_url
+    end
+  end
+
+  def test_redirect_with_allowed_redirect_hosts
+    with_raise_on_open_redirects do
+      with_allowed_redirect_hosts(hosts: ["www.rubyonrails.org"]) do
+        get :redirect_to_url
+        assert_response :redirect
+        assert_redirected_to "http://www.rubyonrails.org/"
+      end
+    end
+  end
+
+  def test_not_redirect_with_allowed_redirect_hosts
+    with_raise_on_open_redirects do
+      with_allowed_redirect_hosts(hosts: ["www.ruby-lang.org"]) do
+        assert_raise ActionController::Redirecting::UnsafeRedirectError do
+          get :redirect_to_url
+        end
+      end
+    end
+  end
+
+  def test_redirect_to_external_with_action_on_open_redirect_log
+    with_action_on_open_redirect(:log) do
+      with_logger do |logger|
+        get :redirect_to_url
+        assert_response :redirect
+        assert_equal "http://www.rubyonrails.org/", redirect_to_url
+        assert_logged(/Open redirect to "http:\/\/www.rubyonrails.org\/" detected/, logger)
+      end
+    end
+  end
+
+  def test_redirect_to_external_with_action_on_open_redirect_notify
+    with_action_on_open_redirect(:notify) do
+      events = capture_notifications("open_redirect.action_controller") do
+        get :redirect_to_url
+      end
+
+      assert_response :redirect
+      assert_equal "http://www.rubyonrails.org/", redirect_to_url
+
+      assert_equal 1, events.size
+      event = events.first
+      assert_equal "http://www.rubyonrails.org/", event.payload[:location]
+      assert_kind_of ActionDispatch::Request, event.payload[:request]
+      assert_kind_of Array, event.payload[:stack_trace]
+    end
+  end
+
+  def test_redirect_to_external_with_action_on_open_redirect_raise
+    with_action_on_open_redirect(:raise) do
+      error = assert_raise(ActionController::Redirecting::UnsafeRedirectError) do
+        get :redirect_to_url
+      end
+      assert_equal "Unsafe redirect to \"http://www.rubyonrails.org/\", pass allow_other_host: true to redirect anyway.", error.message
+    end
+  end
+
+  def test_redirect_to_external_with_explicit_allow_other_host_false_always_raises
+    with_action_on_open_redirect(:log) do
+      get :redirect_to_external_with_rescue
+      assert_response :ok
+      assert_equal "caught error", response.body
+    end
+
+    with_action_on_open_redirect(:notify) do
+      get :redirect_to_external_with_rescue
+      assert_response :ok
+      assert_equal "caught error", response.body
+    end
+
+    with_action_on_open_redirect(:raise) do
+      get :redirect_to_external_with_rescue
+      assert_response :ok
+      assert_equal "caught error", response.body
+    end
+  end
+
+  def test_redirect_back_with_external_referer_and_action_on_open_redirect_log
+    with_action_on_open_redirect(:log) do
+      @request.env["HTTP_REFERER"] = "http://www.rubyonrails.org/"
+      get :redirect_back_with_status
+      assert_response 307
+      assert_equal "http://www.rubyonrails.org/", redirect_to_url
+    end
+  end
+
+  def test_redirect_back_with_external_referer_and_action_on_open_redirect_notify
+    with_action_on_open_redirect(:notify) do
+      @request.env["HTTP_REFERER"] = "http://www.rubyonrails.org/"
+      get :redirect_back_with_status
+      assert_response 307
+      assert_equal "http://www.rubyonrails.org/", redirect_to_url
+    end
+  end
+
+  def test_redirect_back_with_external_referer_and_action_on_open_redirect_raise
+    with_action_on_open_redirect(:raise) do
+      @request.env["HTTP_REFERER"] = "http://www.rubyonrails.org/"
+      get :redirect_back_with_status
+      assert_response 307
+      assert_equal "http://test.host/things/stuff", redirect_to_url
+    end
+  end
+
+  def test_redirect_back_with_external_referer_and_explicit_allow_other_host_false
+    with_action_on_open_redirect(:log) do
+      @request.env["HTTP_REFERER"] = "http://another.host/coming/from"
+      get :safe_redirect_back_with_status
+      assert_response 307
+      assert_equal "http://test.host/things/stuff", redirect_to_url
+    end
+  end
+
+  def test_raise_on_open_redirects_overrides_action_on_open_redirect
+    with_action_on_open_redirect(:log) do
+      with_raise_on_open_redirects do
+        error = assert_raise(ActionController::Redirecting::UnsafeRedirectError) do
+          get :redirect_to_url
+        end
+        assert_match(/Unsafe redirect/, error.message)
+      end
+    end
+  end
+
+  def test_action_on_open_redirect_does_not_affect_internal_redirects
+    with_action_on_open_redirect(:raise) do
+      get :simple_redirect
+      assert_response :redirect
+      assert_equal "http://test.host/redirect/hello_world", redirect_to_url
+    end
+  end
+
+  def test_action_on_open_redirect_with_allowed_redirect_hosts
+    with_action_on_open_redirect(:raise) do
+      with_allowed_redirect_hosts(hosts: ["www.rubyonrails.org"]) do
+        get :redirect_to_url
+        assert_response :redirect
+        assert_redirected_to "http://www.rubyonrails.org/"
+      end
+    end
+  end
+
   private
+    def with_logger
+      logger = ActiveSupport::LogSubscriber::TestHelper::MockLogger.new
+      old_logger = ActionController::Base.logger
+      ActionController::Base.logger = logger
+      yield logger
+    ensure
+      ActionController::Base.logger = old_logger
+    end
+
+    def assert_logged(pattern, logger)
+      assert logger.logged(:warn).any? { |msg| msg.match?(pattern) },
+        "Expected to find log matching #{pattern.inspect} in: #{logger.logged(:warn).inspect}"
+    end
+
+    def assert_not_logged(pattern, logger)
+      assert logger.logged(:warn).none? { |msg| msg.match?(pattern) },
+        "Expected not to find log matching #{pattern.inspect} in: #{logger.logged(:warn).inspect}"
+    end
+
+    def with_path_relative_redirect(action)
+      old_config = ActionController::Base.action_on_path_relative_redirect
+      ActionController::Base.action_on_path_relative_redirect = action
+      yield
+    ensure
+      ActionController::Base.action_on_path_relative_redirect = old_config
+    end
+
     def with_raise_on_open_redirects
       old_raise_on_open_redirects = ActionController::Base.raise_on_open_redirects
       ActionController::Base.raise_on_open_redirects = true
       yield
     ensure
       ActionController::Base.raise_on_open_redirects = old_raise_on_open_redirects
+    end
+
+    def with_action_on_open_redirect(action)
+      old_action = ActionController::Base.action_on_open_redirect
+      ActionController::Base.action_on_open_redirect = action
+      yield
+    ensure
+      ActionController::Base.action_on_open_redirect = old_action
+    end
+
+    def with_allowed_redirect_hosts(hosts:)
+      old_allowed_redirect_hosts = ActionController::Base.allowed_redirect_hosts
+      ActionController::Base.allowed_redirect_hosts = hosts
+      yield
+    ensure
+      ActionController::Base.allowed_redirect_hosts = old_allowed_redirect_hosts
     end
 end
 
@@ -639,6 +1000,12 @@ module ModuleTest
 
   class ModuleRedirectTest < ActionController::TestCase
     tests ModuleRedirectController
+
+    def setup
+      super
+      draw_routes_for ModuleRedirectController, :hello_world, :other_host
+      draw_routes_for ::RedirectController, :hello_world, :other_host
+    end
 
     def test_simple_redirect
       get :simple_redirect

@@ -38,4 +38,10 @@ class PostgreSQLExplainTest < ActiveRecord::PostgreSQLTestCase
     assert_match %r(EXPLAIN \(ANALYZE\) SELECT "authors"\.\* FROM "authors" WHERE "authors"\."id" = (?:\$1 \[\["id", 1\]\]|1)), explain
     assert_match %r(EXPLAIN \(ANALYZE\) SELECT "posts"\.\* FROM "posts" WHERE "posts"\."author_id" = (?:\$1 \[\["author_id", 1\]\]|1)), explain
   end
+
+  def test_explain_format_option
+    explain = Author.all.explain(format: :json).inspect
+
+    assert_match(/\{.*\}/m, explain)
+  end
 end

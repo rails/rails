@@ -45,7 +45,7 @@ class JsonGemEncodingTest < ActiveSupport::TestCase
 
     def assert_same_with_or_without_active_support(subject)
       begin
-        expected = JSON.generate(subject, quirks_mode: true)
+        expected = JSON.generate(subject)
       rescue JSON::GeneratorError => e
         exception = e
       end
@@ -54,10 +54,10 @@ class JsonGemEncodingTest < ActiveSupport::TestCase
 
       if exception
         assert_raises JSON::GeneratorError, match: e.message do
-          JSON.generate(subject, quirks_mode: true)
+          JSON.generate(subject)
         end
       else
-        assert_equal expected, JSON.generate(subject, quirks_mode: true)
+        assert_equal expected, JSON.generate(subject)
       end
     end
 end

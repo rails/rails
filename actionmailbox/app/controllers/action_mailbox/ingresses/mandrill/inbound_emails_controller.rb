@@ -3,16 +3,16 @@
 module ActionMailbox
   # Ingests inbound emails from Mandrill.
   #
-  # Requires a +mandrill_events+ parameter containing a JSON array of Mandrill inbound email event objects.
-  # Each event is expected to have a +msg+ object containing a full RFC 822 message in its +raw_msg+ property.
+  # Requires a `mandrill_events` parameter containing a JSON array of Mandrill inbound email event objects.
+  # Each event is expected to have a `msg` object containing a full RFC 822 message in its `raw_msg` property.
   #
   # Returns:
   #
-  # - <tt>204 No Content</tt> if an inbound email is successfully recorded and enqueued for routing to the appropriate mailbox
-  # - <tt>401 Unauthorized</tt> if the request's signature could not be validated
-  # - <tt>404 Not Found</tt> if Action Mailbox is not configured to accept inbound emails from Mandrill
-  # - <tt>422 Unprocessable Entity</tt> if the request is missing required parameters
-  # - <tt>500 Server Error</tt> if the Mandrill API key is missing, or one of the Active Record database,
+  # - `204 No Content` if an inbound email is successfully recorded and enqueued for routing to the appropriate mailbox
+  # - `401 Unauthorized` if the request's signature could not be validated
+  # - `404 Not Found` if Action Mailbox is not configured to accept inbound emails from Mandrill
+  # - `422 Unprocessable Entity` if the request is missing required parameters
+  # - `500 Server Error` if the Mandrill API key is missing, or one of the Active Record database,
   #   the Active Storage service, or the Active Job backend is misconfigured or unavailable
   class Ingresses::Mandrill::InboundEmailsController < ActionMailbox::BaseController
     before_action :authenticate, except: :health_check
@@ -20,9 +20,9 @@ module ActionMailbox
     def create
       raw_emails.each { |raw_email| ActionMailbox::InboundEmail.create_and_extract_message_id! raw_email }
       head :ok
-    rescue JSON::ParserError => error
+    rescue JSON::ParserError, MalformedEventsError => error
       logger.error error.message
-      head :unprocessable_entity
+      head ActionDispatch::Constants::UNPROCESSABLE_CONTENT
     end
 
     def health_check
@@ -30,12 +30,27 @@ module ActionMailbox
     end
 
     private
+      class MalformedEventsError < StandardError
+        def initialize(message = "Malformed Mandrill events payload")
+          super
+        end
+      end
+
       def raw_emails
-        events.select { |event| event["event"] == "inbound" }.collect { |event| event.dig("msg", "raw_msg") }
+        events.select { |event| event["event"] == "inbound" }.collect do |event|
+          message = event["msg"]
+          raise MalformedEventsError unless message.is_a?(Hash)
+
+          message["raw_msg"].tap do |raw_email|
+            raise MalformedEventsError unless raw_email.is_a?(String)
+          end
+        end
       end
 
       def events
-        JSON.parse params.require(:mandrill_events)
+        JSON.parse(params.require(:mandrill_events)).tap do |parsed|
+          raise MalformedEventsError unless parsed.is_a?(Array) && parsed.all?(Hash)
+        end
       end
 
 
@@ -55,7 +70,7 @@ module ActionMailbox
       end
 
       def key
-        Rails.application.credentials.dig(:action_mailbox, :mandrill_api_key) || ENV["MANDRILL_INGRESS_API_KEY"]
+        Rails.app.credentials.dig(:action_mailbox, :mandrill_api_key) || ENV["MANDRILL_INGRESS_API_KEY"]
       end
 
       class Authenticator
@@ -66,7 +81,7 @@ module ActionMailbox
         end
 
         def authenticated?
-          ActiveSupport::SecurityUtils.secure_compare given_signature, expected_signature
+          given_signature.present? && ActiveSupport::SecurityUtils.secure_compare(given_signature, expected_signature)
         end
 
         private

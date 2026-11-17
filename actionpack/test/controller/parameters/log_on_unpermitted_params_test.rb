@@ -1,15 +1,24 @@
 # frozen_string_literal: true
 
 require "abstract_unit"
+require "active_support/testing/event_reporter_assertions"
 require "action_controller/metal/strong_parameters"
 
 class LogOnUnpermittedParamsTest < ActiveSupport::TestCase
+  include ActiveSupport::Testing::EventReporterAssertions
+
   def setup
     ActionController::Parameters.action_on_unpermitted_parameters = :log
   end
 
   def teardown
     ActionController::Parameters.action_on_unpermitted_parameters = false
+  end
+
+  def run(*)
+    with_debug_event_reporting do
+      super
+    end
   end
 
   test "logs on unexpected param" do
@@ -196,9 +205,9 @@ class LogOnUnpermittedParamsTest < ActiveSupport::TestCase
 
   private
     def assert_logged(message)
-      old_logger = ActionController::Base.logger
+      old_logger = ActionController::LogSubscriber.logger
       log = StringIO.new
-      ActionController::Base.logger = Logger.new(log)
+      ActionController::LogSubscriber.logger = Logger.new(log)
 
       begin
         yield
@@ -206,7 +215,7 @@ class LogOnUnpermittedParamsTest < ActiveSupport::TestCase
         log.rewind
         assert_match message, log.read
       ensure
-        ActionController::Base.logger = old_logger
+        ActionController::LogSubscriber.logger = old_logger
       end
     end
 end

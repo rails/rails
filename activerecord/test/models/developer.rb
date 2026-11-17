@@ -38,6 +38,8 @@ class Developer < ActiveRecord::Base
   belongs_to :strict_loading_mentor, strict_loading: true, foreign_key: :mentor_id, class_name: "Mentor"
   belongs_to :strict_loading_off_mentor, strict_loading: false, foreign_key: :mentor_id, class_name: "Mentor"
 
+  has_many :project_developers_by_salary, through: :projects, source: :developers_by_salary
+
   accepts_nested_attributes_for :projects
 
   has_and_belongs_to_many :shared_computers, class_name: "Computer"
@@ -108,7 +110,9 @@ class Developer < ActiveRecord::Base
   end
 
   after_find :track_instance_count
-  cattr_accessor :instance_count
+  class << self
+    attr_accessor :instance_count
+  end
 
   def track_instance_count
     self.class.instance_count ||= 0
@@ -378,5 +382,11 @@ end
 
 class AuditRequiredDeveloper < ActiveRecord::Base
   self.table_name = "developers"
+  has_many :required_audit_logs, class_name: "AuditLogRequired"
+end
+
+class OnlyColumnsDeveloper < ActiveRecord::Base
+  self.table_name = "developers"
+  self.only_columns = %w[name salary firm_id mentor_id]
   has_many :required_audit_logs, class_name: "AuditLogRequired"
 end

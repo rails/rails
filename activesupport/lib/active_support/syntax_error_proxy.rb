@@ -7,7 +7,7 @@ module ActiveSupport
   # is to enhance the backtraces on SyntaxError exceptions to include the
   # source location of the syntax error.  That way we can display the error
   # source on error pages in development.
-  class SyntaxErrorProxy < DelegateClass(SyntaxError) # :nodoc:
+  class SyntaxErrorProxy < ActiveSupport::Delegation::DelegateClass(SyntaxError) # :nodoc:
     def backtrace
       parse_message_for_trace + super
     end
@@ -21,9 +21,13 @@ module ActiveSupport
 
       def base_label
       end
+
+      def absolute_path
+        path
+      end
     end
 
-    class BacktraceLocationProxy < DelegateClass(Thread::Backtrace::Location) # :nodoc:
+    class BacktraceLocationProxy < ActiveSupport::Delegation::DelegateClass(Thread::Backtrace::Location) # :nodoc:
       def initialize(loc, ex)
         super(loc)
         @ex = ex
@@ -56,7 +60,8 @@ module ActiveSupport
           location = __getobj__.backtrace_locations[0]
           ["#{location.path}:#{location.lineno}: #{__getobj__}"]
         else
-          __getobj__.to_s.split("\n")
+          # Only message lines with a file location on them are trace entries
+          __getobj__.to_s.split("\n").grep(/:\d+/)
         end
       end
   end

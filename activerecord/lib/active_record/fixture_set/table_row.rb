@@ -43,7 +43,7 @@ module ActiveRecord
         def initialize(label, association, value)
           super(<<~MSG)
             Unable to set #{association.name} to #{value} because the association has a
-            custom primary key (#{association.join_primary_key}) that does not match the
+            custom primary key (#{association.association_primary_key}) that does not match the
             associated table's primary key (#{association.klass.primary_key}).
 
             To fix this, change your fixture from
@@ -56,7 +56,7 @@ module ActiveRecord
             #{label}:
               #{association.foreign_key}: **value**
 
-            where **value** is the #{association.join_primary_key} value for the
+            where **value** is the #{association.association_primary_key} value for the
             associated #{association.klass.name} record.
           MSG
         end
@@ -112,7 +112,7 @@ module ActiveRecord
         def interpolate_label
           # interpolate the fixture label
           @row.each do |key, value|
-            @row[key] = value.gsub("$LABEL", @label.to_s) if value.is_a?(String)
+            @row[key] = value.gsub("$LABEL") { @label.to_s } if value.is_a?(String)
           end
         end
 
@@ -151,15 +151,15 @@ module ActiveRecord
             case association.macro
             when :belongs_to
               # Do not replace association name with association foreign key if they are named the same
-              fk_name = association.join_foreign_key
+              fk_name = association.foreign_key
 
               if association.name.to_s != fk_name && value = @row.delete(association.name.to_s)
                 if association.polymorphic?
                   if value.sub!(/\s*\(([^)]*)\)\s*$/, "")
                     # support polymorphic belongs_to as "label (Type)"
-                    @row[association.join_foreign_type] = $1
+                    @row[association.foreign_type] = $1
                   end
-                elsif association.join_primary_key != association.klass.primary_key
+                elsif association.association_route(origin_class: reflection_class).reference_destination_key.name != association.klass.primary_key
                   raise PrimaryKeyError.new(@label, association, value)
                 end
 
@@ -193,8 +193,25 @@ module ActiveRecord
 
             targets = targets.is_a?(Array) ? targets : targets.split(/\s*,\s*/)
             joins   = targets.map do |target|
-              join = { lhs_key => @row[model_metadata.primary_key_name],
-                       rhs_key => ActiveRecord::FixtureSet.identify(target, column_type) }
+              join = {}
+
+              if rhs_key.is_a?(Array)
+                composite_key = ActiveRecord::FixtureSet.composite_identify(target, rhs_key)
+                composite_key.each do |column, value|
+                  join[column] = value
+                end
+              else
+                join[rhs_key] = ActiveRecord::FixtureSet.identify(target, column_type)
+              end
+
+              if lhs_key.is_a?(Array)
+                lhs_key.zip(model_metadata.primary_key_name).each do |fkey, pkey|
+                  join[fkey] = @row[pkey]
+                end
+              else
+                join[lhs_key] = @row[model_metadata.primary_key_name]
+              end
+
               association.timestamp_column_names.each do |col|
                 join[col] = @now
               end

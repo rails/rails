@@ -2,114 +2,69 @@
 
 module ActiveRecord
   ###
-  # = Active Record \Result
+  # Active Record \Result
+  # =====================
   #
   # This class encapsulates a result returned from calling
-  # {#exec_query}[rdoc-ref:ConnectionAdapters::DatabaseStatements#exec_query]
+  # [#exec_query](rdoc-ref:ConnectionAdapters::DatabaseStatements#exec_query)
   # on any database connection adapter. For example:
   #
-  #   result = ActiveRecord::Base.lease_connection.exec_query('SELECT id, title, body FROM posts')
-  #   result # => #<ActiveRecord::Result:0xdeadbeef>
+  # ```
+  # result = ActiveRecord::Base.lease_connection.exec_query('SELECT id, title, body FROM posts')
+  # result # => #<ActiveRecord::Result:0xdeadbeef>
   #
-  #   # Get the column names of the result:
-  #   result.columns
-  #   # => ["id", "title", "body"]
+  # # Get the column names of the result:
+  # result.columns
+  # # => ["id", "title", "body"]
   #
-  #   # Get the record values of the result:
-  #   result.rows
-  #   # => [[1, "title_1", "body_1"],
-  #         [2, "title_2", "body_2"],
-  #         ...
-  #        ]
+  # # Get the record values of the result:
+  # result.rows
+  # # => [[1, "title_1", "body_1"],
+  #       [2, "title_2", "body_2"],
+  #       ...
+  #      ]
   #
-  #   # Get an array of hashes representing the result (column => value):
-  #   result.to_a
-  #   # => [{"id" => 1, "title" => "title_1", "body" => "body_1"},
-  #         {"id" => 2, "title" => "title_2", "body" => "body_2"},
-  #         ...
-  #        ]
+  # # Get an array of hashes representing the result (column => value):
+  # result.to_a
+  # # => [{"id" => 1, "title" => "title_1", "body" => "body_1"},
+  #       {"id" => 2, "title" => "title_2", "body" => "body_2"},
+  #       ...
+  #      ]
   #
-  #   # ActiveRecord::Result also includes Enumerable.
-  #   result.each do |row|
-  #     puts row['title'] + " " + row['body']
-  #   end
+  # # Get the number of rows affected by the query:
+  # result = ActiveRecord::Base.lease_connection.exec_query('INSERT INTO posts (title, body) VALUES ("title_3", "body_3"), ("title_4", "body_4")')
+  # result.affected_rows
+  # # => 2
+  #
+  # # ActiveRecord::Result also includes Enumerable.
+  # result.each do |row|
+  #   puts row['title'] + " " + row['body']
+  # end
+  # ```
   class Result
     include Enumerable
 
-    class IndexedRow
-      def initialize(column_indexes, row)
-        @column_indexes = column_indexes
-        @row = row
-      end
+    attr_reader :columns, :rows, :affected_rows
 
-      def size
-        @column_indexes.size
-      end
-      alias_method :length, :size
-
-      def each_key(&block)
-        @column_indexes.each_key(&block)
-      end
-
-      def keys
-        @column_indexes.keys
-      end
-
-      def ==(other)
-        if other.is_a?(Hash)
-          to_hash == other
-        else
-          super
-        end
-      end
-
-      def key?(column)
-        @column_indexes.key?(column)
-      end
-
-      def fetch(column)
-        if index = @column_indexes[column]
-          @row[index]
-        elsif block_given?
-          yield
-        else
-          raise KeyError, "key not found: #{column.inspect}"
-        end
-      end
-
-      def [](column)
-        if index = @column_indexes[column]
-          @row[index]
-        end
-      end
-
-      def to_h
-        @column_indexes.transform_values { |index| @row[index] }
-      end
-      alias_method :to_hash, :to_h
-    end
-
-    attr_reader :columns, :rows, :column_types
-
-    def self.empty(async: false) # :nodoc:
+    def self.empty(async: false, affected_rows: nil) # :nodoc:
       if async
-        EMPTY_ASYNC
+        FutureResult.wrap(new(EMPTY_ARRAY, EMPTY_ARRAY, EMPTY_HASH, affected_rows: affected_rows)).freeze
       else
-        EMPTY
+        new(EMPTY_ARRAY, EMPTY_ARRAY, EMPTY_HASH, affected_rows: affected_rows).freeze
       end
     end
 
-    def initialize(columns, rows, column_types = nil)
-      # We freeze the strings to prevent them getting duped when
-      # used as keys in ActiveRecord::Base's @attributes hash
-      @columns      = columns.each(&:-@).freeze
+    def initialize(columns, rows, column_types = nil, affected_rows: nil)
+      @columns      = columns.freeze
       @rows         = rows
       @hash_rows    = nil
-      @column_types = column_types || EMPTY_HASH
+      @column_types = column_types.freeze
+      @types_hash   = nil
       @column_indexes = nil
+      @affected_rows = affected_rows
     end
 
-    # Returns true if this result set includes the column named +name+
+    # Returns true if this result set includes the column named `name`
     def includes_column?(name)
       @columns.include? name
     end
@@ -122,9 +77,9 @@ module ActiveRecord
     # Calls the given block once for each element in row collection, passing
     # row as parameter. Each row is a Hash-like, read only object.
     #
-    # To get real hashes, use +.to_a.each+.
+    # To get real hashes, use `.to_a.each`.
     #
-    # Returns an +Enumerator+ if no block is given.
+    # Returns an `Enumerator` if no block is given.
     def each(&block)
       if block_given?
         hash_rows.each(&block)
@@ -154,6 +109,34 @@ module ActiveRecord
       n ? hash_rows.last(n) : hash_rows.last
     end
 
+    # Returns the `ActiveRecord::Type` type of all columns.
+    # Note that not all database adapters return the result types,
+    # so the hash may be empty.
+    def column_types
+      if @column_types
+        @types_hash ||= begin
+          types = {}
+          @columns.each_with_index do |name, index|
+            type = @column_types[index] || Type.default_value
+            types[name] = types[index] = type
+          end
+          types.freeze
+        end
+      else
+        EMPTY_HASH
+      end
+    end
+
+    #: () { (String, ActiveModel::Type::Value) -> void } -> void
+    def each_pair
+      if @column_types
+        @columns.each_with_index do |name, index|
+          type = @column_types[index] || Type.default_value
+          yield(name, type)
+        end
+      end
+    end
+
     def result # :nodoc:
       self
     end
@@ -162,7 +145,7 @@ module ActiveRecord
       self
     end
 
-    def cast_values(type_overrides = {}) # :nodoc:
+    def cast_values(type_overrides = nil) # :nodoc:
       if columns.one?
         # Separated to avoid allocating an array per row
 
@@ -190,42 +173,154 @@ module ActiveRecord
 
     def initialize_copy(other)
       @rows = rows.dup
-      @column_types = column_types.dup
-      @hash_rows    = nil
+      @hash_rows = nil
+      @indexed_rows = nil
+    end
+
+    def shuffle_rows(arel) # :nodoc:
+      return self if rows.size < 2
+      return self unless ConnectionAdapters::QueryIntent.shuffle_rows?(arel)
+
+      dup.shuffle!
+    end
+
+    def shuffle! # :nodoc:
+      @rows = @rows.shuffle
+      self
     end
 
     def freeze # :nodoc:
       hash_rows.freeze
-      indexed_rows.freeze
+      indexed_rows
+      column_types
       super
     end
 
     def column_indexes # :nodoc:
-      @column_indexes ||= begin
-        index = 0
-        hash = {}
-        length  = columns.length
-        while index < length
-          hash[columns[index]] = index
-          index += 1
-        end
-        hash.freeze
+      @column_indexes ||= ActiveModel::IndexedRow.build_indexes(columns)
+    end
+
+    # Yields each row laid out for +column_map+, as an Array, with the
+    # indexes it's laid out with (see RowLayout).
+    #: [T] (Hash[String, Integer] | ActiveModel::IndexedRow::ExtendedIndexes) { (Array[untyped], Hash[String, Integer] | ActiveModel::IndexedRow::ExtendedIndexes) -> T } -> Array[T]
+    def map_rows(column_map) # :nodoc:
+      layout = RowLayout.new(@columns, column_map, @column_types)
+      indexes = layout.indexes
+      @rows.map { |row| yield layout.build(row), indexes }
+    end
+
+    # Like #map_rows, but each row is laid out for the column map that
+    # +column_map_for+ returns for that row's value of +column_name+, and
+    # that value is yielded with the row. +column_map_for+ is called once
+    # for each distinct value.
+    #: [T] (String, ^(untyped) -> (Hash[String, Integer] | ActiveModel::IndexedRow::ExtendedIndexes)) { (Array[untyped], Hash[String, Integer] | ActiveModel::IndexedRow::ExtendedIndexes, untyped) -> T } -> Array[T]
+    def map_rows_by(column_name, column_map_for) # :nodoc:
+      index = @columns.index(column_name)
+      layouts = {}
+
+      @rows.map do |row|
+        value = row[index]
+        layout = layouts[value] ||= RowLayout.new(@columns, column_map_for.call(value), @column_types)
+        yield layout.build(row), layout.indexes, value
       end
     end
 
     def indexed_rows # :nodoc:
       @indexed_rows ||= begin
         columns = column_indexes
-        @rows.map { |row| IndexedRow.new(columns, row) }.freeze
+        @rows.map { |row| ActiveModel::IndexedRow.new(columns, row) }.freeze
+      end
+    end
+
+    # The types of the columns that +known_types+ has no key for, by column name.
+    def column_types_except(known_types) # :nodoc:
+      return EMPTY_HASH unless @column_types
+
+      types = nil
+      @columns.each_with_index do |name, index|
+        unless known_types.key?(name)
+          types ||= {}
+          types[name] = @column_types[index] || Type.default_value
+        end
+      end
+      types || EMPTY_HASH
+    end
+
+    # Lays rows out the way a column map expects. Each column's slot is the
+    # index generated in the reader/writer methods, so the values in a row
+    # need to line up with those indexes.
+    #
+    # "Pending" columns are columns the schema didn't know about, so no
+    # methods were generated for them, for example column aliases. They
+    # are given indexes after the last one in the column map, and rows are
+    # laid out with a proxy that wraps the column map with those extra
+    # indexes (and the types the database gave them), so the column map
+    # itself is never modified.
+    #
+    # The LUT is only built once a column is found out of place, so in the
+    # common case (selected columns are in schema order) rows are used
+    # as-is.
+    class RowLayout # :nodoc:
+      attr_reader :indexes
+
+      # +column_types+ are the types of +columns+, by position, if the
+      # database gave them.
+      #: (Array[String], Hash[String, Integer] | ActiveModel::IndexedRow::ExtendedIndexes, ?(Array[ActiveModel::Type::Value?] | Hash[Integer, ActiveModel::Type::Value])?) -> void
+      def initialize(columns, column_map, column_types = nil)
+        shuffle_lut = nil
+        pending = nil
+        pending_types = nil
+        last_slot = nil
+
+        columns.each_with_index do |name, i|
+          unless slot = column_map[name]
+            pending ||= {}
+            last_slot ||= ActiveModel::IndexedRow.max_slot(column_map)
+            slot = pending[name] = (last_slot += 1)
+            if type = column_types&.[](i)
+              (pending_types ||= {})[slot] = type
+            end
+          end
+
+          if shuffle_lut
+            shuffle_lut << slot
+          elsif slot != i
+            shuffle_lut = (0...i).to_a << slot
+          end
+        end
+
+        @indexes = if pending_types
+          ActiveModel::IndexedRow::ExtendedIndexes.new(column_map, pending.freeze, pending_types.freeze)
+        elsif pending
+          ActiveModel::IndexedRow::ExtendedIndexes.new(column_map, pending.freeze)
+        else
+          column_map
+        end
+        @shuffle_lut = shuffle_lut
+        @width = shuffle_lut.max + 1 if shuffle_lut
+      end
+
+      # Returns +row+ laid out by #indexes, as an Array.
+      #: (Array[untyped]) -> Array[untyped]
+      def build(row)
+        return row unless @shuffle_lut
+
+        shuffled = ActiveModel::IndexedRow.unset_row(@width)
+        @shuffle_lut.each_with_index { |slot, i| shuffled[slot] = row[i] }
+        shuffled.freeze
       end
     end
 
     private
       def column_type(name, index, type_overrides)
-        type_overrides.fetch(name) do
-          column_types.fetch(index) do
-            column_types.fetch(name, Type.default_value)
+        if type_overrides
+          type_overrides.fetch(name) do
+            column_type(name, index, nil)
           end
+        elsif @column_types
+          @column_types[index] || Type.default_value
+        else
+          Type.default_value
         end
       end
 
@@ -237,14 +332,8 @@ module ActiveRecord
         end
       end
 
-      empty_array = [].freeze
+      EMPTY_ARRAY = [].freeze
       EMPTY_HASH = {}.freeze
-      private_constant :EMPTY_HASH
-
-      EMPTY = new(empty_array, empty_array, EMPTY_HASH).freeze
-      private_constant :EMPTY
-
-      EMPTY_ASYNC = FutureResult.wrap(EMPTY).freeze
-      private_constant :EMPTY_ASYNC
+      private_constant :EMPTY_ARRAY, :EMPTY_HASH
   end
 end

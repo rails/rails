@@ -5,13 +5,13 @@ module Arel # :nodoc: all
     class NamedFunction < Arel::Nodes::Function
       attr_accessor :name
 
-      def initialize(name, expr, aliaz = nil)
-        super(expr, aliaz)
+      def initialize(name, expr)
+        super(expr)
         @name = name
       end
 
       def hash
-        super ^ @name.hash
+        [super, @name].hash
       end
 
       def eql?(other)

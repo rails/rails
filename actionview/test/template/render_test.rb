@@ -3,6 +3,7 @@
 require "abstract_unit"
 require "controller/fake_models"
 require "test_renderable"
+require "active_support/testing/ractors_assertions"
 require "active_model/validations"
 
 class TestController < ActionController::Base
@@ -60,7 +61,7 @@ module RenderTestCases
 
   def test_explicit_js_format_adds_html_fallback
     rendered_templates = @controller_view.render(template: "test/js_html_fallback", formats: :js)
-    assert_equal(%Q(document.write("<b>Hello from a HTML partial!<\\/b>")\n), rendered_templates)
+    assert_equal(%Q(document.write("<b>Hello from an HTML partial!<\\/b>")\n), rendered_templates)
   end
 
   def test_render_without_options
@@ -228,6 +229,37 @@ module RenderTestCases
     assert_equal 6, translated_spot[:first_column]
   end
 
+  def test_render_runtime_error_without_error_highlight
+    ex = assert_raises(ActionView::Template::Error) {
+      @view.render(template: "test/runtime_error")
+    }
+    erb_btl = ex.backtrace_locations.first
+
+    error_highlight = Object.send(:remove_const, :ErrorHighlight) if defined?(ErrorHighlight) && ErrorHighlight
+    translating_frame = ActionDispatch::ExceptionWrapper::SourceMapLocation.new(erb_btl, ex.template)
+
+    assert_nil translating_frame.spot(ex.cause)
+  ensure
+    Object.const_set(:ErrorHighlight, error_highlight) if error_highlight
+  end
+
+  def test_render_runtime_error_without_error_highlight_and_abstract_syntax_tree
+    ex = assert_raises(ActionView::Template::Error) {
+      @view.render(template: "test/runtime_error")
+    }
+    erb_btl = ex.backtrace_locations.first
+
+    # As on JRuby, which has neither.
+    error_highlight = Object.send(:remove_const, :ErrorHighlight) if defined?(ErrorHighlight) && ErrorHighlight
+    abstract_syntax_tree = RubyVM.send(:remove_const, :AbstractSyntaxTree) if defined?(RubyVM::AbstractSyntaxTree)
+    translating_frame = ActionDispatch::ExceptionWrapper::SourceMapLocation.new(erb_btl, ex.template)
+
+    assert_nil translating_frame.spot(ex.cause)
+  ensure
+    Object.const_set(:ErrorHighlight, error_highlight) if error_highlight
+    RubyVM.const_set(:AbstractSyntaxTree, abstract_syntax_tree) if abstract_syntax_tree
+  end
+
   def test_render_location_conditional_append
     ex = assert_raises(ActionView::Template::Error) {
       @view.render(template: "test/unparseable_runtime_error")
@@ -326,6 +358,17 @@ module RenderTestCases
     end
   end
 
+  def test_render_renderable_does_not_mask_nameerror_from_within_render_in
+    renderable = Object.new
+    renderable.define_singleton_method(:render_in) { |*| nil.method(:render_in) }
+
+    name_error = assert_raises NameError, match: "undefined method" do
+      @view.render renderable: renderable
+    end
+    assert_includes name_error.message, "render_in"
+    assert_includes name_error.message, "NilClass"
+  end
+
   def test_render_partial_starting_with_a_capital
     assert_nothing_raised { @view.render(partial: "test/FooBar") }
   end
@@ -398,9 +441,67 @@ module RenderTestCases
     assert_equal "NilClass", @view.render(partial: "test/klass", object: nil)
   end
 
+  def test_render_renderable_object_without_block_without_options_deprecated
+    renderable = Object.new
+    def renderable.render_in(view_context)
+    end
+
+    assert_deprecated "without options", ActionView.deprecator do
+      @view.render renderable
+    end
+  end
+
+  def test_render_renderable_object_with_block_without_options_deprecated
+    renderable = Object.new
+    def renderable.render_in(view_context, &block)
+    end
+
+    assert_deprecated "without options", ActionView.deprecator do
+      @view.render renderable
+    end
+  end
+
+  def test_render_renderable_object_with_method_reader
+    renderable = Class.new do
+      attr_reader :method
+
+      def initialize
+        @method = :get
+      end
+
+      def render_in(view_context, **options)
+        view_context.render plain: "Hello, #{options[:locals][:name]} with #{method}!"
+      end
+    end.new
+
+    assert_equal "Hello, Renderable with get!", @view.render(renderable, name: "Renderable")
+  end
+
   def test_render_renderable_render_in
     assert_equal "Hello, World!", @view.render(TestRenderable.new)
     assert_equal "Hello, World!", @view.render(renderable: TestRenderable.new)
+
+    assert_equal "Hello, Renderable!", @view.render(TestRenderable.new, name: "Renderable")
+    assert_equal "Hello, Renderable!", @view.render(renderable: TestRenderable.new, locals: { name: "Renderable" })
+
+    assert_equal "<h1>Goodbye, Block!</h1>", @view.render(TestRenderable.new) { @view.tag.h1 "Goodbye, Block!" }
+    assert_equal "<h1>Goodbye, Block!</h1>", @view.render(renderable: TestRenderable.new) { @view.tag.h1 "Goodbye, Block!" }
+  end
+
+  def test_render_renderable_instruments_render_template
+    assert_notification("render_template.action_view", identifier: "TestRenderable", layout: nil, locals: { name: "Renderable" }) do
+      @view.render(TestRenderable.new, name: "Renderable")
+    end
+  end
+
+  def test_render_renderable_render_in_excludes_renderable_key
+    renderable = Object.new
+    def renderable.render_in(view_context, **options)
+      view_context.render plain: options, **options
+    end
+    options = { locals: { a: true, b: false } }
+
+    assert_equal options.to_s, @view.render(renderable: renderable, **options)
   end
 
   def test_render_object_different_name
@@ -430,6 +531,11 @@ module RenderTestCases
       @view.render(partial: "test/local_inspector", collection: [ Customer.new("mary") ])
   end
 
+  def test_render_partial_collection_with_block
+    assert_equal "Before\narg2,arg1\nAfterBefore\narg2,arg1\nAfter",
+      @view.render(layout: "test/layout_for_block_with_args", collection: [ Customer.new, Customer.new ], as: :customer) { |a, b| "#{b},#{a}" }
+  end
+
   def test_render_partial_collection_with_different_partials_still_provides_partial_iteration
     a = {}
     b = {}
@@ -437,6 +543,44 @@ module RenderTestCases
     def b.to_partial_path; "test/partial_iteration_2"; end
 
     assert_equal "local-variable\nlocal-variable", @controller_view.render([a, b])
+  end
+
+  def test_render_partial_collection_with_spacer_template
+    assert_equal "Hello: davidonly partialHello: mary",
+      @view.render(partial: "test/customer", spacer_template: "test/partial_only", collection: [ Customer.new("david"), Customer.new("mary") ])
+  end
+
+  def test_render_partial_collection_inside_a_template_and_with_nested_partials
+    single = @view.render(partial: "test/partial_with_partial")
+    rendered = @view.render(inline: "[<%= render partial: 'test/partial_with_partial', collection: [1, 2] %>]")
+
+    assert_equal "[#{single}#{single}]", rendered
+    assert_predicate rendered, :html_safe?
+  end
+
+  def test_render_partial_collection_with_a_renderer_that_builds_the_collection_itself
+    renderer = Class.new(ActionView::CollectionRenderer) do
+      attr_reader :bodies
+
+      private
+        def build_rendered_collection(templates, spacer)
+          @bodies = templates.map(&:body)
+          super
+        end
+    end.new(@view.lookup_context, locals: {})
+
+    renderer.render_collection_with_partial([ Customer.new("david"), Customer.new("mary") ], "test/customer", @view, nil)
+    assert_equal [ "Hello: david", "Hello: mary" ], renderer.bodies
+  end
+
+  def test_render_partial_collection_with_a_handler_that_returns_its_output
+    assert_equal "<h1>partial html</h1><h1>partial html</h1>", @view.render(partial: "test/partialhtml", collection: [ 1, 2 ])
+  end
+
+  def test_render_partial_collection_with_a_handler_that_returns_its_output_keeps_each_body
+    renderer = ActionView::CollectionRenderer.new(@view.lookup_context, locals: {})
+    rendered = renderer.render_collection_with_partial([ 1, 2 ], "test/partialhtml", @view, nil)
+    assert_equal [ "<h1>partial html</h1>", "<h1>partial html</h1>" ], rendered.rendered_templates.map(&:body)
   end
 
   def test_render_partial_with_empty_collection_should_return_nil
@@ -623,7 +767,7 @@ module RenderTestCases
     assert_not ActionView::Template::Handlers.extensions.include?(:foo)
     assert_equal "Hello, World!", @view.render(inline: "Hello, World!", type: :foo)
   ensure
-    ActionView::Template::Handlers.class_variable_get(:@@template_handlers).delete(:foo)
+    ActionView::Template.unregister_template_handler :foo
   end
 
   def test_render_ignores_templates_with_malformed_template_handlers
@@ -912,6 +1056,42 @@ class CachedCollectionViewRenderTest < ActiveSupport::TestCase
     assert_equal "Hello: david", ActionView::PartialRenderer.collection_cache.read(key)
   end
 
+  test "template body written to cache with expiration when expires_in set" do
+    customer = Customer.new("jarrett", 2)
+    key = cache_key(customer, "test/_customer")
+    @view.render(partial: "test/customer", collection: [customer], cached: { expires_in: 1.hour })
+    assert_equal "Hello: jarrett", ActionView::PartialRenderer.collection_cache.read(key)
+
+    travel 2.hours
+
+    assert_nil ActionView::PartialRenderer.collection_cache.read(key)
+  end
+
+  test "collection caching with an expires_in set to nil does not expire" do
+    ActionView::PartialRenderer.collection_cache = ActiveSupport::Cache::MemoryStore.new(expires_in: 1.hour)
+    customer = Customer.new("david", 1)
+    key = cache_key(customer, "test/_customer")
+    @view.render(partial: "test/customer", collection: [customer], cached: { expires_in: nil })
+    assert_equal "Hello: david", ActionView::PartialRenderer.collection_cache.read(key)
+
+    travel 2.hours
+
+    assert_equal "Hello: david", ActionView::PartialRenderer.collection_cache.read(key)
+  end
+
+  test "collection caching without expires_in does not overwrite the default expires_in of the cache store" do
+    ActionView::PartialRenderer.collection_cache = ActiveSupport::Cache::MemoryStore.new(expires_in: 1.hour)
+
+    customer = Customer.new("david", 1)
+    key = cache_key(customer, "test/_customer")
+    @view.render(partial: "test/customer", collection: [customer], cached: true)
+    assert_equal "Hello: david", ActionView::PartialRenderer.collection_cache.read(key)
+
+    travel 2.hours
+
+    assert_nil ActionView::PartialRenderer.collection_cache.read(key)
+  end
+
   test "collection caching does not cache by default" do
     customer = Customer.new("david", 1)
     key = cache_key(customer, "test/_customer")
@@ -1003,6 +1183,46 @@ class CachedCollectionViewRenderTest < ActiveSupport::TestCase
       "1 | 2 | 3 | 4 | 4",
       "1 | 2 | 3 | 4 | 6"
     ], splited_result
+  end
+
+  class ObjectRenderingRactorTest < ActiveSupport::TestCase
+    include ActiveSupport::Testing::Isolation
+    include ActiveSupport::Testing::RactorsAssertions
+
+    class ModelType
+      def to_partial_path
+        "model_types/model_type"
+      end
+    end
+
+    def self.render_object_partial
+      resolver = ActionView::FixtureResolver.new(
+        "admin/model_types/_model_type.html.erb" => "Hello from <%= model_type.to_partial_path %>"
+      )
+      details = { locale: [:en], formats: [:html], variants: [], handlers: [:erb] }
+      lookup_context = ActionView::LookupContext.new([resolver], details, ["admin/posts"])
+      view = ActionView::Base.with_empty_template_cache.with_context(lookup_context)
+      view.render(partial: ModelType.new)
+    end
+
+    test "renders an object partial with a namespaced partial name inside a non-main Ractor" do
+      Mime.eager_load!
+      rendered_on_main = self.class.render_object_partial
+      assert_equal "Hello from model_types/model_type", rendered_on_main
+
+      ActionView::Template::Handlers::ERB.escape_ignore_list.freeze
+      ActiveSupport::Ractors.unshareable_proc_action = :raise
+      ActiveSupport::Notifications.send(:record_subscriptions)
+      Ractor.make_shareable(ActiveSupport.event_reporter)
+
+      I18n::Config.prepend(Module.new do
+        def available_locales = [:en].freeze
+      end)
+
+      rendered_in_ractor = on_ractor { ObjectRenderingRactorTest.render_object_partial }
+
+      assert_equal rendered_on_main, rendered_in_ractor
+    end
   end
 
   private

@@ -19,23 +19,26 @@ class Rails::InfoController < Rails::ApplicationController # :nodoc:
   end
 
   def routes
-    if query = params[:query]
-      query = URI::RFC2396_PARSER.escape query
+    respond_to do |format|
+      format.html do
+        @routes_inspector = ActionDispatch::Routing::RoutesInspector.new(Rails.application.routes.routes)
+        @page_title = "Routes"
+      end
 
-      render json: {
-        exact: matching_routes(query: query, exact_match: true),
-        fuzzy: matching_routes(query: query, exact_match: false)
-      }
-    else
-      @routes_inspector = ActionDispatch::Routing::RoutesInspector.new(_routes.routes)
-      @page_title = "Routes"
+      format.json do
+        query = URI::RFC2396_PARSER.escape params[:query]
+
+        render json: {
+          exact: matching_routes(query: query, exact_match: true),
+          fuzzy: matching_routes(query: query, exact_match: false)
+        }
+      end
     end
   end
 
   def notes
-    @annotations = Rails::SourceAnnotationExtractor.new(
-      Rails::SourceAnnotationExtractor::Annotation.tags.join("|")
-    ).find(
+    tags = params[:tag].presence || Rails::SourceAnnotationExtractor::Annotation.tags.join("|")
+    @annotations = Rails::SourceAnnotationExtractor.new(tags).find(
       Rails::SourceAnnotationExtractor::Annotation.directories
     )
   end
@@ -47,7 +50,7 @@ class Rails::InfoController < Rails::ApplicationController # :nodoc:
       normalized_path = ("/" + query).squeeze("/")
       query_without_url_or_path_suffix = query.gsub(/(\w)(_path$)/, '\1').gsub(/(\w)(_url$)/, '\1')
 
-      _routes.routes.filter_map do |route|
+      Rails.application.routes.routes.filter_map do |route|
         route_wrapper = ActionDispatch::Routing::RouteWrapper.new(route)
 
         if exact_match

@@ -48,6 +48,29 @@ module ActiveRecord
       ActiveRecord::Tasks::DatabaseTasks.stub(method_name, mock, &block)
       assert_mock(mock)
     end
+
+    def with_stubbed_configurations(configurations = @configurations, env: "test")
+      old_configurations = ActiveRecord::Base.configurations
+      ActiveRecord::Base.configurations = configurations
+      ActiveRecord::Tasks::DatabaseTasks.env = env
+
+      yield
+    ensure
+      ActiveRecord::Base.configurations = old_configurations
+      ActiveRecord::Tasks::DatabaseTasks.env = nil
+    end
+
+    def with_stubbed_configurations_establish_connection(&block)
+      with_stubbed_configurations do
+        # To refrain from connecting to a newly created empty DB in
+        # sqlite3_mem tests
+        ActiveRecord::Base.connection_handler.stub(:establish_connection, nil, &block)
+      end
+    end
+
+    def config_for(env_name, name)
+      ActiveRecord::Base.configurations.configs_for(env_name: env_name, name: name)
+    end
   end
 
   ADAPTERS_TASKS = {
@@ -55,22 +78,26 @@ module ActiveRecord
     trilogy:    :mysql_tasks,
     postgresql: :postgresql_tasks,
     sqlite3:    :sqlite_tasks
-  }
+  }.freeze
 
   class DatabaseTasksCheckProtectedEnvironmentsTest < ActiveRecord::TestCase
+    skip_under_ractor_proxy
+
     if current_adapter?(:SQLite3Adapter) && !in_memory_db?
       self.use_transactional_tests = false
 
       def setup
         recreate_metadata_tables
+        @before_root = ActiveRecord::Tasks::DatabaseTasks.root = Dir.pwd
       end
 
       def teardown
         recreate_metadata_tables
+        ActiveRecord::Tasks::DatabaseTasks.root = @before_root
       end
 
       def test_raises_an_error_when_called_with_protected_environment
-        protected_environments = ActiveRecord::Base.protected_environments
+        protected_environments = ActiveRecord.protected_environments
         current_env            = ActiveRecord::Base.connection_pool.migration_context.current_environment
 
         ActiveRecord::Base.connection_pool.internal_metadata[:environment] = current_env
@@ -85,18 +112,18 @@ module ActiveRecord
           # Assert no error
           ActiveRecord::Tasks::DatabaseTasks.check_protected_environments!("arunit")
 
-          ActiveRecord::Base.protected_environments = [current_env]
+          ActiveRecord.protected_environments = [current_env]
 
           assert_raise(ActiveRecord::ProtectedEnvironmentError) do
             ActiveRecord::Tasks::DatabaseTasks.check_protected_environments!("arunit")
           end
         end
       ensure
-        ActiveRecord::Base.protected_environments = protected_environments
+        ActiveRecord.protected_environments = protected_environments
       end
 
       def test_raises_an_error_when_called_with_protected_environment_which_name_is_a_symbol
-        protected_environments = ActiveRecord::Base.protected_environments
+        protected_environments = ActiveRecord.protected_environments
         current_env            = ActiveRecord::Base.connection_pool.migration_context.current_environment
 
         ActiveRecord::Base.connection_pool.internal_metadata[:environment] = current_env
@@ -111,13 +138,13 @@ module ActiveRecord
           # Assert no error
           ActiveRecord::Tasks::DatabaseTasks.check_protected_environments!("arunit")
 
-          ActiveRecord::Base.protected_environments = [current_env.to_sym]
+          ActiveRecord.protected_environments = [current_env.to_sym]
           assert_raise(ActiveRecord::ProtectedEnvironmentError) do
             ActiveRecord::Tasks::DatabaseTasks.check_protected_environments!("arunit")
           end
         end
       ensure
-        ActiveRecord::Base.protected_environments = protected_environments
+        ActiveRecord.protected_environments = protected_environments
       end
 
       def test_raises_an_error_if_no_migrations_have_been_made
@@ -154,14 +181,24 @@ module ActiveRecord
   end
 
   class DatabaseTasksCheckProtectedEnvironmentsMultiDatabaseTest < ActiveRecord::TestCase
+    skip_under_ractor_proxy
+
     if current_adapter?(:SQLite3Adapter) && !in_memory_db?
       self.use_transactional_tests = false
+
+      def setup
+        @before_root = ActiveRecord::Tasks::DatabaseTasks.root = Dir.pwd
+      end
+
+      def teardown
+        ActiveRecord::Tasks::DatabaseTasks.root = @before_root
+      end
 
       def test_with_multiple_databases
         env = ActiveRecord::ConnectionHandling::DEFAULT_ENV.call
 
         with_multi_db_configurations(env) do
-          protected_environments = ActiveRecord::Base.protected_environments
+          protected_environments = ActiveRecord.protected_environments
           current_env = ActiveRecord::Base.connection_pool.migration_context.current_environment
           assert_equal current_env, env
 
@@ -181,13 +218,13 @@ module ActiveRecord
           schema_migration.create_table
           schema_migration.create_version("1")
 
-          ActiveRecord::Base.protected_environments = [current_env.to_sym]
+          ActiveRecord.protected_environments = [current_env.to_sym]
 
           assert_raise(ActiveRecord::ProtectedEnvironmentError) do
             ActiveRecord::Tasks::DatabaseTasks.check_protected_environments!(env)
           end
         ensure
-          ActiveRecord::Base.protected_environments = protected_environments
+          ActiveRecord.protected_environments = protected_environments
         end
       end
 
@@ -198,11 +235,11 @@ module ActiveRecord
             env => {
               primary: {
                 adapter: "sqlite3",
-                database: "test/fixtures/fixture_database.sqlite3",
+                database: ARTest.test_configuration_hashes["arunit"]["database"],
               },
               secondary: {
                 adapter: "sqlite3",
-                database: "test/fixtures/fixture_database_2.sqlite3",
+                database: ARTest.test_configuration_hashes["arunit2"]["database"],
               }
             }
           }
@@ -224,7 +261,7 @@ module ActiveRecord
   class DatabaseTasksRegisterTask < ActiveRecord::TestCase
     setup do
       @tasks_was = ActiveRecord::Tasks::DatabaseTasks.instance_variable_get(:@tasks).dup
-      @adapters_was = ActiveRecord::ConnectionAdapters.instance_variable_get(:@adapters).dup
+      @adapters_was = ActiveRecord::ConnectionAdapters.instance_variable_get(:@adapters).dup.freeze
     end
 
     teardown do
@@ -360,6 +397,8 @@ module ActiveRecord
   end
 
   class DatabaseTasksDumpSchemaTest < ActiveRecord::TestCase
+    include DatabaseTasksHelper
+
     def test_ensure_db_dir
       Dir.mktmpdir do |dir|
         ActiveRecord::Tasks::DatabaseTasks.stub(:db_dir, dir) do
@@ -370,8 +409,10 @@ module ActiveRecord
           FileUtils.rm_rf(dir)
           assert_not File.file?(path)
 
-          ActiveRecord::SchemaDumper.stub(:dump, "") do # Do not actually dump for test performances
-            ActiveRecord::Tasks::DatabaseTasks.dump_schema(db_config)
+          ActiveRecord::Base.connection_handler.stub(:establish_connection, nil) do
+            ActiveRecord::SchemaDumper.stub(:dump, "") do # Do not actually dump for test performances
+              ActiveRecord::Tasks::DatabaseTasks.dump_schema(db_config)
+            end
           end
 
           assert File.file?(path)
@@ -391,8 +432,10 @@ module ActiveRecord
           FileUtils.rm_rf(dir)
           assert_not File.file?(path)
 
-          ActiveRecord::SchemaDumper.stub(:dump, "") do # Do not actually dump for test performances
-            ActiveRecord::Tasks::DatabaseTasks.dump_schema(db_config)
+          ActiveRecord::Base.connection_handler.stub(:establish_connection, nil) do
+            ActiveRecord::SchemaDumper.stub(:dump, "") do # Do not actually dump for test performances
+              ActiveRecord::Tasks::DatabaseTasks.dump_schema(db_config)
+            end
           end
 
           assert File.file?(path)
@@ -401,9 +444,82 @@ module ActiveRecord
     ensure
       ActiveRecord::Base.clear_cache!
     end
+
+    def test_dump_schema_passes_the_given_format_to_check_schema_dump
+      db_config = ActiveRecord::DatabaseConfigurations::HashConfig.new("arunit", "primary",
+        adapter: "sqlite3",
+        database: "my-db",
+        schema_format: :sql,
+      )
+
+      format = :ruby
+      assert_not_equal format, db_config.schema_format # precondition
+
+      dumped = false
+
+      ActiveRecord::Tasks::DatabaseTasks.stub(:db_dir, "db") do
+        db_config.stub(:schema_dump, ->(sf = db_config.schema_format) { "schema.rb" if sf == format }) do
+          ActiveRecord::Tasks::DatabaseTasks.stub(:with_temporary_pool, ->(*) { dumped = true }) do
+            ActiveRecord::Tasks::DatabaseTasks.dump_schema(db_config, format)
+          end
+        end
+      end
+
+      assert dumped
+    end
+
+    def test_dump_all_only_dumps_same_schema_once
+      counter = 0
+
+      configurations = {
+        "test" => {
+          primary: {
+            schema_dump: "structure.sql",
+          },
+          secondary: {
+            schema_dump: "structure.sql",
+          }
+        }
+      }
+
+      ActiveRecord::Tasks::DatabaseTasks.stub(:db_dir, "/db") do
+        with_stubbed_configurations(configurations) do
+          ActiveRecord::Tasks::DatabaseTasks.stub(:dump_schema, proc { counter += 1 }) do
+            ActiveRecord::Tasks::DatabaseTasks.dump_all
+          end
+        end
+      end
+      assert_equal 1, counter
+    end
+
+    def test_dump_all_handles_path_normalization_for_deduplication
+      counter = 0
+
+      configurations = {
+        "test" => {
+          primary: {
+            schema_dump: "structure.sql",
+          },
+          secondary: {
+            schema_dump: "db/structure.sql",
+          }
+        }
+      }
+
+      ActiveRecord::Tasks::DatabaseTasks.stub(:db_dir, "db") do
+        with_stubbed_configurations(configurations) do
+          ActiveRecord::Tasks::DatabaseTasks.stub(:dump_schema, proc { counter += 1 }) do
+            ActiveRecord::Tasks::DatabaseTasks.dump_all
+          end
+        end
+      end
+      assert_equal 1, counter
+    end
   end
 
   class DatabaseTasksCreateAllTest < ActiveRecord::TestCase
+    include DatabaseTasksHelper
+
     def setup
       @configurations = { "development" => { "adapter" => "abstract", "database" => "my-db" } }
 
@@ -475,18 +591,6 @@ module ActiveRecord
         end
       end
     end
-
-    private
-      def with_stubbed_configurations_establish_connection(&block)
-        old_configurations = ActiveRecord::Base.configurations
-        ActiveRecord::Base.configurations = @configurations
-
-        # To refrain from connecting to a newly created empty DB in
-        # sqlite3_mem tests
-        ActiveRecord::Base.connection_handler.stub(:establish_connection, nil, &block)
-      ensure
-        ActiveRecord::Base.configurations = old_configurations
-      end
   end
 
   class DatabaseTasksCreateCurrentTest < ActiveRecord::TestCase
@@ -596,20 +700,6 @@ module ActiveRecord
         end
       end
     end
-
-    private
-      def config_for(env_name, name)
-        ActiveRecord::Base.configurations.configs_for(env_name: env_name, name: name)
-      end
-
-      def with_stubbed_configurations_establish_connection(&block)
-        old_configurations = ActiveRecord::Base.configurations
-        ActiveRecord::Base.configurations = @configurations
-
-        ActiveRecord::Base.connection_handler.stub(:establish_connection, nil, &block)
-      ensure
-        ActiveRecord::Base.configurations = old_configurations
-      end
   end
 
   class DatabaseTasksCreateCurrentThreeTierTest < ActiveRecord::TestCase
@@ -717,20 +807,6 @@ module ActiveRecord
         end
       end
     end
-
-    private
-      def config_for(env_name, name)
-        ActiveRecord::Base.configurations.configs_for(env_name: env_name, name: name)
-      end
-
-      def with_stubbed_configurations_establish_connection(&block)
-        old_configurations = ActiveRecord::Base.configurations
-        ActiveRecord::Base.configurations = @configurations
-
-        ActiveRecord::Base.connection_handler.stub(:establish_connection, nil, &block)
-      ensure
-        ActiveRecord::Base.configurations = old_configurations
-      end
   end
 
   class DatabaseTasksDropTest < ActiveRecord::TestCase
@@ -748,6 +824,8 @@ module ActiveRecord
   end
 
   class DatabaseTasksDropAllTest < ActiveRecord::TestCase
+    include DatabaseTasksHelper
+
     def setup
       @configurations = { development: { "adapter" => "abstract", "database" => "my-db" } }
 
@@ -819,16 +897,6 @@ module ActiveRecord
         end
       end
     end
-
-    private
-      def with_stubbed_configurations
-        old_configurations = ActiveRecord::Base.configurations
-        ActiveRecord::Base.configurations = @configurations
-
-        yield
-      ensure
-        ActiveRecord::Base.configurations = old_configurations
-      end
   end
 
   class DatabaseTasksDropCurrentTest < ActiveRecord::TestCase
@@ -906,20 +974,6 @@ module ActiveRecord
     ensure
       ENV["RAILS_ENV"] = old_env
     end
-
-    private
-      def config_for(env_name, name)
-        ActiveRecord::Base.configurations.configs_for(env_name: env_name, name: name)
-      end
-
-      def with_stubbed_configurations
-        old_configurations = ActiveRecord::Base.configurations
-        ActiveRecord::Base.configurations = @configurations
-
-        yield
-      ensure
-        ActiveRecord::Base.configurations = old_configurations
-      end
   end
 
   class DatabaseTasksDropCurrentThreeTierTest < ActiveRecord::TestCase
@@ -1014,20 +1068,6 @@ module ActiveRecord
     ensure
       ENV["RAILS_ENV"] = old_env
     end
-
-    private
-      def config_for(env_name, name)
-        ActiveRecord::Base.configurations.configs_for(env_name: env_name, name: name)
-      end
-
-      def with_stubbed_configurations
-        old_configurations = ActiveRecord::Base.configurations
-        ActiveRecord::Base.configurations = @configurations
-
-        yield
-      ensure
-        ActiveRecord::Base.configurations = old_configurations
-      end
   end
 
   class DatabaseTasksMigrationTestCase < ActiveRecord::TestCase
@@ -1063,6 +1103,9 @@ module ActiveRecord
   end
 
   class DatabaseTasksMigrateTest < DatabaseTasksMigrationTestCase
+    skip_under_ractor_proxy :test_migrate_set_and_unset_empty_values_for_verbose_and_version_env_vars,
+      :test_migrate_set_and_unset_nonsense_values_for_verbose_and_version_env_vars
+
     if current_adapter?(:SQLite3Adapter) && !in_memory_db?
       def test_migrate_set_and_unset_empty_values_for_verbose_and_version_env_vars
         verbose, version = ENV["VERBOSE"], ENV["VERSION"]
@@ -1165,6 +1208,8 @@ module ActiveRecord
   end
 
   class DatabaseTasksMigrateStatusTest < DatabaseTasksMigrationTestCase
+    skip_under_ractor_proxy
+
     if current_adapter?(:SQLite3Adapter) && !in_memory_db?
       def setup
         @schema_migration = ActiveRecord::Base.connection_pool.schema_migration
@@ -1302,6 +1347,8 @@ module ActiveRecord
   end
 
   class DatabaseTasksTruncateAllTest < ActiveRecord::TestCase
+    skip_under_ractor_proxy
+
     unless in_memory_db?
       self.use_transactional_tests = false
 
@@ -1459,20 +1506,6 @@ module ActiveRecord
     ensure
       ENV["RAILS_ENV"] = old_env
     end
-
-    private
-      def config_for(env_name, name)
-        ActiveRecord::Base.configurations.configs_for(env_name: env_name, name: name)
-      end
-
-      def with_stubbed_configurations
-        old_configurations = ActiveRecord::Base.configurations
-        ActiveRecord::Base.configurations = @configurations
-
-        yield
-      ensure
-        ActiveRecord::Base.configurations = old_configurations
-      end
   end
 
   class DatabaseTasksCharsetTest < ActiveRecord::TestCase
@@ -1693,6 +1726,8 @@ module ActiveRecord
   end
 
   class DatabaseTasksCheckSchemaFileMethods < ActiveRecord::TestCase
+    include DatabaseTasksHelper
+
     setup do
       @configurations = { "development" => { "adapter" => "abstract", "database" => "my-db" } }
     end
@@ -1752,6 +1787,17 @@ module ActiveRecord
       end
     end
 
+    def test_schema_dump_path_with_absolute_path
+      ActiveRecord::Tasks::DatabaseTasks.stub(:db_dir, "db") do
+        configurations = {
+          "development" => { "primary" => { "adapter" => "abstract", "database" => "dev-db", "schema_dump" => "/absolute/path/to/schema.rb" } },
+        }
+        with_stubbed_configurations(configurations) do
+          assert_equal "/absolute/path/to/schema.rb", ActiveRecord::Tasks::DatabaseTasks.schema_dump_path(config_for("development", "primary"))
+        end
+      end
+    end
+
     def test_check_dump_filename_with_schema_env_with_non_primary_databases
       schema = ENV["SCHEMA"]
       ENV["SCHEMA"] = "schema_path"
@@ -1785,19 +1831,5 @@ module ActiveRecord
         end
       end
     end
-
-    private
-      def config_for(env_name, name)
-        ActiveRecord::Base.configurations.configs_for(env_name: env_name, name: name)
-      end
-
-      def with_stubbed_configurations(configurations = @configurations)
-        old_configurations = ActiveRecord::Base.configurations
-        ActiveRecord::Base.configurations = configurations
-
-        yield
-      ensure
-        ActiveRecord::Base.configurations = old_configurations
-      end
   end
 end

@@ -5,19 +5,128 @@ require "cases/helper"
 module ActiveRecord
   class DatabaseConfigurations
     class HashConfigTest < ActiveRecord::TestCase
-      def test_pool_default_when_nil
-        config = HashConfig.new("default_env", "primary", pool: nil, adapter: "abstract")
-        assert_equal 5, config.pool
+      def test_pool_config_works_without_deprecation
+        config = HashConfig.new("default_env", "primary", pool: 6, adapter: "abstract")
+        assert_equal 6, config.max_connections
       end
 
-      def test_pool_overrides_with_value
-        config = HashConfig.new("default_env", "primary", pool: "0", adapter: "abstract")
-        assert_equal 0, config.pool
-      end
-
-      def test_when_no_pool_uses_default
+      def test_pool_is_deprecated
         config = HashConfig.new("default_env", "primary", adapter: "abstract")
-        assert_equal 5, config.pool
+        assert_deprecated ActiveRecord.deprecator do
+          assert_equal 5, config.pool
+        end
+      end
+
+      def test_raises_when_pool_and_max_connections_have_different_values
+        assert_raises(RuntimeError, match: /Ambiguous configuration.*pool.*6.*max_connections.*10/) do
+          HashConfig.new("default_env", "primary", pool: 6, max_connections: 10, adapter: "abstract")
+        end
+      end
+
+      def test_allows_pool_and_max_connections_when_same_value
+        config = HashConfig.new("default_env", "primary", pool: 6, max_connections: 6, adapter: "abstract")
+        assert_equal 6, config.max_connections
+      end
+
+      def test_raises_when_pool_and_min_connections_are_set
+        assert_raises(RuntimeError, match: /Ambiguous configuration.*min_connections.*max_connections.*instead/) do
+          HashConfig.new("default_env", "primary", pool: 6, min_connections: 2, adapter: "abstract")
+        end
+      end
+
+      def test_max_age_default_when_nil
+        config = HashConfig.new("default_env", "primary", max_age: nil, adapter: "abstract")
+        assert_equal Float::INFINITY, config.max_age
+      end
+
+      def test_max_age_overrides_with_value
+        config = HashConfig.new("default_env", "primary", max_age: "500", adapter: "abstract")
+        assert_equal 500, config.max_age
+      end
+
+      def test_when_no_max_age_uses_default
+        config = HashConfig.new("default_env", "primary", adapter: "abstract")
+        assert_equal Float::INFINITY, config.max_age
+      end
+
+      def test_max_age_false_disables_it
+        config = HashConfig.new("default_env", "primary", max_age: false, adapter: "abstract")
+        assert_equal Float::INFINITY, config.max_age
+      end
+
+      def test_keepalive_default_when_nil
+        config = HashConfig.new("default_env", "primary", keepalive: nil, adapter: "abstract")
+        assert_equal 600, config.keepalive
+      end
+
+      def test_keepalive_overrides_with_value
+        config = HashConfig.new("default_env", "primary", keepalive: "500", adapter: "abstract")
+        assert_equal 500, config.keepalive
+      end
+
+      def test_when_no_keepalive_uses_default
+        config = HashConfig.new("default_env", "primary", adapter: "abstract")
+        assert_equal 600, config.keepalive
+      end
+
+      def test_keepalive_false_disables_it
+        config = HashConfig.new("default_env", "primary", keepalive: false, adapter: "abstract")
+        assert_nil config.keepalive
+      end
+
+      def test_keepalive_zero_disables_it
+        config = HashConfig.new("default_env", "primary", keepalive: 0, adapter: "abstract")
+        assert_nil config.keepalive
+      end
+
+      def test_max_connections_unlimited_when_nil
+        config = HashConfig.new("default_env", "primary", max_connections: nil, adapter: "abstract")
+        assert_nil config.max_connections
+      end
+
+      def test_max_connections_unlimited_when_negative_one
+        config = HashConfig.new("default_env", "primary", max_connections: "-1", adapter: "abstract")
+        assert_nil config.max_connections
+      end
+
+      def test_max_connections_zero_means_zero
+        config = HashConfig.new("default_env", "primary", max_connections: "0", adapter: "abstract")
+        assert_equal 0, config.max_connections
+      end
+
+      def test_max_connections_overrides_with_value
+        config = HashConfig.new("default_env", "primary", max_connections: "10", adapter: "abstract")
+        assert_equal 10, config.max_connections
+      end
+
+      def test_when_no_max_connections_uses_default
+        config = HashConfig.new("default_env", "primary", adapter: "abstract")
+        assert_equal 5, config.max_connections
+      end
+
+      def test_max_threads_fallback_when_unlimited_connections
+        config = HashConfig.new("default_env", "primary", max_connections: nil, adapter: "abstract")
+        assert_equal 5, config.max_threads
+      end
+
+      def test_max_threads_fallback_when_negative_connections
+        config = HashConfig.new("default_env", "primary", max_connections: -1, adapter: "abstract")
+        assert_equal 5, config.max_threads
+      end
+
+      def test_min_connections_default_when_nil
+        config = HashConfig.new("default_env", "primary", min_connections: nil, adapter: "abstract")
+        assert_equal 0, config.min_connections
+      end
+
+      def test_min_connections_overrides_with_value
+        config = HashConfig.new("default_env", "primary", min_connections: "5", adapter: "abstract")
+        assert_equal 5, config.min_connections
+      end
+
+      def test_when_no_min_connections_uses_default
+        config = HashConfig.new("default_env", "primary", adapter: "abstract")
+        assert_equal 0, config.min_connections
       end
 
       def test_min_threads_with_value
@@ -35,19 +144,19 @@ module ActiveRecord
         assert_equal 10, config.max_threads
       end
 
-      def test_max_threads_default_uses_pool_default
+      def test_max_threads_default_uses_max_connections_default
         config = HashConfig.new("default_env", "primary", adapter: "abstract")
-        assert_equal 5, config.pool
+        assert_equal 5, config.max_connections
         assert_equal 5, config.max_threads
       end
 
-      def test_max_threads_uses_pool_when_set
-        config = HashConfig.new("default_env", "primary", pool: 1, adapter: "abstract")
-        assert_equal 1, config.pool
+      def test_max_threads_uses_max_connections_when_set
+        config = HashConfig.new("default_env", "primary", max_connections: 1, adapter: "abstract")
+        assert_equal 1, config.max_connections
         assert_equal 1, config.max_threads
       end
 
-      def test_max_queue_is_pool_multiplied_by_4
+      def test_max_queue_is_max_threads_multiplied_by_4
         config = HashConfig.new("default_env", "primary", adapter: "abstract")
         assert_equal 5, config.max_threads
         assert_equal config.max_threads * 4, config.max_queue
@@ -80,7 +189,17 @@ module ActiveRecord
 
       def test_when_no_reaping_frequency_uses_default
         config = HashConfig.new("default_env", "primary", adapter: "abstract")
-        assert_equal 60.0, config.reaping_frequency
+        assert_equal 20.0, config.reaping_frequency
+      end
+
+      def test_reaping_frequency_is_reduced_for_low_keepalive
+        config = HashConfig.new("default_env", "primary", keepalive: "15", adapter: "abstract")
+        assert_equal 15.0, config.reaping_frequency
+      end
+
+      def test_reaping_frequency_false_disables_it
+        config = HashConfig.new("default_env", "primary", reaping_frequency: false, adapter: "abstract")
+        assert_nil config.reaping_frequency
       end
 
       def test_idle_timeout_default_when_nil
@@ -101,6 +220,16 @@ module ActiveRecord
       def test_idle_timeout_nil_when_less_than_or_equal_to_zero
         config = HashConfig.new("default_env", "primary", idle_timeout: "0", adapter: "abstract")
         assert_nil config.idle_timeout
+      end
+
+      def test_idle_timeout_false_disables_it
+        config = HashConfig.new("default_env", "primary", idle_timeout: false, adapter: "abstract")
+        assert_nil config.idle_timeout
+      end
+
+      def test_idle_timeout_true_uses_default
+        config = HashConfig.new("default_env", "primary", idle_timeout: true, adapter: "abstract")
+        assert_equal 300.0, config.idle_timeout
       end
 
       def test_default_schema_dump_value
@@ -134,6 +263,24 @@ module ActiveRecord
 
         config = HashConfig.new("default_env", "primary", database_tasks: "str", adapter: "abstract")
         assert_equal true, config.database_tasks?
+      end
+
+      def test_dump_schema_migrations_can_be_configured_per_database
+        ActiveRecord.stub(:dump_schema_migrations, true) do
+          config = HashConfig.new("default_env", "primary", adapter: "abstract")
+          assert_predicate config, :dump_schema_migrations?
+
+          config = HashConfig.new("default_env", "primary", dump_schema_migrations: false, adapter: "abstract")
+          assert_not_predicate config, :dump_schema_migrations?
+        end
+
+        ActiveRecord.stub(:dump_schema_migrations, false) do
+          config = HashConfig.new("default_env", "primary", adapter: "abstract")
+          assert_not_predicate config, :dump_schema_migrations?
+
+          config = HashConfig.new("default_env", "primary", dump_schema_migrations: true, adapter: "abstract")
+          assert_predicate config, :dump_schema_migrations?
+        end
       end
 
       def test_schema_cache_path_default_for_primary

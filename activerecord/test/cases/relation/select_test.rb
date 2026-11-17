@@ -115,14 +115,6 @@ module ActiveRecord
       assert_not_nil post.post_title
     end
 
-    def test_select_preserves_duplicate_columns
-      quoted_posts_id = Regexp.escape(quote_table_name("posts.id"))
-      quoted_posts = Regexp.escape(quote_table_name("posts"))
-      assert_queries_match(/SELECT #{quoted_posts_id}, #{quoted_posts_id} FROM #{quoted_posts}/i) do
-        Post.select(:id, :id).to_a
-      end
-    end
-
     def test_reselect
       expected = Post.select(:title).to_sql
       assert_equal expected, Post.select(:title, :body).reselect(:title).to_sql
@@ -196,7 +188,7 @@ module ActiveRecord
       posts = Post.select("posts.*").joins(:comments).includes(:comments)
       assert_equal %w(
         id author_id title body type legacy_comments_count taggings_with_delete_all_count taggings_with_destroy_count
-        tags_count indestructible_tags_count tags_with_destroy_count tags_with_nullify_count
+        tags_count indestructible_tags_count tags_with_destroy_count tags_with_nullify_count deleted_at
       ), posts.first.attributes.keys
     end
 
@@ -222,6 +214,13 @@ module ActiveRecord
       end
 
       assert_equal "`select' with block doesn't take arguments.", error.message
+    end
+
+    def test_select_with_duplicated_column
+      post = Post.select("posts.id, posts.title, posts.id").find(1)
+
+      assert_equal 1, post.id
+      assert_equal "Welcome to the weblog", post.title
     end
   end
 end

@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require "cases/helper"
+require "active_support/core_ext/object/with"
 require "models/post"
 require "models/topic"
 require "models/comment"
@@ -46,6 +47,30 @@ class NamedScopingTest < ActiveRecord::TestCase
     assert_equal Topic.first,                   Topic.base.first
     assert_equal Topic.count,                   Topic.base.count
     assert_equal Topic.average(:replies_count), Topic.base.average(:replies_count)
+  end
+
+  def test_scope_defined_with_shareable_proc_is_ractor_safe
+    scope_class = Class.new(Topic)
+    ActiveSupport::Ractors.with(unshareable_proc_action: :raise) do
+      assert_nothing_raised do
+        scope_class.scope :ractor_approved, -> { where(approved: true) }
+      end
+    end
+    assert scope_class.respond_to?(:ractor_approved)
+    assert_kind_of ActiveRecord::Relation, scope_class.ractor_approved
+    assert_match(/approved/, scope_class.ractor_approved.to_sql)
+  end
+
+  if RUBY_VERSION >= "4"
+    def test_scope_with_unshareable_proc_is_rejected_when_ractor_safe
+      scope_class = Class.new(Topic)
+      unshareable = +"approved"
+      ActiveSupport::Ractors.with(unshareable_proc_action: :raise) do
+        assert_raises(Ractor::IsolationError) do
+          scope_class.scope :ractor_unsafe, -> { where(unshareable => true) }
+        end
+      end
+    end
   end
 
   def test_calling_merge_at_first_in_scope
@@ -180,6 +205,24 @@ class NamedScopingTest < ActiveRecord::TestCase
       Class.new(Post).class_eval { scope :containing_the_letter_z, where("body LIKE '%z%'") }
     end
     assert_equal "The scope body needs to be callable.", e.message
+  end
+
+  def test_scope_arguments_follow_the_scope_body
+    klass = Class.new(Post) do
+      scope :approved, -> { where(approved: true) }
+      scope :loose, proc { where(approved: true) }
+      scope :keywordless, ->(**nil) { where(approved: true) }
+    end
+
+    wrong_number = "wrong number of arguments (given 1, expected 0)"
+    assert_equal wrong_number, assert_raises(ArgumentError) { klass.approved(1) }.message
+    assert_equal wrong_number, assert_raises(ArgumentError) { klass.approved(approved: false) }.message
+    assert_equal wrong_number, assert_raises(ArgumentError) { klass.all.approved(1) }.message
+    assert_equal "no keywords accepted", assert_raises(ArgumentError) { klass.keywordless(approved: false) }.message
+    assert_equal "no keywords accepted", assert_raises(ArgumentError) { klass.all.keywordless(approved: false) }.message
+    assert_equal klass.approved.to_sql, klass.keywordless.to_sql
+    assert_equal klass.approved.to_sql, klass.loose(1, approved: false).to_sql
+    assert_equal klass.approved.to_sql, klass.all.loose(1).to_sql
   end
 
   def test_scopes_name_is_relation_method
@@ -622,7 +665,17 @@ class NamedScopingTest < ActiveRecord::TestCase
     end
 
     assert_queries_match(%r{/\* from-scope \*/}) do
-      assert_equal Topic.including_annotate_in_scope.to_a, Topic.all.to_a
+      assert_equal_unordered Topic.including_annotate_in_scope.to_a, Topic.all.to_a
     end
+  end
+
+  def test_default_extensions_does_not_build_scope_without_default_scope
+    assert_not_called(Post, :scope_for_association) do
+      assert_equal [], Post.default_extensions
+    end
+  end
+
+  def test_default_extensions_with_default_scope
+    assert_equal [Comment::OopsExtension], Comment.default_extensions
   end
 end

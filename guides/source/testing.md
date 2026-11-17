@@ -40,7 +40,7 @@ then you will see:
 
 ```bash
 $ ls -F test
-application_system_test_case.rb  controllers/                     helpers/                         mailers/                         system/                          fixtures/                        integration/                     models/                          test_helper.rb
+controllers/  fixtures/  helpers/  integration/  mailers/  models/  test_helper.rb
 ```
 
 ### Test Directories
@@ -57,25 +57,28 @@ outcomes.
 The `integration` directory is reserved for [tests that cover
 interactions between controllers](#integration-testing).
 
-The `system` test directory holds [system tests](#system-testing), which are
+[Fixtures](https://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html)
+are a way of mocking up data to use in your tests, so that you don't have to use
+'real' data. They are stored in the `fixtures` directory, and you can read more
+about them in the [Fixtures](#fixtures) section below.
+
+The `test_helper.rb` file holds the default configuration for your tests.
+
+When you first [generate system tests](#generating-system-tests), a `system`
+directory and an `application_system_test_case.rb` file will be created.
+
+The `system` directory holds [system tests](#system-testing), which are
 used for full browser testing of your application. System tests allow you to
 test your application the way your users experience it and help you test your
 JavaScript as well. System tests inherit from
 [Capybara](https://github.com/teamcapybara/capybara) and perform in-browser
 tests for your application.
 
-[Fixtures](https://api.rubyonrails.org/v3.1/classes/ActiveRecord/Fixtures.html)
-are a way of mocking up data to use in your tests, so that you don't have to use
-'real' data. They are stored in the `fixtures` directory, and you can read more
-about them in the [Fixtures](#fixtures) section below.
+The `application_system_test_case.rb` file holds the default configuration for your
+system tests.
 
 A `jobs` directory will also be created for your job tests when you first
-[generate a job](active_job_basics.html#create-the-job).
-
-The `test_helper.rb` file holds the default configuration for your tests.
-
-The `application_system_test_case.rb` holds the default configuration for your
-system tests.
+[generate a job](active_job_basics.html#defining-a-job).
 
 ### The Test Environment
 
@@ -404,8 +407,6 @@ specify to make your test failure messages clearer.
 | `assert_not_operator(obj1, operator, [obj2], [msg])`           | Ensures that `obj1.operator(obj2)` is false.|
 | `assert_predicate(obj, predicate, [msg])`                      | Ensures that `obj.predicate` is true, e.g. `assert_predicate str, :empty?`|
 | `assert_not_predicate(obj, predicate, [msg])`                  | Ensures that `obj.predicate` is false, e.g. `assert_not_predicate str, :empty?`|
-| `assert_error_reported(class) { block }`                       | Ensures that the error class has been reported, e.g. `assert_error_reported IOError { Rails.error.report(IOError.new("Oops")) }`|
-| `assert_no_error_reported { block }`                           | Ensures that no errors have been reported, e.g. `assert_no_error_reported { perform_service }`|
 | `flunk([msg])`                                                 | Ensures failure. This is useful to explicitly mark a test that isn't finished yet.|
 
 The above are a subset of assertions that minitest supports. For an exhaustive
@@ -439,8 +440,10 @@ Rails adds some custom assertions of its own to the `minitest` framework:
 | [`assert_no_queries(include_schema: false, &block)`][] | Asserts that `&block` generates no SQL queries.|
 | [`assert_queries_match(pattern, count: nil, include_schema: false, &block)`][] | Asserts that `&block` generates SQL queries that match the pattern.|
 | [`assert_no_queries_match(pattern, &block)`][] | Asserts that `&block` generates no SQL queries that match the pattern.|
+| [`assert_error_reported(class) { block }`][] | Asserts that the error class has been reported, e.g. `assert_error_reported IOError { Rails.error.report(IOError.new("Oops")) }`|
+| [`assert_no_error_reported { block }`][] | Asserts that no errors have been reported, e.g. `assert_no_error_reported { perform_service }`|
 
-[`assert_difference(expressions, difference = 1, message = nil) {...}`]: https://api.rubyonrails.org/classes/ActiveSupport/Testing/Assertions.html#method-i-assert_difference)
+[`assert_difference(expressions, difference = 1, message = nil) {...}`]: https://api.rubyonrails.org/classes/ActiveSupport/Testing/Assertions.html#method-i-assert_difference
 [`assert_no_difference(expressions, message = nil, &block)`]: https://api.rubyonrails.org/classes/ActiveSupport/Testing/Assertions.html#method-i-assert_no_difference
 [`assert_changes(expressions, message = nil, from:, to:, &block)`]: https://api.rubyonrails.org/classes/ActiveSupport/Testing/Assertions.html#method-i-assert_changes
 [`assert_no_changes(expressions, message = nil, &block)`]: https://api.rubyonrails.org/classes/ActiveSupport/Testing/Assertions.html#method-i-assert_no_changes
@@ -454,6 +457,8 @@ Rails adds some custom assertions of its own to the `minitest` framework:
 [`assert_no_queries(include_schema: false, &block)`]: https://api.rubyonrails.org/classes/ActiveRecord/Assertions/QueryAssertions.html#method-i-assert_no_queries
 [`assert_queries_match(pattern, count: nil, include_schema: false, &block)`]: https://api.rubyonrails.org/classes/ActiveRecord/Assertions/QueryAssertions.html#method-i-assert_queries_match
 [`assert_no_queries_match(pattern, &block)`]: https://api.rubyonrails.org/classes/ActiveRecord/Assertions/QueryAssertions.html#method-i-assert_no_queries_match
+[`assert_error_reported(class) { block }`]: https://api.rubyonrails.org/classes/ActiveSupport/Testing/ErrorReporterAssertions.html#method-i-assert_error_reported
+[`assert_no_error_reported { block }`]: https://api.rubyonrails.org/classes/ActiveSupport/Testing/ErrorReporterAssertions.html#method-i-assert_no_error_reported
 
 You'll see the usage of some of these assertions in the next chapter.
 
@@ -471,7 +476,7 @@ cases. In fact, Rails provides the following classes for you to inherit from:
 * [`ActionDispatch::SystemTestCase`](https://api.rubyonrails.org/classes/ActionDispatch/SystemTestCase.html)
 * [`Rails::Generators::TestCase`](https://api.rubyonrails.org/classes/Rails/Generators/TestCase.html)
 
-Each of these classes include `Minitest::Assertions`, allowing us to use all of
+Each of these classes includes `Minitest::Assertions`, allowing us to use all of
 the basic assertions in your tests.
 
 TIP: For more information on `minitest`, refer to the [minitest
@@ -523,7 +528,7 @@ You can also run a test at a specific line by providing the line number.
 $ bin/rails test test/models/article_test.rb:6 # run specific test and line
 ```
 
-You can also run a range of tests by providing the line range.
+You can also run a range of tests by providing the line range:
 
 ```bash
 $ bin/rails test test/models/article_test.rb:6-20 # runs tests from line 6 to 20
@@ -552,7 +557,7 @@ Examples:
 
         bin/rails test test/models/user_test.rb:27
 
-    You can run multiple tests with in a line range by appending the line range to a filename:
+    You can run multiple tests within a line range by appending the line range to a filename:
 
         bin/rails test test/models/user_test.rb:10-20
 
@@ -874,8 +879,7 @@ Functional Testing for Controllers
 
 When writing functional tests, you are focusing on testing how controller
 actions handle the requests and the expected result or response. Functional
-controller tests are sometimes used in cases where system tests are not
-appropriate, e.g., to confirm an API response.
+controller tests are used to test controllers and other behavior, like API responses.
 
 ### What to Include in Your Functional Tests
 
@@ -946,7 +950,7 @@ The `get` method kicks off the web request and populates the results into the
   (e.g. query string parameters or article variables).
 * `headers`: for setting the headers that will be passed with the request.
 * `env`: for customizing the request environment as needed.
-* `xhr`: whether the request is AJAX request or not. Can be set to true for
+* `xhr`: whether the request is an AJAX request or not. Can be set to true for
   marking the request as AJAX.
 * `as`: for encoding the request with different content type.
 
@@ -1004,7 +1008,7 @@ post articles_url, params: { article: { body: "Rails is awesome!", title: "Hello
 ### HTTP Request Types for Functional Tests
 
 If you're familiar with the HTTP protocol, you'll know that `get` is a type of
-request. There are 6 request types supported in Rails functional tests:
+request. There are 7 request types supported in Rails functional tests:
 
 * `get`
 * `post`
@@ -1012,6 +1016,19 @@ request. There are 6 request types supported in Rails functional tests:
 * `put`
 * `head`
 * `delete`
+* `query`
+
+The `query` helper issues an HTTP QUERY request
+([RFC 10008](https://www.rfc-editor.org/rfc/rfc10008)) and sends `params` as
+the request body, matching how QUERY carries its query in the request content:
+
+```ruby
+test "can search articles" do
+  query articles_search_url, params: { q: "Rails" }
+
+  assert_response :success
+end
+```
 
 All of the request types have equivalent methods that you can use. In a typical
 CRUD application you'll be using `post`, `get`, `put`, and `delete` most
@@ -1028,7 +1045,7 @@ fetched from the server using asynchronous HTTP requests and the relevant parts
 of the page are updated without requiring a full page load.
 
 To test AJAX requests, you can specify the `xhr: true` option to `get`, `post`,
-`patch`, `put`, and `delete` methods. For example:
+`patch`, `put`, `delete`, and `query` methods. For example:
 
 ```ruby
 test "AJAX request" do
@@ -1178,7 +1195,7 @@ message will already be implemented in your `create` action.
 
 ### Tests for `show`, `update`, and `delete` Actions
 
-So far in the guide tests for the `:index` as well as the`:create` action have
+So far in the guide tests for the `:index` as well as the `:create` action have
 been outlined. What about the other actions?
 
 You can write a test for `:show` as follows:
@@ -1222,7 +1239,7 @@ test "should update article" do
 end
 ```
 
-Notice that there is some duplication in these three tests - they both access
+Notice that there is some duplication in these three tests - they all access
 the same article fixture data. It is possible to DRY ('Don't Repeat
 Yourself') the implementation by using the `setup` and `teardown` methods
 provided by `ActiveSupport::Callbacks`.
@@ -1419,13 +1436,55 @@ does this by running tests in either a real or a headless browser (a browser
 which runs in the background without opening a visible window). System tests use
 [Capybara](https://www.rubydoc.info/github/jnicklas/capybara) under the hood.
 
+### When to Use System Tests
+
+System tests provide the most realistic testing experience as they test your
+application from a user's perspective. However, they come with important
+trade-offs:
+
+* **They are significantly slower** than unit and integration tests
+* **They can be brittle** and prone to failures from timing issues or UI changes
+* **They require more maintenance** as your UI evolves
+
+Given these trade-offs, **system tests should be reserved for critical user
+paths** rather than being created for every feature. Consider writing system
+tests for:
+
+* **Core business workflows** (e.g., user registration, checkout process,
+  payment flows)
+* **Critical user interactions** that integrate multiple components
+* **Complex JavaScript interactions** that can't be tested at lower levels
+
+For most features, integration tests provide a better balance of coverage and
+maintainability. Save system tests for scenarios where you need to verify the
+complete user experience.
+
+### Generating System Tests
+
+Rails no longer generates system tests by default when using scaffolds. This
+change reflects the best practice of using system tests sparingly. You can
+generate system tests in two ways:
+
+1. **When scaffolding**, explicitly enable system tests:
+
+    ```bash
+    $ bin/rails generate scaffold Article title:string body:text --system-tests=true
+    ```
+
+2. **Generate system tests independently** for critical features:
+
+    ```bash
+    $ bin/rails generate system_test articles
+    ```
+
 Rails system tests are stored in the `test/system` directory in your
 application. To generate a system test skeleton, run the following command:
 
 ```bash
 $ bin/rails generate system_test users
-      invoke test_unit
-      create test/system/users_test.rb
+      invoke  test_unit
+      create    test/application_system_test_case.rb
+      create    test/system/users_test.rb
 ```
 
 Here's what a freshly generated system test looks like:
@@ -1451,7 +1510,7 @@ the default settings.
 Rails makes changing the default settings for system tests very simple. All the
 setup is abstracted away so you can focus on writing your tests.
 
-When you generate a new application or scaffold, an
+When you generate system tests, an
 `application_system_test_case.rb` file is created in the test directory. This is
 where all the configuration for your system tests should live.
 
@@ -1529,9 +1588,9 @@ require "test_helper"
 
 class ApplicationSystemTestCase < ActionDispatch::SystemTestCase
   setup do
-      Capybara.server_host = "0.0.0.0" # bind to all interfaces
-      Capybara.app_host = "http://#{IPSocket.getaddress(Socket.gethostname)}" if ENV["SELENIUM_REMOTE_URL"].present?
-    end
+    Capybara.server_host = "0.0.0.0" # bind to all interfaces
+    Capybara.app_host = "http://#{IPSocket.getaddress(Socket.gethostname)}" if ENV["SELENIUM_REMOTE_URL"].present?
+  end
   # ...
 end
 ```
@@ -1552,9 +1611,9 @@ settings.
 This section will demonstrate how to add a system test to your application,
 which tests a visit to the index page to create a new blog article.
 
-If you used the scaffold generator, a system test skeleton was automatically
-created for you. If you didn't use the scaffold generator, start by creating a
-system test skeleton.
+NOTE: The scaffold generator no longer creates system tests by default. To
+include system tests when scaffolding, use the `--system-tests=true` option.
+Otherwise, create system tests manually for your critical user paths.
 
 ```bash
 $ bin/rails generate system_test articles
@@ -1565,6 +1624,7 @@ command you should see:
 
 ```
       invoke  test_unit
+      create    test/application_system_test_case.rb
       create    test/system/articles_test.rb
 ```
 
@@ -1677,7 +1737,7 @@ which can be used in system tests.
 #### Screenshot Helper
 
 The
-[`ScreenshotHelper`](https://api.rubyonrails.org/v5.1.7/classes/ActionDispatch/SystemTesting/TestHelpers/ScreenshotHelper.html)
+[`ScreenshotHelper`](https://api.rubyonrails.org/classes/ActionDispatch/SystemTesting/TestHelpers/ScreenshotHelper.html)
 is a helper designed to capture screenshots of your tests. This can be helpful
 for viewing the browser at the point a test failed, or to view screenshots later
 for debugging.
@@ -1861,7 +1921,7 @@ documentation](https://github.com/rails/rails-dom-testing).
 In order to integrate with [rails-dom-testing][], tests that inherit from
 `ActionView::TestCase` declare a `document_root_element` method that returns the
 rendered content as an instance of a
-[Nokogiri::XML::Node](https://www.rubydoc.info/github/sparklemotion/nokogiri/Nokogiri/XML/Node):
+[Nokogiri::XML::Node](https://nokogiri.org/rdoc/Nokogiri/XML/Node.html):
 
 ```ruby
 test "renders a link to itself" do
@@ -2006,7 +2066,7 @@ end
 
 ### Testing View Partials
 
-[Partial](layouts_and_rendering.html#using-partials) templates - usually called
+[Partial](action_view_overview.html#partials) templates - usually called
 "partials" - can break the rendering process into more manageable chunks. With
 partials, you can extract sections of code from your views to separate files and
 reuse them in multiple places.
@@ -2164,6 +2224,36 @@ Hi friend@example.com,
 You have been invited.
 
 Cheers!
+```
+
+When testing multi-part emails with both HTML *and* text parts, use the
+[`assert_part`](https://api.rubyonrails.org/classes/ActionMailer/TestCase/Behavior.html#method-i-assert_part)
+assertion. When testing emails with HTML parts, use the assertions provided by [Rails::Dom::Testing](https://github.com/rails/rails-dom-testing).
+
+```ruby
+require "test_helper"
+
+class UserMailerTest < ActionMailer::TestCase
+  test "invite" do
+    # Create the email and store it for further assertions
+    email = UserMailer.create_invite("me@example.com",
+                                     "friend@example.com", Time.now)
+
+    # Test the body of the sent email's text part
+    assert_part :text, email do |text|
+      assert_includes text, "Hi friend@example.com"
+      assert_includes text, "You have been invited."
+      assert_includes text, "Cheers!"
+    end
+
+    # Test the body of the sent email's HTML part
+    assert_part :html, email do |html|
+      assert_dom html, "h1", text: "Hi friend@example.com"
+      assert_dom html, "p", text: "You have been invited."
+      assert_dom html, "p", text: "Cheers!"
+    end
+  end
+end
 ```
 
 #### Configuring the Delivery Method for Test
@@ -2412,6 +2502,194 @@ end
 This method is not recommended in general, as it circumvents some parts of the
 framework, such as argument serialization.
 
+Testing Active Storage
+----------------------
+
+There is a [`file_fixture_upload`][] helper method to test uploading a file in an integration or controller test, for example:
+
+```ruby#5
+class SignupController < ActionDispatch::IntegrationTest
+  test "user can sign up" do
+    post signup_path, params: {
+      email: "me@example.com",
+      profile_photo: file_fixture_upload("my-photo.png", "image/png")
+    }
+
+    user = User.order(:created_at).last
+    assert user.profile_photo.attached?
+  end
+end
+```
+
+[`file_fixture_upload`]: https://api.rubyonrails.org/classes/ActionDispatch/TestProcess/FixtureFile.html#method-i-file_fixture_upload
+
+### Discarding Files Created During Tests
+
+In general, database transactions are rolled back to clean up test data. While
+entries in the Active Storage related tables are removed, files attached during
+tests are not automatically deleted. Here is how to manually clean up orphaned
+files from integration tests and system tests.
+
+#### Integration Tests
+
+To clean up files uploaded during Integration Tests, you use a `teardown` callback.
+
+```ruby
+class ActionDispatch::IntegrationTest
+  def after_teardown
+    super
+    FileUtils.rm_rf(ActiveStorage::Blob.service.root)
+  end
+end
+```
+
+If you're using [parallel tests][] and the Disk service, you can configure
+each process to use its own folder for Active Storage. This way, the `teardown`
+callback will only delete files from the relevant process' tests.
+
+```ruby
+class ActionDispatch::IntegrationTest
+  parallelize_setup do |i|
+    ActiveStorage::Blob.service.root = "#{ActiveStorage::Blob.service.root}-#{i}"
+  end
+end
+```
+
+If your tests verify the deletion of a model with attachments and you're
+using Active Job, you will need to set your test environment to use the inline
+queue adapter so the purge job is executed immediately rather than at an unknown time
+in the future.
+
+```ruby
+config.active_job.queue_adapter = :inline
+```
+
+[parallel tests]: testing.html#parallel-testing
+
+#### System Tests
+
+In order to clear these files, you use an `after_teardown` callback. Doing it
+there ensures that all connections created during the test are complete and you
+won't receive an error from Active Storage saying it can't find a file.
+
+```ruby
+class ApplicationSystemTestCase < ActionDispatch::SystemTestCase
+  # ...
+  def after_teardown
+    super
+    FileUtils.rm_rf(ActiveStorage::Blob.service.root)
+  end
+  # ...
+end
+```
+
+### Adding Attachments to Fixtures
+
+You can add attachments to your existing [fixtures][]. First, you'll want to create a separate storage service:
+
+```yml
+# config/storage.yml
+
+test_fixtures:
+  service: Disk
+  root: <%= Rails.root.join("tmp/storage_fixtures") %>
+```
+
+This tells Active Storage where to "upload" fixture files to, so it should be a
+temporary directory. By making it a different directory to your regular `test`
+service, you can separate fixture files from files uploaded during a test.
+
+Next, create fixture files for the Active Storage classes:
+
+```yml
+# test/fixtures/active_storage/attachments.yml
+user_one_profile_photo:
+  name: user_one
+  record: user_one (User)
+  blob: user_one_profile_photo_blob
+```
+
+```yml
+# test/fixtures/active_storage/blobs.yml
+user_one_profile_photo_blob: <%= ActiveStorage::FixtureSet.blob filename: "user_one.png", service_name: "test_fixtures" %>
+```
+
+Then put a file in your fixtures directory (the default path is
+`test/fixtures/files`) with the corresponding filename. See the
+[`ActiveStorage::FixtureSet`][] docs for more information.
+
+Once everything is set up, you'll be able to access attachments in your tests:
+
+```ruby
+class UserTest < ActiveSupport::TestCase
+  def test_profile_photo
+    profile_photo = users(:user_one).profile_photo
+
+    assert profile_photo.attached?
+    assert_not_nil profile_photo.download
+    assert_equal 1000, profile_photo.byte_size
+  end
+end
+```
+
+#### Cleaning up Fixtures
+
+While files uploaded in tests are cleaned up [at the end of each
+test](#discarding-files-created-during-tests), you only need to clean up fixture
+files once: when all your tests complete.
+
+If you're using parallel tests, call `parallelize_teardown`:
+
+```ruby
+class ActiveSupport::TestCase
+  # ...
+  parallelize_teardown do |i|
+    FileUtils.rm_rf(ActiveStorage::Blob.services.fetch(:test_fixtures).root)
+  end
+  # ...
+end
+```
+
+If you're not running parallel tests, use `Minitest.after_run` or the equivalent
+for your test framework (e.g. `after(:suite)` for RSpec):
+
+```ruby
+# test_helper.rb
+Minitest.after_run do
+  FileUtils.rm_rf(ActiveStorage::Blob.services.fetch(:test_fixtures).root)
+end
+```
+
+[fixtures]: testing.html#fixtures
+[`ActiveStorage::FixtureSet`]: https://api.rubyonrails.org/classes/ActiveStorage/FixtureSet.html
+
+### Configuring services
+
+You can use the `config/storage/test.yml` file to configure services to be used
+in test environment. This is useful when the `service` option is used:
+
+```ruby
+class User < ApplicationRecord
+  has_one_attached :avatar, service: :s3
+end
+```
+
+Without configuring a test `s3` service in `config/storage/test.yml`, the `s3` service configured in `config/storage.yml` is used - even when running tests.
+
+The default configuration would be used and files would be uploaded to the service provider configured in `config/storage.yml`.
+
+In this case, you can add `config/storage/test.yml` and use Disk service for a service named `s3` to prevent sending requests to S3.
+
+```yaml
+test:
+  service: Disk
+  root: <%= Rails.root.join("tmp/storage") %>
+
+s3:
+  service: Disk
+  root: <%= Rails.root.join("tmp/storage") %>
+```
+
 Testing Action Cable
 --------------------
 
@@ -2610,6 +2888,25 @@ workers a test run should use:
 $ PARALLEL_WORKERS=15 bin/rails test
 ```
 
+#### Reproducing Flaky Parallel Tests
+
+Whether using processes or threads, tests are distributed to workers in
+round-robin order, so given the same `--seed` value and worker count, each
+worker runs the same sequence of tests. This makes flaky tests caused by
+parallel test interdependence easier to reproduce: re-run with the same seed
+and worker count to get the same distribution.
+
+This deterministic assignment can make test runtime uneven when one worker
+happens to get most of the slow tests. Enable `work_stealing` to allow idle
+workers to steal tests from busy workers, improving load balance at the cost
+of less reproducible test distribution:
+
+```ruby
+class ActiveSupport::TestCase
+  parallelize(workers: :number_of_processors, work_stealing: true)
+end
+```
+
 When parallelizing tests, Active Record automatically handles creating a
 database and loading the schema into the database for each process. The
 databases will be suffixed with the number corresponding to the worker. For
@@ -2708,6 +3005,9 @@ class ActiveSupport::TestCase
   parallelize threshold: 100
 end
 ```
+
+NOTE: Setting the `PARALLEL_WORKERS` environment variable will bypass the
+threshold check, enabling parallelization regardless of test count.
 
 Testing Eager Loading
 ---------------------

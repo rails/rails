@@ -1,20 +1,20 @@
 # frozen_string_literal: true
 
-# :markup: markdown
-
 module ActionController
   # Specify binary encoding for parameters for a given action.
   module ParameterEncoding
     extend ActiveSupport::Concern
 
     module ClassMethods
+      attr_reader :_parameter_encodings # :nodoc:
+
       def inherited(klass) # :nodoc:
         super
         klass.setup_param_encode
       end
 
       def setup_param_encode # :nodoc:
-        @_parameter_encodings = Hash.new { |h, k| h[k] = {} }
+        @_parameter_encodings = ActiveSupport::Ractors.make_shareable(Hash.new({}))
       end
 
       def action_encoding_template(action) # :nodoc:
@@ -48,7 +48,9 @@ module ActionController
       # encoded as ASCII-8BIT. This is useful in the case where an application must
       # handle data but encoding of the data is unknown, like file system data.
       def skip_parameter_encoding(action)
-        @_parameter_encodings[action.to_s] = Hash.new { Encoding::ASCII_8BIT }
+        @_parameter_encodings = ActiveSupport::Ractors.make_shareable(
+          @_parameter_encodings.merge(action.to_s => Hash.new(Encoding::ASCII_8BIT))
+        )
       end
 
       # Specify the encoding for a parameter on an action. If not specified the
@@ -77,7 +79,13 @@ module ActionController
       # where an application must handle data but encoding of the data is unknown,
       # like file system data.
       def param_encoding(action, param, encoding)
-        @_parameter_encodings[action.to_s][param.to_s] = encoding
+        action = action.to_s
+        param = param.to_s
+        action_encodings = @_parameter_encodings[action].merge(param => encoding)
+
+        @_parameter_encodings = ActiveSupport::Ractors.make_shareable(
+          @_parameter_encodings.merge(action => action_encodings)
+        )
       end
     end
   end

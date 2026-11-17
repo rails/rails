@@ -41,7 +41,10 @@ Zeitwerk::Loader.for_gem.tap do |loader|
   )
 
   loader.do_not_eager_load(
-    "#{lib}/action_cable/subscription_adapter", # Adapters are required and loaded on demand.
+    # These adapters trigger optional dependencies so they are required and loaded on demand.
+    "#{lib}/action_cable/subscription_adapter/redis.rb",
+    "#{lib}/action_cable/subscription_adapter/postgresql.rb",
+
     "#{lib}/action_cable/test_helper.rb",
     Dir["#{lib}/action_cable/**/test_case.rb"]
   )
@@ -49,7 +52,6 @@ Zeitwerk::Loader.for_gem.tap do |loader|
   loader.inflector.inflect("postgresql" => "PostgreSQL")
 end.setup
 
-# :markup: markdown
 # :include: ../README.md
 module ActionCable
   require_relative "action_cable/version"
@@ -71,7 +73,7 @@ module ActionCable
     },
     default_mount_path: "/cable",
     protocols: ["actioncable-v1-json", "actioncable-unsupported"].freeze
-  }
+  }.freeze
 
   # Singleton instance of the server
   module_function def server

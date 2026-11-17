@@ -24,6 +24,7 @@ module ActiveRecord
       def test_rename_table_should_work_with_reserved_words
         renamed = false
 
+        connection.drop_table :old_references, if_exists: true
         connection.rename_table :references, :old_references
         connection.rename_table :test_models, :references
 
@@ -56,7 +57,7 @@ module ActiveRecord
         error = assert_raises(ArgumentError) do
           connection.rename_table :test_models, long_name
         end
-        assert_equal "Table name '#{long_name}' is too long; the limit is #{name_limit} characters", error.message
+        assert_equal "Table name '#{long_name}' is too long \(#{long_name.length} characters\); the limit is #{name_limit} characters", error.message
 
         connection.rename_table :test_models, short_name
         assert connection.table_exists?(short_name)

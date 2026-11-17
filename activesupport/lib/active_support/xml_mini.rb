@@ -4,21 +4,26 @@ require "time"
 require "base64"
 require "bigdecimal"
 require "bigdecimal/util"
+require "active_support/core_ext/date/conversions"
 require "active_support/core_ext/module/delegation"
 require "active_support/core_ext/string/inflections"
 require "active_support/core_ext/date_time/calculations"
 
 module ActiveSupport
-  # = \XmlMini
+  # \XmlMini
+  # ========
   #
   # To use the much faster libxml parser:
-  #   gem "libxml-ruby"
-  #   XmlMini.backend = 'LibXML'
+  #
+  # ```
+  # gem "libxml-ruby"
+  # XmlMini.backend = 'LibXML'
+  # ```
   module XmlMini
     extend self
 
     # This module decorates files deserialized using Hash.from_xml with
-    # the <tt>original_filename</tt> and <tt>content_type</tt> methods.
+    # the `original_filename` and `content_type` methods.
     module FileLike # :nodoc:
       attr_writer :original_filename, :content_type
 
@@ -33,10 +38,10 @@ module ActiveSupport
 
     DEFAULT_ENCODINGS = {
       "binary" => "base64"
-    } unless defined?(DEFAULT_ENCODINGS)
+    }.freeze unless defined?(DEFAULT_ENCODINGS)
 
     unless defined?(TYPE_NAMES)
-      TYPE_NAMES = {
+      TYPE_NAMES = { # rubocop:disable Style/MutableConstant
         "Symbol"     => "symbol",
         "Integer"    => "integer",
         "BigDecimal" => "decimal",
@@ -52,6 +57,7 @@ module ActiveSupport
       }
     end
     TYPE_NAMES["ActiveSupport::TimeWithZone"] = TYPE_NAMES["Time"]
+    TYPE_NAMES.freeze
 
     FORMATTING = {
       "symbol"   => Proc.new { |symbol| symbol.to_s },
@@ -60,20 +66,21 @@ module ActiveSupport
       "duration" => Proc.new { |duration| duration.iso8601 },
       "binary"   => Proc.new { |binary| ::Base64.encode64(binary) },
       "yaml"     => Proc.new { |yaml| yaml.to_yaml }
-    } unless defined?(FORMATTING)
+    }.freeze unless defined?(FORMATTING)
 
-    # TODO use regexp instead of Date.parse
     unless defined?(PARSING)
-      PARSING = {
+      PARSING = { # rubocop:disable Style/MutableConstant
         "symbol"       => Proc.new { |symbol|  symbol.to_s.to_sym },
-        "date"         => Proc.new { |date|    ::Date.parse(date) },
+        "date"         => Proc.new { |date|    ::Date.strptime(date.to_s.strip, "%Y-%m-%d") },
         "datetime"     => Proc.new { |time|    Time.xmlschema(time).utc rescue ::DateTime.parse(time).utc },
-        "duration"     => Proc.new { |duration| Duration.parse(duration) },
+        "duration"     => Proc.new { |duration| Duration.parse(duration.to_s.strip) },
         "integer"      => Proc.new { |integer| integer.to_i },
         "float"        => Proc.new { |float|   float.to_f },
         "decimal"      => Proc.new do |number|
           if String === number
             number.to_d
+          elsif Float === number
+            BigDecimal(number, 0)
           else
             BigDecimal(number)
           end
@@ -197,9 +204,31 @@ module ActiveSupport
         IsolatedExecutionState[:xml_mini_backend] = name && cast_backend_name_to_module(name)
       end
 
+      # The backends Active Support ships, by the names +backend=+ takes; a
+      # name not among them loads +active_support/xml_mini/<name>+ and reads
+      # its +XmlMini_<name>+ module, as before.
       def cast_backend_name_to_module(name)
-        if name.is_a?(Module)
+        case name
+        when Module
           name
+        when "REXML"
+          require "active_support/xml_mini/rexml"
+          XmlMini_REXML
+        when "Nokogiri"
+          require "active_support/xml_mini/nokogiri"
+          XmlMini_Nokogiri
+        when "NokogiriSAX"
+          require "active_support/xml_mini/nokogirisax"
+          XmlMini_NokogiriSAX
+        when "LibXML"
+          require "active_support/xml_mini/libxml"
+          XmlMini_LibXML
+        when "LibXMLSAX"
+          require "active_support/xml_mini/libxmlsax"
+          XmlMini_LibXMLSAX
+        when "JDOM"
+          require "active_support/xml_mini/jdom"
+          XmlMini_JDOM
         else
           require "active_support/xml_mini/#{name.downcase}"
           ActiveSupport.const_get("XmlMini_#{name}")

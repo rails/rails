@@ -21,7 +21,7 @@ if SERVICE_CONFIGURATIONS[:gcs_public]
     test "direct upload" do
       key      = SecureRandom.base58(24)
       data     = "Something else entirely!"
-      checksum = ActiveStorage.checksum_implementation.base64digest(data)
+      checksum = OpenSSL::Digest::MD5.base64digest(data)
       url      = @service.url_for_direct_upload(key, expires_in: 5.minutes, content_type: "text/plain", content_length: data.size, checksum: checksum)
 
       uri = URI.parse url
@@ -29,6 +29,7 @@ if SERVICE_CONFIGURATIONS[:gcs_public]
       request.body = data
       request.add_field "Content-Type", ""
       request.add_field "Content-MD5", checksum
+      request.add_field "x-goog-content-length-range", "#{data.size},#{data.size}"
       Net::HTTP.start(uri.host, uri.port, use_ssl: true) do |http|
         http.request request
       end

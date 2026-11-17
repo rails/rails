@@ -31,10 +31,12 @@ is a type of malicious attack where unauthorized requests are submitted by
 impersonating a user that the web application trusts.
 
 The first step to avoid this type of attack is to ensure that all "destructive"
-actions (create, update, and destroy) in your application use non-GET requests (like POST, PUT and DELETE).
+actions (create, update, and destroy) in your application use non-`GET` requests (like `POST`, `PUT` and `DELETE`).
 
-However, a malicious site can still send a non-GET request to your site, so
-Rails builds in request forgery protection into controllers by default.
+Rails builds in request forgery protection into controllers by default for all non-`GET` requests.
+
+NOTE: The `GET`, `HEAD`, and `QUERY` methods are excluded from forgery
+protection since they must only read data, and not write any changes.
 
 This is done by adding a token using the
 [protect_from_forgery](https://api.rubyonrails.org/classes/ActionController/RequestForgeryProtection/ClassMethods.html#method-i-protect_from_forgery)
@@ -42,7 +44,7 @@ method. This token is added to each request and is only known to your server.
 Rails verifies the received token with the token in the session. If an incoming
 request does not have the proper matching token, the server will deny access.
 
-The CSRF token is added automatically when `config.action_controller.default_protect_from_forgery` is set to `true`, which is the default for newly created Rails applications. It can also be manually like this:
+The CSRF token is added automatically when `config.action_controller.default_protect_from_forgery` is set to `true`, which is the default for newly created Rails applications. It can also be enabled manually like this:
 
 ```ruby
 class ApplicationController < ActionController::Base
@@ -51,7 +53,7 @@ end
 ```
 
 NOTE: All subclasses of `ActionController::Base` are protected by default and
-will raise an `ActionController::InvalidAuthenticityToken` error on unverified
+will raise an `ActionController::InvalidCrossOriginRequest` error on unverified
 requests.
 
 ### Authenticity Token in Forms
@@ -101,16 +103,16 @@ in the [Security Guide](security.html#cross-site-request-forgery-csrf).
 Controlling Allowed Browser Versions
 ------------------------------------
 
-Starting with version 8.0, Rails controllers use [`allow_browser`](https://api.rubyonrails.org/classes/ActionController/AllowBrowser/ClassMethods.html#method-i-allow_browser) method in `ApplicationController` to allow only modern browsers by default.
+Starting with version 7.2, Rails controllers use [`allow_browser`](https://api.rubyonrails.org/classes/ActionController/AllowBrowser/ClassMethods.html#method-i-allow_browser) method in `ApplicationController` to allow only modern browsers by default.
 
 ```ruby
 class ApplicationController < ActionController::Base
-  # Only allow modern browsers supporting webp images, web push, badges, import # maps, CSS nesting, and CSS :has.
+  # Only allow modern browsers supporting webp images, web push, badges, import maps, CSS nesting, and CSS :has.
   allow_browser versions: :modern
 end
 ```
 
-TIP: Modern browsers includes Safari 17.2+, Chrome 120+, Firefox 121+, Opera 106+. You can use [caniuse.com](https://caniuse.com/) to check for browser versions supporting the features you'd like to use.
+TIP: Modern browsers include Safari 17.2+, Chrome 120+, Firefox 121+, Opera 106+. You can use [caniuse.com](https://caniuse.com/) to check for browser versions supporting the features you'd like to use.
 
 In addition to the default of `:modern`, you can also specify the browser versions manually:
 
@@ -132,7 +134,7 @@ class MessagesController < ApplicationController
 end
 ```
 
-A browser that’s blocked will, by default, be served the file in `public/406-unsupported-browser.html` with a HTTP status code of “406 Not Acceptable”.
+A browser that’s blocked will, by default, be served the file in `public/406-unsupported-browser.html` with an HTTP status code of “406 Not Acceptable”.
 
 HTTP Authentication
 -------------------

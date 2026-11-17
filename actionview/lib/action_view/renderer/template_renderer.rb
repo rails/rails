@@ -2,9 +2,9 @@
 
 module ActionView
   class TemplateRenderer < AbstractRenderer # :nodoc:
-    def render(context, options)
+    def render(context, options, &block)
       @details = extract_details(options)
-      template = determine_template(options)
+      template = determine_template(options, &block)
 
       prepend_formats(template.format)
 
@@ -12,9 +12,12 @@ module ActionView
     end
 
     private
+      NO_LOCALS = [].freeze
+      private_constant :NO_LOCALS
+
       # Determine the template to be rendered using the given options.
-      def determine_template(options)
-        keys = options.has_key?(:locals) ? options[:locals].keys : []
+      def determine_template(options, &block)
+        keys = options.has_key?(:locals) ? options[:locals].keys : NO_LOCALS
 
         if options.key?(:body)
           Template::Text.new(options[:body])
@@ -41,12 +44,12 @@ module ActionView
           end
           Template::Inline.new(options[:inline], "inline template", handler, locals: keys, format: format)
         elsif options.key?(:renderable)
-          Template::Renderable.new(options[:renderable])
+          Template::Renderable.new(options[:renderable], &block)
         elsif options.key?(:template)
           if options[:template].respond_to?(:render)
             options[:template]
           else
-            @lookup_context.find_template(options[:template], options[:prefixes], false, keys, @details)
+            @lookup_context.find!(options[:template], options[:prefixes], false, keys, @details)
           end
         else
           raise ArgumentError, "You invoked render but did not give any of :body, :file, :html, :inline, :partial, :plain, :renderable, or :template option."
@@ -90,21 +93,17 @@ module ActionView
       end
 
       def resolve_layout(layout, keys, formats)
-        details = @details.dup
-        details[:formats] = formats
-
         case layout
         when String
-          begin
-            if layout.start_with?("/")
-              raise ArgumentError, "Rendering layouts from an absolute path is not supported."
-            else
-              @lookup_context.find_template(layout, nil, false, keys, details)
-            end
-          rescue ActionView::MissingTemplate
-            all_details = @details.merge(formats: @lookup_context.default_formats)
-            raise unless template_exists?(layout, nil, false, keys, **all_details)
+          if layout.start_with?("/")
+            raise ArgumentError, "Rendering layouts from an absolute path is not supported."
           end
+
+          template = @lookup_context.find(layout, nil, false, keys, @details.merge(formats: formats))
+          return template if template
+
+          return if @lookup_context.any_formats?(layout, nil, false, keys, @details)
+          @lookup_context.find!(layout, nil, false, keys, @details)
         when Proc
           resolve_layout(layout.call(@lookup_context, formats, keys), keys, formats)
         else

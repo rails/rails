@@ -14,6 +14,16 @@ if SERVICE_CONFIGURATIONS[:s3_public]
       assert_equal "public-read", @service.upload_options[:acl]
     end
 
+    test "public acl options can be disabled via s3_public_uploads_via_acl" do
+      was = ActiveStorage.s3_public_uploads_via_acl
+      ActiveStorage.s3_public_uploads_via_acl = false
+
+      service = ActiveStorage::Service.configure(:s3_public, SERVICE_CONFIGURATIONS)
+      assert_nil service.upload_options[:acl]
+    ensure
+      ActiveStorage.s3_public_uploads_via_acl = was
+    end
+
     test "public URL generation" do
       url = @service.url(@key, filename: ActiveStorage::Filename.new("avatar.png"))
 
@@ -35,7 +45,7 @@ if SERVICE_CONFIGURATIONS[:s3_public]
     test "direct upload" do
       key      = SecureRandom.base58(24)
       data     = "Something else entirely!"
-      checksum = ActiveStorage.checksum_implementation.base64digest(data)
+      checksum = OpenSSL::Digest::MD5.base64digest(data)
       url      = @service.url_for_direct_upload(key, expires_in: 5.minutes, content_type: "text/plain", content_length: data.size, checksum: checksum)
 
       uri = URI.parse url

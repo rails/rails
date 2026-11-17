@@ -35,24 +35,6 @@ class OutputSafetyHelperTest < ActionView::TestCase
     assert_equal "&quot;a&quot; &lt;br/&gt; &lt;b&gt; &lt;br/&gt; &lt;c&gt;", joined
   end
 
-  test "safe_join should return the safe string separated by $, when second argument is not passed" do
-    default_delimiter = $,
-
-    begin
-      $, = nil
-      joined = safe_join(["a", "b"])
-      assert_equal "ab", joined
-
-      silence_warnings do
-        $, = "|"
-      end
-      joined = safe_join(["a", "b"])
-      assert_equal "a|b", joined
-    ensure
-      $, = default_delimiter
-    end
-  end
-
   test "to_sentence should escape non-html_safe values" do
     actual = to_sentence(%w(< > & ' "))
     assert_predicate actual, :html_safe?
@@ -61,6 +43,12 @@ class OutputSafetyHelperTest < ActionView::TestCase
     actual = to_sentence(%w(<script>))
     assert_predicate actual, :html_safe?
     assert_equal("&lt;script&gt;", actual)
+  end
+
+  test "to_sentence handles an empty array" do
+    actual = to_sentence([])
+    assert_equal "", actual
+    assert_predicate actual, :html_safe?
   end
 
   test "to_sentence does not double escape if single value is html_safe" do

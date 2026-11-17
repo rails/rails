@@ -8,8 +8,31 @@ PATH
 GEM
   remote: https://rubygems.org/
   specs:
+    logger (1.7.0)
     minitest (5.25.1)
+    net-http (0.6.0)
+      uri
+    protobug (0.1.0)
+    protobug_googleapis_field_behavior_protos (0.1.0)
+      protobug (= 0.1.0)
+      protobug_well_known_protos (= 0.1.0)
+    protobug_sigstore_protos (0.1.0)
+      protobug (= 0.1.0)
+      protobug_googleapis_field_behavior_protos (= 0.1.0)
+      protobug_well_known_protos (= 0.1.0)
+    protobug_well_known_protos (0.1.0)
+      protobug (= 0.1.0)
     rake (13.2.1)
+    sigstore (0.2.2)
+      logger
+      net-http
+      protobug_sigstore_protos (~> 0.1.0)
+      uri
+    sigstore-cli (0.2.2)
+      sigstore (= 0.2.2)
+      thor
+    thor (1.4.0)
+    uri (1.0.4)
 
 PLATFORMS
   aarch64-linux
@@ -17,6 +40,7 @@ PLATFORMS
 
 DEPENDENCIES
   releaser!
+  sigstore-cli
 
 BUNDLED WITH
-   2.5.17
+   2.6.3

@@ -1,6 +1,6 @@
+import logger from "./logger"
 import Subscription from "./subscription"
 import SubscriptionGuarantor from "./subscription_guarantor"
-import logger from "./logger"
 
 // Collection class for creating (and internally managing) channel subscriptions.
 // The only method intended to be triggered by the user is ActionCable.Subscriptions#create,

@@ -155,8 +155,22 @@ class SafeBufferTest < ActiveSupport::TestCase
     multiplied_safe_buffer = "<br />".html_safe * 2
     assert_predicate multiplied_safe_buffer, :html_safe?
 
-    multiplied_unsafe_buffer = @buffer.gsub("", "<>") * 2
+    @buffer.gsub!("", "<>")
+    assert_not_predicate @buffer, :html_safe?
+    multiplied_unsafe_buffer = @buffer * 2
     assert_not_predicate multiplied_unsafe_buffer, :html_safe?
+  end
+
+  test "Should preserve html_safe? status on format" do
+    safe_buffer = "<br />%{name}".html_safe
+    assert_predicate safe_buffer, :html_safe?
+    safe_buffer = safe_buffer % { name: "George" }
+    assert_predicate safe_buffer, :html_safe?
+
+    unsafe_buffer = @buffer.gsub!("", "<%{name}>")
+    assert_not_predicate unsafe_buffer, :html_safe?
+    unsafe_buffer = unsafe_buffer % { name: "George" }
+    assert_not_predicate unsafe_buffer, :html_safe?
   end
 
   test "Should concat as a normal string when safe" do

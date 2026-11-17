@@ -4,15 +4,13 @@ require_relative "../../abstract_unit"
 require "active_support/cache"
 require_relative "../behaviors"
 
-class MemoryStoreTest < ActiveSupport::TestCase
-  def setup
-    @cache = lookup_store(expires_in: 60)
-  end
-
+class StoreTest < ActiveSupport::TestCase
   def lookup_store(options = {})
     ActiveSupport::Cache.lookup_store(:memory_store, options)
   end
+end
 
+class MemoryStoreTest < StoreTest
   include CacheStoreBehavior
   include CacheStoreVersionBehavior
   include CacheStoreCoderBehavior
@@ -22,6 +20,10 @@ class MemoryStoreTest < ActiveSupport::TestCase
   include CacheIncrementDecrementBehavior
   include CacheInstrumentationBehavior
   include CacheLoggingBehavior
+
+  def setup
+    @cache = lookup_store(expires_in: 60)
+  end
 
   def test_increment_preserves_expiry
     @cache = lookup_store
@@ -56,6 +58,19 @@ class MemoryStoreTest < ActiveSupport::TestCase
     end
   end
 
+  def test_cleanup_with_non_dup_coder_serializer
+    @cache = lookup_store(serializer: :marshal_7_1)
+    @cache.write("expired", "x" * 100, expires_in: 0.01)
+    @cache.write("fresh", "y" * 100)
+
+    Time.stub(:now, Time.now + 1.minute) do
+      @cache.cleanup
+
+      assert_nil @cache.read("expired")
+      assert_equal "y" * 100, @cache.read("fresh")
+    end
+  end
+
   def test_nil_coder_bypasses_mutation_safeguard
     @cache = lookup_store(coder: nil)
     value = {}
@@ -80,6 +95,15 @@ class MemoryStoreTest < ActiveSupport::TestCase
     assert_equal false, namespaced_cache.write(1, "aaaaaaaaaa", unless_exist: true)
   end
 
+  def test_local_cache_with_anonymous_subclass
+    cache = Class.new(ActiveSupport::Cache::MemoryStore).new
+
+    cache.with_local_cache do
+      cache.write("foo", "bar")
+      assert_equal "bar", cache.read("foo")
+    end
+  end
+
   def test_write_expired_value_with_unless_exist
     assert_equal true, @cache.write(1, "aaaa", expires_in: 1.second)
     travel 2.seconds
@@ -92,7 +116,7 @@ class MemoryStoreTest < ActiveSupport::TestCase
     end
 end
 
-class MemoryStorePruningTest < ActiveSupport::TestCase
+class MemoryStorePruningTest < StoreTest
   def setup
     @record_size = ActiveSupport::Cache.lookup_store(:memory_store).send(:cached_size, 1, ActiveSupport::Cache::Entry.new("aaaaaaaaaa"))
     @cache = ActiveSupport::Cache.lookup_store(:memory_store, expires_in: 60, size: @record_size * 10 + 1)
@@ -158,7 +182,7 @@ class MemoryStorePruningTest < ActiveSupport::TestCase
     assert @cache.exist?(8)
     assert @cache.exist?(7)
     assert @cache.exist?(6)
-    assert_not @cache.exist?(5), "no entry"
+    assert @cache.exist?(5)
     assert_not @cache.exist?(4), "no entry"
     assert_not @cache.exist?(3), "no entry"
     assert_not @cache.exist?(2), "no entry"
@@ -211,5 +235,26 @@ class MemoryStorePruningTest < ActiveSupport::TestCase
     read_item = @cache.read(key)
     assert_not_equal item.object_id, read_item.object_id
     assert_not_equal read_item.object_id, @cache.read(key).object_id
+  end
+
+  def test_local_store_strategy
+    @cache.with_local_cache do
+      @cache.write("name", "value")
+      assert_equal "value", @cache.read("name")
+      @cache.delete("name")
+      assert_nil @cache.read("name")
+      @cache.write("name", "value")
+    end
+    assert_equal "value", @cache.read("name")
+  end
+
+  def test_local_store_repeated_reads
+    @cache.with_local_cache do
+      @cache.read("foo")
+      assert_nil @cache.read("foo")
+
+      @cache.read_multi("foo", "bar")
+      assert_equal({}, @cache.read_multi("foo", "bar"))
+    end
   end
 end

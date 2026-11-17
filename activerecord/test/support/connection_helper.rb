@@ -8,8 +8,13 @@ module ConnectionHelper
     ActiveRecord::Base.establish_connection(original_connection)
   end
 
-  # Used to drop all cache query plans in tests.
+  # Resets state (cached plans, session settings) on the existing connection.
   def reset_connection
+    @connection.reset!
+  end
+
+  # Replaces the connection pool, yielding a fresh adapter instance.
+  def reset_pool
     original_connection = ActiveRecord::Base.remove_connection
     ActiveRecord::Base.establish_connection(original_connection)
   end

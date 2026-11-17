@@ -23,6 +23,11 @@ module ActiveRecord
       extend self
 
       def install(registry)
+        registry.register_type 118, ActiveRecord::Type::Time::Value,
+          packer: method(:write_time_value),
+          unpacker: method(:read_time_value),
+          recursive: true
+
         registry.register_type 119, ActiveModel::Type::Binary::Data,
           packer: :to_s,
           unpacker: :new
@@ -31,6 +36,14 @@ module ActiveRecord
           packer: method(:write_record),
           unpacker: method(:read_record),
           recursive: true
+      end
+
+      def write_time_value(value, packer)
+        packer.write(value.__getobj__)
+      end
+
+      def read_time_value(unpacker)
+        ActiveRecord::Type::Time::Value.new(unpacker.read)
       end
 
       def write_record(record, packer)
@@ -101,10 +114,12 @@ module ActiveRecord
         end
       end
 
+      #: (Array[untyped]) -> ActiveRecord::Base
       def build_record(entry)
         class_name, attributes_hash, is_new_record, * = entry
         klass = ActiveSupport::MessagePack::Extensions.load_class(class_name)
-        attributes = klass.attributes_builder.build_from_database(attributes_hash)
+        builder = klass.attributes_builder
+        attributes = builder.build_from_indexed_row(builder.row_from_hash(attributes_hash))
         klass.allocate.init_with_attributes(attributes, is_new_record)
       end
 

@@ -147,7 +147,7 @@ class RescueController < ActionController::Base
     end
 
     def show_errors(exception)
-      head :unprocessable_entity
+      head ActionDispatch::Constants::UNPROCESSABLE_CONTENT
     end
 end
 
@@ -289,12 +289,12 @@ class RescueControllerTest < ActionController::TestCase
 
   test "rescue when cause has more specific handler than wrapper" do
     get :exception_with_more_specific_handler_for_cause
-    assert_response :unprocessable_entity
+    assert_response ActionDispatch::Constants::UNPROCESSABLE_CONTENT
   end
 
   test "rescue when cause has handler, but wrapper doesn't" do
     get :exception_with_no_handler_for_wrapper
-    assert_response :unprocessable_entity
+    assert_response ActionDispatch::Constants::UNPROCESSABLE_CONTENT
   end
 
   test "can rescue a ParseError" do

@@ -13,6 +13,8 @@ module ActiveRecord
   class CollectionCacheKeyTest < ActiveRecord::TestCase
     fixtures :developers, :projects, :developers_projects, :topics, :comments, :posts
 
+    skip_under_ractor_proxy :test_insert_all_will_update_cache_key, :test_upsert_all_will_update_cache_key
+
     test "collection_cache_key on model" do
       assert_match(/\Adevelopers\/query-(\h+)-(\d+)-(\d+)\z/, Developer.collection_cache_key)
     end
@@ -68,6 +70,16 @@ module ActiveRecord
       assert_equal ActiveSupport::Digest.hexdigest(developers.to_sql), $1
       assert_equal developers.count.to_s, $2
       assert_equal last_developer_timestamp.to_fs(ActiveRecord::Base.cache_timestamp_format), $3
+    end
+
+    test "cache_key for a loaded relation with a NULL timestamp matches the unloaded key" do
+      with_timestamp = Topic.create!(title: "with timestamp")
+      without_timestamp = Topic.create!(title: "without timestamp")
+      Topic.where(id: without_timestamp.id).update_all(updated_at: nil)
+
+      relation = -> { Topic.where(id: [with_timestamp.id, without_timestamp.id]) }
+
+      assert_equal relation.call.cache_key, relation.call.load.cache_key
     end
 
     test "cache_key for relation with table alias" do
@@ -240,6 +252,17 @@ module ActiveRecord
       developers = Developer.select("name AS dev_name").order("dev_name DESC").limit(5)
 
       assert_match(/\Adevelopers\/query-(\h+)-(\d+)-(\d+)\z/, developers.cache_key)
+    end
+
+    test "cache_key with a relation having default_order" do
+      developers = Developer.where(salary: 100000).default_order(:name)
+
+      queries = capture_sql do
+        assert_match(/\Adevelopers\/query-(\h+)-(\d+)-(\d+)\z/, developers.cache_key)
+      end
+
+      assert_equal 1, queries.length
+      assert_no_match(/ORDER BY/, queries.first)
     end
 
     test "cache_key should be stable when using collection_cache_versioning" do

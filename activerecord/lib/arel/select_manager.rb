@@ -1,12 +1,22 @@
 # frozen_string_literal: true
 
+require "arel/nodes/sql_literal"
+require "arel/nodes/node"
+require "arel/nodes/node_expression"
+require "arel/nodes/terminal"
+
 module Arel # :nodoc: all
   class SelectManager < Arel::TreeManager
+    FOR_UPDATE = Nodes::SqlLiteral.new("FOR UPDATE").freeze
+    DISTINCT = Nodes::Distinct.new.freeze
+
     include Arel::Crud
 
-    STRING_OR_SYMBOL_CLASS = [Symbol, String]
+    STRING_OR_SYMBOL_CLASS = [Symbol, String].freeze
 
     def initialize(table = nil)
+      super
+
       @ast = Nodes::SelectStatement.new(table)
       @ctx = @ast.cores.last
     end
@@ -49,10 +59,10 @@ module Arel # :nodoc: all
       create_table_alias grouping(@ast), Nodes::SqlLiteral.new(other, retryable: true)
     end
 
-    def lock(locking = Arel.sql("FOR UPDATE"))
+    def lock(locking = FOR_UPDATE)
       case locking
       when true
-        locking = Arel.sql("FOR UPDATE")
+        locking = FOR_UPDATE
       when Arel::Nodes::SqlLiteral
       when String
         locking = Arel.sql locking
@@ -74,8 +84,13 @@ module Arel # :nodoc: all
     def group(*columns)
       columns.each do |column|
         # FIXME: backwards compat
-        column = Nodes::SqlLiteral.new(column) if String === column
-        column = Nodes::SqlLiteral.new(column.to_s) if Symbol === column
+        case column
+        when Nodes::SqlLiteral
+        when String
+          column = Nodes::SqlLiteral.new(column)
+        when Symbol
+          column = Nodes::SqlLiteral.new(column.name)
+        end
 
         @ctx.groups.push Nodes::Group.new column
       end
@@ -130,7 +145,7 @@ module Arel # :nodoc: all
     def project(*projections)
       # FIXME: converting these to SQLLiterals is probably not good, but
       # rails tests require it.
-      @ctx.projections.concat projections.map { |x|
+      @ctx.projections.concat projections.map! { |x|
         STRING_OR_SYMBOL_CLASS.include?(x.class) ? Nodes::SqlLiteral.new(x.to_s) : x
       }
       self
@@ -153,7 +168,7 @@ module Arel # :nodoc: all
 
     def distinct(value = true)
       if value
-        @ctx.set_quantifier = Arel::Nodes::Distinct.new
+        @ctx.set_quantifier = DISTINCT
       else
         @ctx.set_quantifier = nil
       end
@@ -171,7 +186,7 @@ module Arel # :nodoc: all
 
     def order(*expr)
       # FIXME: We SHOULD NOT be converting these to SqlLiteral automatically
-      @ast.orders.concat expr.map { |x|
+      @ast.orders.concat expr.map! { |x|
         STRING_OR_SYMBOL_CLASS.include?(x.class) ? Nodes::SqlLiteral.new(x.to_s) : x
       }
       self
@@ -197,7 +212,10 @@ module Arel # :nodoc: all
 
     def union(operation, other = nil)
       if other
-        node_class = Nodes.const_get("Union#{operation.to_s.capitalize}")
+        unless operation.to_s.casecmp?("all")
+          raise ArgumentError, "Unknown union operation: #{operation.inspect}"
+        end
+        node_class = Nodes::UnionAll
       else
         other = operation
         node_class = Nodes::Union
@@ -222,7 +240,11 @@ module Arel # :nodoc: all
 
     def with(*subqueries)
       if subqueries.first.is_a? Symbol
-        node_class = Nodes.const_get("With#{subqueries.shift.to_s.capitalize}")
+        operation = subqueries.shift
+        unless operation.to_s.casecmp?("recursive")
+          raise ArgumentError, "Unknown with operation: #{operation.inspect}"
+        end
+        node_class = Nodes::WithRecursive
       else
         node_class = Nodes::With
       end
@@ -250,8 +272,12 @@ module Arel # :nodoc: all
     end
 
     def comment(*values)
-      @ctx.comment = Nodes::Comment.new(values)
-      self
+      if values.any?
+        @ctx.comment = Nodes::Comment.new(values)
+        self
+      else
+        @ctx.comment
+      end
     end
 
     private

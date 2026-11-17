@@ -14,7 +14,7 @@ module CacheStoreFormatVersionBehavior
       "\x00\x11\x01".b, # ActiveSupport::Cache::Coder#dump
       "\x00\x11\x81".b, # ActiveSupport::Cache::Coder#dump_compressed
     ],
-  }
+  }.freeze
 
   FORMAT_VERSIONS = FORMAT_VERSION_SIGNATURES.keys
 

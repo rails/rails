@@ -1,6 +1,9 @@
 # frozen_string_literal: true
 
 require "cases/helper"
+require "active_support/core_ext/object/with"
+require "support/deprecated_associations_test_helpers"
+require "models/attachment"
 require "models/developer"
 require "models/project"
 require "models/company"
@@ -31,6 +34,29 @@ require "models/tree"
 require "models/node"
 require "models/club"
 require "models/cpk"
+require "models/person"
+require "models/car"
+require "models/bulb"
+require "models/sharded/blog"
+require "models/sharded/blog_post"
+require "models/sharded/comment"
+require "models/image"
+require "models/shipment"
+require "models/adjustment"
+require "models/dats"
+require "models/human"
+require "models/face"
+
+class BelongsToContainedKeyChapter < Cpk::Chapter
+  self.primary_key = [:author_id, :book_id, :id]
+
+  belongs_to :contained_book,
+    class_name: "Cpk::Book",
+    foreign_key: [:author_id, :book_id],
+    primary_key: [:author_id, :id],
+    optional: true,
+    inverse_of: false
+end
 
 class BelongsToAssociationsTest < ActiveRecord::TestCase
   fixtures :accounts, :companies, :developers, :projects, :topics,
@@ -63,10 +89,44 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
     assert_empty Comment.where(author: [])
   end
 
+  def test_where_on_association_with_records_and_ids_builds_a_single_list
+    post = Post.new(id: 1)
+    special_post = SpecialPost.new(id: 2)
+
+    assert_equal Comment.where(post_id: [1, 7]).to_sql, Comment.where(post: [post, 7]).to_sql
+    assert_equal Comment.where(post_id: [1, nil, 7]).to_sql, Comment.where(post: [post, nil, 7]).to_sql
+    assert_equal Comment.where(post_id: [1, 2]).to_sql, Comment.where(post: [post, special_post]).to_sql
+    assert_equal Comment.where(post_id: [nil, 7]).to_sql, Comment.where(post: [nil, 7]).to_sql
+  end
+
+  def test_where_on_association_with_a_composite_key_rejects_bare_ids
+    assert_raises(ArgumentError) { Cpk::Chapter.where(book: 1) }
+    assert_raises(ArgumentError) { Cpk::Chapter.where(book: [nil, [1, 2]]) }
+    assert_raises(ArgumentError) { Cpk::NonCpkBook.where(non_cpk_order: 1) }
+  end
+
+  def test_where_on_association_with_empty_array_avoids_queries
+    assert_no_queries do
+      assert_empty Comment.where(post: []).to_a
+      assert_empty Cpk::Chapter.where(book: []).to_a
+      assert_empty Cpk::Chapter.where(book: Cpk::Book.none).to_a
+    end
+  end
+
   def test_where_on_polymorphic_association_with_cpk
     post = Cpk::Post.create!(title: "Welcome", author: "Mary")
     post.comments << Cpk::Comment.create!
     assert_equal 1, Cpk::Comment.where(commentable: post).count
+  end
+
+  def test_where_on_polymorphic_association_with_cpk_relation
+    post = Cpk::Post.create!(title: "Welcome", author: "Mary")
+    other = Cpk::Post.create!(title: "Welcome", author: "Bob")
+    comment = Cpk::Comment.create!(commentable: post)
+    Cpk::Comment.create!(commentable: other)
+
+    assert_equal [comment], Cpk::Comment.where(commentable: Cpk::Post.where(author: "Mary")).to_a
+    assert_empty Cpk::Comment.where(commentable: Cpk::Post.none)
   end
 
   def test_assigning_belongs_to_on_destroyed_object
@@ -85,7 +145,25 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
   end
 
   def test_missing_attribute_error_is_raised_when_no_foreign_key_attribute
-    assert_raises(ActiveModel::MissingAttributeError) { Client.select(:id).first.firm }
+    assert_raises(ActiveModel::MissingAttributeError, match: /missing attribute 'client_of' for Client/) do
+      Client.select(:id).first.firm
+    end
+  end
+
+  def test_assigning_a_record_without_selecting_its_association_primary_key
+    firm = Firm.select(:id).find(companies(:first_firm).id)
+    client = Client.new(firm_name: "Previous firm")
+
+    client.firm_with_primary_key = firm
+
+    assert_nil client.firm_name
+    assert_same firm, client.firm_with_primary_key
+  end
+
+  def test_reading_a_polymorphic_association_without_selecting_its_type
+    face = Face.instantiate("id" => 1, "polymorphic_human_id" => 2)
+
+    assert_no_queries { assert_nil face.polymorphic_human }
   end
 
   def test_belongs_to_does_not_use_order_by
@@ -96,6 +174,252 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
   def test_belongs_to_with_primary_key
     client = Client.create(name: "Primary key client", firm_name: companies(:first_firm).name)
     assert_equal companies(:first_firm).name, client.firm_with_primary_key.name
+  end
+
+  def test_belongs_to_with_alias_attribute_foreign_key
+    post = PostWithAliasedAuthorId.find(posts(:welcome).id)
+    assert_equal authors(:david), post.author
+  end
+
+  def test_belongs_to_with_alias_attribute_foreign_key_change_tracking
+    post = PostWithAliasedAuthorId.find(posts(:welcome).id)
+    post.writer_id = authors(:mary).id
+
+    assert_predicate post, :author_changed?
+
+    post.save!
+
+    assert_not_predicate post, :author_changed?
+    assert_predicate post, :author_previously_changed?
+  end
+
+  def test_belongs_to_counter_with_alias_attribute_foreign_key
+    debate = Topic.create!(title: "debate")
+    debate2 = Topic.create!(title: "debate2")
+    reply = ReplyWithAliasedParentId.create!(title: "blah!", content: "world around!", topic: debate)
+
+    assert_equal 1, debate.reload.replies_count
+    assert_equal 0, debate2.reload.replies_count
+
+    reply.update!(topic: debate2)
+
+    assert_equal 0, debate.reload.replies_count
+    assert_equal 1, debate2.reload.replies_count
+
+    reply.destroy!
+
+    assert_equal 0, debate.reload.replies_count
+    assert_equal 0, debate2.reload.replies_count
+  end
+
+  def test_belongs_to_touch_with_alias_attribute_foreign_key
+    debate = Topic.create!(title: "debate")
+    debate2 = Topic.create!(title: "debate2")
+    reply = ReplyWithAliasedTouchParentId.create!(title: "blah!", content: "world around!", topic: debate)
+
+    time = 1.day.ago
+    debate.touch(time: time)
+    debate2.touch(time: time)
+
+    reply.update!(topic: debate2)
+
+    assert_operator debate.reload.updated_at, :>, time
+    assert_operator debate2.reload.updated_at, :>, time
+  end
+
+  class AliasedKeySponsor < ActiveRecord::Base
+    self.table_name = "sponsors"
+
+    alias_attribute :ship_key, :club_id
+    belongs_to :ship, foreign_key: :ship_key, touch: true, optional: true
+  end
+
+  class RemappedKeySponsor < AliasedKeySponsor
+    alias_attribute :ship_key, :sponsorable_id
+  end
+
+  def test_belongs_to_touch_with_alias_attribute_foreign_key_remapped_by_a_subclass
+    decoy = Ship.create!(name: "Decoy")
+    original = Ship.create!(name: "Original")
+    replacement = Ship.create!(name: "Replacement")
+    sponsor = RemappedKeySponsor.create!(club_id: decoy.id, ship: original)
+    time = 1.day.ago
+    [decoy, original, replacement].each { |ship| ship.update_column(:updated_at, time) }
+
+    sponsor.update!(ship: replacement)
+
+    assert_operator original.reload.updated_at, :>, time
+    assert_operator replacement.reload.updated_at, :>, time
+    assert_equal time.to_i, decoy.reload.updated_at.to_i
+  end
+
+  def test_required_validation_without_selecting_the_polymorphic_type
+    ActiveRecord.with(belongs_to_required_validates_foreign_key: false) do
+      model = Class.new(ActiveRecord::Base) do
+        self.table_name = "faces"
+
+        def self.name; "RequiredPolymorphicFace"; end
+
+        belongs_to :polymorphic_human, polymorphic: true, required: true
+      end
+
+      face = model.instantiate("id" => 1, "polymorphic_human_id" => 2)
+
+      assert_not_predicate face, :valid?
+      assert_includes face.errors[:polymorphic_human], "must exist"
+    end
+  end
+
+  def test_belongs_to_required_validation_with_alias_attribute_foreign_key
+    original_value = ActiveRecord.belongs_to_required_validates_foreign_key
+    ActiveRecord.belongs_to_required_validates_foreign_key = false
+
+    model = Class.new(ActiveRecord::Base) do
+      self.table_name = "posts"
+      self.inheritance_column = nil
+
+      def self.name; "TempPost"; end
+
+      alias_attribute :writer_id, :author_id
+
+      belongs_to :author, foreign_key: :writer_id, required: true
+    end
+
+    post = model.create!(title: "Title", body: "Body", author: authors(:david))
+    post.reload
+
+    post.writer_id = 987_654_321
+    assert_not_predicate post, :valid?
+    assert_includes post.errors.full_messages, "Author must exist"
+
+    post.reload
+
+    post.author_id = 987_654_321
+    assert_not_predicate post, :valid?
+    assert_includes post.errors.full_messages, "Author must exist"
+  ensure
+    ActiveRecord.belongs_to_required_validates_foreign_key = original_value
+  end
+
+  def test_association_readers_when_the_owner_has_an_attribute_named_method
+    model = Class.new(ActiveRecord::Base) do
+      self.table_name = "posts"
+      self.inheritance_column = nil
+
+      def self.name; "TempPost"; end
+
+      attribute :method, :string
+
+      belongs_to :author
+      has_many :comments, foreign_key: :post_id
+    end
+
+    post = model.find(posts(:welcome).id)
+    assert_equal authors(:david), post.author
+    assert_equal posts(:welcome).comments.sort_by(&:id), post.comments.sort_by(&:id)
+  end
+
+  class AliasedKeyComment < ActiveRecord::Base
+    self.table_name = "comments"
+    self.inheritance_column = nil
+
+    alias_attribute :post_key, :post_id
+    belongs_to :keyed_post, class_name: "Post", foreign_key: :post_key, optional: true, inverse_of: false
+  end
+
+  class RemappedKeyComment < AliasedKeyComment
+    alias_attribute :post_key, :author_id
+  end
+
+  def test_belongs_to_access_paths_resolve_aliases_for_each_concrete_owner_class
+    first = Post.create!(id: 9_000_501, title: "First", body: "First")
+    second = Post.create!(id: 9_000_502, title: "Second", body: "Second")
+    replacement = Post.create!(id: 9_000_503, title: "Replacement", body: "Replacement")
+    row = AliasedKeyComment.create!(post_id: first.id, author_id: second.id, body: "Aliased key comment")
+    expectations = {
+      AliasedKeyComment => [first, "post_id", "author_id"],
+      RemappedKeyComment => [second, "author_id", "post_id"],
+    }
+
+    expectations.each do |model, (target, key_column, other_column)|
+      comment = model.find(row.id)
+      message = model.name
+
+      assert_equal target, comment.keyed_post, message
+      assert_equal [comment], model.where(keyed_post: target).to_a, message
+      assert_equal comment, model.find_by(keyed_post: target), message
+      assert_equal [comment.id], model.joins(:keyed_post).where(posts: { id: target.id }).pluck(:id), message
+      assert_equal target, model.eager_load(:keyed_post).find(comment.id).keyed_post, message
+
+      other_value = comment.attributes[other_column]
+      comment.keyed_post = replacement
+      assert_equal replacement.id, comment.attributes[key_column], message
+      assert_equal other_value, comment.attributes[other_column], message
+    end
+
+    comments = expectations.keys.map { |model| model.find(row.id) }
+    ActiveRecord::Associations::Preloader.new(records: comments, associations: :keyed_post).call
+
+    assert_equal expectations.values.map(&:first), comments.map(&:keyed_post)
+  end
+
+  class SingletonKeyPost < ActiveRecord::Base
+    self.table_name = "posts"
+    self.inheritance_column = nil
+    self.primary_key = [:id]
+  end
+
+  class SingletonKeyComment < ActiveRecord::Base
+    self.table_name = "comments"
+    self.inheritance_column = nil
+
+    belongs_to :scalar_reference,
+      class_name: "BelongsToAssociationsTest::SingletonKeyPost",
+      foreign_key: :post_id,
+      primary_key: [:id],
+      optional: true
+    belongs_to :composite_reference,
+      class_name: "Post",
+      foreign_key: [:post_id],
+      primary_key: :id,
+      optional: true
+    belongs_to :composite_reference_and_target,
+      class_name: "BelongsToAssociationsTest::SingletonKeyPost",
+      foreign_key: [:post_id],
+      primary_key: [:id],
+      optional: true
+  end
+
+  def test_belongs_to_with_single_column_keys_declared_as_arrays
+    post = SingletonKeyPost.create!(title: "Single-column target", body: "Single-column target")
+    comment = SingletonKeyComment.create!(post_id: post.id_value, body: "Single-column reference")
+
+    [:scalar_reference, :composite_reference, :composite_reference_and_target].each do |name|
+      target = comment.association(name).klass.find_by!(id: post.id_value)
+      assert_equal target, comment.public_send(name)
+
+      comment.association(name).reset
+      ActiveRecord::Associations::Preloader.new(records: [comment], associations: name).call
+      assert_predicate comment.association(name), :loaded?
+      assert_equal target, comment.public_send(name)
+    end
+  end
+
+  def test_association_predicates_with_single_column_composite_keys
+    posts = ["First", "Second"].map do |title|
+      SingletonKeyPost.create!(title: title, body: title)
+    end
+    comments = posts.map do |post|
+      SingletonKeyComment.create!(post_id: post.id_value, body: post.title)
+    end
+    scope = SingletonKeyComment.where(id: comments.map(&:id)).order(:id)
+    post_ids = posts.map(&:id_value)
+
+    [:scalar_reference, :composite_reference, :composite_reference_and_target].each do |name|
+      assert_equal comments, scope.where(name => posts).to_a
+      assert_equal scope.where(post_id: [*post_ids, nil]).to_sql, scope.where(name => [*posts, nil]).to_sql
+      assert_equal scope.where(post_id: nil).to_sql, scope.where(name => [nil]).to_sql
+    end
   end
 
   def test_belongs_to_with_primary_key_joins_on_correct_column
@@ -224,6 +548,13 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
     assert_equal developers(:jamis), ship.developer
   end
 
+  def test_association_unscope_removes_default_scope_condition_when_joined_under_an_alias
+    post = PostWithWhereDefaultScope.create!(author: authors(:david), title: "title", body: "body", deleted_at: Time.now)
+    comment = CommentOnPostWithWhereDefaultScope.create!(body: "comment", post_id: post.id)
+
+    assert_equal [comment], CommentOnPostWithWhereDefaultScope.joins(:post_including_deleted).where(post_including_deleted: { id: post.id }).to_a
+  end
+
   def test_default_scope_on_relations_is_not_cached
     counter = 0
 
@@ -266,7 +597,7 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
   def test_raises_type_mismatch_with_namespaced_class
     assert_nil defined?(Region), "This test requires that there is no top-level Region class"
 
-    ActiveRecord::Base.lease_connection.instance_eval do
+    main_ractor_connection(ActiveRecord::Base.lease_connection).instance_eval do
       create_table(:admin_regions, force: true) { |t| t.string :name }
       add_column :admin_users, :region_id, :integer
     end
@@ -281,7 +612,7 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
     Admin.send :remove_const, "Region" if Admin.const_defined?("Region")
     Admin.send :remove_const, "RegionalUser" if Admin.const_defined?("RegionalUser")
 
-    ActiveRecord::Base.lease_connection.instance_eval do
+    main_ractor_connection(ActiveRecord::Base.lease_connection).instance_eval do
       remove_column :admin_users, :region_id if column_exists?(:admin_users, :region_id)
       drop_table :admin_regions, if_exists: true
     end
@@ -398,6 +729,93 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
     order.save!
 
     assert_equal 3, book.shop_id
+  end
+
+  def test_clearing_optional_cpk_belongs_to_should_preserve_shared_pk
+    book = Cpk::Book.create!(id: [1, 2], title: "The Well-Grounded Rubyist")
+    chapter = Cpk::OptionalChapter.create!(id: [1, 2], book: book)
+
+    assert_equal book, chapter.book
+    assert_equal [1, 2], chapter.id
+
+    chapter.update!(book: nil)
+
+    assert_equal [1, 2], chapter.id
+    assert_nil chapter.book_id
+    assert_equal chapter.author_id, book.author_id
+  end
+
+  def test_clearing_belongs_to_nullifies_composite_foreign_key_that_is_a_subset_of_primary_key
+    chapter = BelongsToContainedKeyChapter.new(author_id: 1, book_id: 2)
+    chapter.write_attribute(:id, 3)
+
+    chapter.contained_book = nil
+
+    assert_nil chapter.author_id
+    assert_nil chapter.book_id
+    assert_equal 3, chapter.read_attribute(:id)
+  end
+
+  def test_clearing_belongs_to_nullifies_foreign_key_contained_in_composite_pk
+    order_tag = Cpk::OrderTag.new(order_id: 1, tag_id: 2)
+
+    assert_equal 2, order_tag.tag_id
+
+    order_tag.tag = nil
+
+    assert_nil order_tag.tag_id
+  end
+
+  def test_clearing_polymorphic_belongs_to_nullifies_both_columns_contained_in_composite_pk
+    face_class = Class.new(ActiveRecord::Base) do
+      self.table_name = "faces"
+      self.primary_key = [:polymorphic_human_type, :polymorphic_human_id, :id]
+
+      belongs_to :polymorphic_human, polymorphic: true, optional: true
+    end
+
+    human = Human.new(id: 1, name: "Sonny")
+    face = face_class.new(polymorphic_human: human)
+
+    assert_equal "Human", face.polymorphic_human_type
+    assert_equal 1, face.polymorphic_human_id
+
+    face.polymorphic_human = nil
+
+    assert_nil face.polymorphic_human_type
+    assert_nil face.polymorphic_human_id
+  end
+
+  def test_clearing_polymorphic_belongs_to_nullifies_id_when_only_id_is_in_composite_pk
+    face_class = Class.new(ActiveRecord::Base) do
+      self.table_name = "faces"
+      self.primary_key = [:polymorphic_human_id, :id]
+
+      belongs_to :polymorphic_human, polymorphic: true, optional: true
+    end
+
+    human = Human.new(id: 1, name: "Sonny")
+    face = face_class.new(polymorphic_human: human)
+
+    assert_equal "Human", face.polymorphic_human_type
+    assert_equal 1, face.polymorphic_human_id
+
+    face.polymorphic_human = nil
+
+    assert_nil face.polymorphic_human_type
+    assert_nil face.polymorphic_human_id
+  end
+
+  def test_should_reload_association_on_model_with_query_constraints_when_foreign_key_changes
+    blog = Sharded::Blog.create!
+    blog_post = Sharded::BlogPost.create!(blog: blog)
+    comment = Sharded::Comment.create!(blog: blog)
+
+    # Load the association once
+    comment.blog_post
+    comment.blog_post_id = blog_post.id
+
+    assert_equal blog_post, comment.blog_post
   end
 
   def test_building_the_belonging_object_with_implicit_sti_base_class
@@ -542,6 +960,22 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
 
     sponsor.sponsorable = Member.new name: "Bert"
     assert_equal Member, sponsor.association(:sponsorable).klass
+  end
+
+  def test_polymorphic_assignment_ignores_an_unresolvable_stored_type
+    member = Member.create!(name: "Replacement target")
+    sponsor = Sponsor.new(sponsorable_id: -1, sponsorable_type: "MissingSponsorableClass")
+
+    assert_nothing_raised { sponsor.sponsorable = member }
+    assert_same member, sponsor.sponsorable
+    assert_equal member.id, sponsor.sponsorable_id
+    assert_equal Member.polymorphic_name, sponsor.sponsorable_type
+
+    sponsor = Sponsor.new(sponsorable_id: 42, sponsorable_type: "MissingNamespace::MissingSponsorableClass")
+
+    assert_nothing_raised { sponsor.sponsorable = nil }
+    assert_nil sponsor.sponsorable_id
+    assert_nil sponsor.sponsorable_type
   end
 
   def test_with_polymorphic_and_condition
@@ -865,6 +1299,42 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
     line_item.invoice = Invoice.create!
 
     assert_queries_count(5) { line_item.touch }
+  end
+
+  def test_saving_does_not_resolve_an_unchanged_unresolvable_polymorphic_type
+    counting_model = Class.new(ActiveRecord::Base) do
+      self.table_name = "sponsors"
+
+      def self.name; "Temp"; end
+
+      belongs_to :target, polymorphic: true, foreign_key: :sponsorable_id, foreign_type: :sponsorable_type, counter_cache: true, optional: true
+    end
+    touching_model = Class.new(ActiveRecord::Base) do
+      self.table_name = "sponsors"
+
+      def self.name; "Temp"; end
+
+      belongs_to :target, polymorphic: true, foreign_key: :sponsorable_id, foreign_type: :sponsorable_type, touch: true, optional: true
+    end
+    target = Member.create!(name: "Touch target")
+    [
+      { club_id: 1, sponsorable_id: nil, sponsorable_type: "MissingNamespace::MissingSponsorableClass" },
+      { club_id: 2, sponsorable_id: target.id, sponsorable_type: "MissingTouchedClass" },
+      { club_id: 3, sponsorable_id: nil, sponsorable_type: "MissingTouchedClass" },
+    ].each do |attributes|
+      counting_model.create!.update_columns(attributes)
+    end
+
+    reference = counting_model.find_by!(club_id: 1)
+    reference.club_id = 4
+    assert_nothing_raised { reference.save! }
+
+    reference = touching_model.find_by!(club_id: 2)
+    reference.sponsorable_type = Member.polymorphic_name
+    assert_nothing_raised { reference.save! }
+
+    reference = touching_model.find_by!(club_id: 3)
+    assert_nothing_raised { reference.update!(target: target) }
   end
 
   def test_belongs_to_counter_after_update
@@ -1434,6 +1904,20 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
     assert_equal touch_time, car.reload.wheels_owned_at
   end
 
+  def test_polymorphic_stale_state_handles_nil_foreign_keys_correctly
+    klass = Class.new(ActiveRecord::Base) do
+      self.table_name = "records"
+
+      has_one :attachment, as: :record
+
+      def self.polymorphic_name
+        "Blob"
+      end
+    end
+
+    assert_nothing_raised { Attachment.create!(record: klass.build, record_type: "Document") }
+  end
+
   def test_build_with_conditions
     client = companies(:second_client)
     firm   = client.build_bob_firm
@@ -1738,6 +2222,43 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
     assert_predicate comment, :author_previously_changed?
   end
 
+  test "tracking change for composite foreign key from one persisted record to another" do
+    old_order = Cpk::Order.create!(id: [1, 2])
+    new_order = Cpk::Order.create!(id: [1, 3])
+    book = Cpk::Book.create!(id: [3, 4], order: old_order)
+    book.reload
+
+    assert_not book.order_changed?
+    assert_not book.order_previously_changed?
+
+    book.order = new_order
+    assert book.order_changed?
+    assert_not book.order_previously_changed?
+
+    book.save!
+    assert_not book.order_changed?
+    assert book.order_previously_changed?
+  end
+
+  test "composite foreign key touch skips the previous-parent lookup when there is no previous parent" do
+    order = Cpk::Order.create!(id: [1, 2])
+
+    assert_queries_match(/#{Cpk::Order.table_name}/, count: 1) do
+      Cpk::BookWithTouchableOrder.create!(id: [3, 4], order: order)
+    end
+  end
+
+  test "composite foreign key touch skips the previous-parent lookup when only some key columns were set" do
+    order = Cpk::Order.create!(id: [1, 2])
+    book = Cpk::BookWithTouchableOrder.create!(id: [3, 4], shop_id: order.shop_id)
+    book.reload
+
+    assert_queries_match(/#{Cpk::Order.table_name}/, count: 1) do
+      book.order = order
+      book.save!
+    end
+  end
+
   class ShipRequired < ActiveRecord::Base
     self.table_name = "ships"
     belongs_to :developer, required: true
@@ -1770,6 +2291,32 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
     assert_queries_count(3) do # UPDATE only, no SELECT to check developer presence
       ship.update!(name: "Leviathan")
     end
+  end
+
+  test "skips parent presence check for composite foreign key if parent has not changed" do
+    order = Cpk::Order.create!(id: [1, 2])
+    book = Cpk::BookWithRequiredOrder.create!(id: [3, 4], order: order, title: "Book")
+    book.reload
+
+    assert_no_queries do
+      assert book.valid?
+    end
+  end
+
+  test "validates composite foreign key belongs_to when foreign key column is nil" do
+    book = Cpk::BookWithRequiredOrder.new(id: [1, 1], shop_id: nil, order_id: nil, title: "Book")
+    assert_not book.valid?
+    assert_includes book.errors.full_messages, "Order must exist"
+  end
+
+  test "validates composite foreign key belongs_to when foreign key column changes" do
+    order = Cpk::Order.create!(id: [1, 2])
+    book = Cpk::BookWithRequiredOrder.create!(id: [3, 4], order: order, title: "Book")
+    book.reload
+
+    book.order_id = 999999
+    assert_not book.valid?
+    assert_includes book.errors.full_messages, "Order must exist"
   end
 
   test "runs parent presence check if parent has not changed and belongs_to_required_validates_foreign_key is set" do
@@ -1824,6 +2371,15 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
 
     assert_equal(other_order.id, book.order_id)
   end
+
+  test "the association scope can't unscope the primary key of the associated model" do
+    Car.create!
+    car = Car.create!
+    bulb = Bulb.create!(name: "defaulty", car: car)
+
+    assert_equal car, bulb.car_with_unscoped_where
+    assert_equal car, Bulb.preload(:car_with_unscoped_where).find(bulb.id).car_with_unscoped_where
+  end
 end
 
 class BelongsToWithForeignKeyTest < ActiveRecord::TestCase
@@ -1841,7 +2397,7 @@ class BelongsToWithForeignKeyTest < ActiveRecord::TestCase
 end
 
 class AsyncBelongsToAssociationsTest < ActiveRecord::TestCase
-  include WaitForAsyncTestHelper
+  include WaitForTestHelper
 
   self.use_transactional_tests = false
 
@@ -1855,13 +2411,9 @@ class AsyncBelongsToAssociationsTest < ActiveRecord::TestCase
       client.association(:firm).async_load_target
       wait_for_async_query
 
-      events = []
-      callback = -> (event) do
-        events << event unless event.payload[:name] == "SCHEMA"
-      end
-      ActiveSupport::Notifications.subscribed(callback, "sql.active_record") do
+      events = capture_notifications("sql.active_record") do
         client.firm
-      end
+      end.reject { |e| e.payload[:name] == "SCHEMA" }
 
       assert_no_queries do
         assert_equal first_firm, client.firm
@@ -1871,5 +2423,216 @@ class AsyncBelongsToAssociationsTest < ActiveRecord::TestCase
       assert_equal 1, events.size
       assert_equal true, events.first.payload[:async]
     end
+  end
+end
+
+class DeprecatedBelongsToAssociationsTest < ActiveRecord::TestCase
+  include DeprecatedAssociationsTestHelpers
+
+  fixtures :cars
+
+  def modify_car_name_directly_in_the_database(car)
+    new_name = "#{car.name} edited"
+    DATS::Car.connection.execute("UPDATE cars SET name = '#{new_name}'")
+    new_name
+  end
+
+  setup do
+    @model = DATS::Bulb
+    @car = DATS::Car.first
+    @bulb = @car.create_bulb!(name: "for belongs_to deprecated test suite")
+  end
+
+  test "<association>" do
+    assert_not_deprecated_association(:car) do
+      @bulb.car
+    end
+
+    assert_deprecated_association(:deprecated_car, context: context_for_method(:deprecated_car)) do
+      assert_equal @car, @bulb.deprecated_car
+    end
+  end
+
+  test "<association>=" do
+    car = DATS::Car.new
+
+    assert_not_deprecated_association(:car) do
+      @bulb.car = car
+    end
+
+    assert_deprecated_association(:deprecated_car, context: context_for_method(:deprecated_car=)) do
+      @bulb.deprecated_car = car
+    end
+    assert_same car, @bulb.deprecated_car
+  end
+
+  test "reload_<association>" do
+    assert_not_deprecated_association(:car) do
+      @bulb.reload_car
+    end
+
+    deprecated_car = @bulb.deprecated_car # caches the associated object
+    new_name = modify_car_name_directly_in_the_database(deprecated_car)
+    assert_deprecated_association(:deprecated_car, context: context_for_method(:reload_deprecated_car)) do
+      assert_equal new_name, @bulb.reload_deprecated_car.name
+    end
+  end
+
+  test "reset_<association>" do
+    assert_not_deprecated_association(:car) do
+      @bulb.reset_car
+    end
+
+    deprecated_car = @bulb.deprecated_car # caches the associated object
+    new_name = modify_car_name_directly_in_the_database(deprecated_car)
+
+    assert_deprecated_association(:deprecated_car, context: context_for_method(:reset_deprecated_car)) do
+      @bulb.reset_deprecated_car
+    end
+
+    assert_equal new_name, @bulb.deprecated_car.name
+  end
+
+  test "build_<association>" do
+    assert_not_deprecated_association(:car) do
+      @bulb.build_car
+    end
+
+    assert_deprecated_association(:deprecated_car, context: context_for_method(:build_deprecated_car)) do
+      assert_instance_of DATS::Car, @bulb.build_deprecated_car
+    end
+  end
+
+  test "create_<association>" do
+    assert_not_deprecated_association(:car) do
+      @bulb.create_car
+    end
+
+    assert_deprecated_association(:deprecated_car, context: context_for_method(:create_deprecated_car)) do
+      assert_predicate @bulb.create_deprecated_car, :persisted?
+    end
+  end
+
+  test "create_<association>!" do
+    assert_not_deprecated_association(:car) do
+      @bulb.create_car!
+    end
+
+    assert_deprecated_association(:deprecated_car, context: context_for_method(:create_deprecated_car!)) do
+      assert_predicate @bulb.create_deprecated_car!, :persisted?
+    end
+  end
+
+  test "<association>_changed?" do
+    assert_not_deprecated_association(:car) do
+      @bulb.car_changed?
+    end
+
+    assert_deprecated_association(:deprecated_car, context: context_for_method(:deprecated_car_changed?)) do
+      assert_not_predicate @bulb, :deprecated_car_changed?
+    end
+  end
+
+  test "<association>_previously_changed?" do
+    assert_not_deprecated_association(:car) do
+      @bulb.car_previously_changed?
+    end
+
+    assert_deprecated_association(:deprecated_car, context: context_for_method(:deprecated_car_previously_changed?)) do
+      assert_predicate @bulb, :deprecated_car_previously_changed?
+    end
+  end
+
+  test "parent destroy (not deprecated)" do
+    assert_not_deprecated_association(:car) do
+      @bulb.destroy
+    end
+    assert_predicate @car, :destroyed?
+  end
+
+  test "parent destroy (deprecated)" do
+    assert_deprecated_association(:deprecated_car, context: context_for_dependent) do
+      @bulb.destroy
+    end
+    assert_predicate @car, :destroyed?
+  end
+
+  test "touch notifies on creation (not deprecated)" do
+    assert_not_deprecated_association(:car) do
+      @car.create_bulb!(name: "for belongs_to deprecated test suite")
+    end
+  end
+
+  test "touch notifies on creation (deprecated)" do
+    assert_deprecated_association(:deprecated_car, context: context_for_touch) do
+      @car.create_bulb!(name: "for belongs_to deprecated test suite")
+    end
+  end
+
+  test "touch notifies on update" do
+    assert_not_deprecated_association(:car) do
+      @bulb.update(name: "#{@bulb.name} edited")
+    end
+
+    assert_deprecated_association(:deprecated_car, context: context_for_touch) do
+      assert @bulb.update(name: "#{@bulb.name} again")
+    end
+  end
+
+  test "touch notifies on destroy (not deprecated)" do
+    assert_not_deprecated_association(:car) do
+      @bulb.destroy
+    end
+    assert_predicate @car, :destroyed?
+  end
+
+  test "touch notifies on destroy (deprecated)" do
+    assert_deprecated_association(:deprecated_car, context: context_for_touch) do
+      @bulb.destroy
+    end
+    assert_predicate @car, :destroyed?
+  end
+end
+
+class BelongsToPolymorphicInversePrimaryKeyTest < ActiveRecord::TestCase
+  def test_polymorphic_with_different_primary_keys_per_type
+    author = Author.create!(name: "Author", author_code: "org_#{SecureRandom.hex(8)}")
+    person = Person.create!(first_name: "Person", external_id: "ext_#{SecureRandom.hex(8)}")
+
+    author_comment = PolymorphicComment.new(body: "Author comment", post_id: 1)
+    author_comment.person = author
+
+    person_comment = PolymorphicComment.new(body: "Person comment", post_id: 1)
+    person_comment.person = person
+
+    assert_equal author.author_code, author_comment.person_id
+    assert_equal person.external_id, person_comment.person_id
+
+    assert_equal "Author", author_comment.person_type
+    assert_equal "Person", person_comment.person_type
+
+    author_comment.save!
+    person_comment.save!
+
+    assert_equal author, author_comment.reload.person
+    assert_equal person, person_comment.reload.person
+  end
+end
+
+class BelongsToPolymorphicShardedPrimaryKeyTest < ActiveRecord::TestCase
+  def test_explicit_foreign_key_to_sharded_target_resolves_single_primary_key
+    reflection = Image.reflect_on_association(:imageable)
+
+    assert_predicate Sharded::BlogPost, :has_query_constraints?
+    assert_equal "id", reflection.association_primary_key(Sharded::BlogPost)
+  end
+
+  def test_inverse_with_composite_query_constraints_resolves_single_primary_key
+    reflection = Adjustment.reflect_on_association(:adjustable)
+    inverse = Shipment.reflect_on_association(:adjustments)
+
+    assert_equal [:region_id, :adjustable_id], inverse.options[:query_constraints]
+    assert_equal [:region_id, :id], inverse.options[:primary_key]
+    assert_equal "id", reflection.association_primary_key(Shipment)
   end
 end

@@ -1,7 +1,5 @@
 # frozen_string_literal: true
 
-# :markup: markdown
-
 module ActionDispatch
   # This is a class that abstracts away an asserted response. It purposely does
   # not inherit from Response because it doesn't need it. That means it does not
@@ -14,7 +12,7 @@ module ActionDispatch
       missing: "404",
       redirect: "3XX",
       error: "5XX"
-    }
+    }.freeze
 
     # Accepts a specific response status code as an Integer (404) or String ('404')
     # or a response status range as a Symbol pseudo-code (:success, indicating any
@@ -38,7 +36,7 @@ module ActionDispatch
 
     private
       def code_from_name(name)
-        GENERIC_RESPONSE_CODES[name] || Rack::Utils.status_code(name)
+        GENERIC_RESPONSE_CODES[name] || ActionDispatch::Response.rack_status_code(name)
       end
 
       def name_from_code(code)

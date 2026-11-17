@@ -359,6 +359,26 @@ class ActiveStorage::ManyAttachedTest < ActiveSupport::TestCase
     end
   end
 
+  test "updating an existing record to keep one of several previously-attached blobs" do
+    blobs = [ create_blob(filename: "funky.jpg"), create_blob(filename: "town.jpg"), create_blob(filename: "racecar.jpg") ]
+    @user.highlights.attach blobs.reverse
+    attachment_id = @user.highlights_attachments.find { |attachment| attachment.blob_id == blobs.first.id }.id
+
+    @user.update! highlights: [ create_blob(filename: "video.mp4"), blobs.first ]
+
+    assert_equal %w[ funky.jpg video.mp4 ], @user.reload.highlights.map { |attachment| attachment.filename.to_s }.sort
+    assert_equal attachment_id, @user.highlights_attachments.find_by!(blob: blobs.first).id
+  end
+
+  test "assigning new blobs to an existing record does not load its attachments" do
+    @user.highlights.attach create_blob(filename: "funky.jpg")
+    @user.reload
+
+    @user.highlights = [ fixture_file_upload("racecar.jpg") ]
+
+    assert_not_predicate @user.highlights_attachments, :loaded?
+  end
+
   test "updating an existing record to remove dependent attachments" do
     [ create_blob(filename: "funky.jpg"), create_blob(filename: "town.jpg") ].tap do |blobs|
       @user.highlights.attach blobs
@@ -619,6 +639,19 @@ class ActiveStorage::ManyAttachedTest < ActiveSupport::TestCase
     assert_nil user.attachment_changes["highlights"]
   end
 
+  test "purge attached blobs now when the record is destroyed" do
+    @user.favorites.attach create_blob(filename: "funky.jpg"), create_blob(filename: "wonky.jpg")
+    favorite_keys = @user.favorites.collect(&:key)
+
+    @user.reload.destroy
+
+    assert_nil ActiveStorage::Blob.find_by(key: favorite_keys.first)
+    assert_not ActiveStorage::Blob.service.exist?(favorite_keys.first)
+
+    assert_nil ActiveStorage::Blob.find_by(key: favorite_keys.second)
+    assert_not ActiveStorage::Blob.service.exist?(favorite_keys.second)
+  end
+
   test "purging later" do
     [ create_blob(filename: "funky.jpg"), create_blob(filename: "town.jpg") ].tap do |blobs|
       @user.highlights.attach blobs
@@ -789,6 +822,17 @@ class ActiveStorage::ManyAttachedTest < ActiveSupport::TestCase
     assert_equal :disk_mirror_2, @user.signatures.first.service.name
   end
 
+  test "passing other options to the attachment association" do
+    extra_attached = Class.new(User) do
+      def self.name; superclass.name; end
+
+      has_many_attached :signatures, deprecated: true
+    end
+
+    assert_predicate(extra_attached.reflect_on_association(:signatures_attachments), :deprecated?)
+    assert_not_predicate(extra_attached.reflect_on_association(:signatures_blobs), :deprecated?)
+  end
+
   test "attaching blobs to a persisted, unchanged, and valid record, returns the attachments" do
     @user.highlights.attach create_blob(filename: "racecar.jpg")
     return_value = @user.highlights.attach create_blob(filename: "funky.jpg"), create_blob(filename: "town.jpg")
@@ -802,6 +846,15 @@ class ActiveStorage::ManyAttachedTest < ActiveSupport::TestCase
     @user.highlights.attach create_blob(filename: "racecar.jpg")
     return_value = @user.highlights.attach create_blob(filename: "funky.jpg"), create_blob(filename: "town.jpg")
     assert_nil return_value
+  end
+
+  test "raises error when calling attach! to attach blobs to a persisted, unchanged, and invalid record" do
+    @user.update_attribute(:name, nil)
+    assert_not @user.valid?
+
+    assert_raises(ActiveRecord::RecordNotSaved) do
+      @user.highlights.attach! create_blob(filename: "racecar.jpg"), create_blob(filename: "funky.jpg"), create_blob(filename: "town.jpg")
+    end
   end
 
   test "attaching blobs to a changed record, returns the attachments" do
@@ -916,50 +969,6 @@ class ActiveStorage::ManyAttachedTest < ActiveSupport::TestCase
     assert_match(/Cannot find variant :unknown for User#highlights_with_variants/, error.message)
   end
 
-  test "transforms variants later" do
-    blob = create_file_blob(filename: "racecar.jpg")
-
-    assert_enqueued_with job: ActiveStorage::TransformJob, args: [blob, resize_to_limit: [1, 1]] do
-      @user.highlights_with_preprocessed.attach blob
-    end
-  end
-
-  test "transforms variants later conditionally via proc" do
-    assert_no_enqueued_jobs only: [ ActiveStorage::TransformJob, ActiveStorage::PreviewImageJob ] do
-      @user.highlights_with_conditional_preprocessed.attach create_file_blob(filename: "racecar.jpg")
-    end
-
-    blob = create_file_blob(filename: "racecar.jpg")
-    @user.update(name: "transform via proc")
-
-    assert_enqueued_with job: ActiveStorage::TransformJob, args: [blob, resize_to_limit: [2, 2]] do
-      @user.highlights_with_conditional_preprocessed.attach blob
-    end
-  end
-
-  test "transforms variants later conditionally via method" do
-    assert_no_enqueued_jobs only: [ ActiveStorage::TransformJob, ActiveStorage::PreviewImageJob ] do
-      @user.highlights_with_conditional_preprocessed.attach create_file_blob(filename: "racecar.jpg")
-    end
-
-    blob = create_file_blob(filename: "racecar.jpg")
-    @user.update(name: "transform via method")
-
-    assert_enqueued_with job: ActiveStorage::TransformJob, args: [blob, resize_to_limit: [3, 3]] do
-      assert_no_enqueued_jobs only: ActiveStorage::PreviewImageJob do
-        @user.highlights_with_conditional_preprocessed.attach blob
-      end
-    end
-  end
-
-  test "avoids enqueuing transform later and create preview job job when blob is not representable" do
-    unrepresentable_blob = create_blob(filename: "hello.txt")
-
-    assert_no_enqueued_jobs only: [ ActiveStorage::TransformJob, ActiveStorage::PreviewImageJob ] do
-      @user.highlights_with_preprocessed.attach unrepresentable_blob
-    end
-  end
-
   test "successfully attaches new blobs and destroys attachments marked for destruction via nested attributes" do
     town_blob = create_blob(filename: "town.jpg")
     @user.highlights.attach(town_blob)
@@ -975,5 +984,40 @@ class ActiveStorage::ManyAttachedTest < ActiveSupport::TestCase
     assert_predicate @user.reload.highlights, :attached?
     assert_equal 1, @user.highlights.count
     assert_equal "racecar.jpg", @user.highlights.blobs.first.filename.to_s
+  end
+
+  test "getting the combined byte size of persisted attachments" do
+    blobs = [ create_blob(filename: "funky.jpg"), create_blob(filename: "town.jpg") ]
+    @user.highlights.attach(blobs)
+
+    assert_equal blobs.sum(&:byte_size), @user.highlights.byte_size
+  end
+
+  test "getting the combined byte size of non persisted attachments" do
+    blobs = [ create_blob(filename: "funky.jpg"), create_blob(filename: "town.jpg") ]
+    @user.highlights = blobs
+
+    assert_equal blobs.sum(&:byte_size), @user.highlights.byte_size
+  end
+
+  test "as_json returns an empty array when no attachments are present" do
+    assert_equal [], @user.highlights.as_json
+  end
+
+  test "as_json returns the attachment records when attached" do
+    @user.highlights.attach(create_blob(filename: "funky.jpg"))
+    assert_equal @user.highlights_attachments.as_json, @user.highlights.as_json
+  end
+
+  test "to_json on the record does not stack overflow when an attribute shadows the many-attached name" do
+    @user.highlights.attach(create_blob(filename: "funky.jpg"))
+    user = User.select("name AS highlights").find(@user.id)
+    assert_nothing_raised { user.to_json }
+  end
+
+  test "preserves attachment changes when using STI" do
+    user = User.new(name: "John", highlights: [create_blob(filename: "funky.jpg")])
+    special_user = user.becomes(SpecialUser)
+    assert_predicate special_user.highlights, :attached?
   end
 end

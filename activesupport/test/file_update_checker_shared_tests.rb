@@ -33,6 +33,51 @@ module FileUpdateCheckerSharedTests
     assert_equal 0, i
   end
 
+  test "should exclude files in gem path" do
+    fake_gem_dir = File.join(tmpdir, "gemdir")
+    FileUtils.mkdir_p(fake_gem_dir)
+    gem_file = File.join(fake_gem_dir, "foo.rb")
+    local_file = tmpfile("bar.rb")
+    touched = []
+
+    Gem.stub(:path, [fake_gem_dir]) do
+      checker = new_checker([gem_file, local_file]) { touched << :called }
+
+      touch(local_file)
+      assert checker.execute_if_updated
+      assert_equal [:called], touched
+
+      touched.clear
+      touch(gem_file)
+      assert_not checker.execute_if_updated
+      assert_empty touched
+    end
+  end
+
+  test "should exclude directories in gem path" do
+    local_dir = Dir.mktmpdir
+    fake_gem_dir = Dir.mktmpdir
+    local_file = File.join(local_dir, "foo.rb")
+    gem_file = File.join(fake_gem_dir, "bar.rb")
+    touched = []
+
+    Gem.stub(:path, [fake_gem_dir]) do
+      checker = new_checker([], { fake_gem_dir => [], local_dir => [] }) { touched << :called }
+
+      touch(local_file)
+      assert checker.execute_if_updated
+      assert_equal [:called], touched
+
+      touched.clear
+      touch(gem_file)
+      assert_not checker.execute_if_updated
+      assert_empty touched
+    end
+  ensure
+    FileUtils.remove_entry(local_dir)
+    FileUtils.remove_entry(fake_gem_dir)
+  end
+
   test "should not execute the block if no files change" do
     i = 0
 

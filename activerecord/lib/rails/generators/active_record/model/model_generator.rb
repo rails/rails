@@ -42,8 +42,11 @@ module ActiveRecord
 
       private
         # Skip creating migration file if:
-        #   - options parent is present and database option is not present
-        #   - migrations option is nil or false
+        #
+        # ```
+        # - options parent is present and database option is not present
+        # - migrations option is nil or false
+        # ```
         def skip_migration_creation?
           custom_parent? && !database || !migration
         end

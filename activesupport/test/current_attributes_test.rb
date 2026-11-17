@@ -66,9 +66,6 @@ class CurrentAttributesTest < ActiveSupport::TestCase
     attribute :current, :previous
   end
 
-  # Eagerly set-up `instance`s by reference.
-  [ Current.instance, Session.instance ]
-
   # Use library specific minitest hook to catch Time.zone before reset is called via TestHelper
   def before_setup
     @original_time_zone = Time.zone
@@ -251,6 +248,51 @@ class CurrentAttributesTest < ActiveSupport::TestCase
     assert_equal({ counter_integer: 0, counter_callable: 0 }, Current.attributes)
   end
 
+  test "CurrentAttributes doesn't populate .defaults when not using defaults" do
+    assert_equal [:counter_integer, :counter_callable], Current.defaults.keys
+  end
+
+  test "CurrentAttributes accepts a default whose == only handles its own kind" do
+    default = Struct.new(:value) { def ==(other) = value == other.value }.new(1)
+    current = Class.new(ActiveSupport::CurrentAttributes) do
+      def self.name
+        "MyCurrent"
+      end
+
+      attribute :foo
+      attribute :bar, default: default
+    end
+
+    assert_equal({ bar: default }, current.attributes)
+  end
+
+  test "CurrentAttributes redeclaring an attribute without a default removes the inherited default" do
+    child = Class.new(Current) do
+      def self.name
+        "ChildCurrent"
+      end
+
+      attribute :counter_integer
+    end
+
+    assert_nil child.counter_integer
+    assert_not_includes child.attributes, :counter_integer
+    assert_equal 0, Current.counter_integer
+  end
+
+  test "CurrentAttributes defaults work with attribute names given as strings" do
+    current = Class.new(ActiveSupport::CurrentAttributes) do
+      def self.name
+        "MyCurrent"
+      end
+
+      attribute "foo", default: 1
+    end
+
+    assert_equal 1, current.foo
+    assert_equal({ foo: 1 }, current.attributes)
+  end
+
   test "#attributes returns different objects each time" do
     assert_not_same Current.attributes, Current.attributes
   end
@@ -260,6 +302,113 @@ class CurrentAttributesTest < ActiveSupport::TestCase
       class InvalidAttributeNames < ActiveSupport::CurrentAttributes
         attribute :reset, :foo, :set
       end
+    end
+  end
+
+  test "CurrentAttributes restricted attribute name :attributes" do
+    assert_raises ArgumentError, match: /Restricted attribute names: attributes/ do
+      class InvalidAttributesAttributeName < ActiveSupport::CurrentAttributes
+        attribute :attributes, :foo
+      end
+    end
+  end
+
+  test "CurrentAttributes restricts attribute names shadowing internal methods" do
+    assert_raises ArgumentError, match: /Restricted attribute names: attribute, defaults/ do
+      class InvalidInternalAttributeNames < ActiveSupport::CurrentAttributes
+        attribute :attribute, :foo, :defaults
+      end
+    end
+  end
+
+  test "method_added hook doesn't reach the instance. Fix for #54646" do
+    current = Class.new(ActiveSupport::CurrentAttributes) do
+      def self.name
+        "MyCurrent"
+      end
+
+      def foo; end # Sets the cache because of a `method_added` hook
+
+      attribute :bar, default: {}
+    end
+
+    assert_instance_of(Hash, current.bar)
+  end
+
+  test "instance delegators are eagerly defined" do
+    current = Class.new(ActiveSupport::CurrentAttributes) do
+      def self.name
+        "MyCurrent"
+      end
+
+      def regular
+        :regular
+      end
+
+      attribute :attr, default: :att
+    end
+
+    assert current.singleton_class.method_defined?(:attr)
+    assert current.singleton_class.method_defined?(:attr=)
+    assert current.singleton_class.method_defined?(:regular)
+  end
+
+  test "attribute delegators have precise signature" do
+    current = Class.new(ActiveSupport::CurrentAttributes) do
+      def self.name
+        "MyCurrent"
+      end
+
+      attribute :attr, default: :att
+    end
+
+    assert_equal [], current.method(:attr).parameters
+    assert_equal [[:req, :value]], current.method(:attr=).parameters
+  end
+
+
+  test "set and restore attributes when re-entering the executor" do
+    ActiveSupport::ExecutionContext.with(nestable: true) do
+      # simulate executor hooks from active_support/railtie.rb
+      executor = Class.new(ActiveSupport::Executor)
+      executor.to_run do
+        ActiveSupport::ExecutionContext.push
+      end
+
+      executor.to_complete do
+        ActiveSupport::CurrentAttributes.clear_all
+        ActiveSupport::ExecutionContext.pop
+      end
+
+      Current.world = "world/1"
+      Current.account = "account/1"
+
+      assert_equal "world/1", Current.world
+      assert_equal "account/1", Current.account
+
+      Current.set(world: "world/2", account: "account/2") do
+        assert_equal "world/2", Current.world
+        assert_equal "account/2", Current.account
+
+        executor.wrap do
+          assert_nil Current.world
+          assert_nil Current.account
+
+          Current.world = "world/3"
+          Current.account = "account/3"
+
+          assert_equal "world/3", Current.world
+          assert_equal "account/3", Current.account
+
+          ActiveSupport::CurrentAttributes.clear_all
+
+          assert_nil Current.world
+          assert_nil Current.account
+        end
+      end
+
+      assert_equal "world/1", Current.world
+      assert_equal "account/1", Current.account
     end
   end
 end

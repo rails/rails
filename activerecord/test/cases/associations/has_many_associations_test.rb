@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require "cases/helper"
+require "support/deprecated_associations_test_helpers"
 require "models/developer"
 require "models/computer"
 require "models/project"
@@ -35,7 +36,7 @@ require "models/ship"
 require "models/ship_part"
 require "models/treasure"
 require "models/parrot"
-require "models/tyre"
+require "models/tire"
 require "models/subscriber"
 require "models/subscription"
 require "models/zine"
@@ -44,6 +45,7 @@ require "models/human"
 require "models/sharded"
 require "models/cpk"
 require "models/comment_overlapping_counter_cache"
+require "models/dats"
 
 class HasManyAssociationsTestForReorderWithJoinDependency < ActiveRecord::TestCase
   fixtures :authors, :author_addresses, :posts, :comments
@@ -126,6 +128,33 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     Client.destroyed_client_ids.clear
   end
 
+  def test_ids_methods_for_associations_whose_names_singularize_to_the_same_word
+    contact = Person.create!(first_name: "Contact")
+    agent = Person.create!(first_name: "Agent", primary_contact_id: contact.id)
+
+    with_people = Class.new(ActiveRecord::Base) do
+      def self.name; "PersonWithPeople"; end
+      self.table_name = "people"
+      has_many :people, class_name: "Person", foreign_key: :primary_contact_id, inverse_of: false
+    end
+    with_persons = Class.new(ActiveRecord::Base) do
+      def self.name; "PersonWithPersons"; end
+      self.table_name = "people"
+      has_many :persons, class_name: "Person", foreign_key: :primary_contact_id, inverse_of: false
+    end
+
+    assert_equal [agent.id], with_people.find(contact.id).person_ids
+    assert_equal [agent.id], with_persons.find(contact.id).person_ids
+
+    record = with_persons.find(contact.id)
+    record.person_ids = []
+    assert_empty record.reload.person_ids
+
+    record = with_people.find(contact.id)
+    record.person_ids = [agent.id]
+    assert_equal [agent.id], record.reload.person_ids
+  end
+
   def test_sti_subselect_count
     tag = Tag.first
     len = Post.tagged_with(tag.id).limit(10).size
@@ -174,6 +203,64 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     queries = capture_sql_and_binds { post.comments.to_a }
     post.comments.reset
     assert_not_equal queries, capture_sql_and_binds { post.comments.to_a }
+  end
+
+  def test_has_many_writes_foreign_key_through_alias_attribute
+    author = authors(:david)
+    post = author.posts_with_aliased_author_id.create!(title: "New Post", body: "Body")
+    assert_equal author.id, post.writer_id
+    assert_equal author.id, post.author_id
+  end
+
+  def test_has_many_sets_inverse_instance_through_alias_attribute_foreign_key
+    author = authors(:david)
+    author.posts_with_aliased_author_id.create!(title: "New Post", body: "Body")
+    post = author.posts_with_aliased_author_id.reload.first
+    assert_same author, post.author
+  end
+
+  class AliasedKeyComment < ActiveRecord::Base
+    self.table_name = "comments"
+    self.inheritance_column = nil
+
+    alias_attribute :post_key, :post_id
+  end
+
+  class RemappedKeyComment < AliasedKeyComment
+    alias_attribute :post_key, :author_id
+  end
+
+  class AliasedKeyPost < ActiveRecord::Base
+    self.table_name = "posts"
+    self.inheritance_column = nil
+
+    alias_attribute :comment_key, :id
+    has_many :keyed_comments,
+      class_name: "HasManyAssociationsTest::AliasedKeyComment",
+      foreign_key: :post_key,
+      primary_key: :comment_key,
+      inverse_of: false
+  end
+
+  class RemappedKeyPost < AliasedKeyPost
+    alias_attribute :comment_key, :author_id
+  end
+
+  def test_has_many_access_paths_resolve_aliases_for_each_concrete_class
+    owner = RemappedKeyPost.create!(id: 9_000_401, author_id: 9_000_402, title: "Aliased keys", body: "Aliased keys")
+    comment = AliasedKeyComment.create!(post_id: owner.author_id, body: "Aliased key comment")
+
+    assert_equal [comment], owner.keyed_comments.to_a
+    joined = RemappedKeyPost.where(id: owner.id).joins(:keyed_comments)
+    assert_predicate joined, :exists?, joined.to_sql
+    assert_equal [comment], RemappedKeyPost.eager_load(:keyed_comments).find(owner.id).keyed_comments
+
+    assert_equal owner.author_id, owner.keyed_comments.build.post_id
+
+    remapped = RemappedKeyComment.new(post_id: -1, body: "Remapped key comment")
+    owner.keyed_comments << remapped
+    assert_equal owner.author_id, remapped.author_id
+    assert_equal(-1, remapped.post_id)
   end
 
   def test_has_many_build_with_options
@@ -280,6 +367,22 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
 
     bulb = car.awesome_bulbs.unscope(where: :frickinawesome).create!
     assert_equal false, bulb.frickinawesome
+  end
+
+  def test_association_unscope_with_hash_in_array_removes_default_scope_condition
+    post = PostWithWhereDefaultScope.create!(author: authors(:david), title: "title", body: "body")
+    CommentOnPostWithWhereDefaultScope.create!(body: "active", post: post)
+    CommentOnPostWithWhereDefaultScope.create!(body: "deleted", post: post, deleted_at: Time.now)
+
+    assert_equal 2, post.comments_unscoped_by_hash_in_array.count
+  end
+
+  def test_association_unscope_with_arel_attribute_in_array_removes_default_scope_condition
+    post = PostWithWhereDefaultScope.create!(author: authors(:david), title: "title", body: "body")
+    CommentOnPostWithWhereDefaultScope.create!(body: "active", post: post)
+    CommentOnPostWithWhereDefaultScope.create!(body: "deleted", post: post, deleted_at: Time.now)
+
+    assert_equal 2, post.comments_unscoped_by_arel_attribute_in_array.count
   end
 
   def test_build_from_association_should_respect_scope
@@ -654,6 +757,58 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     assert_equal firm.limited_clients.length, firm.limited_clients.count
   end
 
+  def test_default_order
+    post = posts(:welcome)
+
+    comments = post.comments.order(:body)
+    assert_equal [2, 1], comments.pluck(:id)
+    assert_equal 2, comments.first.id
+
+    comments = post.ordered_comments
+    assert_equal [2, 1], comments.pluck(:id)
+    assert_equal 2, comments.first.id
+
+    comments = post.ordered_comments.order(:id)
+    assert_equal [1, 2], comments.pluck(:id)
+    assert_equal 1, comments.first.id
+  end
+
+  def test_default_order_is_applied_when_the_target_is_loaded
+    author = authors(:david)
+
+    # The generated SQL (used by pluck/count/to_sql) honors default_order.
+    assert_equal [6, 5, 4, 2, 1], author.posts_with_default_order.pluck(:id)
+
+    # The materialized collection must honor it too, not come back in
+    # arbitrary database order.
+    assert_equal [6, 5, 4, 2, 1], author.posts_with_default_order.to_a.map(&:id)
+    assert_equal [6, 5, 4, 2, 1], author.posts_with_default_order.reload.map(&:id)
+  end
+
+  def test_default_order_is_applied_when_the_association_is_preloaded
+    id = authors(:david).id
+    expected = [1, 2, 4, 5, 6]
+
+    assert_equal expected, Author.preload(:posts_with_ascending_default_order).find(id).posts_with_ascending_default_order.map(&:id)
+  end
+
+  def test_default_order_option_overrides_default_order_in_scope_when_the_association_is_preloaded
+    author = authors(:david)
+    expected = [1, 2, 4, 5, 6]
+
+    assert_equal expected, author.posts_with_default_order_overriding_scope.map(&:id)
+    assert_equal expected, Author.preload(:posts_with_default_order_overriding_scope).find(author.id).posts_with_default_order_overriding_scope.map(&:id)
+  end
+
+  def test_default_order_keeps_using_the_statement_cache
+    author = authors(:david)
+    association = author.association(:posts_with_default_order)
+
+    # The ORDER BY is baked into the cached SQL, so the statement cache must
+    # not be bypassed.
+    assert_not association.send(:skip_statement_cache?, association.scope)
+  end
+
   def test_finding
     assert_equal 3, Firm.first.clients.length
   end
@@ -825,7 +980,7 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
 
   def test_find_all
     firm = Firm.first
-    assert_equal 3, firm.clients.where("#{QUOTED_TYPE} = 'Client'").to_a.length
+    assert_equal 3, firm.clients.where("#{ARTest::QUOTED_TYPE} = 'Client'").to_a.length
     assert_equal 1, firm.clients.where("name = 'Summit'").to_a.length
   end
 
@@ -879,14 +1034,14 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     firm = Firm.first
     client2 = Client.find(2)
     assert_equal firm.clients.first, firm.clients.order("id").first
-    assert_equal client2, firm.clients.where("#{QUOTED_TYPE} = 'Client'").order("id").first
+    assert_equal client2, firm.clients.where("#{ARTest::QUOTED_TYPE} = 'Client'").order("id").first
   end
 
   def test_find_first_sanitized
     firm = Firm.first
     client2 = Client.find(2)
-    assert_equal client2, firm.clients.where("#{QUOTED_TYPE} = ?", "Client").first
-    assert_equal client2, firm.clients.where("#{QUOTED_TYPE} = :type", type: "Client").first
+    assert_equal client2, firm.clients.where("#{ARTest::QUOTED_TYPE} = ?", "Client").first
+    assert_equal client2, firm.clients.where("#{ARTest::QUOTED_TYPE} = :type", type: "Client").first
   end
 
   def test_find_first_after_reset_scope
@@ -1326,6 +1481,18 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     blog_post.reload
 
     assert_equal 1, blog_post.comments.size
+  end
+
+  def test_loading_has_many_without_selecting_the_owner_key
+    firm = Firm.select(:id).find(companies(:first_firm).id)
+
+    assert_equal Client.where(firm_name: nil).order(:id).to_a, firm.clients_using_primary_key.order(:id).to_a
+  end
+
+  def test_size_without_selecting_the_cached_counter
+    topic = Topic.select(:id).find(topics(:first).id)
+
+    assert_no_queries { assert_equal 0, topic.replies.size }
   end
 
   def test_has_many_without_counter_cache_option
@@ -2023,6 +2190,26 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     I18n.backend.reload!
   end
 
+  def test_restrict_with_error_exposes_association_name_without_downcasing
+    I18n.backend = I18n::Backend::Simple.new
+    I18n.backend.store_translations "de",
+      activerecord: {
+        attributes: { restricted_with_error_firm: { companies: "Firmen" } },
+        errors: { messages: { restrict_dependent_destroy: { has_many: "Datensatz kann nicht gelöscht werden, da abhängige %{association_name} existieren" } } }
+      }
+    firm = RestrictedWithErrorFirm.create!(name: "restrict")
+    firm.companies.create(name: "child")
+
+    I18n.with_locale(:de) do
+      firm.destroy
+      assert_equal "Datensatz kann nicht gelöscht werden, da abhängige Firmen existieren", firm.errors[:base].first
+    end
+    assert RestrictedWithErrorFirm.exists?(name: "restrict")
+    assert firm.companies.exists?(name: "child")
+  ensure
+    I18n.backend.reload!
+  end
+
   def test_included_in_collection
     assert_equal true, companies(:first_firm).clients.include?(Client.find(2))
   end
@@ -2032,6 +2219,27 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     book = great_author.books.first
 
     assert great_author.books.include?(book)
+  end
+
+  def test_collection_for_new_record_owner_with_composite_primary_key_present
+    book = Cpk::Book.create!(id: [1, 10], title: "Some book")
+    chapter = book.chapters.create!(id: [1, 100], title: "Some chapter")
+
+    new_book = Cpk::Book.new(id: [1, 10])
+    assert_predicate new_book, :new_record?
+
+    assert_equal [chapter], new_book.chapters.to_a
+  end
+
+  def test_collection_for_new_record_owner_with_composite_primary_key_missing
+    book = Cpk::Book.create!(id: [1, 10], title: "Some book")
+    book.chapters.create!(id: [1, 100], title: "Some chapter")
+
+    new_book = Cpk::Book.new(author_id: 1)
+    assert_predicate new_book, :new_record?
+    assert_not new_book.attribute_present?(:id)
+
+    assert_empty new_book.chapters
   end
 
   def test_included_in_collection_for_new_records
@@ -2147,6 +2355,30 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     assert_equal 0, firm.client_ids.size
     firm.clients.build
     assert_equal 1, firm.clients.size
+  end
+
+  def test_ids_reader_on_loaded_association_of_new_record
+    client = Client.create!(name: "Client")
+    firm = Firm.new(name: "Startup")
+    firm.clients = [client]
+
+    assert_predicate firm.clients, :loaded?
+    assert_equal [client.id], firm.clients.ids
+  end
+
+  def test_pluck_on_loaded_association_of_new_record
+    client = Client.create!(name: "Client")
+    firm = Firm.new(name: "Startup")
+    firm.clients = [client]
+
+    assert_equal ["Client"], firm.clients.pluck(:name)
+  end
+
+  def test_pluck_on_unloaded_association_of_new_record
+    Client.create!(name: "Client")
+    firm = Firm.new(name: "Startup")
+
+    assert_equal [], firm.clients.pluck(:name)
   end
 
   def test_ids_reader_cache_should_be_cleared_when_collection_is_deleted
@@ -2297,22 +2529,22 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     assert_predicate firm.clients, :loaded?
 
     author = Author.create!(name: "Carl")
-    third  = topics(:third)
-    fourth = topics(:fourth).becomes(Topic)
 
-    new_topic = author.topics_without_type.build
+    new_topic = author.topics.build
 
-    assert_not_predicate author.topics_without_type, :loaded?
+    assert_not_predicate author.topics, :loaded?
 
-    assert_queries_count(1) do
-      if current_adapter?(:Mysql2Adapter, :TrilogyAdapter, :SQLite3Adapter)
-        assert_equal fourth, author.topics_without_type.first
-        assert_equal third, author.topics_without_type.second
+    queries = capture_sql do
+      assert_queries_count(1) do
+        author.topics.first
+        author.topics.second
+        assert_equal new_topic, author.topics.last
       end
-      assert_equal new_topic, author.topics_without_type.last
     end
 
-    assert_predicate author.topics_without_type, :loaded?
+    assert_no_match(/ORDER BY|LIMIT/, queries.sole)
+
+    assert_predicate author.topics, :loaded?
   end
 
   def test_calling_first_nth_or_last_on_existing_record_with_create_should_not_load_association
@@ -2691,7 +2923,7 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     bulb2 = car.bulbs.create
     bulb3 = Bulb.create
 
-    assert_equal [bulb1, bulb2], car.bulbs
+    assert_equal_unordered [bulb1, bulb2], car.bulbs
     result = car.bulbs.replace([bulb3, bulb1])
     assert_equal [bulb1, bulb3], car.bulbs
     assert_equal [bulb1, bulb3], result
@@ -2830,6 +3062,21 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     assert_equal [bulb1, bulb2], Car.eager_load(:all_bulbs).find(car.id).all_bulbs.sort_by(&:id)
   end
 
+  test "can unscope the default scope of the associated model when joined under an alias" do
+    car = Car.create!
+    Bulb.create! name: "other", car: car
+
+    assert_equal [car], Car.joins(:all_bulbs).where(all_bulbs: { name: "other" }).to_a
+  end
+
+  test "unscoping the default scope of an aliased join keeps it on another join of the same table" do
+    car = Car.create!
+    Bulb.create! name: "defaulty", car: car
+    Bulb.create! name: "other",    car: car
+
+    assert_equal 2, Car.joins(:bulbs, :all_bulbs).where(id: car.id).count
+  end
+
   test "can unscope and where the default scope of the associated model" do
     car = Car.create!
     bulb1 = Bulb.create! name: "defaulty", car: car
@@ -2846,6 +3093,30 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
 
     assert_equal [bulb1], car.bulbs
     assert_equal [bulb2], car.old_bulbs
+  end
+
+  test "the association scope can't unscope the foreign key" do
+    car = Car.create!
+    bulb = Bulb.create! name: "defaulty", car: car
+    Bulb.create! name: "defaulty", car: Car.create!
+
+    assert_equal [bulb], car.bulbs_unscoping_car_id
+    assert_equal 1, car.bulbs_unscoping_car_id.count
+    assert_equal [bulb], Car.preload(:bulbs_unscoping_car_id).find(car.id).bulbs_unscoping_car_id
+    assert_equal [bulb], Car.eager_load(:bulbs_unscoping_car_id).find(car.id).bulbs_unscoping_car_id
+    assert_equal car.id, car.bulbs_unscoping_car_id.build.car_id
+  end
+
+  test "unscoping the where clause in the association scope keeps the foreign key" do
+    car = Car.create!
+    bulb1 = Bulb.create! name: "defaulty", car: car
+    bulb2 = Bulb.create! name: "other",    car: car
+    other_bulb = Bulb.create! name: "other", car: Car.create!
+
+    assert_equal [bulb1, bulb2], car.all_bulbs2.sort_by(&:id)
+
+    car.all_bulbs2.update_all(name: "updated")
+    assert_equal "other", other_bulb.reload.name
   end
 
   test "unscopes the default scope of associated model when used with include" do
@@ -2908,17 +3179,17 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
 
   test "associations autosaves when object is already persisted" do
     bulb = Bulb.create!
-    tyre = Tyre.create!
+    tire = Tire.create!
 
     car = Car.create!(name: "honda") do |c|
       c.bulbs << bulb
-      c.tyres << tyre
+      c.tires << tire
     end
 
     assert_equal [nil, "honda"], car.saved_change_to_name
 
     assert_equal 1, car.bulbs.count
-    assert_equal 1, car.tyres.count
+    assert_equal 1, car.tires.count
   end
 
   test "associations replace in memory when records have the same id" do
@@ -3198,10 +3469,10 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
 
     assert_equal(<<~MESSAGE.squish, error.message)
       Unknown key: :trough. Valid keys are:
-      :class_name, :anonymous_class, :primary_key, :foreign_key, :dependent,
-      :validate, :inverse_of, :strict_loading, :query_constraints, :autosave, :before_add,
+      :anonymous_class, :primary_key, :foreign_key, :dependent, :validate, :inverse_of,
+      :strict_loading, :query_constraints, :deprecated, :autosave, :class_name, :before_add,
       :after_add, :before_remove, :after_remove, :extend, :counter_cache, :join_table,
-      :index_errors, :as, :through
+      :index_errors, :default_order, :as, :through
     MESSAGE
   end
 
@@ -3242,7 +3513,17 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
   def test_ids_reader_on_preloaded_association_with_composite_primary_key
     great_author = cpk_authors(:cpk_great_author)
 
-    assert_equal great_author.books.ids, Cpk::Author.preload(:books).find(great_author.id).book_ids
+    assert_equal_unordered great_author.books.ids, Cpk::Author.preload(:books).find(great_author.id).book_ids
+  end
+
+  def test_ids_writer_with_composite_primary_key_and_string_ids
+    great_author = cpk_authors(:cpk_great_author)
+    book_ids = great_author.books.ids
+
+    # ids coming from request params, URLs, or JSON are strings.
+    great_author.book_ids = book_ids.map { |id| id.map(&:to_s) }
+
+    assert_equal book_ids.sort, great_author.reload.books.ids.sort
   end
 
   private
@@ -3252,7 +3533,7 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
 end
 
 class AsyncHasManyAssociationsTest < ActiveRecord::TestCase
-  include WaitForAsyncTestHelper
+  include WaitForTestHelper
 
   self.use_transactional_tests = false
 
@@ -3265,14 +3546,9 @@ class AsyncHasManyAssociationsTest < ActiveRecord::TestCase
       firm.association(:clients).async_load_target
       wait_for_async_query
 
-      events = []
-      callback = -> (event) do
-        events << event unless event.payload[:name] == "SCHEMA"
-      end
-
-      ActiveSupport::Notifications.subscribed(callback, "sql.active_record") do
+      events = capture_notifications("sql.active_record") do
         assert_equal 3, firm.clients.size
-      end
+      end.reject { |e| e.payload[:name] == "SCHEMA" }
 
       assert_no_queries do
         assert_not_nil firm.clients[2]
@@ -3281,5 +3557,76 @@ class AsyncHasManyAssociationsTest < ActiveRecord::TestCase
       assert_equal 1, events.size
       assert_equal true, events.first.payload[:async]
     end
+  end
+end
+
+class DeprecatedHasManyAssociationsTest < ActiveRecord::TestCase
+  include DeprecatedAssociationsTestHelpers
+
+  fixtures :cars
+
+  setup do
+    @model = DATS::Car
+    @car = @model.first
+  end
+
+  test "<association>" do
+    assert_not_deprecated_association(:tires) do
+      @car.tires
+    end
+
+    assert_deprecated_association(:deprecated_tires, context: context_for_method(:deprecated_tires)) do
+      assert_equal @car.tires, @car.deprecated_tires
+    end
+  end
+
+  test "<association>=" do
+    tire = DATS::Tire.new
+
+    assert_not_deprecated_association(:tires) do
+      @car.tires = [tire]
+    end
+
+    assert_deprecated_association(:deprecated_tires, context: context_for_method(:deprecated_tires=)) do
+      @car.deprecated_tires = [tire]
+    end
+    assert_equal [tire], @car.deprecated_tires
+  end
+
+  test "<singular_association>_ids" do
+    assert_not_deprecated_association(:tires) do
+      @car.tire_ids
+    end
+
+    assert_deprecated_association(:deprecated_tires, context: context_for_method(:deprecated_tire_ids)) do
+      assert_equal @car.tire_ids, @car.deprecated_tire_ids
+    end
+  end
+
+  test "<singular_association>_ids=" do
+    tire = @car.tires.create!
+
+    assert_not_deprecated_association(:tires) do
+      @car.tire_ids = [tire.id]
+    end
+
+    assert_deprecated_association(:deprecated_tires, context: context_for_method(:deprecated_tire_ids=)) do
+      @car.deprecated_tire_ids = [tire.id]
+    end
+    assert_equal [tire.id], @car.deprecated_tire_ids
+  end
+
+  test "destroy (not deprecated)" do
+    assert_not_deprecated_association(:tires) do
+      @car.destroy
+    end
+    assert_predicate @car, :destroyed?
+  end
+
+  test "destroy (deprecated)" do
+    assert_deprecated_association(:deprecated_tires, context: context_for_dependent) do
+      @car.destroy
+    end
+    assert_predicate @car, :destroyed?
   end
 end

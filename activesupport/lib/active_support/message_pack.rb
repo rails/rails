@@ -39,7 +39,7 @@ module ActiveSupport
     # :singleton-method: signature?
     # :call-seq: signature?(dumped)
     #
-    # Returns true if the given dump begins with an +ActiveSupport::MessagePack+
+    # Returns true if the given dump begins with an `ActiveSupport::MessagePack`
     # signature.
     #
     #--

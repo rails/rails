@@ -1,7 +1,8 @@
 # frozen_string_literal: true
 
 module ActiveRecord
-  # = Active Record \Schema
+  # Active Record \Schema
+  # =====================
   #
   # Allows programmers to programmatically define a schema in a portable
   # DSL. This means you can define tables, indexes, etc. without using SQL
@@ -10,22 +11,24 @@ module ActiveRecord
   #
   # Usage:
   #
-  #   ActiveRecord::Schema[7.0].define do
-  #     create_table :authors do |t|
-  #       t.string :name, null: false
-  #     end
-  #
-  #     add_index :authors, :name, :unique
-  #
-  #     create_table :posts do |t|
-  #       t.integer :author_id, null: false
-  #       t.string :subject
-  #       t.text :body
-  #       t.boolean :private, default: false
-  #     end
-  #
-  #     add_index :posts, :author_id
+  # ```
+  # ActiveRecord::Schema[7.0].define do
+  #   create_table :authors do |t|
+  #     t.string :name, null: false
   #   end
+  #
+  #   add_index :authors, :name, unique: true
+  #
+  #   create_table :posts do |t|
+  #     t.integer :author_id, null: false
+  #     t.string :subject
+  #     t.text :body
+  #     t.boolean :private, default: false
+  #   end
+  #
+  #   add_index :posts, :author_id
+  # end
+  # ```
   #
   # ActiveRecord::Schema is only supported by database adapters that also
   # support migrations, the two features being very similar.
@@ -37,15 +40,18 @@ module ActiveRecord
         # Eval the given block. All methods available to the current connection
         # adapter are available within the block, so you can easily use the
         # database definition DSL to build up your schema (
-        # {create_table}[rdoc-ref:ConnectionAdapters::SchemaStatements#create_table],
-        # {add_index}[rdoc-ref:ConnectionAdapters::SchemaStatements#add_index], etc.).
+        # [create_table](rdoc-ref:ConnectionAdapters::SchemaStatements#create_table),
+        # [add_index](rdoc-ref:ConnectionAdapters::SchemaStatements#add_index), etc.).
         #
-        # The +info+ hash is optional, and if given is used to define metadata
+        # The `info` hash is optional, and if given is used to define metadata
         # about the current schema (currently, only the schema's version):
         #
-        #   ActiveRecord::Schema[7.0].define(version: 2038_01_19_000001) do
-        #     ...
-        #   end
+        # ```
+        # ActiveRecord::Schema[7.0].define(version: 2038_01_19_000001) do
+        #   ...
+        # end
+        # ```
+        #: (?Hash[untyped, untyped]) { (ActiveRecord::Migration) [self: ActiveRecord::Migration] -> void } -> void
         def define(info = {}, &block)
           new.define(info, &block)
         end
@@ -72,6 +78,36 @@ module ActiveRecord
       @class_for_version[version] ||= Class.new(Migration::Compatibility.find(version)) do
         include Definition
       end
+    end
+
+    def self.load_schema_migrations(file) # :nodoc:
+      # The marker is matched the way Ruby recognizes it, so files with CRLF
+      # line endings or without a trailing newline load too.
+      _schema, marker, data = File.read(file).rpartition(/^__END__\r?$/)
+
+      raise ActiveRecordError, "No __END__ found in #{file}" if marker.empty?
+
+      seen = Set.new
+      versions = []
+
+      data.each_line do |line|
+        line.strip!
+        next if line.empty?
+
+        if !line.match?(/\A\d+\z/)
+          raise ActiveRecordError, "Invalid migration version #{line.inspect} found after __END__"
+        end
+
+        if seen.include?(line)
+          raise ActiveRecordError, "Duplicate migration version #{line.inspect} found after __END__"
+        end
+
+        seen << line
+        versions << line
+      end
+
+      versions -= connection_pool.schema_migration.versions
+      connection_pool.schema_migration.create_versions(versions)
     end
   end
 end

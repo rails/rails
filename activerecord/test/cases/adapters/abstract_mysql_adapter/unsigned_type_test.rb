@@ -30,7 +30,7 @@ class UnsignedTypeTest < ActiveRecord::AbstractMysqlTestCase
     assert_equal expected, UnsignedType.find_by(unsigned_integer: 4294967295)
   end
 
-  test "minus value is out of range" do
+  test "minus value is out of range on create" do
     assert_raise(ActiveModel::RangeError) do
       UnsignedType.create(unsigned_integer: -10)
     end
@@ -45,6 +45,21 @@ class UnsignedTypeTest < ActiveRecord::AbstractMysqlTestCase
     end
   end
 
+  test "minus value is out of range on update" do
+    assert_raise(ActiveModel::RangeError) do
+      UnsignedType.create!.update(unsigned_integer: -10)
+    end
+    assert_raise(ActiveModel::RangeError) do
+      UnsignedType.create!.update(unsigned_bigint: -10)
+    end
+    assert_raise(ActiveRecord::RangeError) do
+      UnsignedType.create!.update(unsigned_float: -10.0)
+    end
+    assert_raise(ActiveRecord::RangeError) do
+      UnsignedType.create!.update(unsigned_decimal: -10.0)
+    end
+  end
+
   test "schema definition can use unsigned as the type" do
     @connection.change_table("unsigned_types") do |t|
       t.unsigned_integer :unsigned_integer_t
@@ -53,17 +68,6 @@ class UnsignedTypeTest < ActiveRecord::AbstractMysqlTestCase
 
     @connection.columns("unsigned_types").select { |c| /^unsigned_/.match?(c.name) }.each do |column|
       assert_predicate column, :unsigned?
-    end
-  end
-
-  test "deprecate unsigned_float and unsigned_decimal" do
-    @connection.change_table("unsigned_types") do |t|
-      assert_deprecated(ActiveRecord.deprecator) do
-        t.unsigned_float :unsigned_float_t
-      end
-      assert_deprecated(ActiveRecord.deprecator) do
-        t.unsigned_decimal :unsigned_decimal_t
-      end
     end
   end
 

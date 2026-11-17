@@ -12,6 +12,12 @@ class TestUnitReporterTest < ActiveSupport::TestCase
   setup do
     @output = StringIO.new
     @reporter = Rails::TestUnitReporter.new @output, output_inline: true
+    @old_app_root = Rails::TestUnitReporter.app_root
+    Rails::TestUnitReporter.app_root = File.expand_path("../../", __dir__)
+  end
+
+  teardown do
+    Rails::TestUnitReporter.app_root = @old_app_root
   end
 
   test "prints rerun snippet to run a single failed test" do
@@ -180,7 +186,7 @@ class TestUnitReporterTest < ActiveSupport::TestCase
     def failed_test
       ft = Minitest::Result.from(ExampleTest.new(:woot))
       ft.failures << begin
-                       raise Minitest::Assertion, "boo"
+                       flunk("boo")
                      rescue Minitest::Assertion => e
                        e
                      end

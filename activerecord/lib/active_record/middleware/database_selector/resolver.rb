@@ -49,7 +49,7 @@ module ActiveRecord
         end
 
         def reading_request?(request)
-          request.get? || request.head?
+          request.get? || request.head? || request.query?
         end
 
         private

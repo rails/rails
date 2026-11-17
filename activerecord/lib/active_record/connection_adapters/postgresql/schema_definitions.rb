@@ -11,41 +11,33 @@ module ActiveRecord
         # Use of the native PostgreSQL UUID type is supported, and can be used
         # by defining your tables as such:
         #
-        #   create_table :stuffs, id: :uuid do |t|
-        #     t.string :content
-        #     t.timestamps
-        #   end
+        # ```
+        # create_table :stuffs, id: :uuid do |t|
+        #   t.string :content
+        #   t.timestamps
+        # end
+        # ```
         #
-        # By default, this will use the <tt>gen_random_uuid()</tt> function from the
-        # +pgcrypto+ extension. As that extension is only available in
-        # PostgreSQL 9.4+, for earlier versions an explicit default can be set
-        # to use <tt>uuid_generate_v4()</tt> from the +uuid-ossp+ extension instead:
+        # By default, this will use the `gen_random_uuid()` function.
         #
-        #   create_table :stuffs, id: false do |t|
-        #     t.primary_key :id, :uuid, default: "uuid_generate_v4()"
-        #     t.uuid :foo_id
-        #     t.timestamps
-        #   end
+        # To use a UUID primary key without any defaults, set the `:default`
+        # option to `nil`:
         #
-        # To enable the appropriate extension, which is a requirement, use
-        # the +enable_extension+ method in your migrations.
-        #
-        # To use a UUID primary key without any of the extensions, set the
-        # +:default+ option to +nil+:
-        #
-        #   create_table :stuffs, id: false do |t|
-        #     t.primary_key :id, :uuid, default: nil
-        #     t.uuid :foo_id
-        #     t.timestamps
-        #   end
+        # ```
+        # create_table :stuffs, id: false do |t|
+        #   t.primary_key :id, :uuid, default: nil
+        #   t.uuid :foo_id
+        #   t.timestamps
+        # end
+        # ```
         #
         # You may also pass a custom stored procedure that returns a UUID or use a
         # different UUID generation function from another library.
         #
-        # Note that setting the UUID primary key default value to +nil+ will
+        # Note that setting the UUID primary key default value to `nil` will
         # require you to assure that you always provide a UUID value before saving
-        # a record (as primary keys cannot be +nil+). This might be done via the
-        # +SecureRandom.uuid+ method and a +before_save+ callback, for instance.
+        # a record (as primary keys cannot be `nil`). This might be done via the
+        # `SecureRandom.uuid` method and a `before_save` callback, for instance.
         def primary_key(name, type = :primary_key, **options)
           if type == :uuid
             options[:default] = options.fetch(:default, "gen_random_uuid()")
@@ -208,6 +200,11 @@ module ActiveRecord
         def export_name_on_schema_dump?
           !ActiveRecord::SchemaDumper.excl_ignore_pattern.match?(name) if name
         end
+
+        def defined_for?(name:, expression: nil, **options)
+          self.name == name.to_s &&
+            options.all? { |k, v| self.options[k].to_s == v.to_s }
+        end
       end
 
       UniqueConstraintDefinition = Struct.new(:table_name, :column, :options) do
@@ -240,7 +237,12 @@ module ActiveRecord
         end
       end
 
-      # = Active Record PostgreSQL Adapter \Table Definition
+      ValidateConstraint = Data.define(:name) # :nodoc:
+      AddExclusionConstraint = Data.define(:exclusion_constraint) # :nodoc:
+      AddUniqueConstraint = Data.define(:unique_constraint) # :nodoc:
+
+      # Active Record PostgreSQL Adapter \Table Definition
+      # ==================================================
       class TableDefinition < ActiveRecord::ConnectionAdapters::TableDefinition
         include ColumnMethods
 
@@ -298,89 +300,165 @@ module ActiveRecord
           end
       end
 
-      # = Active Record PostgreSQL Adapter \Table
+      # Active Record PostgreSQL Adapter \Table
+      # =======================================
       class Table < ActiveRecord::ConnectionAdapters::Table
         include ColumnMethods
 
         # Adds an exclusion constraint.
         #
-        #  t.exclusion_constraint("price WITH =, availability_range WITH &&", using: :gist, name: "price_check")
+        # ```
+        # t.exclusion_constraint("price WITH =, availability_range WITH &&", using: :gist, name: "price_check")
+        # ```
         #
-        # See {connection.add_exclusion_constraint}[rdoc-ref:SchemaStatements#add_exclusion_constraint]
-        def exclusion_constraint(*args)
-          @base.add_exclusion_constraint(name, *args)
+        # See [connection.add_exclusion_constraint](rdoc-ref:SchemaStatements#add_exclusion_constraint)
+        def exclusion_constraint(...)
+          @base.add_exclusion_constraint(name, ...)
         end
 
         # Removes the given exclusion constraint from the table.
         #
-        #  t.remove_exclusion_constraint(name: "price_check")
+        # ```
+        # t.remove_exclusion_constraint(name: "price_check")
+        # ```
         #
-        # See {connection.remove_exclusion_constraint}[rdoc-ref:SchemaStatements#remove_exclusion_constraint]
-        def remove_exclusion_constraint(*args)
-          @base.remove_exclusion_constraint(name, *args)
+        # See [connection.remove_exclusion_constraint](rdoc-ref:SchemaStatements#remove_exclusion_constraint)
+        def remove_exclusion_constraint(...)
+          @base.remove_exclusion_constraint(name, ...)
+        end
+
+        # Checks if an exclusion constraint exists on a table.
+        #
+        # ```
+        # unless t.exclusion_constraint_exists?(name: "invoices_date_overlap")
+        #   t.exclusion_constraint("daterange(start_date, end_date) WITH &&", using: :gist, name: "invoices_date_overlap")
+        # end
+        # ```
+        #
+        # See [connection.exclusion_constraint_exists?](rdoc-ref:SchemaStatements#exclusion_constraint_exists?)
+        def exclusion_constraint_exists?(*args, **options)
+          @base.exclusion_constraint_exists?(name, *args, **options)
         end
 
         # Adds a unique constraint.
         #
-        #  t.unique_constraint(:position, name: 'unique_position', deferrable: :deferred, nulls_not_distinct: true)
+        # ```
+        # t.unique_constraint(:position, name: 'unique_position', deferrable: :deferred, nulls_not_distinct: true)
+        # ```
         #
-        # See {connection.add_unique_constraint}[rdoc-ref:SchemaStatements#add_unique_constraint]
-        def unique_constraint(*args)
-          @base.add_unique_constraint(name, *args)
+        # See [connection.add_unique_constraint](rdoc-ref:SchemaStatements#add_unique_constraint)
+        def unique_constraint(...)
+          @base.add_unique_constraint(name, ...)
         end
 
         # Removes the given unique constraint from the table.
         #
-        #  t.remove_unique_constraint(name: "unique_position")
+        # ```
+        # t.remove_unique_constraint(name: "unique_position")
+        # ```
         #
-        # See {connection.remove_unique_constraint}[rdoc-ref:SchemaStatements#remove_unique_constraint]
-        def remove_unique_constraint(*args)
-          @base.remove_unique_constraint(name, *args)
+        # See [connection.remove_unique_constraint](rdoc-ref:SchemaStatements#remove_unique_constraint)
+        def remove_unique_constraint(...)
+          @base.remove_unique_constraint(name, ...)
         end
 
         # Validates the given constraint on the table.
         #
-        #  t.check_constraint("price > 0", name: "price_check", validate: false)
-        #  t.validate_constraint "price_check"
+        # ```
+        # t.check_constraint("price > 0", name: "price_check", validate: false)
+        # t.validate_constraint "price_check"
+        # ```
         #
-        # See {connection.validate_constraint}[rdoc-ref:SchemaStatements#validate_constraint]
-        def validate_constraint(*args)
-          @base.validate_constraint(name, *args)
+        # See [connection.validate_constraint](rdoc-ref:SchemaStatements#validate_constraint)
+        def validate_constraint(...)
+          @base.validate_constraint(name, ...)
         end
 
         # Validates the given check constraint on the table
         #
-        #  t.check_constraint("price > 0", name: "price_check", validate: false)
-        #  t.validate_check_constraint name: "price_check"
+        # ```
+        # t.check_constraint("price > 0", name: "price_check", validate: false)
+        # t.validate_check_constraint name: "price_check"
+        # ```
         #
-        # See {connection.validate_check_constraint}[rdoc-ref:SchemaStatements#validate_check_constraint]
-        def validate_check_constraint(*args)
-          @base.validate_check_constraint(name, *args)
+        # See [connection.validate_check_constraint](rdoc-ref:SchemaStatements#validate_check_constraint)
+        def validate_check_constraint(...)
+          @base.validate_check_constraint(name, ...)
+        end
+
+        # Checks if a unique constraint exists on a table.
+        #
+        # ```
+        # unless t.unique_constraint_exists?(name: "unique_position")
+        #   t.unique_constraint(:position, name: "unique_position", deferrable: :deferred)
+        # end
+        # ```
+        #
+        # See [connection.unique_constraint_exists?](rdoc-ref:SchemaStatements#unique_constraint_exists?)
+        def unique_constraint_exists?(*args, **options)
+          @base.unique_constraint_exists?(name, *args, **options)
         end
       end
 
-      # = Active Record PostgreSQL Adapter Alter \Table
-      class AlterTable < ActiveRecord::ConnectionAdapters::AlterTable
-        attr_reader :constraint_validations, :exclusion_constraint_adds, :unique_constraint_adds
+      # Active Record PostgreSQL Adapter Alter \Table
+      # =============================================
+      class AlterTable < ActiveRecord::ConnectionAdapters::AlterTable # :nodoc:
+        COMBINABLE_COMMANDS = (superclass::COMBINABLE_COMMANDS + %i[
+          change_column
+          change_column_null
+          add_exclusion_constraint
+          remove_exclusion_constraint
+          add_unique_constraint
+          remove_unique_constraint
+        ]).freeze
 
-        def initialize(td)
+        def add_column(column_name, type, **options)
           super
-          @constraint_validations = []
-          @exclusion_constraint_adds = []
-          @unique_constraint_adds = []
+          defer_comment(column_name, options[:comment]) if options.key?(:comment)
+        end
+
+        def change_column(column_name, type, **options)
+          cd = @td.new_column_definition(column_name, type, **options)
+          @operations << ChangeColumnDefinition.new(cd, column_name)
+          defer_comment(column_name, options[:comment]) if options.key?(:comment)
+        end
+
+        def change_column_null(column_name, null, default = nil)
+          if default.nil?
+            super(column_name, null)
+          else
+            conn = @td.conn
+            table_name = name
+            @deferred_operations << -> { conn.change_column_null(table_name, column_name, null, default) }
+          end
         end
 
         def validate_constraint(name)
-          @constraint_validations << name
+          @operations << ValidateConstraint.new(name)
         end
 
-        def add_exclusion_constraint(expression, options)
-          @exclusion_constraint_adds << @td.new_exclusion_constraint_definition(expression, options)
+        def add_exclusion_constraint(expression, **options)
+          @operations << AddExclusionConstraint.new(@td.new_exclusion_constraint_definition(expression, options))
         end
 
-        def add_unique_constraint(column_name, options)
-          @unique_constraint_adds << @td.new_unique_constraint_definition(column_name, options)
+        def remove_exclusion_constraint(expression = nil, **options)
+          drop_constraint(@td.conn.send(:exclusion_constraint_for!, name, expression: expression, **options).name)
         end
+
+        def add_unique_constraint(column_name = nil, **options)
+          @operations << AddUniqueConstraint.new(@td.new_unique_constraint_definition(column_name, options))
+        end
+
+        def remove_unique_constraint(column_name = nil, **options)
+          drop_constraint(@td.conn.send(:unique_constraint_for!, name, column: column_name, **options).name)
+        end
+
+        private
+          def defer_comment(column_name, comment)
+            conn = @td.conn
+            table_name = name
+            @deferred_operations << -> { conn.change_column_comment(table_name, column_name, comment) }
+          end
       end
     end
   end

@@ -2,7 +2,8 @@
 
 module ActionView # :nodoc:
   class Template # :nodoc:
-    # = Action View RawFile Template
+    # Action View RawFile Template
+    # ============================
     class RawFile # :nodoc:
       attr_accessor :type, :format
 

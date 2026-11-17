@@ -2,6 +2,7 @@
 
 require "abstract_unit"
 require "active_support/messages/rotation_configuration"
+require "active_support/testing/ractors_assertions"
 
 class FlashTest < ActionController::TestCase
   class TestController < ActionController::Base
@@ -100,6 +101,8 @@ class FlashTest < ActionController::TestCase
   end
 
   tests TestController
+
+  include ActiveSupport::Testing::RactorsAssertions
 
   def test_flash
     get :set_flash
@@ -245,6 +248,18 @@ class FlashTest < ActionController::TestCase
     end
     assert_not TestController._flash_types.include?(:bar)
   end
+
+  def test_flash_types_are_ractor_safe
+    assert_ractor_shareable TestController._flash_types
+
+    assert_nothing_raised do
+      on_ractor do
+        c = TestController.new
+        c.set_request! ActionDispatch::Request.new({})
+        c.send(:alert)
+      end
+    end
+  end
 end
 
 class FlashIntegrationTest < ActionDispatch::IntegrationTest
@@ -260,6 +275,11 @@ class FlashIntegrationTest < ActionDispatch::IntegrationTest
 
     def set_flash
       flash["that"] = "hello"
+      head :ok
+    end
+
+    def set_html_flash
+      flash["that"] = ActiveSupport::SafeBuffer.new("<p>Hello world</p>")
       head :ok
     end
 
@@ -294,6 +314,18 @@ class FlashIntegrationTest < ActionDispatch::IntegrationTest
       get "/use_flash"
       assert_response :success
       assert_equal "flash: hello", @response.body
+    end
+  end
+
+  def test_flash_safebuffer
+    with_test_route_set do
+      get "/set_html_flash", env: { "action_dispatch.cookies_serializer" => :message_pack }
+      assert_response :success
+      assert_equal "<p>Hello world</p>", @request.flash["that"]
+
+      get "/use_flash", env: { "action_dispatch.cookies_serializer" => :message_pack }
+      assert_response :success
+      assert_equal "flash: <p>Hello world</p>", @response.body
     end
   end
 
@@ -394,11 +426,7 @@ class FlashIntegrationTest < ActionDispatch::IntegrationTest
 
     def with_test_route_set
       with_routing do |set|
-        set.draw do
-          ActionDispatch.deprecator.silence do
-            get ":action", to: FlashIntegrationTest::TestController
-          end
-        end
+        draw_root_action_routes(set, FlashIntegrationTest::TestController)
 
         yield
       end

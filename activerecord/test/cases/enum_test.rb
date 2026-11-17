@@ -87,6 +87,13 @@ class EnumTest < ActiveRecord::TestCase
   test "find via negative scope" do
     assert Book.not_published.exclude?(@book)
     assert Book.not_proposed.include?(@book)
+
+    assert Book.not_forgotten.exclude?(books(:ddd))
+
+    # Should include records with nils in the column.
+    rfr = books(:rfr)
+    rfr.update!(status: nil)
+    assert Book.not_published.include?(rfr)
   end
 
   test "find via where with values" do
@@ -310,7 +317,8 @@ class EnumTest < ActiveRecord::TestCase
     e = assert_raises(ArgumentError) do
       @book.status = :unknown
     end
-    assert_equal "'unknown' is not a valid status", e.message
+    assert_match(/\A'unknown' is not a valid status\./, e.message)
+    assert_match(/"proposed"/, e.message)
   end
 
   test "validation with 'validate: true' option" do
@@ -500,7 +508,7 @@ class EnumTest < ActiveRecord::TestCase
       end
     end
 
-    assert_match(/must be only booleans, integers, symbols or strings/, e.message)
+    assert_match(/must be only booleans, integers, floats, symbols or strings/, e.message)
 
     e = assert_raises(ArgumentError) do
       Class.new(ActiveRecord::Base) do
@@ -510,6 +518,19 @@ class EnumTest < ActiveRecord::TestCase
     end
 
     assert_match(/must be either a non-empty hash or an array\.$/, e.message)
+  end
+
+  test "enum with float values" do
+    klass = Class.new(ActiveRecord::Base) do
+      self.table_name = "books"
+      enum :rating, { low: 0.0, medium: 0.5, high: 1.0 }, prefix: true
+    end
+
+    instance = klass.new
+    instance.rating_medium!
+    assert_predicate instance, :rating_medium?
+    assert_equal 0.5, instance.rating_for_database
+    assert_equal "medium", instance.rating
   end
 
   test "reserved enum names" do
@@ -581,6 +602,22 @@ class EnumTest < ActiveRecord::TestCase
         end
       end
       assert_match(/You tried to define an enum named .* on the model/, e.message)
+    end
+  end
+
+  test "conflict message grammar" do
+    conflicts = {
+      column: /will generate a class method/,
+      logger: /will generate an instance method/,
+    }
+
+    conflicts.each do |name, pattern|
+      assert_raises(ArgumentError, match: pattern) do
+        Class.new(ActiveRecord::Base) do
+          self.table_name = "books"
+          enum name, [:value]
+        end
+      end
     end
   end
 
@@ -664,6 +701,23 @@ class EnumTest < ActiveRecord::TestCase
     book2 = subklass2.drafted.create!
     book2.status = :uploaded
     assert_equal ["drafted", "uploaded"], book2.status_change
+  end
+
+  test "enums added to a parent reach existing subclasses" do
+    parent = Class.new(ActiveRecord::Base) { self.table_name = "books" }
+    child = Class.new(parent)
+    parent.enum :status, [:proposed, :written]
+
+    assert_same parent.defined_enums["status"], child.defined_enums["status"]
+  end
+
+  test "enums added to a parent do not replace a subclass's own enum" do
+    parent = Class.new(ActiveRecord::Base) { self.table_name = "books" }
+    child = Class.new(parent) { enum :status, [:drafted, :uploaded] }
+    parent.enum :status, [:proposed, :written]
+
+    assert_equal({ "drafted" => 0, "uploaded" => 1 }, child.defined_enums["status"])
+    assert_equal({ "proposed" => 0, "written" => 1 }, parent.defined_enums["status"])
   end
 
   test "attempting to modify enum raises error" do
@@ -958,6 +1012,32 @@ class EnumTest < ActiveRecord::TestCase
     assert_not_predicate computer, :extendedGold?
   end
 
+  test "enum on an attribute name starting with a capital letter" do
+    klass = Class.new(ActiveRecord::Base) do
+      self.table_name = "books"
+      attribute :Status, :integer
+      enum :Status, [:proposed, :written]
+    end
+
+    book = klass.proposed.create!
+    assert_predicate book, :proposed?
+    assert_not_predicate book, :written?
+
+    book.written!
+    assert_predicate book, :written?
+    assert_not_predicate book, :proposed?
+  end
+
+  test "enum bang methods pass frozen string values" do
+    book = Book.new
+    updated = nil
+    book.define_singleton_method(:update!) { |attributes| updated = attributes }
+
+    book.hard!
+    assert_equal({ "cover" => "hard" }, updated)
+    assert_predicate updated["cover"], :frozen?
+  end
+
   test "unicode characters for enum names" do
     klass = Class.new(ActiveRecord::Base) do
       self.table_name = "books"
@@ -1073,7 +1153,7 @@ class EnumTest < ActiveRecord::TestCase
     ActiveRecord::Base.logger = logger
 
     Class.new(ActiveRecord::Base) do
-      def self.name
+      def self.name # rubocop:disable Lint/DuplicateMethods
         "Book"
       end
       enum :status, [:not_sent]
@@ -1091,7 +1171,7 @@ class EnumTest < ActiveRecord::TestCase
     ActiveRecord::Base.logger = logger
 
     Class.new(ActiveRecord::Base) do
-      def self.name
+      def self.name # rubocop:disable Lint/DuplicateMethods
         "Book"
       end
       silence_warnings do
@@ -1106,9 +1186,9 @@ class EnumTest < ActiveRecord::TestCase
 
   test "raises for attributes with undeclared type" do
     klass = Class.new(Book) do
-    def self.name; "Book"; end
-    enum :typeless_genre, [:adventure, :comic]
-  end
+      def self.name; "Book"; end
+      enum :typeless_genre, [:adventure, :comic]
+    end
 
     error = assert_raises(RuntimeError) do
       klass.type_for_attribute(:typeless_genre)
@@ -1116,7 +1196,7 @@ class EnumTest < ActiveRecord::TestCase
     assert_match "Undeclared attribute type for enum 'typeless_genre' in Book", error.message
   end
 
-  test "supports attributes declared with a explicit type" do
+  test "supports attributes declared with an explicit type" do
     klass = Class.new(Book) do
       attribute :my_genre, :integer
       enum :my_genre, [:adventure, :comic]
@@ -1134,5 +1214,15 @@ class EnumTest < ActiveRecord::TestCase
     instance = klass.new
     assert_raises(NoMethodError) { instance.proposed? }
     assert_raises(NoMethodError) { instance.proposed! }
+  end
+
+  test "default attributes of a model with enums are shareable" do
+    klass = Class.new(ActiveRecord::Base) do
+      self.table_name = "books"
+      enum :status, [:proposed, :written, :published]
+    end
+
+    assert_instance_of ActiveRecord::Enum::EnumType, klass.type_for_attribute(:status)
+    assert Ractor.shareable?(klass._default_attributes)
   end
 end

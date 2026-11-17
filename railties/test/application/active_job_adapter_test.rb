@@ -39,7 +39,7 @@ module ApplicationTests
     test "config is set for production, but test uses defaults" do
       app_file "config/environments/production.rb", <<-RUBY
         Rails.application.configure do
-          config.active_job.queue_adapter = :sidekiq
+          config.active_job.queue_adapter = :solid_queue
         end
       RUBY
       make_test_test_file

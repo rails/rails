@@ -90,7 +90,7 @@ module RenderHtml
 
     test "rendering text from an action with default options renders the text with the layout" do
       with_routing do |set|
-        set.draw { ActionDispatch.deprecator.silence { get ":controller", action: "index" } }
+        set.draw { get "render_html/simple", to: "render_html/simple#index" }
 
         get "/render_html/simple"
         assert_body "hello david"
@@ -100,7 +100,7 @@ module RenderHtml
 
     test "rendering text from an action with default options renders the text without the layout" do
       with_routing do |set|
-        set.draw { ActionDispatch.deprecator.silence { get ":controller", action: "index" } }
+        set.draw { get "render_html/with_layout", to: "render_html/with_layout#index" }
 
         get "/render_html/with_layout"
 

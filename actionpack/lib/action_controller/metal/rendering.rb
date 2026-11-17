@@ -1,12 +1,10 @@
 # frozen_string_literal: true
 
-# :markup: markdown
-
 module ActionController
   module Rendering
     extend ActiveSupport::Concern
 
-    RENDER_FORMATS_IN_PRIORITY = [:body, :plain, :html]
+    RENDER_FORMATS_IN_PRIORITY = [:body, :plain, :html].freeze
 
     module ClassMethods
       # Documentation at ActionController::Renderer#render
@@ -38,24 +36,27 @@ module ActionController
     #     render :show
     #     # => renders app/views/posts/show.html.erb
     #
-    # If the first argument responds to `render_in`, the template will be rendered
-    # by calling `render_in` with the current view context.
+    # If the first argument responds to +render_in+, the template will be
+    # rendered by calling +render_in+ with the current view context, render
+    # options, and block.
     #
     #     class Greeting
-    #       def render_in(view_context)
-    #         view_context.render html: "<h1>Hello, World</h1>"
+    #       def render_in(view_context, **)
+    #         if block_given?
+    #           view_context.render(html: yield)
+    #         else
+    #           view_context.render(inline: <<~ERB.strip, **)
+    #             <%= Hello, <%= local_assigns.fetch(:name, "World") %>
+    #           ERB
+    #         end
     #       end
     #
-    #       def format
-    #         :html
-    #       end
-    #     end
-    #
-    #     render(Greeting.new)
-    #     # => "<h1>Hello, World</h1>"
-    #
-    #     render(renderable: Greeting.new)
-    #     # => "<h1>Hello, World</h1>"
+    #     render(Greeting.new)                                        # => "Hello, World"
+    #     render(renderable: Greeting.new)                            # => "Hello, World"
+    #     render(Greeting.new, name: "Local")                         # => "Hello, Local"
+    #     render(renderable: Greeting.new, locals: { name: "Local" }) # => "Hello, Local"
+    #     render(Greeting.new) { "Hello, Block" }                     # => "Hello, Block"
+    #     render(renderable: Greeting.new) { "Hello, Block" }         # => "Hello, Block"
     #
     # #### Rendering Mode
     #
@@ -112,13 +113,15 @@ module ActionController
     #
     # `:renderable`
     # :   Renders the provided object by calling `render_in` with the current view
-    #     context. The response format is determined by calling `format` on the
-    #     renderable if it responds to `format`, falling back to `text/html` by
-    #     default.
+    #     context, render options, and block. The response format is determined by
+    #     calling `format` on the renderable if it responds to `format`, falling
+    #     back to `text/html` by default.
     #
     #         render renderable: Greeting.new
     #         # => renders "<h1>Hello, World</h1>"
     #
+    #         render renderable: Greeting.new, locals: { name: "Local" }
+    #         # => renders "<h1>Hello, Local</h1>"
     #
     # By default, when a rendering mode is specified, no layout template is
     # rendered.
@@ -224,8 +227,15 @@ module ActionController
       end
 
       def _set_vary_header
-        if response.headers["Vary"].blank? && request.should_apply_vary_header?
-          response.headers["Vary"] = "Accept"
+        if request.should_apply_vary_header?
+          vary_headers = response.headers["Vary"].to_s.split(",").map(&:strip).reject(&:blank?)
+
+          unless vary_headers.include?("*")
+            request.vary_headers.each do |header|
+              vary_headers << header unless vary_headers.any? { |existing| existing.casecmp?(header) }
+            end
+            response.headers["Vary"] = vary_headers.join(", ")
+          end
         end
       end
 
@@ -238,7 +248,7 @@ module ActionController
         end
 
         if options[:status]
-          options[:status] = Rack::Utils.status_code(options[:status])
+          options[:status] = ActionDispatch::Response.rack_status_code(options[:status])
         end
 
         super

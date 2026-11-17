@@ -5,7 +5,7 @@ require "abstract_unit"
 class UrlEncodedParamsParsingTest < ActionDispatch::IntegrationTest
   class TestController < ActionController::Base
     class << self
-      attr_accessor :last_request_parameters, :last_request_type
+      attr_accessor :last_request_parameters
     end
 
     def parse
@@ -141,11 +141,7 @@ class UrlEncodedParamsParsingTest < ActionDispatch::IntegrationTest
   private
     def with_test_routing
       with_routing do |set|
-        set.draw do
-          ActionDispatch.deprecator.silence do
-            post ":action", to: ::UrlEncodedParamsParsingTest::TestController
-          end
-        end
+        draw_root_action_routes(set, ::UrlEncodedParamsParsingTest::TestController)
         yield
       end
     end

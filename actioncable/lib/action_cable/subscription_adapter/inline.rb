@@ -1,12 +1,11 @@
 # frozen_string_literal: true
 
-# :markup: markdown
-
 module ActionCable
   module SubscriptionAdapter
     class Inline < Base # :nodoc:
       def initialize(*)
         super
+        @mutex = Mutex.new
         @subscriber_map = nil
       end
 
@@ -28,7 +27,7 @@ module ActionCable
 
       private
         def subscriber_map
-          @subscriber_map || @server.mutex.synchronize { @subscriber_map ||= new_subscriber_map }
+          @subscriber_map || @mutex.synchronize { @subscriber_map ||= new_subscriber_map }
         end
 
         def new_subscriber_map

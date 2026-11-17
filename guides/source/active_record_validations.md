@@ -81,7 +81,7 @@ validations.
 There are two kinds of Active Record objects - those that correspond to a row
 inside your database and those that do not. When you instantiate a new object,
 using the `new` method, the object does not get saved in the database as yet.
-Once you call `save` on that object then will it be saved into the appropriate
+Once you call `save` on that object, it will be saved into the appropriate
 database table. Active Record uses an instance method called `persisted?` (and
 its inverse `new_record?`) to determine whether an object is already in the
 database or not. Consider the following Active Record class:
@@ -140,7 +140,7 @@ database only if the object is valid:
 
 The bang versions (methods that end with an exclamation mark, like `save!`)
 raise an exception if the record is invalid. The non-bang versions - `save` and
-`update` returns `false`, and `create` returns the object.
+`update` return `false`, and `create` returns the object.
 
 [`create`]:
     https://api.rubyonrails.org/classes/ActiveRecord/Persistence/ClassMethods.html#method-i-create
@@ -195,13 +195,13 @@ passed as an argument. This technique should be used with caution.
 [`increment_counter`]:
     https://api.rubyonrails.org/classes/ActiveRecord/CounterCache/ClassMethods.html#method-i-increment_counter
 [`insert`]:
-    https://api.rubyonrails.org/classes/ActiveRecord/Persistence/ClassMethods.html#method-i-insert
+    https://api.rubyonrails.org/classes/ActiveRecord/Relation.html#method-i-insert
 [`insert!`]:
-    https://api.rubyonrails.org/classes/ActiveRecord/Persistence/ClassMethods.html#method-i-insert-21
+    https://api.rubyonrails.org/classes/ActiveRecord/Relation.html#method-i-insert-21
 [`insert_all`]:
-    https://api.rubyonrails.org/classes/ActiveRecord/Persistence/ClassMethods.html#method-i-insert_all
+    https://api.rubyonrails.org/classes/ActiveRecord/Relation.html#method-i-insert_all
 [`insert_all!`]:
-    https://api.rubyonrails.org/classes/ActiveRecord/Persistence/ClassMethods.html#method-i-insert_all-21
+    https://api.rubyonrails.org/classes/ActiveRecord/Relation.html#method-i-insert_all-21
 [`toggle!`]:
     https://api.rubyonrails.org/classes/ActiveRecord/Persistence.html#method-i-toggle-21
 [`touch`]:
@@ -221,9 +221,9 @@ passed as an argument. This technique should be used with caution.
 [`update_counters`]:
     https://api.rubyonrails.org/classes/ActiveRecord/Relation.html#method-i-update_counters
 [`upsert`]:
-    https://api.rubyonrails.org/classes/ActiveRecord/Persistence/ClassMethods.html#method-i-upsert
+    https://api.rubyonrails.org/classes/ActiveRecord/Relation.html#method-i-upsert
 [`upsert_all`]:
-    https://api.rubyonrails.org/classes/ActiveRecord/Persistence/ClassMethods.html#method-i-upsert_all
+    https://api.rubyonrails.org/classes/ActiveRecord/Relation.html#method-i-upsert_all
 
 ### Checking Validity
 
@@ -451,8 +451,8 @@ also need to use `validates_associated`. More on that in the
 [validates_associated section](#validates-associated).
 
 If you validate the absence of an object associated via a
-[`has_one`](association_basics.html#the-has-one-association) or
-[`has_many`](association_basics.html#the-has-many-association) relationship, it
+[`has_one`](association_basics.html#has-one) or
+[`has_many`](association_basics.html#has-many) relationship, it
 will check that the object is neither `present?` nor `marked_for_destruction?`.
 
 Since `false.present?` is false, if you want to validate the absence of a
@@ -612,7 +612,7 @@ expression or a proc or lambda that returns one.
 
 The default error message is _"is invalid"_.
 
-WARNING. Use `\A` and `\z` to match the start and end of the string, `^` and `$`
+WARNING: Use `\A` and `\z` to match the start and end of the string, `^` and `$`
 match the start/end of a line. Due to frequent misuse of `^` and `$`, you need
 to pass the `multiline: true` option in case you use any of these two anchors in
 the provided regular expression. In most cases, you should be using `\A` and
@@ -837,8 +837,8 @@ also need to use `validates_associated`. More on that
 [below](#validates-associated).
 
 If you validate the presence of an object associated via a
-[`has_one`](association_basics.html#the-has-one-association) or
-[`has_many`](association_basics.html#the-has-many-association) relationship, it
+[`has_one`](association_basics.html#has-one) or
+[`has_many`](association_basics.html#has-many) relationship, it
 will check that the object is neither `blank?` nor `marked_for_destruction?`.
 
 Since `false.blank?` is true, if you want to validate the presence of a boolean
@@ -1811,6 +1811,8 @@ end
 
 ```irb
 irb> person = Person.new
+irb> person.valid?
+=> false
 irb> person.errors.where(:name).first.type
 => :too_plain
 irb> person.errors.where(:name).first.full_message
@@ -1836,6 +1838,8 @@ end
 
 ```irb
 irb> person = Person.new
+irb> person.valid?
+=> false
 irb> person.errors.where(:base).first.full_message
 => "This person is invalid because ..."
 ```
@@ -1963,5 +1967,5 @@ config.action_view.field_error_proc = Proc.new { |html_tag, instance| content_ta
 
 You can customize this behavior by modifying the field_error_proc setting in
 your application configuration, allowing you to change how errors are presented
-in your forms. For more details,refer to the [Configuration Guide on
+in your forms. For more details, refer to the [Configuration Guide on
 field_error_proc](configuring.html#config-action-view-field-error-proc).

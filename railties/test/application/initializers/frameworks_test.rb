@@ -117,7 +117,8 @@ module ApplicationTests
 
       app_file "config/routes.rb", <<-RUBY
         Rails.application.routes.draw do
-          get "/:controller(/:action)"
+          get "/foo/included_helpers", to: "foo#included_helpers"
+          get "/foo/not_included_helper", to: "foo#not_included_helper"
         end
       RUBY
 
@@ -149,7 +150,7 @@ module ApplicationTests
 
       app_file "config/routes.rb", <<-RUBY
         Rails.application.routes.draw do
-          get "/:controller(/:action)"
+          get "/omg/show", to: "omg#show"
         end
       RUBY
 
@@ -200,6 +201,55 @@ module ApplicationTests
       Dir.chdir("#{app_path}/app") do
         app("development")
         assert_raises(NoMethodError) { "hello".exclude? "lo" }
+      end
+    end
+
+    if RUBY_VERSION >= "4.0"
+      test "notification subscriptions are recorded" do
+        add_to_config "ActiveSupport::Ractors.unshareable_proc_action = :warn"
+
+        app_file "config/initializers/subscriptions.rb", <<-RUBY
+          WitnessError = Class.new(StandardError)
+
+          ActiveSupport::Notifications.subscribe("active_record.sql") { raise WitnessError }
+        RUBY
+
+        app("development")
+
+        # Main Ractor receives notifications
+        assert_raises(WitnessError) do
+          ActiveSupport::Notifications.instrument("active_record.sql")
+        end
+
+        previous_report_on_exception = Thread.report_on_exception
+        Thread.report_on_exception = false
+
+        # Worker Ractor received notifications
+        error = assert_raises(Ractor::RemoteError) do
+          Ractor.new do
+            ActiveSupport::Notifications.instrument("active_record.sql")
+          end.join
+        end
+
+        assert_instance_of(WitnessError, error.cause)
+      ensure
+        Thread.report_on_exception = previous_report_on_exception
+      end
+
+      test "Notification subscriptions can be added after boot" do
+        add_to_config "ActiveSupport::Ractors.unshareable_proc_action = :warn"
+
+        app_file "config/initializers/subscriptions.rb", <<-RUBY
+          WitnessError = Class.new(StandardError)
+
+          ActiveSupport::Notifications.subscribe("active_record.sql") { raise WitnessError }
+        RUBY
+
+        app("development")
+
+        assert_nothing_raised do
+          ActiveSupport::Notifications.subscribe("sql.active_record") { }
+        end
       end
     end
 
@@ -344,37 +394,35 @@ module ApplicationTests
 
     test "active record establish_connection uses Rails.env if DATABASE_URL is not set" do
       app("development")
-      orig_database_url = ENV.delete("DATABASE_URL")
-      orig_rails_env, Rails.env = Rails.env, "development"
-      ActiveRecord::Base.establish_connection
-      assert ActiveRecord::Base.lease_connection
-      assert_match(/#{ActiveRecord::Base.configurations.configs_for(env_name: Rails.env, name: "primary").database}/, ActiveRecord::Base.connection_db_config.database)
-      db_config = ActiveRecord::Base.configurations.configs_for(env_name: Rails.env, name: "primary")
-      assert_match(/#{db_config.database}/, ActiveRecord::Base.connection_db_config.database)
+      with_env DATABASE_URL: nil, RAILS_ENV: "development" do
+        ActiveRecord::Base.establish_connection
+        assert ActiveRecord::Base.lease_connection
+        assert_match(/#{ActiveRecord::Base.configurations.configs_for(env_name: Rails.env, name: "primary").database}/, ActiveRecord::Base.connection_db_config.database)
+        db_config = ActiveRecord::Base.configurations.configs_for(env_name: Rails.env, name: "primary")
+        assert_match(/#{db_config.database}/, ActiveRecord::Base.connection_db_config.database)
+      end
     ensure
       ActiveRecord::Base.remove_connection
-      ENV["DATABASE_URL"] = orig_database_url if orig_database_url
-      Rails.env = orig_rails_env if orig_rails_env
     end
 
     test "active record establish_connection uses DATABASE_URL even if Rails.env is set" do
       app("development")
-      orig_database_url = ENV.delete("DATABASE_URL")
-      orig_rails_env, Rails.env = Rails.env, "development"
-      database_url_db_name = "db/database_url_db.sqlite3"
-      ENV["DATABASE_URL"] = "sqlite3:#{database_url_db_name}"
-      ActiveRecord::Base.establish_connection
-      assert ActiveRecord::Base.lease_connection
-      assert_match(/#{database_url_db_name}/, ActiveRecord::Base.connection_db_config.database)
+      with_env DATABASE_URL: nil, RAILS_ENV: "development" do
+        database_url_db_name = "db/database_url_db.sqlite3"
+        ENV["DATABASE_URL"] = "sqlite3:#{database_url_db_name}"
+        ActiveRecord::Base.establish_connection
+        assert ActiveRecord::Base.lease_connection
+        assert_match(/#{database_url_db_name}/, ActiveRecord::Base.connection_db_config.database)
+      end
     ensure
       ActiveRecord::Base.remove_connection
-      ENV["DATABASE_URL"] = orig_database_url if orig_database_url
-      Rails.env = orig_rails_env if orig_rails_env
     end
 
     test "connections checked out during initialization are returned to the pool" do
       app_file "config/initializers/active_record.rb", <<-RUBY
-        ActiveRecord::Base.lease_connection
+        ActiveSupport.on_load(:active_record) do
+          ActiveRecord::Base.lease_connection
+        end
       RUBY
       app("development")
       assert_not_predicate ActiveRecord::Base.connection_pool, :active_connection?

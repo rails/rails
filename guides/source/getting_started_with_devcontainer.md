@@ -20,7 +20,7 @@ Rails application in a container, without needing to install Ruby or Rails or it
 directly on your machine. This is the fastest way to get your Rails application up and running.
 
 This is an alternative to installing Ruby and Rails directly on your machine, which is
-covered in the [Getting Started guides](getting_started.html#creating-a-new-rails-project).
+covered in the [Getting Started guides](getting_started.html#creating-a-new-rails-app).
 Once you have completed this guide, you can continue building your application by following
 the Getting Started guide.
 
@@ -114,7 +114,7 @@ You can open the terminal within VS Code to verify that Rails is installed:
 
 ```bash
 $ rails --version
-Rails 8.1.0
+Rails 8.2.0
 ```
 
 You can now continue with the [Getting Started guide](getting_started.html) and

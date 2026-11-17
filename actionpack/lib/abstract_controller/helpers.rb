@@ -1,7 +1,5 @@
 # frozen_string_literal: true
 
-# :markup: markdown
-
 require "active_support/dependencies"
 require "active_support/core_ext/name_error"
 
@@ -10,7 +8,7 @@ module AbstractController
     extend ActiveSupport::Concern
 
     included do
-      class_attribute :_helper_methods, default: Array.new
+      class_attribute :_helper_methods, default: [].freeze
 
       # This is here so that it is always higher in the inheritance chain than the
       # definition in lib/action_view/rendering.rb
@@ -90,7 +88,7 @@ module AbstractController
       #--
       # Implemented by Resolution#modules_for_helpers.
 
-      # :method: # all_helpers_from_path
+      # :method: all_helpers_from_path
       # :call-seq: all_helpers_from_path(path)
       #
       # Returns a list of helper names in a given path.
@@ -127,7 +125,7 @@ module AbstractController
       #     made available on the view.
       def helper_method(*methods)
         methods.flatten!
-        self._helper_methods += methods
+        self._helper_methods = (_helper_methods + methods).freeze
 
         location = caller_locations(1, 1).first
         file, line = location.path, location.lineno

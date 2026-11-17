@@ -4,35 +4,52 @@ module ActiveRecord
   # Statement cache is used to cache a single statement in order to avoid creating the AST again.
   # Initializing the cache is done by passing the statement in the create block:
   #
-  #   cache = StatementCache.create(ClothingItem.lease_connection) do |params|
-  #     Book.where(name: "my book").where("author_id > 3")
-  #   end
+  # ```
+  # cache = StatementCache.create(ClothingItem.lease_connection) do |params|
+  #   Book.where(name: "my book").where("author_id > 3")
+  # end
+  # ```
   #
   # The cached statement is executed by using the
-  # {connection.execute}[rdoc-ref:ConnectionAdapters::DatabaseStatements#execute] method:
+  # [connection.execute](rdoc-ref:ConnectionAdapters::DatabaseStatements#execute) method:
   #
-  #   cache.execute([], ClothingItem.lease_connection)
+  # ```
+  # cache.execute([], ClothingItem.lease_connection)
+  # ```
   #
   # The relation returned by the block is cached, and for each
-  # {execute}[rdoc-ref:ConnectionAdapters::DatabaseStatements#execute]
-  # call the cached relation gets duped. Database is queried when +to_a+ is called on the relation.
+  # [execute](rdoc-ref:ConnectionAdapters::DatabaseStatements#execute)
+  # call the cached relation gets duped. Database is queried when `to_a` is called on the relation.
   #
-  # If you want to cache the statement without the values you can use the +bind+ method of the
+  # If you want to cache the statement without the values you can use the `bind` method of the
   # block parameter.
   #
-  #   cache = StatementCache.create(ClothingItem.lease_connection) do |params|
-  #     Book.where(name: params.bind)
-  #   end
+  # ```
+  # cache = StatementCache.create(ClothingItem.lease_connection) do |params|
+  #   Book.where(name: params.bind)
+  # end
+  # ```
   #
-  # And pass the bind values as the first argument of +execute+ call.
+  # And pass the bind values as the first argument of `execute` call.
   #
-  #   cache.execute(["my book"], ClothingItem.lease_connection)
+  # ```
+  # cache.execute(["my book"], ClothingItem.lease_connection)
+  # ```
   class StatementCache # :nodoc:
-    class Substitute; end # :nodoc:
+    class Substitute # :nodoc:
+      attr_reader :key
+
+      def initialize(key = nil)
+        @key = key
+      end
+    end
 
     class Query # :nodoc:
-      def initialize(sql)
+      attr_reader :retryable
+
+      def initialize(sql, retryable:)
         @sql = sql
+        @retryable = retryable
       end
 
       def sql_for(binds, connection)
@@ -41,11 +58,12 @@ module ActiveRecord
     end
 
     class PartialQuery < Query # :nodoc:
-      def initialize(values)
+      def initialize(values, retryable:)
         @values = values
         @indexes = values.each_with_index.find_all { |thing, i|
           Substitute === thing
         }.map(&:last)
+        @retryable = retryable
       end
 
       def sql_for(binds, connection)
@@ -94,12 +112,12 @@ module ActiveRecord
       end
     end
 
-    def self.query(sql)
-      Query.new(sql)
+    def self.query(...)
+      Query.new(...)
     end
 
-    def self.partial_query(values)
-      PartialQuery.new(values)
+    def self.partial_query(...)
+      PartialQuery.new(...)
     end
 
     def self.partial_query_collector
@@ -107,24 +125,37 @@ module ActiveRecord
     end
 
     class Params # :nodoc:
-      def bind; Substitute.new; end
+      def initialize
+        @index = 0
+      end
+
+      def bind(key = @index)
+        @index += 1
+        Substitute.new(key)
+      end
     end
 
     class BindMap # :nodoc:
       def initialize(bound_attributes)
-        @indexes = []
+        @substitutes = []
         @bound_attributes = bound_attributes
 
-        bound_attributes.each_with_index do |attr, i|
+        bound_attributes.each_with_index do |attr, offset|
           if ActiveModel::Attribute === attr && Substitute === attr.value
-            @indexes << i
+            @substitutes[offset] = attr.value
           end
         end
       end
 
       def bind(values)
         bas = @bound_attributes.dup
-        @indexes.each_with_index { |offset, i| bas[offset] = bas[offset].with_cast_value(values[i]) }
+        offset = 0
+        @substitutes.each do |substitute|
+          if substitute
+            bas[offset] = bas[offset].with_cast_value(values[substitute.key])
+          end
+          offset += 1
+        end
         bas
       end
     end
@@ -142,17 +173,17 @@ module ActiveRecord
       @model = model
     end
 
-    def execute(params, connection, allow_retry: false, async: false, &block)
+    def execute(params, connection, async: false, &block)
       bind_values = @bind_map.bind params
       sql = @query_builder.sql_for bind_values, connection
 
       if async
-        @model.async_find_by_sql(sql, bind_values, preparable: true, allow_retry: allow_retry, &block)
+        @model.async_find_by_sql(sql, bind_values, preparable: true, allow_retry: @query_builder.retryable, &block)
       else
-        @model.find_by_sql(sql, bind_values, preparable: true, allow_retry: allow_retry, &block)
+        @model.find_by_sql(sql, bind_values, preparable: true, allow_retry: @query_builder.retryable, &block)
       end
     rescue ::RangeError
-      async ? Promise.wrap([]) : []
+      async ? Promise::Complete.new([]) : []
     end
 
     def self.unsupported_value?(value)

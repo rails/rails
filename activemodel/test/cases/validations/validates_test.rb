@@ -4,7 +4,7 @@ require "cases/helper"
 require "models/person"
 require "models/topic"
 require "models/person_with_validator"
-require "validators/namespace/email_validator"
+require "validators/namespaced/email_validator"
 
 class ValidatesTest < ActiveModel::TestCase
   setup :reset_callbacks
@@ -55,7 +55,7 @@ class ValidatesTest < ActiveModel::TestCase
   end
 
   def test_validates_with_namespaced_validator_class
-    Person.validates :karma, 'namespace/email': true
+    Person.validates :karma, 'namespaced/email': true
     person = Person.new
     person.valid?
     assert_equal ["is not an email"], person.errors[:karma]
@@ -165,5 +165,56 @@ class ValidatesTest < ActiveModel::TestCase
     topic.title_confirmation = "Not this"
     assert_not_predicate topic, :valid?
     assert_equal ["Y U NO CONFIRM"], topic.errors[:title_confirmation]
+  end
+
+  def test_validates_combines_if_from_both_levels
+    Person.validates :title, presence: { if: :condition_is_true }, if: :condition_is_true
+    person = Person.new
+    assert_not person.valid?
+  end
+
+  def test_validates_combines_if_skips_when_top_level_if_is_false
+    Person.validates :title, presence: { if: :condition_is_true }, if: :condition_is_false
+    person = Person.new
+    assert_predicate person, :valid?
+  end
+
+  def test_validates_combines_if_skips_when_per_validator_if_is_false
+    Person.validates :title, presence: { if: :condition_is_false }, if: :condition_is_true
+    person = Person.new
+    assert_predicate person, :valid?
+  end
+
+  def test_validates_combines_unless_from_both_levels
+    Person.validates :title, presence: { unless: :condition_is_false }, unless: :condition_is_false
+    person = Person.new
+    assert_not person.valid?
+  end
+
+  def test_validates_combines_unless_skips_when_top_level_unless_is_true
+    Person.validates :title, presence: { unless: :condition_is_false }, unless: :condition_is_true
+    person = Person.new
+    assert_predicate person, :valid?
+  end
+
+  def test_validates_combines_unless_skips_when_per_validator_unless_is_true
+    Person.validates :title, presence: { unless: :condition_is_true }, unless: :condition_is_false
+    person = Person.new
+    assert_predicate person, :valid?
+  end
+
+  def test_validates_combines_on_from_both_levels
+    Person.validates :title, presence: { on: :create }, on: :update
+    person = Person.new
+    assert_not person.valid?(:create)
+    assert_not person.valid?(:update)
+    assert_predicate person, :valid?
+  end
+
+  def test_validates_per_validator_message_overrides_top_level
+    Topic.validates :title, presence: { message: "inner msg" }, message: "outer msg"
+    topic = Topic.new
+    topic.valid?
+    assert_equal ["inner msg"], topic.errors[:title]
   end
 end

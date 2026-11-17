@@ -57,4 +57,24 @@ class ParametersAccessorsTest < ActiveSupport::TestCase
     params = ActionController::Parameters.new(foo: { bar: "baz" })
     assert params.has_value?(ActionController::Parameters.new("bar" => "baz"))
   end
+
+  test "deconstruct_keys works with parameters" do
+    assert_pattern { @params => { person: { age: "32" } } }
+    refute_pattern { @params => { person: { addresses: ["does not match"] } } }
+  end
+
+  test "deconstruct_keys returns instances of ActionController::Parameters for nested values" do
+    @params => { person: }
+    person => { addresses: }
+
+    assert_kind_of ActionController::Parameters, person
+    assert_kind_of ActionController::Parameters, addresses.first
+  end
+
+  test "deconstruct_keys matches a pattern with a rest binding" do
+    @params => { person: { age:, **rest } }
+
+    assert_equal "32", age
+    assert_equal %i[name addresses].sort, rest.keys.map(&:to_sym).sort
+  end
 end

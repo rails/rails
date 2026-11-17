@@ -63,9 +63,6 @@ class ActionPackAssertionsController < ActionController::Base
     render plain: "Mr. #{params[:name]}"
   end
 
-  def render_url
-    render html: "<div>#{url_for(action: 'flash_me', only_path: true)}</div>"
-  end
 
   def render_text_with_custom_content_type
     render body: "Hello!", content_type: Mime[:rss]
@@ -87,11 +84,11 @@ class ActionPackAssertionsController < ActionController::Base
   end
 
   def render_file_absolute_path
-    render file: File.expand_path("../../README.rdoc", __dir__)
+    render file: File.expand_path("../../README.md", __dir__)
   end
 
   def render_file_relative_path
-    render file: "README.rdoc"
+    render file: "README.md"
   end
 end
 
@@ -143,14 +140,22 @@ class ApiOnlyController < ActionController::API
 end
 
 class ActionPackAssertionsControllerTest < ActionController::TestCase
+  def setup
+    super
+    # Redirect targets that are not actions on the controller under test.
+    draw_routes_for "elsewhere", :flash_me
+    draw_routes_for "content", :index
+    draw_routes_for "admin/user", :index
+  end
+
   def test_render_file_absolute_path
     get :render_file_absolute_path
-    assert_match(/\A= Action Pack/, @response.body)
+    assert_match(/\A# Action Pack/, @response.body)
   end
 
   def test_render_file_relative_path
     get :render_file_relative_path
-    assert_match(/\A= Action Pack/, @response.body)
+    assert_match(/\A# Action Pack/, @response.body)
   end
 
   def test_get_request
@@ -205,10 +210,6 @@ class ActionPackAssertionsControllerTest < ActionController::TestCase
       set.draw do
         get "route_one", to: "action_pack_assertions#nothing", as: :route_one
         get "route_two", to: "action_pack_assertions#nothing", id: "two", as: :route_two
-
-        ActionDispatch.deprecator.silence do
-          get ":controller/:action"
-        end
       end
       process :redirect_to_named_route
       assert_raise(ActiveSupport::TestCase::Assertion) do
@@ -232,10 +233,6 @@ class ActionPackAssertionsControllerTest < ActionController::TestCase
     with_routing do |set|
       set.draw do
         get "admin/inner_module", to: "admin/inner_module#index", as: :admin_inner_module
-
-        ActionDispatch.deprecator.silence do
-          get ":controller/:action"
-        end
       end
       process :redirect_to_index
       # redirection is <{"action"=>"index", "controller"=>"admin/admin/inner_module"}>
@@ -249,10 +246,6 @@ class ActionPackAssertionsControllerTest < ActionController::TestCase
     with_routing do |set|
       set.draw do
         get "/action_pack_assertions/:id", to: "action_pack_assertions#index", as: :top_level
-
-        ActionDispatch.deprecator.silence do
-          get ":controller/:action"
-        end
       end
       process :redirect_to_top_level_named_route
       # assert_redirected_to "http://test.host/action_pack_assertions/foo" would pass because of exact match early return
@@ -268,10 +261,6 @@ class ActionPackAssertionsControllerTest < ActionController::TestCase
       set.draw do
         # this controller exists in the admin namespace as well which is the only difference from previous test
         get "/user/:id", to: "user#index", as: :top_level
-
-        ActionDispatch.deprecator.silence do
-          get ":controller/:action"
-        end
       end
       process :redirect_to_top_level_named_route
       # assert_redirected_to top_level_url('foo') would pass because of exact match early return
@@ -322,7 +311,7 @@ class ActionPackAssertionsControllerTest < ActionController::TestCase
     assert_equal "turkey", session["xmas"]
   end
 
-  def session_does_not_exist
+  def test_session_does_not_exist
     process :nothing
     assert_empty session
   end
@@ -495,6 +484,25 @@ class ActionPackAssertionsControllerTest < ActionController::TestCase
     get :show
     assert_response 500
     assert_equal "Boom", response.body
+  end
+
+  def test_assert_in_body
+    post :raise_exception_on_get
+    assert_in_body "request method: POST"
+    assert_not_in_body "request method: GET"
+  end
+
+  def test_url_helper_delegation
+    @controller = ActionPackAssertionsController.new
+    @controller.request = ActionDispatch::TestRequest.create
+
+    with_routing do |set|
+      set.draw do
+        get "/route_one", to: "action_pack_assertions#nothing", as: :route_one
+      end
+
+      assert_equal("/route_one", route_one_path)
+    end
   end
 end
 

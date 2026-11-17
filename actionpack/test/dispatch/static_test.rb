@@ -48,6 +48,12 @@ class StaticTest < ActiveSupport::TestCase
     assert_equal "Hello, World!", get((+"/doorkeeper%E3E4").force_encoding("ASCII-8BIT")).body
   end
 
+  def test_serves_dynamic_content_with_escaped_utf8_top_level_name
+    env = Rack::MockRequest.env_for("/")
+    env["PATH_INFO"] = (+"/%E3%81%93%E3%82%93%E3%81%AB%E3%81%A1%E3%81%AF/1").force_encoding(Encoding::UTF_8)
+    assert_equal "Hello, World!", Rack::MockResponse.new(*@app.call(env)).body
+  end
+
   def test_handles_urls_with_null_byte
     assert_equal "Hello, World!", get("/doorkeeper%00").body
   end
@@ -83,10 +89,15 @@ class StaticTest < ActiveSupport::TestCase
   def test_served_gzipped_static_file_with_non_english_filename
     response = get("/foo/%E3%81%95%E3%82%88%E3%81%86%E3%81%AA%E3%82%89.html", "HTTP_ACCEPT_ENCODING" => "gzip")
 
-    assert_gzip  "/foo/さようなら.html", response
-    assert_equal "text/html",          response.headers["content-type"]
-    assert_equal "accept-encoding",    response.headers["vary"]
-    assert_equal "gzip",               response.headers["content-encoding"]
+    assert_gzip  "/foo/さようなら.html",       response
+    assert_equal "text/html; charset=utf-8", response.headers["content-type"]
+    assert_equal "accept-encoding",          response.headers["vary"]
+    assert_equal "gzip",                     response.headers["content-encoding"]
+  end
+
+  def test_serves_static_css_with_charset
+    response = get("/foo/baz.css")
+    assert_equal "text/css; charset=utf-8", response.headers["content-type"]
   end
 
   def test_serves_static_file_with_exclamation_mark_in_filename
@@ -179,9 +190,9 @@ class StaticTest < ActiveSupport::TestCase
     file_name = "/gzip/logo-bcb6d75d927347158af5.svg"
     response  = get(file_name, "HTTP_ACCEPT_ENCODING" => "gzip")
     assert_gzip  file_name, response
-    assert_equal "image/svg+xml", response.headers["Content-Type"]
-    assert_equal "accept-encoding",        response.headers["Vary"]
-    assert_equal "gzip",                   response.headers["Content-Encoding"]
+    assert_equal "image/svg+xml",   response.headers["Content-Type"]
+    assert_equal "accept-encoding", response.headers["Vary"]
+    assert_equal "gzip",            response.headers["Content-Encoding"]
   end
 
   def test_set_vary_when_origin_compressed_but_client_cant_accept
@@ -263,6 +274,53 @@ class StaticTest < ActiveSupport::TestCase
     assert_equal "I'm a teapot",           response.headers["x-custom-header"]
   end
 
+  def test_skips_candidate_files_under_missing_top_level_entries
+    checked = []
+
+    File.stub(:file?, ->(file) { checked << file; false }) do
+      assert_equal "Hello, World!", get("/users").body
+      assert_equal "Hello, World!", get("/users/").body
+      assert_equal "Hello, World!", get("/users/1").body
+      assert_equal "Hello, World!", get("/users/1.json").body
+    end
+
+    assert_empty checked
+  end
+
+  def test_probes_root_once_for_missing_nested_or_incompressible_files
+    %w[ /users/1 /users/1.json /users.json ].each do |path|
+      probed = []
+
+      File.stub(:exist?, ->(file) { probed << file; false }) do
+        assert_equal "Hello, World!", get(path).body
+      end
+
+      assert_equal 1, probed.size, path
+    end
+  end
+
+  def test_serves_precompressed_top_level_files_without_uncompressed_copy
+    @app = build_app(DummyApp, @root, index: "compressed-index")
+
+    with_static_file "/compressed.js.gz" do |file|
+      response = get("/compressed.js", "HTTP_ACCEPT_ENCODING" => "gzip")
+      assert_equal file, response.body
+      assert_equal "gzip", response.headers["content-encoding"]
+    end
+
+    with_static_file "/compressed.html.gz" do |file|
+      response = get("/compressed", "HTTP_ACCEPT_ENCODING" => "gzip")
+      assert_equal file, response.body
+      assert_equal "gzip", response.headers["content-encoding"]
+    end
+
+    with_static_file "/compressed-index.html.gz" do |file|
+      response = get("/", "HTTP_ACCEPT_ENCODING" => "gzip")
+      assert_equal file, response.body
+      assert_equal "gzip", response.headers["content-encoding"]
+    end
+  end
+
   def test_ignores_unknown_http_methods
     response = Rack::MockRequest.new(@app).request("BAD_METHOD", "/foo/bar.html")
     assert_equal 200, response.status
@@ -332,7 +390,7 @@ class StaticTest < ActiveSupport::TestCase
 
     def assert_html(body, response)
       assert_equal body, response.body
-      assert_equal "text/html", response.headers["content-type"]
+      assert_equal "text/html; charset=utf-8", response.headers["content-type"]
       assert_nil response.headers["vary"]
     end
 

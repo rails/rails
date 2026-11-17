@@ -1,7 +1,5 @@
 # frozen_string_literal: true
 
-# :markup: markdown
-
 module ActionView
   module Helpers # :nodoc:
     # # Action View Rendering Helpers
@@ -22,6 +20,10 @@ module ActionView
       #     # => renders app/views/posts/_form.html.erb
       #
       # Use the complete view path to render a partial from another directory.
+      #
+      # If an object responding to +render_in+ is passed, +render_in+ is called on the object,
+      # passing in the current view context, render options, and block. The
+      # object can optionally control its rendered format by defining the +format+ method.
       #
       #     <% # app/views/posts/show.html.erb %>
       #     <%= render "comments/form" %>
@@ -139,15 +141,18 @@ module ActionView
         case options
         when Hash
           in_rendering_context(options) do |renderer|
-            if block_given?
+            if block_given? && !options.key?(:renderable)
               view_renderer.render_partial(self, options.merge(partial: options[:layout]), &block)
             else
-              view_renderer.render(self, options)
+              view_renderer.render(self, options, &block)
             end
           end
         else
           if options.respond_to?(:render_in)
-            options.render_in(self, &block)
+            renderable = Template::Renderable.new(options, &block)
+            ActiveSupport::Notifications.instrument("render_template.action_view", identifier: renderable.identifier, layout: nil, locals: locals) do
+              renderable.render(self, locals)
+            end
           else
             view_renderer.render_partial(self, partial: options, locals: locals, &block)
           end

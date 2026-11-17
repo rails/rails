@@ -23,7 +23,7 @@ module ApplicationTests
         development:
            database: <%= Rails.application.config.database %>
            adapter: sqlite3
-           pool: <%= ENV.fetch("RAILS_MAX_THREADS") { 5 } %>
+           max_connections: <%= ENV.fetch("RAILS_MAX_THREADS") { 5 } %>
            timeout: 5000
       YAML
 
@@ -44,7 +44,7 @@ module ApplicationTests
       app_file "config/database.yml", <<-YAML
         default: &default
           adapter: sqlite3
-          pool: <%= ENV.fetch("RAILS_MAX_THREADS") { 5 } %>
+          max_connections: <%= ENV.fetch("RAILS_MAX_THREADS") { 5 } %>
           timeout: 5000
 
         development:
@@ -68,7 +68,7 @@ module ApplicationTests
 
     private
       def spawn_dbconsole(fd, options = nil)
-        Process.spawn("#{app_path}/bin/rails dbconsole #{options}", in: fd, out: fd, err: fd)
+        Process.spawn({ "SQLITE_PS1" => "sqlite> " }, "#{app_path}/bin/rails dbconsole #{options}", in: fd, out: fd, err: fd)
       end
   end
 end

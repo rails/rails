@@ -3,18 +3,24 @@
 require "pathname"
 
 class Pathname
-  # Returns the receiver if the named file exists otherwise returns +nil+.
-  # <tt>pathname.existence</tt> is equivalent to
+  # Returns the receiver if the named file exists; otherwise, returns `nil`.
+  # `pathname.existence` is equivalent to:
   #
-  #    pathname.exist? ? pathname : nil
+  # ```ruby
+  # pathname.exist? ? pathname : nil
+  # ```
   #
-  # For example, something like
+  # For example, this:
   #
-  #   content = pathname.read if pathname.exist?
+  # ```ruby
+  # content = pathname.read if pathname.exist?
+  # ```
   #
-  # becomes
+  # becomes:
   #
-  #   content = pathname.existence&.read
+  # ```ruby
+  # content = pathname.existence&.read
+  # ```
   #
   # @return [Pathname]
   def existence

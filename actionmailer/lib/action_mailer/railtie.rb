@@ -1,8 +1,7 @@
 # frozen_string_literal: true
 
-require "active_job/railtie"
-require "action_mailer"
 require "rails"
+require "action_mailer"
 require "abstract_controller/railties/routes_helpers"
 
 module ActionMailer
@@ -10,6 +9,8 @@ module ActionMailer
     config.action_mailer = ActiveSupport::OrderedOptions.new
     config.action_mailer.preview_paths = []
     config.eager_load_namespaces << ActionMailer
+
+    guard_load_hooks(:action_mailer, :action_mailer_test_case)
 
     initializer "action_mailer.deprecator", before: :load_environment_config do |app|
       app.deprecators[:action_mailer] = ActionMailer.deprecator

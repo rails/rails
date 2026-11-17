@@ -1,7 +1,5 @@
 # frozen_string_literal: true
 
-# :markup: markdown
-
 module ActionText
   # Returns the currently loaded version of Action Text as a `Gem::Version`.
   def self.gem_version
@@ -10,7 +8,7 @@ module ActionText
 
   module VERSION
     MAJOR = 8
-    MINOR = 1
+    MINOR = 2
     TINY  = 0
     PRE   = "alpha"
 

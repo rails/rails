@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+# :markup: rdoc
+
 module ActiveRecord
   # = Active Record \Relation
   class Relation
@@ -52,17 +54,19 @@ module ActiveRecord
     end
 
     MULTI_VALUE_METHODS  = [:includes, :eager_load, :preload, :select, :group,
-                            :order, :joins, :left_outer_joins, :references,
-                            :extending, :unscope, :optimizer_hints, :annotate,
-                            :with]
+                            :order, :default_order, :joins, :left_outer_joins,
+                            :references, :extending, :unscope, :optimizer_hints,
+                            :annotate,
+                            :with].freeze
 
     SINGLE_VALUE_METHODS = [:limit, :offset, :lock, :readonly, :reordering, :strict_loading,
-                            :reverse_order, :distinct, :create_with, :skip_query_cache]
+                            :reverse_order, :distinct, :create_with, :skip_query_cache,
+                            :with_recursive].freeze
 
-    CLAUSE_METHODS = [:where, :having, :from]
-    INVALID_METHODS_FOR_UPDATE_AND_DELETE_ALL = [:distinct, :with, :with_recursive]
+    CLAUSE_METHODS = [:where, :having, :from].freeze
+    INVALID_METHODS_FOR_UPDATE_AND_DELETE_ALL = [:distinct, :with, :with_recursive].freeze
 
-    VALUE_METHODS = MULTI_VALUE_METHODS + SINGLE_VALUE_METHODS + CLAUSE_METHODS
+    VALUE_METHODS = (MULTI_VALUE_METHODS + SINGLE_VALUE_METHODS + CLAUSE_METHODS).freeze
 
     include Enumerable
     include FinderMethods, Calculations, SpawnMethods, QueryMethods, Batches, Explain, Delegation
@@ -101,12 +105,13 @@ module ActiveRecord
 
     def bind_attribute(name, value) # :nodoc:
       if reflection = model._reflect_on_association(name)
-        name = reflection.foreign_key
-        value = value.read_attribute(reflection.association_primary_key) unless value.nil?
+        route = reflection.association_route(origin_class: model, destination_class: value&.class)
+        name = route.reference_origin_key.name
+        value = route.reference_destination_key.map_value { |column| value.read_attribute(column) } unless value.nil?
       end
 
-      attr = table[name]
-      bind = predicate_builder.build_bind_attribute(attr.name, value)
+      attr = predicate_builder.predicate_attribute(table[name])
+      bind = predicate_builder.build_bind_attribute(attr, value)
       yield attr, bind
     end
 
@@ -144,7 +149,7 @@ module ActiveRecord
     #   users.create # => #<User id: 3, name: "Oscar", ...>
     #
     #   users.create(name: 'fxn')
-    #   users.create # => #<User id: 4, name: "fxn", ...>
+    #   # => #<User id: 4, name: "fxn", ...>
     #
     #   users.create { |user| user.name = 'tenderlove' }
     #   # => #<User id: 5, name: "tenderlove", ...>
@@ -272,12 +277,17 @@ module ActiveRecord
     # such situation.
     def create_or_find_by(attributes, &block)
       with_connection do |connection|
-        transaction(requires_new: true) { create(attributes, &block) }
+        record = nil
+        transaction(requires_new: true) do
+          record = create(attributes, &block)
+          record._last_transaction_return_status || raise(ActiveRecord::Rollback)
+        end
+        record
       rescue ActiveRecord::RecordNotUnique
         if connection.transaction_open?
-          where(attributes).lock.find_by!(attributes)
+          rewhere(attributes).lock(connection.create_or_find_by_lock).take!
         else
-          find_by!(attributes)
+          rewhere(attributes).take!
         end
       end
     end
@@ -287,17 +297,22 @@ module ActiveRecord
     # is raised if the created record is invalid.
     def create_or_find_by!(attributes, &block)
       with_connection do |connection|
-        transaction(requires_new: true) { create!(attributes, &block) }
+        record = nil
+        transaction(requires_new: true) do
+          record = create!(attributes, &block)
+          record._last_transaction_return_status || raise(ActiveRecord::Rollback)
+        end
+        record
       rescue ActiveRecord::RecordNotUnique
         if connection.transaction_open?
-          where(attributes).lock.find_by!(attributes)
+          rewhere(attributes).lock(connection.create_or_find_by_lock).take!
         else
-          find_by!(attributes)
+          rewhere(attributes).take!
         end
       end
     end
 
-    # Like #find_or_create_by, but calls {new}[rdoc-ref:Core#new]
+    # Like #find_or_create_by, but calls {new}[rdoc-ref:Core.new]
     # instead of {create}[rdoc-ref:Persistence::ClassMethods#create].
     def find_or_initialize_by(attributes, &block)
       find_by(attributes) || new(attributes, &block)
@@ -371,10 +386,11 @@ module ActiveRecord
 
     # Returns true if there are no records.
     #
-    # When a pattern argument is given, this method checks whether elements in
-    # the Enumerable match the pattern via the case-equality operator (<tt>===</tt>).
+    # When an argument is given, returns true if no records match the argument
+    # via the case-equality operator (<tt>===</tt>).
     #
-    #   posts.none?(Comment) # => true or false
+    #   posts.none?(Post)    # => true if posts is empty
+    #   posts.none?(Comment) # => true
     def none?(*args)
       return true if @none
 
@@ -384,10 +400,11 @@ module ActiveRecord
 
     # Returns true if there are any records.
     #
-    # When a pattern argument is given, this method checks whether elements in
-    # the Enumerable match the pattern via the case-equality operator (<tt>===</tt>).
+    # When an argument is given, returns true if at least one record matches
+    # the argument via the case-equality operator (<tt>===</tt>).
     #
-    #    posts.any?(Post) # => true or false
+    #    posts.any?(Post)    # => true if at least one record
+    #    posts.any?(Comment) # => false
     def any?(*args)
       return false if @none
 
@@ -397,10 +414,11 @@ module ActiveRecord
 
     # Returns true if there is exactly one record.
     #
-    # When a pattern argument is given, this method checks whether elements in
-    # the Enumerable match the pattern via the case-equality operator (<tt>===</tt>).
+    # When an argument is given, returns true if exactly one record matches the
+    # argument via the case-equality operator (<tt>===</tt>).
     #
-    #    posts.one?(Post) # => true or false
+    #    posts.one?(Post)    # => true if exactly one record
+    #    posts.one?(Comment) # => false
     def one?(*args)
       return false if @none
 
@@ -475,7 +493,7 @@ module ActiveRecord
       if loaded?
         size = records.size
         if size > 0
-          timestamp = records.map { |record| record.read_attribute(timestamp_column) }.max
+          timestamp = records.filter_map { |record| record.read_attribute(timestamp_column) }.max
         end
       else
         collection = eager_loading? ? apply_join_dependency : self
@@ -491,7 +509,7 @@ module ActiveRecord
             subquery_column = "#{subquery_alias}.collection_cache_key_timestamp"
             arel = query.build_subquery(subquery_alias, select_values % subquery_column)
           else
-            query = collection.unscope(:order)
+            query = collection.except(:order, :default_order)
             query.select_values = [select_values % column]
             arel = query.arel
           end
@@ -592,7 +610,7 @@ module ActiveRecord
 
       invalid_methods = INVALID_METHODS_FOR_UPDATE_AND_DELETE_ALL.select do |method|
         value = @values[method]
-        method == :distinct ? value : value&.any?
+        Array === value ? value.any? : value
       end
       if invalid_methods.any?
         ActiveRecord.deprecator.warn <<~MESSAGE
@@ -604,8 +622,7 @@ module ActiveRecord
 
       if updates.is_a?(Hash)
         if model.locking_enabled? &&
-            !updates.key?(model.locking_column) &&
-            !updates.key?(model.locking_column.to_sym)
+            updates.keys.none? { |key| (model.attribute_alias(key) || key.to_s) == model.locking_column }
           attr = table[model.locking_column]
           updates[attr.name] = _increment_attribute(attr)
         end
@@ -615,34 +632,60 @@ module ActiveRecord
       end
 
       model.with_connection do |c|
-        arel = eager_loading? ? apply_join_dependency.arel : build_arel(c)
+        arel = eager_loading? ? apply_join_dependency.arel : arel()
         arel.source.left = table
 
-        group_values_arel_columns = arel_columns(group_values.uniq)
-        having_clause_ast = having_clause.ast unless having_clause.empty?
-        key = if model.composite_primary_key?
-          primary_key.map { |pk| table[pk] }
-        else
-          table[primary_key]
-        end
-        stmt = arel.compile_update(values, key, having_clause_ast, group_values_arel_columns)
+        key = model.primary_key_definition.arel_columns(table)
+        stmt = arel.compile_update(values, key)
         c.update(stmt, "#{model} Update All").tap { reset }
       end
     end
 
     def update(id = :all, attributes) # :nodoc:
-      if id == :all
+      if model.primary_key_definition.expects_multiple_ids?(id)
+        if id.any?(ActiveRecord::Base)
+          raise ArgumentError,
+            "You are passing an array of ActiveRecord::Base instances to `update`. " \
+            "Please pass the ids of the objects by calling `pluck(:id)` or `map(&:id)`."
+        end
+        id.map { |one_id| find(one_id) }.each_with_index { |object, idx|
+          object.update(attributes[idx])
+        }
+      elsif id == :all
         each { |record| record.update(attributes) }
       else
-        model.update(id, attributes)
+        if ActiveRecord::Base === id
+          raise ArgumentError,
+            "You are passing an instance of ActiveRecord::Base to `update`. " \
+            "Please pass the id of the object by calling `.id`."
+        end
+        object = find(id)
+        object.update(attributes)
+        object
       end
     end
 
     def update!(id = :all, attributes) # :nodoc:
-      if id == :all
+      if model.primary_key_definition.expects_multiple_ids?(id)
+        if id.any?(ActiveRecord::Base)
+          raise ArgumentError,
+            "You are passing an array of ActiveRecord::Base instances to `update!`. " \
+            "Please pass the ids of the objects by calling `pluck(:id)` or `map(&:id)`."
+        end
+        id.map { |one_id| find(one_id) }.each_with_index { |object, idx|
+          object.update!(attributes[idx])
+        }
+      elsif id == :all
         each { |record| record.update!(attributes) }
       else
-        model.update!(id, attributes)
+        if ActiveRecord::Base === id
+          raise ArgumentError,
+            "You are passing an instance of ActiveRecord::Base to `update!`. " \
+            "Please pass the id of the object by calling `.id`."
+        end
+        object = find(id)
+        object.update!(attributes)
+        object
       end
     end
 
@@ -742,8 +785,8 @@ module ActiveRecord
     # go through Active Record's type casting and serialization.
     #
     # See #insert_all! for more.
-    def insert!(attributes, returning: nil, record_timestamps: nil)
-      insert_all!([ attributes ], returning: returning, record_timestamps: record_timestamps)
+    def insert!(attributes, returning: nil, unique_by: nil, record_timestamps: nil)
+      insert_all!([ attributes ], returning: returning, unique_by: unique_by, record_timestamps: record_timestamps)
     end
 
     # Inserts multiple records into the database in a single SQL INSERT
@@ -774,6 +817,18 @@ module ActiveRecord
     #   You can also pass an SQL string if you need more control on the return values
     #   (for example, <tt>returning: Arel.sql("id, name as new_name")</tt>).
     #
+    # [:unique_by]
+    #   (PostgreSQL and SQLite only) By default rows are considered to be unique
+    #   by every unique index on the table.
+    #
+    #   To check uniqueness according to just one unique index pass <tt>:unique_by</tt>.
+    #
+    #   Unique indexes can be identified by columns or name:
+    #
+    #     unique_by: :isbn
+    #     unique_by: %i[ author_id name ]
+    #     unique_by: :index_books_on_isbn
+    #
     # [:record_timestamps]
     #   By default, automatic setting of timestamp columns is controlled by
     #   the model's <tt>record_timestamps</tt> config, matching typical
@@ -799,8 +854,8 @@ module ActiveRecord
     #     { id: 1, title: "Rework", author: "David" },
     #     { id: 1, title: "Eloquent Ruby", author: "Russ" }
     #   ])
-    def insert_all!(attributes, returning: nil, record_timestamps: nil)
-      InsertAll.execute(self, attributes, on_duplicate: :raise, returning: returning, record_timestamps: record_timestamps)
+    def insert_all!(attributes, returning: nil, unique_by: nil, record_timestamps: nil)
+      InsertAll.execute(self, attributes, on_duplicate: :raise, returning: returning, unique_by: unique_by, record_timestamps: record_timestamps)
     end
 
     # Updates or inserts (upserts) a single record into the database in a
@@ -861,7 +916,9 @@ module ActiveRecord
     # Active Record's schema_cache.
     #
     # [:on_duplicate]
-    #   Configure the SQL update sentence that will be used in case of conflict.
+    #   Configure the behavior that will be used in case of conflict. Use +:skip+
+    #   to ignore any conflicts or provide a safe SQL fragment wrapped with
+    #   +Arel.sql+.
     #
     #   NOTE: If you use this option you must provide all the columns you want to update
     #   by yourself.
@@ -929,7 +986,7 @@ module ActiveRecord
     #
     # * +counter+ - A Hash containing the names of the fields to update as keys and the amount to update as values.
     # * <tt>:touch</tt> option - Touch the timestamp columns when updating.
-    # * If attributes names are passed, they are updated along with update_at/on attributes.
+    # * If attributes names are passed, they are updated along with updated_at/on attributes.
     #
     # ==== Examples
     #
@@ -960,24 +1017,25 @@ module ActiveRecord
     # This method can be passed attribute names and an optional time argument.
     # If attribute names are passed, they are updated along with +updated_at+/+updated_on+ attributes.
     # If no time argument is passed, the current time is used as default.
+    # Returns the number of rows affected.
     #
-    # === Examples
+    # ==== Examples
     #
     #   # Touch all records
-    #   Person.all.touch_all
-    #   # => "UPDATE \"people\" SET \"updated_at\" = '2018-01-04 22:55:23.132670'"
+    #   Person.all.touch_all # => 42
     #
     #   # Touch multiple records with a custom attribute
-    #   Person.all.touch_all(:created_at)
-    #   # => "UPDATE \"people\" SET \"updated_at\" = '2018-01-04 22:55:23.132670', \"created_at\" = '2018-01-04 22:55:23.132670'"
+    #   Person.all.touch_all(:created_at) # => 42
     #
     #   # Touch multiple records with a specified time
-    #   Person.all.touch_all(time: Time.new(2020, 5, 16, 0, 0, 0))
-    #   # => "UPDATE \"people\" SET \"updated_at\" = '2020-05-16 00:00:00'"
+    #   Person.all.touch_all(time: Time.new(2020, 5, 16, 0, 0, 0)) # => 42
     #
     #   # Touch records with scope
-    #   Person.where(name: 'David').touch_all
-    #   # => "UPDATE \"people\" SET \"updated_at\" = '2018-01-04 22:55:23.132670' WHERE \"people\".\"name\" = 'David'"
+    #   Person.where(name: 'David').touch_all # => 1
+    #
+    # The first example above generates an SQL statement like:
+    #
+    #   UPDATE "people" SET "updated_at" = '2018-01-04 22:55:23.132670'
     def touch_all(*names, time: nil)
       update_all model.touch_attributes_with_time(*names, time: time)
     end
@@ -1012,7 +1070,7 @@ module ActiveRecord
     #
     #   Post.where(person_id: 5).where(category: ['Something', 'Else']).delete_all
     #
-    # Both calls delete the affected posts all at once with a single DELETE statement.
+    # This call deletes the affected posts all at once with a single DELETE statement.
     # If you need to destroy dependent associations or call your <tt>before_*</tt> or
     # +after_destroy+ callbacks, use the #destroy_all method instead.
     #
@@ -1025,24 +1083,18 @@ module ActiveRecord
 
       invalid_methods = INVALID_METHODS_FOR_UPDATE_AND_DELETE_ALL.select do |method|
         value = @values[method]
-        method == :distinct ? value : value&.any?
+        Array === value ? value.any? : value
       end
       if invalid_methods.any?
         raise ActiveRecordError.new("delete_all doesn't support #{invalid_methods.join(', ')}")
       end
 
       model.with_connection do |c|
-        arel = eager_loading? ? apply_join_dependency.arel : build_arel(c)
+        arel = eager_loading? ? apply_join_dependency.arel : arel()
         arel.source.left = table
 
-        group_values_arel_columns = arel_columns(group_values.uniq)
-        having_clause_ast = having_clause.ast unless having_clause.empty?
-        key = if model.composite_primary_key?
-          primary_key.map { |pk| table[pk] }
-        else
-          table[primary_key]
-        end
-        stmt = arel.compile_delete(key, having_clause_ast, group_values_arel_columns)
+        key = model.primary_key_definition.arel_columns(table)
+        stmt = arel.compile_delete(key)
 
         c.delete(stmt, "#{model} Delete All").tap { reset }
       end
@@ -1069,6 +1121,10 @@ module ActiveRecord
     def delete(id_or_array)
       return 0 if id_or_array.nil? || (id_or_array.is_a?(Array) && id_or_array.empty?)
 
+      if model.composite_primary_key? && !id_or_array.first.is_a?(Array)
+        id_or_array = [id_or_array]
+      end
+
       where(model.primary_key => id_or_array).delete_all
     end
 
@@ -1093,13 +1149,7 @@ module ActiveRecord
     #   todos = [1,2,3]
     #   Todo.destroy(todos)
     def destroy(id)
-      multiple_ids = if model.composite_primary_key?
-        id.first.is_a?(Array)
-      else
-        id.is_a?(Array)
-      end
-
-      if multiple_ids
+      if model.primary_key_definition.expects_multiple_ids?(id)
         find(id).each(&:destroy)
       else
         find(id).destroy
@@ -1283,6 +1333,7 @@ module ActiveRecord
     end
 
     # Returns true if relation is blank.
+    #: () -> bool
     def blank?
       records.blank?
     end
@@ -1291,8 +1342,13 @@ module ActiveRecord
       readonly_value
     end
 
-    def values
+    def values # :nodoc:
       @values.dup
+    end
+
+    # Like #values, but without the copy. The caller must not mutate it.
+    def values_for_merge # :nodoc:
+      @values
     end
 
     def values_for_queries # :nodoc:
@@ -1316,7 +1372,7 @@ module ActiveRecord
       limit_value || offset_value
     end
 
-    def alias_tracker(joins = [], aliases = nil) # :nodoc:
+    def alias_tracker(joins = FROZEN_EMPTY_ARRAY, aliases = nil) # :nodoc:
       ActiveRecord::Associations::AliasTracker.create(model.connection_pool, table.name, joins, aliases)
     end
 
@@ -1332,7 +1388,7 @@ module ActiveRecord
 
     def preload_associations(records) # :nodoc:
       preload = preload_values
-      preload += includes_values unless eager_loading?
+      preload += includes_values unless includes_values.empty? || eager_loading?
       scope = strict_loading_value ? StrictLoadingScope : nil
       preload.each do |associations|
         ActiveRecord::Associations::Preloader.new(records: records, associations: associations, scope: scope).call
@@ -1399,20 +1455,24 @@ module ActiveRecord
             end
           else
             type = model.type_for_attribute(attr.name)
-            value = predicate_builder.build_bind_attribute(attr.name, type.cast(value))
+            value = predicate_builder.build_bind_attribute(attr, type.cast(value))
           end
           [attr, value]
         end
       end
 
       def _increment_attribute(attribute, value = 1)
-        bind = predicate_builder.build_bind_attribute(attribute.name, value.abs)
-        expr = table.coalesce(Arel::Nodes::UnqualifiedColumn.new(attribute), 0)
+        bind = predicate_builder.build_bind_attribute(attribute, value.abs)
+        expr = table.coalesce(attribute, 0)
         expr = value < 0 ? expr - bind : expr + bind
         expr.expr
       end
 
       def exec_queries(&block)
+        if lock_value && model.current_preventing_writes
+          raise ActiveRecord::ReadOnlyError, "Lock query attempted while in readonly mode"
+        end
+
         skip_query_cache_if_necessary do
           rows = if scheduled?
             future = @future_result
@@ -1458,7 +1518,7 @@ module ActiveRecord
             end
           else
             model.with_connection do |c|
-              model._query_by_sql(c, arel, async: async)
+              model._query_by_sql(c, arel, FROZEN_EMPTY_ARRAY, async: async)
             end
           end
         end
@@ -1508,7 +1568,10 @@ module ActiveRecord
       end
 
       def limited_count
-        limit_value ? count : limit(2).count
+        result = limit_value ? count(:all) : limit(2).count(:all)
+        # A grouped count returns a hash with one entry per group, and each
+        # group is one record of the relation.
+        result.is_a?(Hash) ? result.size : result
       end
   end
 end

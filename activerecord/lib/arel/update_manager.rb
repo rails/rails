@@ -5,11 +5,13 @@ module Arel # :nodoc: all
     include TreeManager::StatementMethods
 
     def initialize(table = nil)
+      super
+
       @ast = Nodes::UpdateStatement.new(table)
     end
 
     ###
-    # UPDATE +table+
+    # UPDATE `table`
     def table(table)
       @ast.relation = table
       self
@@ -33,7 +35,7 @@ module Arel # :nodoc: all
     def group(columns)
       columns.each do |column|
         column = Nodes::SqlLiteral.new(column) if String === column
-        column = Nodes::SqlLiteral.new(column.to_s) if Symbol === column
+        column = Nodes::SqlLiteral.new(column.name) if Symbol === column
 
         @ast.groups.push Nodes::Group.new column
       end
@@ -43,6 +45,16 @@ module Arel # :nodoc: all
 
     def having(expr)
       @ast.havings << expr
+      self
+    end
+
+    def comment(value)
+      @ast.comment = value
+      self
+    end
+
+    def returning(returning)
+      @ast.returning << returning
       self
     end
   end

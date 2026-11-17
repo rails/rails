@@ -18,12 +18,12 @@ module ActionDispatch
           assert_equal "a/b%20c+d%25?e", Utils.escape_fragment("a/b c+d%?e")
         end
 
-        def test_uri_unescape
-          assert_equal "a/b c+d", Utils.unescape_uri("a%2Fb%20c+d")
+        def test_CGI_unescapeURIComponent
+          assert_equal "a/b c+d", CGI.unescapeURIComponent("a%2Fb%20c+d")
         end
 
-        def test_uri_unescape_with_utf8_string
-          assert_equal "Šašinková", Utils.unescape_uri((+"%C5%A0a%C5%A1inkov%C3%A1").force_encoding(Encoding::US_ASCII))
+        def test_CGI_unescapeURIComponent_with_utf8_string
+          assert_equal "Šašinková", CGI.unescapeURIComponent((+"%C5%A0a%C5%A1inkov%C3%A1").force_encoding(Encoding::US_ASCII))
         end
 
         def test_normalize_path_not_greedy
@@ -34,13 +34,35 @@ module ActionDispatch
           assert_equal "/foo%AAbar%AAbaz", Utils.normalize_path("/foo%aabar%aabaz")
         end
 
+        def test_normalize_path_uppercases_mixed_case_percent_escapes
+          assert_equal "/foo%AAbar%AAbaz", Utils.normalize_path("/foo%aAbar%Aabaz")
+        end
+
         def test_normalize_path_maintains_string_encoding
           path = "/foo%AAbar%AAbaz".b
-          assert_equal Encoding::ASCII_8BIT, Utils.normalize_path(path).encoding
+          assert_equal Encoding::BINARY, Utils.normalize_path(path).encoding
         end
 
         def test_normalize_path_with_nil
           assert_equal "/", Utils.normalize_path(nil)
+        end
+
+        def test_normalized_path_predicate_is_true_only_for_paths_normalize_path_leaves_alone
+          ["/", "/foo", "/foo/bar", "/foo.bar-baz_qux~"].each do |path|
+            assert Utils.normalized_path?(path), "expected #{path.inspect} to count as normalized"
+            assert_equal path, Utils.normalize_path(path)
+          end
+
+          [nil, "", "foo", "/foo/", "//foo", "/foo//bar", "/foo%ab", "/foo%aB"].each do |path|
+            assert_not Utils.normalized_path?(path), "expected #{path.inspect} not to count as normalized"
+            assert_not_equal path, Utils.normalize_path(path)
+          end
+
+          # Percent escapes are declined without looking at their case.
+          ["/foo%20bar", "/foo%AB"].each do |path|
+            assert_not Utils.normalized_path?(path), "expected #{path.inspect} not to count as normalized"
+            assert_equal path, Utils.normalize_path(path)
+          end
         end
       end
     end

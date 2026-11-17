@@ -38,4 +38,17 @@ class ConfigurationFileTest < ActiveSupport::TestCase
       assert_equal({ "ok" => 42 }, data)
     end
   end
+
+  test "raises FormatError for malformed YAML" do
+    Tempfile.create do |file|
+      file.write("foo: bar: baz\n")
+      file.flush
+
+      error = assert_raises(ActiveSupport::ConfigurationFile::FormatError) do
+        ActiveSupport::ConfigurationFile.parse(file.path)
+      end
+
+      assert_match "YAML syntax error", error.message
+    end
+  end
 end

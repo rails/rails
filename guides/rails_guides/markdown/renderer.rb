@@ -32,7 +32,7 @@ module RailsGuides
       def block_code(code, language)
         language, lines = split_language_highlights(language)
         formatter = Rouge::Formatters::HTMLLineHighlighter.new(Rouge::Formatters::HTML.new, highlight_lines: lines)
-        lexer = ::Rouge::Lexer.find_fancy(lexer_language(language))
+        lexer = ::Rouge::Lexer.find_fancy(lexer_language_with_options(language))
         formatted_code = formatter.format(lexer.lex(code))
         <<~HTML
           <div class="interstitial code">
@@ -94,6 +94,16 @@ module RailsGuides
             "plaintext"
           else
             ::Rouge::Lexer.find(code_type) ? code_type : "plaintext"
+          end
+        end
+
+        def lexer_language_with_options(code_type)
+          language = lexer_language(code_type)
+          case language
+          when "console"
+            "#{language}?comments=true"
+          else
+            language
           end
         end
 

@@ -174,6 +174,15 @@ module CacheStoreBehavior
     assert @cache.write_multi({})
   end
 
+  def test_write_multi_with_unless_exist_does_not_overwrite
+    key = SecureRandom.uuid
+    other_key = SecureRandom.uuid
+    @cache.write(key, "bar")
+    @cache.write_multi({ key => "baz", other_key => "baz" }, unless_exist: true)
+    assert_equal "bar", @cache.read(key)
+    assert_equal "baz", @cache.read(other_key)
+  end
+
   def test_write_multi_expires_in
     key = SecureRandom.uuid
     @cache.write_multi({ key => 1 }, expires_in: 10)
@@ -453,6 +462,23 @@ module CacheStoreBehavior
     assert_equal(0, @cache.delete_multi([]))
   end
 
+  def test_delete_multi_does_not_mutate_names
+    key = SecureRandom.alphanumeric
+    other_key = SecureRandom.alphanumeric
+    names = [key, other_key].freeze
+
+    @cache.write(key, "bar")
+    @cache.write(other_key, "world")
+    assert_equal 2, @cache.delete_multi(names)
+    assert_equal [key, other_key], names
+
+    @cache.write(key, "bar")
+    @cache.write(other_key, "world")
+    assert_equal 2, @cache.delete_multi(names)
+    assert_not @cache.exist?(key)
+    assert_not @cache.exist?(other_key)
+  end
+
   def test_original_store_objects_should_not_be_immutable
     bar = +"bar"
     key = SecureRandom.alphanumeric
@@ -705,30 +731,30 @@ module CacheStoreBehavior
 
   def test_cache_hit_instrumentation
     key = "test_key"
-    @events = []
-    ActiveSupport::Notifications.subscribe("cache_read.active_support") { |event| @events << event }
+
     assert @cache.write(key, "1", raw: true)
-    assert @cache.fetch(key, raw: true) { }
-    assert_equal 1, @events.length
-    assert_equal "cache_read.active_support", @events[0].name
-    assert_equal :fetch, @events[0].payload[:super_operation]
-    assert @events[0].payload[:hit]
-  ensure
-    ActiveSupport::Notifications.unsubscribe "cache_read.active_support"
+
+    events = capture_notifications("cache_read.active_support") do
+      assert @cache.fetch(key, raw: true) { }
+    end
+
+    assert_equal 1, events.length
+    assert_equal "cache_read.active_support", events[0].name
+    assert_equal :fetch, events[0].payload[:super_operation]
+    assert events[0].payload[:hit]
   end
 
   def test_cache_miss_instrumentation
-    @events = []
-    ActiveSupport::Notifications.subscribe(/^cache_(.*)\.active_support$/) { |event| @events << event }
-    assert_not @cache.fetch(SecureRandom.uuid) { }
-    assert_equal 3, @events.length
-    assert_equal "cache_read.active_support", @events[0].name
-    assert_equal "cache_generate.active_support", @events[1].name
-    assert_equal "cache_write.active_support", @events[2].name
-    assert_equal :fetch, @events[0].payload[:super_operation]
-    assert_not @events[0].payload[:hit]
-  ensure
-    ActiveSupport::Notifications.unsubscribe "cache_read.active_support"
+    events = capture_notifications(/^cache_(.*)\.active_support$/) do
+      assert_not @cache.fetch(SecureRandom.uuid) { }
+    end
+
+    assert_equal 3, events.length
+    assert_equal "cache_read.active_support", events[0].name
+    assert_equal "cache_generate.active_support", events[1].name
+    assert_equal "cache_write.active_support", events[2].name
+    assert_equal :fetch, events[0].payload[:super_operation]
+    assert_not events[0].payload[:hit]
   end
 
   def test_setting_options_in_fetch_block_does_not_change_cache_options
@@ -742,25 +768,34 @@ module CacheStoreBehavior
     end
   end
 
+  def test_configuring_store_with_raw
+    cache = lookup_store(raw: true)
+    cache.write("foo", "bar")
+    assert_equal "bar", cache.read("foo")
+  end
+
+  def test_max_key_size
+    cache = lookup_store(max_key_size: 64)
+    key = "foobar" * 20
+    cache.write(key, "bar")
+    assert_equal "bar", cache.read(key)
+  end
+
+  def test_max_key_size_disabled
+    cache = lookup_store(max_key_size: false)
+    key = "a" * 1000
+    cache.write(key, "bar")
+    assert_equal "bar", cache.read(key)
+  end
+
   private
     def with_raise_on_invalid_cache_expiration_time(new_value, &block)
-      old_value = ActiveSupport::Cache::Store.raise_on_invalid_cache_expiration_time
-      ActiveSupport::Cache::Store.raise_on_invalid_cache_expiration_time = new_value
-
-      yield
-    ensure
-      ActiveSupport::Cache::Store.raise_on_invalid_cache_expiration_time = old_value
+      @cache.with(raise_on_invalid_cache_expiration_time: new_value, &block)
     end
 
     def capture_logs(&block)
-      old_logger = ActiveSupport::Cache::Store.logger
       log = StringIO.new
-      ActiveSupport::Cache::Store.logger = ActiveSupport::Logger.new(log)
-      begin
-        yield
-        log.string
-      ensure
-        ActiveSupport::Cache::Store.logger = old_logger
-      end
+      @cache.with(logger: ActiveSupport::Logger.new(log), &block)
+      log.string
     end
 end

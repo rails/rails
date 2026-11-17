@@ -7,6 +7,16 @@ module ActiveSupport
   module LoggerThreadSafeLevel # :nodoc:
     extend ActiveSupport::Concern
 
+    def initialize(...)
+      super
+      @local_level_key = :"logger_thread_safe_level_#{object_id}"
+    end
+
+    def initialize_copy(other)
+      super
+      @local_level_key = :"logger_thread_safe_level_#{object_id}"
+    end
+
     def local_level
       IsolatedExecutionState[local_level_key]
     end
@@ -40,8 +50,6 @@ module ActiveSupport
     end
 
     private
-      def local_level_key
-        @local_level_key ||= :"logger_thread_safe_level_#{object_id}"
-      end
+      attr_reader :local_level_key
   end
 end

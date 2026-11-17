@@ -7,15 +7,8 @@ require "models/reply"
 class MarshalSerializationTest < ActiveRecord::TestCase
   fixtures :topics
 
-  setup do
-    @previous_format_version = ActiveRecord::Marshalling.format_version
-  end
-
-  teardown do
-    ActiveRecord::Marshalling.format_version = @previous_format_version
-  end
-
   def test_deserializing_rails_6_1_marshal_basic
+    Topic.undefine_attribute_methods
     topic = Marshal.load(marshal_fixture("rails_6_1_topic"))
 
     assert_not_predicate topic, :new_record?
@@ -35,7 +28,27 @@ class MarshalSerializationTest < ActiveRecord::TestCase
     assert_predicate topic.replies.first.association(:topic), :loaded?
   end
 
+  def test_deserializing_rails_6_1_marshal_new_record
+    # The generated readers read by slot, which is what a new record's
+    # attribute set (a Hash by name in 6.1) can't do until it's laid out.
+    Topic.define_attribute_methods
+    topic = Marshal.load(marshal_fixture("rails_6_1_new_topic"))
+
+    assert_predicate topic, :new_record?
+    assert_nil topic.id
+    assert_equal "A new topic", topic.title
+    assert_equal "Brand new", topic.content
+
+    topic.title = "Renamed"
+    assert_equal "Renamed", topic.title
+    assert_equal "Renamed", topic.changes["title"].last
+
+    assert topic.save
+    assert_equal "Renamed", Topic.find(topic.id).title
+  end
+
   def test_deserializing_rails_7_1_marshal_basic
+    Topic.undefine_attribute_methods
     topic = Marshal.load(marshal_fixture("rails_7_1_topic"))
 
     assert_not_predicate topic, :new_record?
@@ -56,21 +69,7 @@ class MarshalSerializationTest < ActiveRecord::TestCase
     assert_same topic, topic.replies.first.topic
   end
 
-  def test_rails_6_1_rountrip
-    topic = Topic.find(1)
-    topic.replies.to_a
-    topic = Marshal.load(Marshal.dump(topic))
-
-    assert_not_predicate topic, :new_record?
-    assert_equal 1, topic.id
-    assert_equal "The First Topic", topic.title
-    assert_equal "Have a nice day", topic.content
-    assert_predicate topic.association(:replies), :loaded?
-  end
-
   def test_rails_7_1_rountrip
-    ActiveRecord::Marshalling.format_version = 7.1
-
     topic = Topic.find(1)
     topic.replies.each(&:topic)
     assert_not_equal 0, topic.replies.size

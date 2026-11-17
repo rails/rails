@@ -28,7 +28,7 @@ module ActionMailbox
       end
 
       def password
-        Rails.application.credentials.dig(:action_mailbox, :ingress_password) || ENV["RAILS_INBOUND_EMAIL_PASSWORD"]
+        Rails.app.credentials.dig(:action_mailbox, :ingress_password) || ENV["RAILS_INBOUND_EMAIL_PASSWORD"]
       end
   end
 end

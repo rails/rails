@@ -26,7 +26,7 @@ module ActiveRecord
     def test_errors_when_an_insert_query_is_called_while_preventing_writes
       ActiveRecord::Base.while_preventing_writes do
         assert_raises(ActiveRecord::ReadOnlyError) do
-          @connection.insert("INSERT INTO subscribers(nick) VALUES ('138853948594')", nil, false)
+          @connection.insert("INSERT INTO subscribers(nick) VALUES ('138853948594')")
         end
       end
     end
@@ -107,7 +107,7 @@ module ActiveRecord
     def test_errors_when_an_insert_query_prefixed_by_a_slash_star_comment_is_called_while_preventing_writes
       ActiveRecord::Base.while_preventing_writes do
         assert_raises(ActiveRecord::ReadOnlyError) do
-          @connection.insert("/* some comment */ INSERT INTO subscribers(nick) VALUES ('138853948594')", nil, false)
+          @connection.insert("/* some comment */ INSERT INTO subscribers(nick) VALUES ('138853948594')")
         end
       end
     end
@@ -124,7 +124,7 @@ module ActiveRecord
     def test_errors_when_an_insert_query_prefixed_by_a_double_dash_comment_is_called_while_preventing_writes
       ActiveRecord::Base.while_preventing_writes do
         assert_raises(ActiveRecord::ReadOnlyError) do
-          @connection.insert("-- some comment\nINSERT INTO subscribers(nick) VALUES ('138853948594')", nil, false)
+          @connection.insert("-- some comment\nINSERT INTO subscribers(nick) VALUES ('138853948594')")
         end
       end
     end
@@ -133,7 +133,7 @@ module ActiveRecord
       ActiveRecord::Base.while_preventing_writes do
         assert_raises(ActiveRecord::ReadOnlyError) do
           Timeout.timeout(0.1) do # should be fast to parse the query
-            @connection.insert("#{"-- comment\n" * 50}INSERT INTO subscribers(nick) VALUES ('138853948594')", nil, false)
+            @connection.insert("#{"-- comment\n" * 50}INSERT INTO subscribers(nick) VALUES ('138853948594')")
           end
         end
       end
@@ -142,7 +142,7 @@ module ActiveRecord
     def test_errors_when_an_insert_query_prefixed_by_a_slash_star_comment_containing_read_command_is_called_while_preventing_writes
       ActiveRecord::Base.while_preventing_writes do
         assert_raises(ActiveRecord::ReadOnlyError) do
-          @connection.insert("/* SELECT */ INSERT INTO subscribers(nick) VALUES ('138853948594')", nil, false)
+          @connection.insert("/* SELECT */ INSERT INTO subscribers(nick) VALUES ('138853948594')")
         end
       end
     end
@@ -150,7 +150,7 @@ module ActiveRecord
     def test_errors_when_an_insert_query_prefixed_by_a_double_dash_comment_containing_read_command_is_called_while_preventing_writes
       ActiveRecord::Base.while_preventing_writes do
         assert_raises(ActiveRecord::ReadOnlyError) do
-          @connection.insert("-- SELECT\nINSERT INTO subscribers(nick) VALUES ('138853948594')", nil, false)
+          @connection.insert("-- SELECT\nINSERT INTO subscribers(nick) VALUES ('138853948594')")
         end
       end
     end

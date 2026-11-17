@@ -3,6 +3,12 @@
 require "abstract_unit"
 require "test_renderable"
 
+# The renderer generates URLs through the route set +ActionController::Base+
+# was set up with.
+append_routes(SharedTestRoutes) do
+  get "/posts", to: "posts#index"
+end
+
 class RendererTest < ActiveSupport::TestCase
   test "action controller base has a renderer" do
     assert ActionController::Base.renderer
@@ -76,6 +82,27 @@ class RendererTest < ActiveSupport::TestCase
     assert_equal(
       %(Hello, World!),
       renderer.render(renderable: TestRenderable.new)
+    )
+    assert_equal(
+      %(Hello, Local!),
+      renderer.render(TestRenderable.new, name: "Local")
+    )
+    assert_equal(
+      %(Hello, Local!),
+      renderer.render(renderable: TestRenderable.new, locals: { name: "Local" })
+    )
+  end
+
+  test "render a renderable object with block" do
+    renderer = ApplicationController.renderer
+
+    assert_equal(
+      %(Hello, Block!),
+      renderer.render(TestRenderable.new) { "Hello, Block!" }
+    )
+    assert_equal(
+      %(Hello, Block!),
+      renderer.render(renderable: TestRenderable.new) { "Hello, Block!" }
     )
   end
 

@@ -1,13 +1,12 @@
 # frozen_string_literal: true
 
 require "zlib"
-require "active_support/core_ext/kernel/reporting"
 
 module ActiveSupport
   module Cache
     module SerializerWithFallback # :nodoc:
       def self.[](format)
-        if format.to_s.include?("message_pack") && !defined?(ActiveSupport::MessagePack)
+        if format.start_with?("message_pack") && !defined?(ActiveSupport::MessagePack)
           require "active_support/message_pack"
         end
 
@@ -87,7 +86,13 @@ module ActiveSupport
 
           def _load(marked)
             dumped = marked.byteslice(1..-1)
-            dumped = Zlib::Inflate.inflate(dumped) if marked.start_with?(MARK_COMPRESSED)
+            if marked.start_with?(MARK_COMPRESSED)
+              dumped = begin
+                Zlib::Inflate.inflate(dumped)
+              rescue Zlib::Error => error
+                raise Cache::DeserializationError, "#{error.class}: #{error.message}"
+              end
+            end
             Cache::Entry.unpack(marshal_load(dumped))
           end
 
@@ -134,10 +139,17 @@ module ActiveSupport
           private
             def available?
               return @available if defined?(@available)
-              silence_warnings { require "active_support/message_pack" }
-              @available = true
-            rescue LoadError
-              @available = false
+              ActiveSupport::Ractors.on_main(self) do
+                next @available if defined?(@available)
+
+                # Check the dependency before loading the wrapper that warns if it is missing.
+                gem "msgpack", ">= 1.7.0"
+                require "msgpack"
+                require "active_support/message_pack"
+                @available = true
+              rescue LoadError
+                @available = false
+              end
             end
         end
 
@@ -146,7 +158,7 @@ module ActiveSupport
           marshal_7_0: Marshal70WithFallback,
           marshal_7_1: Marshal71WithFallback,
           message_pack: MessagePackWithFallback,
-        }
+        }.freeze
     end
   end
 end

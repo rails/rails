@@ -7,6 +7,8 @@ class Human < ActiveRecord::Base
   has_one :autosave_face, class_name: "Face", autosave: true, inverse_of: :autosave_human
   has_one :polymorphic_face, class_name: "Face", as: :polymorphic_human, inverse_of: :polymorphic_human
   has_one :polymorphic_face_without_inverse, class_name: "Face", as: :poly_human_without_inverse
+  has_one :polymorphic_face_with_partial_select, -> { select(:id, :polymorphic_human_id, :human_id) },
+    class_name: "Face", as: :polymorphic_human, inverse_of: :polymorphic_human
   has_many :interests, inverse_of: :human
   has_many :interests_with_callbacks,
     class_name: "Interest",

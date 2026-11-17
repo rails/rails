@@ -1,9 +1,10 @@
 # frozen_string_literal: true
 
-# = Active Storage \Variant With Record
+# Active Storage \Variant With Record
+# ===================================
 #
 # Like an ActiveStorage::Variant, but keeps detail about the variant in the database as an
-# ActiveStorage::VariantRecord. This is only used if +ActiveStorage.track_variants+ is enabled.
+# ActiveStorage::VariantRecord. This is used if `ActiveStorage.track_variants` is enabled.
 class ActiveStorage::VariantWithRecord
   include ActiveStorage::Blob::Servable
 
@@ -35,11 +36,12 @@ class ActiveStorage::VariantWithRecord
 
   delegate :key, :url, :download, to: :image, allow_nil: true
 
-  private
-    def processed?
-      record.present?
-    end
+  # Returns true if the variant has already been processed and stored.
+  def processed?
+    record.present?
+  end
 
+  private
     def process
       transform_blob { |image| create_or_find_record(image: image) }
     end

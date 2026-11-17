@@ -1,7 +1,5 @@
 # frozen_string_literal: true
 
-# :markup: markdown
-
 module ActionDispatch
   # # Action Dispatch HostAuthorization
   #
@@ -11,7 +9,9 @@ module ActionDispatch
   #
   # Requests can opt-out of Host Authorization with `exclude`:
   #
-  #     config.host_authorization = { exclude: ->(request) { request.path =~ /healthcheck/ } }
+  #     config.host_authorization = {
+  #       exclude: ->(request) { request.path.start_with?("/healthcheck") }
+  #     }
   #
   # When a request comes to an unauthorized host, the `response_app` application
   # will be executed and rendered. If no `response_app` is given, a default one
@@ -20,7 +20,7 @@ module ActionDispatch
   # info if `config.consider_all_requests_local` is set to true, otherwise the
   # body is empty.
   class HostAuthorization
-    ALLOWED_HOSTS_IN_DEVELOPMENT = [".localhost", ".test", IPAddr.new("0.0.0.0/0"), IPAddr.new("::/0")]
+    ALLOWED_HOSTS_IN_DEVELOPMENT = [".localhost", ".test", IPAddr.new("0.0.0.0/0"), IPAddr.new("::/0")].freeze
     PORT_REGEX = /(?::\d+)/ # :nodoc:
     SUBDOMAIN_REGEX = /(?:[a-z0-9-]+\.)/i # :nodoc:
     IPV4_HOSTNAME = /(?<host>\d+\.\d+\.\d+\.\d+)#{PORT_REGEX}?/ # :nodoc:
@@ -73,10 +73,11 @@ module ActionDispatch
         end
 
         def sanitize_string(host)
+          port = "#{PORT_REGEX}?" unless host.match?(/:\d+\z/)
           if host.start_with?(".")
-            /\A#{SUBDOMAIN_REGEX}?#{Regexp.escape(host[1..-1])}#{PORT_REGEX}?\z/i
+            /\A#{SUBDOMAIN_REGEX}?#{Regexp.escape(host[1..-1])}#{port}\z/i
           else
-            /\A#{Regexp.escape host}#{PORT_REGEX}?\z/i
+            /\A#{Regexp.escape host}#{port}\z/i
           end
         end
 
@@ -138,7 +139,7 @@ module ActionDispatch
       request = Request.new(env)
       hosts = blocked_hosts(request)
 
-      if hosts.empty? || excluded?(request)
+      if hosts.nil? || excluded?(request)
         mark_as_authorized(request)
         @app.call(env)
       else
@@ -149,13 +150,13 @@ module ActionDispatch
 
     private
       def blocked_hosts(request)
-        hosts = []
+        hosts = nil
 
         origin_host = request.get_header("HTTP_HOST")
-        hosts << origin_host unless @permissions.allows?(origin_host)
+        (hosts ||= []) << origin_host unless @permissions.allows?(origin_host)
 
         forwarded_host = request.x_forwarded_host&.split(/,\s?/)&.last
-        hosts << forwarded_host unless forwarded_host.blank? || @permissions.allows?(forwarded_host)
+        (hosts ||= []) << forwarded_host unless forwarded_host.blank? || @permissions.allows?(forwarded_host)
 
         hosts
       end

@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 
+require "active_support/inspect_backport"
 require "openssl"
 
 module ActiveRecord
@@ -10,7 +11,7 @@ module ActiveRecord
       # By default it will use random initialization vectors. For deterministic encryption, it will use a SHA-256 hash of
       # the text to encrypt and the secret.
       #
-      # See +Encryptor+
+      # See `Encryptor`
       class Aes256Gcm
         CIPHER_TYPE = "aes-256-gcm"
 
@@ -79,11 +80,13 @@ module ActiveRecord
           raise ActiveRecord::Encryption::Errors::Decryption
         end
 
-        def inspect # :nodoc:
-          "#<#{self.class.name}:#{'%#016x' % (object_id << 1)}>"
-        end
+        ActiveSupport::InspectBackport.apply(self)
 
         private
+          def instance_variables_to_inspect
+            [].freeze
+          end
+
           def generate_iv(cipher, clear_text)
             if @deterministic
               generate_deterministic_iv(clear_text)

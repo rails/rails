@@ -1,13 +1,15 @@
 # frozen_string_literal: true
 
 require "cases/helper"
+require "active_support/core_ext/object/with"
 require "models/comment"
 require "models/post"
 require "models/company"
+require "models/author"
 
 module ActiveRecord
   class WithTest < ActiveRecord::TestCase
-    fixtures :comments, :posts, :companies
+    fixtures :comments, :posts, :companies, :authors, :author_addresses
 
     SPECIAL_POSTS = [2].freeze
     POSTS_WITH_TAGS = [1, 2, 7, 8, 9, 10, 11].freeze
@@ -28,7 +30,8 @@ module ActiveRecord
       def test_with_when_hash_with_multiple_elements_of_different_type_is_passed_as_an_argument
         cte_options = {
           posts_with_tags: Post.arel_table.project(Arel.star).where(Post.arel_table[:tags_count].gt(0)),
-          posts_with_tags_and_comments: Arel.sql("SELECT * FROM posts_with_tags WHERE legacy_comments_count > 0"),
+          posts_with_tags_and_truthy: Arel.sql("SELECT * FROM posts_with_tags WHERE 1=1"),
+          posts_with_tags_and_comments: Arel.sql("SELECT * FROM posts_with_tags_and_truthy WHERE legacy_comments_count > ?", 0),
           "posts_with_tags_and_multiple_comments" => Post.where("legacy_comments_count > 1").from("posts_with_tags_and_comments AS posts")
         }
         relation = Post.with(cte_options).from("posts_with_tags_and_multiple_comments AS posts")
@@ -51,7 +54,7 @@ module ActiveRecord
         assert_equal POSTS_WITH_TAGS_AND_COMMENTS, relation.order(:id).pluck(:id)
       end
 
-      def test_multiple_dupicate_with_calls
+      def test_multiple_duplicate_with_calls
         posts_with_tags = Post.where("tags_count > 0")
         relation = Post
           .with(posts_with_tags: posts_with_tags, one_more_posts_with_tags: posts_with_tags)
@@ -114,12 +117,88 @@ module ActiveRecord
         assert_match "WITH RECURSIVE", relation.to_sql
       end
 
+      def test_with_recursive_is_kept_by_merge
+        top_companies = Company.where(firm_id: nil).to_a
+        child_companies = Company.where(firm_id: top_companies).to_a
+        top_companies_and_children = (top_companies.map(&:id) + child_companies.map(&:id)).sort
+
+        recursive = Company.with_recursive(
+          top_companies_and_children: [
+            Company.where(firm_id: nil),
+            Company.joins("JOIN top_companies_and_children ON companies.firm_id = top_companies_and_children.id"),
+          ]
+        )
+        relation = Company.from("top_companies_and_children AS companies").merge(recursive)
+
+        assert_equal top_companies_and_children, relation.order(:id).pluck(:id)
+        assert_match "WITH RECURSIVE", relation.to_sql
+        assert_match "WITH RECURSIVE", Company.with(other: Company.all).merge(recursive).to_sql
+        assert_match "WITH RECURSIVE", recursive.merge(Company.with(other: Company.all)).to_sql
+      end
+
+      def test_with_recursive_is_kept_by_only_and_dropped_by_except_and_unscope
+        relation = Post.with_recursive(posts_with_comments: Post.where("legacy_comments_count > 0"))
+          .from("posts_with_comments AS posts")
+
+        assert_match "WITH RECURSIVE", relation.only(:with, :from).to_sql
+
+        assert_no_match(/RECURSIVE/, relation.except(:with).with(cte: Post.all).to_sql)
+        assert_no_match(/RECURSIVE/, relation.unscope(:with).with(cte: Post.all).to_sql)
+      end
+
+      def test_with_recursive_or_relation_without_with_recursive
+        cte = { posts_with_comments: Post.where("legacy_comments_count > 0") }
+        base = Post.from("posts_with_comments AS posts")
+        relation = base.with_recursive(cte).where(id: 1).or(base.with(cte).where(id: 2))
+
+        assert_match "WITH RECURSIVE", relation.to_sql
+        assert_equal [1, 2], relation.order(:id).pluck(:id)
+        assert_raises(ArgumentError, match: /with_recursive/) do
+          Post.with(cte: Post.all).or(Post.with_recursive(cte: Post.all))
+        end
+      end
+
       def test_with_joins
         relation = Post
           .with(commented_posts: Comment.select(:post_id).distinct)
           .joins(:commented_posts)
 
         assert_equal POSTS_WITH_COMMENTS, relation.order(:id).pluck(:id)
+      end
+
+      def test_with_joins_and_eager_load_with_limit
+        relation = Post
+          .with(commented_posts: Comment.select(:post_id))
+          .joins(:commented_posts)
+          .eager_load(:author)
+          .order(:id)
+          .limit(2)
+
+        records = relation.to_a
+
+        assert_equal POSTS_WITH_COMMENTS.first(2), records.map(&:id)
+        assert_predicate records.first.association(:author), :loaded?
+      end
+
+      def test_with_joins_merged_from_relation_of_another_model
+        relation = Author.joins(:posts).merge(
+          Post.with(commented_posts: Comment.select(:post_id).distinct).joins(:commented_posts)
+        )
+
+        assert_equal Post.where(id: POSTS_WITH_COMMENTS).where.not(author_id: nil).order(:id).pluck(:id),
+          relation.order("posts.id").pluck("posts.id")
+      end
+
+      def test_with_left_joins_merged_from_relation_of_another_model
+        relation = Author.joins(:posts).merge(
+          Post.with(commented_posts: Comment.select(:post_id).distinct).left_outer_joins(:commented_posts)
+        ).select("posts.id AS post_id, commented_posts.post_id AS has_comments")
+
+        records = relation.order("posts.id").to_a
+
+        assert_equal Author.joins(:posts).count, records.size
+        assert_equal Post.where(id: POSTS_WITH_COMMENTS).where.not(author_id: nil).order(:id).pluck(:id),
+          records.filter_map { _1.post_id if _1.has_comments }
       end
 
       def test_with_left_joins
@@ -135,10 +214,24 @@ module ActiveRecord
         assert_equal POSTS_WITH_COMMENTS, records.filter_map { _1.id if _1.has_comments }
       end
 
-      def test_raises_when_using_block
+      def test_relation_with_raises_when_using_block
         assert_raises(ArgumentError, match: "does not accept a block") do
-          Post.with(attributes_for_inspect: :id) { }
+          Post.all.with(attributes_for_inspect: :id) { }
         end
+      end
+
+      def test_class_with_calls_object_with_when_given_a_block
+        original = Post.attributes_for_inspect
+
+        captured = nil
+        result = Post.with(attributes_for_inspect: [:id]) do
+          captured = Post.attributes_for_inspect
+          :block_value
+        end
+
+        assert_equal [:id], captured
+        assert_equal :block_value, result
+        assert_equal original, Post.attributes_for_inspect
       end
 
       def test_unscoping

@@ -197,6 +197,18 @@ if ActiveRecord::Base.lease_connection.supports_unique_constraints?
           end
         end
 
+        def test_unique_constraint_exists
+          @connection.add_unique_constraint :sections, :position, name: "unique_constraint"
+
+          assert @connection.unique_constraint_exists?(:sections, name: "unique_constraint")
+          assert_not @connection.unique_constraint_exists?(:non_sections, name: "unique_constraint")
+          assert_not @connection.unique_constraint_exists?(:sections, column: :non_position, name: "unique_constraint")
+          assert_not @connection.unique_constraint_exists?(:sections, name: "other_check")
+
+          assert @connection.unique_constraint_exists?(:sections, column: :position)
+          assert_not @connection.unique_constraint_exists?(:sections, column: :non_position)
+        end
+
         def test_remove_unique_constraint
           @connection.add_unique_constraint :sections, [:position], name: :unique_section_position
           assert_equal 1, @connection.unique_constraints("sections").size
@@ -215,6 +227,20 @@ if ActiveRecord::Base.lease_connection.supports_unique_constraints?
           assert_raises(ArgumentError, match: /Table 'sections' has no unique constraint/) do
             @connection.remove_unique_constraint :sections, name: "nonexistent"
           end
+        end
+
+        def test_unique_constraints_are_combined_in_bulk_change_table
+          @connection.add_unique_constraint :sections, [:position], name: :unique_section_position
+
+          assert_queries_count(1) do
+            @connection.change_table(:sections, bulk: true) do |t|
+              t.integer :other_position, null: false
+              t.unique_constraint [:other_position], name: :unique_section_other_position
+              t.remove_unique_constraint name: :unique_section_position
+            end
+          end
+
+          assert_equal ["unique_section_other_position"], @connection.unique_constraints("sections").map(&:name)
         end
 
         def test_renamed_unique_constraint

@@ -1,7 +1,5 @@
 # frozen_string_literal: true
 
-# :markup: markdown
-
 module ActionDispatch
   # :stopdoc:
   module Journey
@@ -12,15 +10,60 @@ module ActionDispatch
       alias :conditions :constraints
 
       module VerbMatchers
-        VERBS = %w{ DELETE GET HEAD OPTIONS LINK PATCH POST PUT TRACE UNLINK }
-        VERBS.each do |v|
-          class_eval <<-eoc, __FILE__, __LINE__ + 1
-            # frozen_string_literal: true
-            class #{v}
-              def self.verb; name.split("::").last; end
-              def self.call(req); req.#{v.downcase}?; end
-            end
-          eoc
+        VERBS = %w{ DELETE GET HEAD OPTIONS LINK PATCH POST PUT QUERY TRACE UNLINK }.freeze
+        class DELETE
+          def self.verb = "DELETE"
+          def self.call(req) = req.delete?
+        end
+
+        class GET
+          def self.verb = "GET"
+          def self.call(req) = req.get?
+        end
+
+        class HEAD
+          def self.verb = "HEAD"
+          def self.call(req) = req.head?
+        end
+
+        class OPTIONS
+          def self.verb = "OPTIONS"
+          def self.call(req) = req.options?
+        end
+
+        class LINK
+          def self.verb = "LINK"
+          def self.call(req) = req.link?
+        end
+
+        class PATCH
+          def self.verb = "PATCH"
+          def self.call(req) = req.patch?
+        end
+
+        class POST
+          def self.verb = "POST"
+          def self.call(req) = req.post?
+        end
+
+        class PUT
+          def self.verb = "PUT"
+          def self.call(req) = req.put?
+        end
+
+        class QUERY
+          def self.verb = "QUERY"
+          def self.call(req) = req.query?
+        end
+
+        class TRACE
+          def self.verb = "TRACE"
+          def self.call(req) = req.trace?
+        end
+
+        class UNLINK
+          def self.verb = "UNLINK"
+          def self.call(req) = req.unlink?
         end
 
         class Unknown
@@ -38,29 +81,50 @@ module ActionDispatch
           def self.verb; ""; end
         end
 
+        class Or
+          attr_reader :verb
+
+          def initialize(verbs)
+            @verbs = verbs
+            @verb = @verbs.map(&:verb).join("|")
+          end
+
+          def call(req)
+            @verbs.any? { |v| v.call req }
+          end
+        end
+
         VERB_TO_CLASS = VERBS.each_with_object(all: All) do |verb, hash|
           klass = const_get verb
           hash[verb]                 = klass
           hash[verb.downcase]        = klass
           hash[verb.downcase.to_sym] = klass
         end
-      end
 
-      def self.verb_matcher(verb)
-        VerbMatchers::VERB_TO_CLASS.fetch(verb) do
+        VERB_TO_CLASS.default_proc = proc do |_, verb|
           VerbMatchers::Unknown.new verb.to_s.dasherize.upcase
+        end
+
+        def self.for(verbs)
+          if verbs.any? { |v| VERB_TO_CLASS[v] == All }
+            All
+          elsif verbs.one?
+            VERB_TO_CLASS[verbs.first]
+          else
+            Or.new(verbs.map { |v| VERB_TO_CLASS[v] })
+          end
         end
       end
 
       ##
       # +path+ is a path constraint.
       # `constraints` is a hash of constraints to be applied to this route.
-      def initialize(name:, app: nil, path:, constraints: {}, required_defaults: [], defaults: {}, request_method_match: nil, precedence: 0, scope_options: {}, internal: false, source_location: nil)
+      def initialize(name:, app: nil, path:, constraints: {}, required_defaults: [], defaults: {}, via: nil, precedence: 0, scope_options: {}, internal: false, source_location: nil)
         @name        = name
         @app         = app
         @path        = path
 
-        @request_method_match = request_method_match
+        @request_method_match = via && VerbMatchers.for(via)
         @constraints = constraints
         @defaults    = defaults
         @required_defaults = nil
@@ -80,8 +144,15 @@ module ActionDispatch
       def eager_load!
         path.eager_load!
         parts
+        required_parts
         required_defaults
         nil
+      end
+
+      def freeze
+        eager_load!
+
+        super
       end
 
       # Needed for `bin/rails routes`. Picks up succinctly defined requirements for a
@@ -100,10 +171,6 @@ module ActionDispatch
 
       def segments
         path.names
-      end
-
-      def required_keys
-        required_parts + required_defaults.keys
       end
 
       def score(supplied_keys)
@@ -146,21 +213,23 @@ module ActionDispatch
       end
 
       def matches?(request)
-        match_verb(request) &&
-        constraints.all? { |method, value|
-          case value
-          when Regexp, String
-            value === request.send(method).to_s
-          when Array
-            value.include?(request.send(method))
-          when TrueClass
-            request.send(method).present?
-          when FalseClass
-            request.send(method).blank?
-          else
-            value === request.send(method)
-          end
-        }
+        @request_method_match.call(request) && (
+          constraints.empty? ||
+          constraints.all? { |method, value|
+            case value
+            when Regexp, String
+              value === request.send(method).to_s
+            when Array
+              value.include?(request.send(method))
+            when TrueClass
+              request.send(method).present?
+            when FalseClass
+              request.send(method).blank?
+            else
+              value === request.send(method)
+            end
+          }
+        )
       end
 
       def ip
@@ -168,21 +237,12 @@ module ActionDispatch
       end
 
       def requires_matching_verb?
-        !@request_method_match.all? { |x| x == VerbMatchers::All }
+        @request_method_match != VerbMatchers::All
       end
 
       def verb
-        verbs.join("|")
+        @request_method_match.verb
       end
-
-      private
-        def verbs
-          @request_method_match.map(&:verb)
-        end
-
-        def match_verb(request)
-          @request_method_match.any? { |m| m.call request }
-        end
     end
   end
   # :startdoc:

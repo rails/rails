@@ -8,6 +8,9 @@ module Rails
       class_option :app_name, type: :string, default: "rails_app",
                    desc: "Name of the app"
 
+      class_option :app_folder, type: :string, default: nil,
+                   desc: "The folder name where the app is generated"
+
       class_option :database, enum: Database::DATABASES, type: :string, default: "sqlite3",
                    desc: "Include configuration for selected database"
 
@@ -67,6 +70,10 @@ module Rails
           options[:app_name]
         end
 
+        def app_folder
+          options[:app_folder] || app_name
+        end
+
         def dependencies
           return @dependencies if @dependencies
 
@@ -112,7 +119,7 @@ module Rails
 
           @features["ghcr.io/rails/devcontainer/features/activestorage"] = {} if options[:active_storage]
           @features["ghcr.io/devcontainers/features/node:1"] = {} if options[:node]
-          @features["ghcr.io/devcontainers/features/docker-outside-of-docker:1"] = {} if options[:kamal]
+          @features["ghcr.io/devcontainers/features/docker-outside-of-docker:1"] = { moby: false } if options[:kamal]
 
           @features.merge!(database.feature) if database.feature
 

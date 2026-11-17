@@ -269,6 +269,11 @@ class ContentSecurityPolicyTest < ActiveSupport::TestCase
     assert_no_match %r{upgrade-insecure-requests}, @policy.build
   end
 
+  def test_hash_sources
+    @policy.script_src "sha256-hash", "sha384-hash", "sha512-hash", "invalid-hash", "sha256hash"
+    assert_equal "script-src 'sha256-hash' 'sha384-hash' 'sha512-hash' invalid-hash sha256hash", @policy.build
+  end
+
   def test_multiple_sources
     @policy.script_src :self, :https
     assert_equal "script-src 'self' https:", @policy.build

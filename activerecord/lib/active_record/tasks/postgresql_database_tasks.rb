@@ -4,37 +4,22 @@ require "tempfile"
 
 module ActiveRecord
   module Tasks # :nodoc:
-    class PostgreSQLDatabaseTasks # :nodoc:
+    class PostgreSQLDatabaseTasks < AbstractTasks # :nodoc:
       DEFAULT_ENCODING = ENV["CHARSET"] || "utf8"
       ON_ERROR_STOP_1 = "ON_ERROR_STOP=1"
       SQL_COMMENT_BEGIN = "--"
 
-      def self.using_database_configurations?
-        true
-      end
-
-      def initialize(db_config)
-        @db_config = db_config
-        @configuration_hash = db_config.configuration_hash
-      end
-
       def create(connection_already_established = false)
         establish_connection(public_schema_config) unless connection_already_established
-        connection.create_database(db_config.database, configuration_hash.merge(encoding: encoding))
+        translating_maintenance_database_errors do
+          connection.create_database(db_config.database, configuration_hash.merge(encoding: encoding))
+        end
         establish_connection
       end
 
       def drop
         establish_connection(public_schema_config)
-        connection.drop_database(db_config.database)
-      end
-
-      def charset
-        connection.encoding
-      end
-
-      def collation
-        connection.collation
+        translating_maintenance_database_errors { connection.drop_database(db_config.database) }
       end
 
       def purge
@@ -65,42 +50,49 @@ module ActiveRecord
           end
         end
 
-        ignore_tables = ActiveRecord::SchemaDumper.ignore_tables
-        if ignore_tables.any?
-          ignore_tables = connection.data_sources.select { |table| ignore_tables.any? { |pattern| pattern === table } }
-          args += ignore_tables.flat_map { |table| ["-T", table] }
+        ignore_tables = ActiveRecord.schema_ignored_tables
+        dumped_search_path = nil
+
+        with_target_connection do |conn|
+          if ignore_tables.any?
+            ignored = conn.data_sources.select { |table| ignore_tables.any? { |pattern| pattern === table } }
+            args += ignored.flat_map { |table| ["-T", table] }
+          end
+
+          dumped_search_path = conn.schema_search_path
         end
 
         args << db_config.database
-        run_cmd("pg_dump", args, "dumping")
+        run_cmd("pg_dump", *args)
         remove_sql_header_comments(filename)
-        File.open(filename, "a") { |f| f << "SET search_path TO #{connection.schema_search_path};\n\n" }
+        File.open(filename, "a") { |f| f << "SET search_path TO #{dumped_search_path};\n\n" }
       end
 
       def structure_load(filename, extra_flags)
-        args = ["--set", ON_ERROR_STOP_1, "--quiet", "--no-psqlrc", "--output", File::NULL, "--file", filename]
+        args = ["--set", ON_ERROR_STOP_1, "--quiet", "--no-psqlrc", "--output", File::NULL]
         args.concat(Array(extra_flags)) if extra_flags
+        args.concat(["--file", filename])
         args << db_config.database
-        run_cmd("psql", args, "loading")
+        run_cmd("psql", *args)
       end
 
       private
-        attr_reader :db_config, :configuration_hash
-
-        def connection
-          ActiveRecord::Base.lease_connection
-        end
-
-        def establish_connection(config = db_config)
-          ActiveRecord::Base.establish_connection(config)
-        end
-
         def encoding
           configuration_hash[:encoding] || DEFAULT_ENCODING
         end
 
         def public_schema_config
-          configuration_hash.merge(database: "postgres", schema_search_path: "public")
+          configuration_hash.except(:maintenance_database).merge(database: maintenance_database, schema_search_path: "public")
+        end
+
+        def maintenance_database
+          configuration_hash[:maintenance_database] || "postgres"
+        end
+
+        def translating_maintenance_database_errors
+          yield
+        rescue NoDatabaseError => error
+          raise ConnectionNotEstablished, (error.cause || error).message
         end
 
         def psql_env
@@ -116,15 +108,8 @@ module ActiveRecord
           end
         end
 
-        def run_cmd(cmd, args, action)
-          fail run_cmd_error(cmd, args, action) unless Kernel.system(psql_env, cmd, *args)
-        end
-
-        def run_cmd_error(cmd, args, action)
-          msg = +"failed to execute:\n"
-          msg << "#{cmd} #{args.join(' ')}\n\n"
-          msg << "Please check the output above for any errors and make sure that `#{cmd}` is installed in your PATH and has proper permissions.\n\n"
-          msg
+        def run_cmd(cmd, *args, **opts)
+          fail run_cmd_error(cmd, args, opts) unless Kernel.system(psql_env, cmd, *args, **opts)
         end
 
         def remove_sql_header_comments(filename)
@@ -132,6 +117,13 @@ module ActiveRecord
           tempfile = Tempfile.open("uncommented_structure.sql")
           begin
             File.foreach(filename) do |line|
+              next if line.start_with?("\\restrict ")
+
+              if line.start_with?("\\unrestrict ")
+                removing_comments = true
+                next
+              end
+
               unless removing_comments && (line.start_with?(SQL_COMMENT_BEGIN) || line.blank?)
                 tempfile << line
                 removing_comments = false

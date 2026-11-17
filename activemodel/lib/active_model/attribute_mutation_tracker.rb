@@ -16,17 +16,17 @@ module ActiveModel
     end
 
     def changed_values
-      attr_names.each_with_object({}.with_indifferent_access) do |attr_name, result|
+      attr_names.each_with_object(ActiveSupport::HashWithIndifferentAccess.new) do |attr_name, result|
         if changed?(attr_name)
-          result[attr_name] = original_value(attr_name)
+          result.store(attr_name, original_value(attr_name), convert_value: false)
         end
       end
     end
 
     def changes
-      attr_names.each_with_object({}.with_indifferent_access) do |attr_name, result|
+      attr_names.each_with_object(ActiveSupport::HashWithIndifferentAccess.new) do |attr_name, result|
         if change = change_to_attribute(attr_name)
-          result.merge!(attr_name => change)
+          result.store(attr_name, change, convert_value: false)
         end
       end
     end
@@ -53,7 +53,7 @@ module ActiveModel
 
     def forget_change(attr_name)
       attributes[attr_name] = attributes[attr_name].forgetting_assignment
-      forced_changes.delete(attr_name)
+      @forced_changes&.delete(attr_name)
     end
 
     def original_value(attr_name)
@@ -76,7 +76,7 @@ module ActiveModel
       end
 
       def attribute_changed?(attr_name)
-        forced_changes.include?(attr_name) || !!attributes[attr_name].changed?
+        @forced_changes&.include?(attr_name) || !!attributes[attr_name].changed?
       end
 
       def fetch_value(attr_name)

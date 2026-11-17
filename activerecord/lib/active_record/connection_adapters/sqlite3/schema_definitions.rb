@@ -3,10 +3,18 @@
 module ActiveRecord
   module ConnectionAdapters
     module SQLite3
-      # = Active Record SQLite3 Adapter \Table Definition
+      # Active Record SQLite3 Adapter \Table Definition
+      # ===============================================
       class TableDefinition < ActiveRecord::ConnectionAdapters::TableDefinition
         def change_column(column_name, type, **options)
           name = column_name.to_s
+
+          existing_column = @columns_hash[name]
+          if existing_column
+            existing_options = existing_column.options.except(:precision)
+            options = existing_options.merge(options)
+          end
+
           @columns_hash[name] = nil
           column(name, type, **options)
         end

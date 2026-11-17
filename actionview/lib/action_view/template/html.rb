@@ -2,7 +2,8 @@
 
 module ActionView # :nodoc:
   class Template # :nodoc:
-    # = Action View HTML Template
+    # Action View HTML Template
+    # =========================
     class HTML # :nodoc:
       attr_reader :type
 

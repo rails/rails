@@ -101,6 +101,7 @@ class UniquenessValidationTest < ActiveRecord::TestCase
     assert_not t2.valid?, "Shouldn't be valid"
     assert_not t2.save, "Shouldn't save t2 as unique"
     assert_equal ["has already been taken"], t2.errors[:title]
+    assert_includes t2.errors.details[:title], { error: :taken, value: "I'm uniqué!", existing_id: t.id }
 
     t2.title = "Now I am really also unique"
     assert t2.save, "Should now save t2 as unique"
@@ -114,6 +115,23 @@ class UniquenessValidationTest < ActiveRecord::TestCase
 
     t3 = Topic.new(title: "abc")
     assert_predicate t3, :valid?
+  end
+
+  def test_validate_uniqueness_uses_only_all_query_default_scopes
+    topic_class = Class.new(ActiveRecord::Base) do
+      self.table_name = "topics"
+      self.inheritance_column = :_type_disabled
+
+      default_scope -> { where(approved: true) }
+      default_scope -> { where(parent_id: 1) }, all_queries: true
+
+      validates_uniqueness_of :title
+    end
+
+    Topic.create!(title: "Scoped uniqueness", parent_id: 1, approved: false)
+    topic = topic_class.new(title: "Scoped uniqueness", parent_id: 1, approved: false)
+
+    assert_not_predicate topic, :valid?
   end
 
   def test_validate_uniqueness_with_alias_attribute
@@ -231,6 +249,33 @@ class UniquenessValidationTest < ActiveRecord::TestCase
 
       e2 = p.essays.create(name: "Essay")
       assert_predicate e2, :valid?, "Saving e2"
+    end
+  end
+
+  def test_validate_uniqueness_of_polymorphic_association
+    repair_validations(Essay) do
+      Essay.validates_uniqueness_of(:writer, scope: :writer_type)
+
+      writer = Author.create!(name: "Sergey")
+      Essay.create!(writer: writer)
+
+      duplicate = Essay.new(writer: writer)
+      assert_not_predicate duplicate, :valid?
+      assert_equal ["has already been taken"], duplicate.errors[:writer]
+
+      assert_predicate Essay.new(writer: Author.create!(name: "Dmitry")), :valid?
+    end
+  end
+
+  def test_validate_uniqueness_of_unset_polymorphic_association
+    repair_validations(Essay) do
+      Essay.validates_uniqueness_of(:writer)
+
+      Essay.create!(name: "Unattributed")
+
+      duplicate = Essay.new(name: "Also unattributed")
+      assert_not_predicate duplicate, :valid?
+      assert_equal ["has already been taken"], duplicate.errors[:writer]
     end
   end
 
@@ -577,6 +622,7 @@ class UniquenessValidationTest < ActiveRecord::TestCase
 
     key2.key_number = 10
     assert_not_predicate key2, :valid?
+    assert_includes key2.errors.details[:key_number], { error: :taken, value: 10, existing_id: 10 }
   end
 
   def test_validate_uniqueness_without_primary_key
@@ -590,7 +636,9 @@ class UniquenessValidationTest < ActiveRecord::TestCase
 
     abc = klass.create!(dashboard_id: "abc")
     assert_predicate klass.new(dashboard_id: "xyz"), :valid?
-    assert_not_predicate klass.new(dashboard_id: "abc"), :valid?
+    abc2 = klass.new(dashboard_id: "abc")
+    assert_not_predicate abc2, :valid?
+    assert_includes abc2.errors.details[:dashboard_id], { error: :taken, value: "abc" }
 
     abc.dashboard_id = "def"
 
@@ -641,6 +689,7 @@ class UniquenessValidationTest < ActiveRecord::TestCase
     assert_not_predicate item2, :valid?
 
     assert_equal(["has already been taken"], item2.errors[:id])
+    assert_includes item2.errors.details[:id], { error: :taken, value: item.id, existing_id: item.id }
   end
 end
 
@@ -648,7 +697,7 @@ class UniquenessValidationWithIndexTest < ActiveRecord::TestCase
   self.use_transactional_tests = false
 
   def setup
-    @connection = Topic.lease_connection
+    @connection = main_ractor_connection(Topic.lease_connection)
     @connection.schema_cache.clear!
     Topic.delete_all
     Event.delete_all

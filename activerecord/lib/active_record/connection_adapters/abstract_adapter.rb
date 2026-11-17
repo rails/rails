@@ -5,6 +5,7 @@ require "active_record/connection_adapters/abstract/schema_dumper"
 require "active_record/connection_adapters/abstract/schema_creation"
 require "active_support/concurrency/null_lock"
 require "active_support/concurrency/load_interlock_aware_monitor"
+require "active_support/concurrency/thread_monitor"
 require "arel/collectors/bind"
 require "arel/collectors/composite"
 require "arel/collectors/sql_string"
@@ -12,23 +13,39 @@ require "arel/collectors/substitute_binds"
 
 module ActiveRecord
   module ConnectionAdapters # :nodoc:
-    # = Active Record Abstract Adapter
+    # Active Record Abstract Adapter
+    # ==============================
     #
     # Active Record supports multiple database systems. AbstractAdapter and
     # related classes form the abstraction layer which makes this possible.
     # An AbstractAdapter represents a connection to a database, and provides an
     # abstract interface for database-specific functionality such as establishing
-    # a connection, escaping values, building the right SQL fragments for +:offset+
-    # and +:limit+ options, etc.
+    # a connection, escaping values, building the right SQL fragments for `:offset`
+    # and `:limit` options, etc.
     #
     # All the concrete database adapters follow the interface laid down in this class.
-    # {ActiveRecord::Base.lease_connection}[rdoc-ref:ConnectionHandling#lease_connection] returns an AbstractAdapter object, which
+    # [ActiveRecord::Base.lease_connection](rdoc-ref:ConnectionHandling#lease_connection) returns an AbstractAdapter object, which
     # you can use.
     #
     # Most of the methods in the adapter are useful during migrations. Most
     # notably, the instance methods provided by SchemaStatements are very useful.
     class AbstractAdapter
       ADAPTER_NAME = "Abstract"
+
+      ##
+      # :singleton-method: migration_strategy
+      #
+      # Allows configuration of migration strategy per adapter type.
+      # When set on a specific adapter class (e.g., PostgreSQLAdapter),
+      # all migrations using that adapter will use the specified strategy
+      # instead of the global ActiveRecord.migration_strategy.
+      #
+      # ```
+      # ActiveRecord::ConnectionAdapters::PostgreSQLAdapter.migration_strategy = CustomPostgresStrategy
+      # ActiveRecord::ConnectionAdapters::Mysql2Adapter.migration_strategy = CustomMySQLStrategy
+      # ```
+      class_attribute :migration_strategy, instance_writer: false
+
       include ActiveSupport::Callbacks
       define_callbacks :checkout, :checkin
 
@@ -42,6 +59,8 @@ module ActiveRecord
 
       attr_reader :pool
       attr_reader :visitor, :owner, :logger, :lock
+      attr_reader :allow_preconnect # :nodoc:
+      attr_accessor :pinned # :nodoc:
       alias :in_use? :owner
 
       def pool=(value)
@@ -50,7 +69,11 @@ module ActiveRecord
         @pool = value
       end
 
-      set_callback :checkin, :after, :enable_lazy_transactions!
+      def allow_preconnect=(value) # :nodoc:
+        @lock.synchronize do
+          @allow_preconnect = value
+        end
+      end
 
       def self.type_cast_config_to_integer(config)
         if config.is_a?(Integer)
@@ -80,7 +103,74 @@ module ActiveRecord
         end
       end
 
-      DEFAULT_READ_QUERY = [:begin, :commit, :explain, :release, :rollback, :savepoint, :select, :with] # :nodoc:
+      # The RactorConnectionHandler::AbstractProxyAdapter subclass standing in for this adapter's
+      # connections on worker Ractors.
+      def self.ractor_connection_proxy_class # :nodoc:
+        raise ActiveRecordError, "#{name} does not support Ractor connections"
+      end
+
+      # Returns optimizer hints as [outer query hints, subquery hints].
+      def self.partition_optimizer_hints(hints) # :nodoc:
+        [hints, []]
+      end
+
+      def ractor_connection_profile # :nodoc:
+        {
+          proxy_class: self.class.ractor_connection_proxy_class,
+          adapter_class: self.class,
+          adapter_name: adapter_name,
+          prepared_statements: @prepared_statements,
+          table_definition_class: create_table_definition("__ractor_probe__").class,
+          arel_visitor_class: @visitor.class,
+          bind_params_length: bind_params_length,
+          capabilities: ractor_connection_capabilities,
+        }
+      end
+
+      def ractor_connection_capabilities # :nodoc:
+        {
+          supports_advisory_locks?: supports_advisory_locks?,
+          supports_bulk_alter?: supports_bulk_alter?,
+          supports_check_constraints?: supports_check_constraints?,
+          supports_comments?: supports_comments?,
+          supports_comments_in_create?: supports_comments_in_create?,
+          supports_common_table_expressions?: supports_common_table_expressions?,
+          supports_concurrent_connections?: supports_concurrent_connections?,
+          supports_ddl_transactions?: supports_ddl_transactions?,
+          supports_deferrable_constraints?: supports_deferrable_constraints?,
+          supports_disabling_indexes?: supports_disabling_indexes?,
+          supports_enforced_foreign_keys?: supports_enforced_foreign_keys?,
+          supports_exclusion_constraints?: supports_exclusion_constraints?,
+          supports_explain?: supports_explain?,
+          supports_expression_index?: supports_expression_index?,
+          supports_extensions?: supports_extensions?,
+          supports_foreign_keys?: supports_foreign_keys?,
+          supports_foreign_tables?: supports_foreign_tables?,
+          supports_index_include?: supports_index_include?,
+          supports_index_sort_order?: supports_index_sort_order?,
+          supports_indexes_in_create?: supports_indexes_in_create?,
+          supports_insert_conflict_target?: supports_insert_conflict_target?,
+          supports_insert_on_duplicate_skip?: supports_insert_on_duplicate_skip?,
+          supports_insert_on_duplicate_update?: supports_insert_on_duplicate_update?,
+          supports_insert_returning?: supports_insert_returning?,
+          supports_json?: supports_json?,
+          supports_lazy_transactions?: supports_lazy_transactions?,
+          supports_materialized_views?: supports_materialized_views?,
+          supports_nulls_not_distinct?: supports_nulls_not_distinct?,
+          supports_partial_index?: supports_partial_index?,
+          supports_partitioned_indexes?: supports_partitioned_indexes?,
+          supports_restart_db_transaction?: supports_restart_db_transaction?,
+          supports_savepoints?: supports_savepoints?,
+          supports_transaction_isolation?: supports_transaction_isolation?,
+          supports_unique_constraints?: supports_unique_constraints?,
+          supports_update_returning?: supports_update_returning?,
+          supports_validate_constraints?: supports_validate_constraints?,
+          supports_views?: supports_views?,
+          supports_virtual_columns?: supports_virtual_columns?,
+        }
+      end
+
+      DEFAULT_READ_QUERY = [:begin, :commit, :explain, :release, :rollback, :savepoint, :select, :with].freeze # :nodoc:
       private_constant :DEFAULT_READ_QUERY
 
       def self.build_read_query_regexp(*parts) # :nodoc:
@@ -119,7 +209,7 @@ module ActiveRecord
 
       # Opens a database console session.
       def self.dbconsole(config, options = {})
-        raise NotImplementedError
+        raise NotImplementedError.new("#{self} should define `dbconsole` that accepts a db config and options to implement connecting to the db console")
       end
 
       def initialize(config_or_deprecated_connection, deprecated_logger = nil, deprecated_connection_options = nil, deprecated_config = nil) # :nodoc:
@@ -127,6 +217,7 @@ module ActiveRecord
 
         @raw_connection = nil
         @unconfigured_connection = nil
+        @connected_since = nil
 
         if config_or_deprecated_connection.is_a?(Hash)
           @config = config_or_deprecated_connection.symbolize_keys
@@ -139,6 +230,7 @@ module ActiveRecord
           # Soft-deprecated for now; we'll probably warn in future.
 
           @unconfigured_connection = config_or_deprecated_connection
+          @connected_since = Process.clock_gettime(Process::CLOCK_MONOTONIC)
           @logger = deprecated_logger || ActiveRecord::Base.logger
           if deprecated_config
             @config = (deprecated_config || {}).symbolize_keys
@@ -150,8 +242,10 @@ module ActiveRecord
         end
 
         @owner = nil
+        @pinned = false
         @pool = ActiveRecord::ConnectionAdapters::NullPool.new
         @idle_since = Process.clock_gettime(Process::CLOCK_MONOTONIC)
+        @allow_preconnect = false
         @visitor = arel_visitor
         @statements = build_statement_pool
         self.lock_thread = nil
@@ -164,11 +258,20 @@ module ActiveRecord
           @config.fetch(:advisory_locks, true)
         )
 
+        @sql_notifications = self.class.type_cast_config_to_boolean(
+          @config.fetch(:sql_notifications, true)
+        )
+
         @default_timezone = self.class.validate_default_timezone(@config[:default_timezone])
 
         @raw_connection_dirty = false
         @last_activity = nil
         @verified = false
+        @needs_reconnect = false
+        @proxied = false
+        @unfinalized_intents = []
+
+        @pool_jitter = rand * max_jitter
       end
 
       def inspect # :nodoc:
@@ -182,18 +285,17 @@ module ActiveRecord
         @lock =
         case lock_thread
         when Thread
-          ActiveSupport::Concurrency::ThreadLoadInterlockAwareMonitor.new
+          ActiveSupport::Concurrency::ThreadMonitor.new
         when Fiber
-          ActiveSupport::Concurrency::LoadInterlockAwareMonitor.new
+          ::Monitor.new
         else
           ActiveSupport::Concurrency::NullLock
         end
       end
 
-      def check_if_write_query(sql) # :nodoc:
-        if preventing_writes? && write_query?(sql)
-          raise ActiveRecord::ReadOnlyError, "Write query attempted while in readonly mode: #{sql}"
-        end
+      MAX_JITTER = 0.0..1.0 # :nodoc:
+      def max_jitter
+        (@config[:pool_jitter] || 0.2).to_f.clamp(MAX_JITTER)
       end
 
       def replica?
@@ -223,7 +325,7 @@ module ActiveRecord
       # Determines whether writes are currently being prevented.
       #
       # Returns true if the connection is a replica or returns
-      # the value of +current_preventing_writes+.
+      # the value of `current_preventing_writes`.
       def preventing_writes?
         return true if replica?
         return false if connection_descriptor.nil?
@@ -238,6 +340,10 @@ module ActiveRecord
 
       def prepared_statements_disabled_cache # :nodoc:
         ActiveSupport::IsolatedExecutionState[:active_record_prepared_statements_disabled_cache] ||= Set.new
+      end
+
+      def sql_notifications?
+        @sql_notifications
       end
 
       class Version
@@ -260,7 +366,11 @@ module ActiveRecord
       end
 
       def valid_type?(type) # :nodoc:
-        !native_database_types[type].nil?
+        self.class.valid_type?(type)
+      end
+
+      def native_database_types # :nodoc:
+        self.class.native_database_types
       end
 
       # this method must only be called while holding connection pool's mutex
@@ -283,14 +393,14 @@ module ActiveRecord
         @pool.connection_descriptor
       end
 
-      # The role (e.g. +:writing+) for the current connection. In a
-      # non-multi role application, +:writing+ is returned.
+      # The role (e.g. `:writing`) for the current connection. In a
+      # non-multi role application, `:writing` is returned.
       def role
         @pool.role
       end
 
-      # The shard (e.g. +:default+) for the current connection. In
-      # a non-sharded application, +:default+ is returned.
+      # The shard (e.g. `:default`) for the current connection. In
+      # a non-sharded application, `:default` is returned.
       def shard
         @pool.shard
       end
@@ -299,8 +409,12 @@ module ActiveRecord
         @pool.schema_cache || (@schema_cache ||= BoundSchemaReflection.for_lone_connection(@pool.schema_reflection, self))
       end
 
+      def pool_jitter(duration)
+        duration * (1.0 - @pool_jitter)
+      end
+
       # this method must only be called while holding connection pool's mutex
-      def expire
+      def expire(update_idle = true) # :nodoc:
         if in_use?
           if @owner != ActiveSupport::IsolatedExecutionState.context
             raise ActiveRecordError, "Cannot expire connection, " \
@@ -308,8 +422,14 @@ module ActiveRecord
               "Current thread: #{ActiveSupport::IsolatedExecutionState.context}."
           end
 
-          @idle_since = Process.clock_gettime(Process::CLOCK_MONOTONIC)
-          @owner = nil
+          finalize_remaining_intents
+
+          _run_checkin_callbacks do
+            @idle_since = Process.clock_gettime(Process::CLOCK_MONOTONIC) if update_idle
+            @owner = nil
+            enable_lazy_transactions!
+            unset_query_cache!
+          end
         else
           raise ActiveRecordError, "Cannot expire connection, it is not currently leased."
         end
@@ -323,6 +443,7 @@ module ActiveRecord
 
             @owner = ActiveSupport::IsolatedExecutionState.context
           end
+          @proxied = false
         else
           raise ActiveRecordError, "Cannot steal connection, it is not currently leased."
         end
@@ -339,6 +460,28 @@ module ActiveRecord
         if @raw_connection && @last_activity
           Process.clock_gettime(Process::CLOCK_MONOTONIC) - @last_activity
         end
+      end
+
+      # When true, this connection is the backend of a ractor proxy connection
+      attr_writer :proxied # :nodoc:
+
+      def proxied? # :nodoc:
+        @proxied
+      end
+
+      # Seconds since this connection was established. nil if not
+      # connected; infinity if the connection has been explicitly
+      # retired.
+      def connection_age # :nodoc:
+        if @raw_connection && @connected_since
+          Process.clock_gettime(Process::CLOCK_MONOTONIC) - @connected_since
+        end
+      end
+
+      # Mark the connection as needing to be retired, as if the age has
+      # exceeded the maximum allowed.
+      def force_retirement # :nodoc:
+        @connected_since &&= -Float::INFINITY
       end
 
       def unprepared_statement
@@ -463,6 +606,11 @@ module ActiveRecord
         false
       end
 
+      # Does this adapter support NOT ENFORCED foreign key constraints?
+      def supports_enforced_foreign_keys?
+        false
+      end
+
       # Does this adapter support creating check constraints?
       def supports_check_constraints?
         false
@@ -488,10 +636,10 @@ module ActiveRecord
         false
       end
 
-      # Does this adapter support datetime with precision?
       def supports_datetime_with_precision?
-        false
+        true
       end
+      deprecate :supports_datetime_with_precision?, deprecator: ActiveRecord.deprecator
 
       # Does this adapter support JSON data type?
       def supports_json?
@@ -535,6 +683,10 @@ module ActiveRecord
         false
       end
 
+      def supports_update_returning?
+        false
+      end
+
       def supports_insert_on_duplicate_skip?
         false
       end
@@ -555,8 +707,16 @@ module ActiveRecord
         false
       end
 
+      def supports_disabling_indexes?
+        false
+      end
+
       def return_value_after_insert?(column) # :nodoc:
-        column.auto_populated?
+        column.auto_populated_on_insert?
+      end
+
+      def return_value_after_update?(column)
+        column.auto_populated_on_update?
       end
 
       def async_enabled? # :nodoc:
@@ -600,6 +760,11 @@ module ActiveRecord
       def drop_virtual_table(*) # :nodoc:
       end
 
+      # Lock used to read an existing record after a duplicate INSERT in a transaction.
+      def create_or_find_by_lock # :nodoc:
+        true
+      end
+
       def advisory_locks_enabled? # :nodoc:
         supports_advisory_locks? && @advisory_locks_enabled
       end
@@ -630,13 +795,13 @@ module ActiveRecord
 
       # REFERENTIAL INTEGRITY ====================================
 
-      # Override to turn off referential integrity while executing <tt>&block</tt>.
+      # Override to turn off referential integrity while executing `&block`.
       def disable_referential_integrity
         yield
       end
 
       # Override to check all foreign key constraints in a database.
-      # The adapter should raise a +ActiveRecord::StatementInvalid+ if foreign key
+      # The adapter should raise a `ActiveRecord::StatementInvalid` if foreign key
       # constraints are not met.
       def check_all_foreign_keys_valid!
       end
@@ -660,38 +825,35 @@ module ActiveRecord
       # connection with the database. Implementors should define private #reconnect
       # instead.
       def reconnect!(restore_transactions: false)
-        retries_available = connection_retries
-        deadline = retry_deadline && Process.clock_gettime(Process::CLOCK_MONOTONIC) + retry_deadline
+        budget = build_retry_budget(allow_retry: true, reconnectable: false)
 
         @lock.synchronize do
-          reconnect
+          attempt_configure_connection do
+            @allow_preconnect = false
 
-          enable_lazy_transactions!
-          @raw_connection_dirty = false
-          @last_activity = Process.clock_gettime(Process::CLOCK_MONOTONIC)
-          @verified = true
+            reconnect
+            @needs_reconnect = false
 
-          reset_transaction(restore: restore_transactions) do
-            clear_cache!(new_connection: true)
-            configure_connection
-          end
-        rescue => original_exception
-          translated_exception = translate_exception_class(original_exception, nil, nil)
-          retry_deadline_exceeded = deadline && deadline < Process.clock_gettime(Process::CLOCK_MONOTONIC)
+            enable_lazy_transactions!
+            @raw_connection_dirty = false
+            @last_activity = @connected_since = Process.clock_gettime(Process::CLOCK_MONOTONIC)
+            @verified = true
+            @allow_preconnect = true
 
-          if !retry_deadline_exceeded && retries_available > 0
-            retries_available -= 1
+            reset_transaction(restore: restore_transactions) do
+              clear_cache!(new_connection: true)
+              configure_connection
+            end
+          rescue => original_exception
+            translated_exception = translate_exception_class(original_exception, nil, nil)
 
-            if retryable_connection_error?(translated_exception)
-              backoff(connection_retries - retries_available)
+            if retryable_connection_error?(translated_exception) && budget.consume
+              backoff(budget.attempts_used)
               retry
             end
+
+            raise translated_exception
           end
-
-          @last_activity = nil
-          @verified = false
-
-          raise translated_exception
         end
       end
 
@@ -702,6 +864,10 @@ module ActiveRecord
           clear_cache!(new_connection: true)
           reset_transaction
           @raw_connection_dirty = false
+          @connected_since = nil
+          @last_activity = nil
+          @verified = false
+          @needs_reconnect = false
         end
       end
 
@@ -724,9 +890,11 @@ module ActiveRecord
       # should call super immediately after resetting the connection (and while
       # still holding @lock).
       def reset!
-        clear_cache!(new_connection: true)
-        reset_transaction
-        configure_connection
+        attempt_configure_connection do
+          clear_cache!(new_connection: true)
+          reset_transaction
+          configure_connection
+        end
       end
 
       # Removes the connection from the pool and disconnect it.
@@ -753,18 +921,28 @@ module ActiveRecord
         false
       end
 
+      def verify
+        return if @verified
+        return if (last_activity = seconds_since_last_activity) && last_activity < verify_timeout
+        verify!
+      end
+
       # Checks whether the connection to the database is still active (i.e. not stale).
       # This is done under the hood by calling #active?. If the connection
       # is no longer active, then this method will reconnect to the database.
       def verify!
-        unless active?
+        if @needs_reconnect || !active?
           @lock.synchronize do
             if @unconfigured_connection
-              @raw_connection = @unconfigured_connection
-              @unconfigured_connection = nil
-              configure_connection
-              @last_activity = Process.clock_gettime(Process::CLOCK_MONOTONIC)
-              @verified = true
+              attempt_configure_connection do
+                @raw_connection = @unconfigured_connection
+                @unconfigured_connection = nil
+                @needs_reconnect = false
+                configure_connection
+                @last_activity = Process.clock_gettime(Process::CLOCK_MONOTONIC)
+                @verified = true
+                @allow_preconnect = true
+              end
               return
             end
 
@@ -772,6 +950,7 @@ module ActiveRecord
           end
         end
 
+        @last_activity = Process.clock_gettime(Process::CLOCK_MONOTONIC)
         @verified = true
       end
 
@@ -781,8 +960,19 @@ module ActiveRecord
       end
 
       def clean! # :nodoc:
-        @raw_connection_dirty = false
-        @verified = nil
+        _run_checkout_callbacks do
+          @raw_connection_dirty = false
+          @verified = nil
+        end
+        self
+      end
+
+      def verified? # :nodoc:
+        @verified
+      end
+
+      def needs_reconnect? # :nodoc:
+        @needs_reconnect
       end
 
       # Provides access to the underlying database driver for this adapter. For
@@ -794,17 +984,13 @@ module ActiveRecord
       #
       # Active Record cannot track if the database is getting modified using
       # this client. If that is the case, generally you'll want to invalidate
-      # the query cache using +ActiveRecord::Base.clear_query_cache+.
+      # the query cache using `ActiveRecord::Base.clear_query_cache`.
       def raw_connection
         with_raw_connection do |conn|
           disable_lazy_transactions!
           @raw_connection_dirty = true
           conn
         end
-      end
-
-      def default_uniqueness_comparison(attribute, value) # :nodoc:
-        attribute.eq(value)
       end
 
       def case_sensitive_comparison(attribute, value) # :nodoc:
@@ -870,7 +1056,7 @@ module ActiveRecord
         def register_class_with_precision(mapping, key, klass, **kwargs) # :nodoc:
           mapping.register_type(key) do |*args|
             precision = extract_precision(args.last)
-            klass.new(precision: precision, **kwargs)
+            klass.new(precision: precision, **kwargs).freeze
           end
         end
 
@@ -880,6 +1066,10 @@ module ActiveRecord
             register_class_with_precision m, %r(\A[^\(]*datetime)i, Type::DateTime, timezone: default_timezone
             m.alias_type %r(\A[^\(]*timestamp)i, "datetime"
           end
+        end
+
+        def valid_type?(type) # :nodoc:
+          !native_database_types[type].nil?
         end
 
         private
@@ -901,7 +1091,7 @@ module ActiveRecord
             m.alias_type %r(number)i,    "decimal"
             m.alias_type %r(double)i,    "float"
 
-            m.register_type %r(^json)i, Type::Json.new
+            m.register_type %r(^json)i, Type::Json.new.freeze
 
             m.register_type(%r(decimal)i) do |sql_type|
               scale = extract_scale(sql_type)
@@ -909,9 +1099,9 @@ module ActiveRecord
 
               if scale == 0
                 # FIXME: Remove this class as well
-                Type::DecimalWithoutScale.new(precision: precision)
+                Type::DecimalWithoutScale.new(precision: precision).freeze
               else
-                Type::Decimal.new(precision: precision, scale: scale)
+                Type::Decimal.new(precision: precision, scale: scale).freeze
               end
             end
           end
@@ -919,7 +1109,7 @@ module ActiveRecord
           def register_class_with_limit(mapping, key, klass)
             mapping.register_type(key) do |*args|
               limit = extract_limit(args.last)
-              klass.new(limit: limit)
+              klass.new(limit: limit).freeze
             end
           end
 
@@ -942,6 +1132,41 @@ module ActiveRecord
       TYPE_MAP = Type::TypeMap.new.tap { |m| initialize_type_map(m) }
       EXTENDED_TYPE_MAPS = Concurrent::Map.new
 
+      def retryable_failure?(exception, budget) # :nodoc:
+        budget&.available? &&
+          (retryable_query_error?(exception) ||
+            (budget.reconnectable? && retryable_connection_error?(exception)))
+      end
+
+      # Consume from `budget` if `exception` warrants another attempt. Query retries
+      # back off here; connection retries consume the reconnect allowance and rely
+      # on the caller to ensure connection readiness before executing again.
+      def attempt_retry(exception, budget) # :nodoc:
+        return false unless retryable_failure?(exception, budget) && budget.consume
+
+        if retryable_query_error?(exception)
+          backoff(budget.attempts_used)
+        else
+          budget.reconnect_consumed!
+        end
+
+        true
+      end
+
+      def downgrade_connection_after_error(exception) # :nodoc:
+        unless retryable_query_error?(exception)
+          # Barring a known-retryable error inside the query (regardless of
+          # whether we were in a _position_ to retry it), we should infer that
+          # there's likely a real problem with the connection.
+          @last_activity = nil
+          @verified = false
+
+          if retryable_connection_error?(exception)
+            @needs_reconnect = true
+          end
+        end
+      end
+
       private
         def reconnect_can_restore_state?
           transaction_manager.restorable? && !@raw_connection_dirty
@@ -951,16 +1176,16 @@ module ActiveRecord
         # transactions are materialized, and then yield the underlying
         # raw connection object.
         #
-        # If +allow_retry+ is true, a connection-related exception will
+        # If `allow_retry` is true, a connection-related exception will
         # cause an automatic reconnect and re-run of the block, up to
-        # the connection's configured +connection_retries+ setting
-        # and the configured +retry_deadline+ limit. (Note that when
-        # +allow_retry+ is true, it's possible to return without having marked
+        # the connection's configured `connection_retries` setting
+        # and the configured `retry_deadline` limit. (Note that when
+        # `allow_retry` is true, it's possible to return without having marked
         # the connection as verified. If the block is guaranteed to exercise the
         # connection, consider calling `verified!` to avoid needless
         # verification queries in subsequent calls.)
         #
-        # If +materialize_transactions+ is false, the block will be run without
+        # If `materialize_transactions` is false, the block will be run without
         # ensuring virtual transactions have been materialized in the DB
         # server's state. The active transaction will also remain clean
         # (if it is not already dirty), meaning it's able to be restored
@@ -972,7 +1197,7 @@ module ActiveRecord
         #
         # It's not the primary use case, so not something to optimize
         # for, but note that this method does need to be re-entrant:
-        # +materialize_transactions+ will re-enter if it has work to do,
+        # `materialize_transactions` will re-enter if it has work to do,
         # and the yield block can also do so under some circumstances.
         #
         # In the latter case, we really ought to guarantee the inner
@@ -982,66 +1207,32 @@ module ActiveRecord
         #
         def with_raw_connection(allow_retry: false, materialize_transactions: true)
           @lock.synchronize do
-            connect! if @raw_connection.nil? && reconnect_can_restore_state?
+            reconnectable = ensure_connection_ready(allow_retry:, materialize_transactions:)
 
-            self.materialize_transactions if materialize_transactions
-
-            retries_available = allow_retry ? connection_retries : 0
-            deadline = retry_deadline && Process.clock_gettime(Process::CLOCK_MONOTONIC) + retry_deadline
-            reconnectable = reconnect_can_restore_state?
-
-            if @verified
-              # Cool, we're confident the connection's ready to use. (Note this might have
-              # become true during the above #materialize_transactions.)
-            elsif (last_activity = seconds_since_last_activity) && last_activity < verify_timeout
-              # We haven't actually verified the connection since we acquired it, but it
-              # has been used very recently. We're going to assume it's still okay.
-            elsif reconnectable
-              if allow_retry
-                # Not sure about the connection yet, but if anything goes wrong we can
-                # just reconnect and re-run our query
-              else
-                # We can reconnect if needed, but we don't trust the upcoming query to be
-                # safely re-runnable: let's verify the connection to be sure
-                verify!
-              end
-            else
-              # We don't know whether the connection is okay, but it also doesn't matter:
-              # we wouldn't be able to reconnect anyway. We're just going to run our query
-              # and hope for the best.
-            end
+            budget = build_retry_budget(allow_retry:, reconnectable:)
 
             begin
               yield @raw_connection
             rescue => original_exception
               translated_exception = translate_exception_class(original_exception, nil, nil)
               invalidate_transaction(translated_exception)
-              retry_deadline_exceeded = deadline && deadline < Process.clock_gettime(Process::CLOCK_MONOTONIC)
+              downgrade_connection_after_error(translated_exception)
 
-              if !retry_deadline_exceeded && retries_available > 0
-                retries_available -= 1
-
-                if retryable_query_error?(translated_exception)
-                  backoff(connection_retries - retries_available)
-                  retry
-                elsif reconnectable && retryable_connection_error?(translated_exception)
-                  reconnect!(restore_transactions: true)
-                  # Only allowed to reconnect once, because reconnect! has its own retry
-                  # loop
-                  reconnectable = false
-                  retry
+              if attempt_retry(translated_exception, budget)
+                if retryable_connection_error?(translated_exception)
+                  ensure_connection_ready(allow_retry:, materialize_transactions: false)
                 end
-              end
-
-              unless retryable_query_error?(translated_exception)
-                # Barring a known-retryable error inside the query (regardless of
-                # whether we were in a _position_ to retry it), we should infer that
-                # there's likely a real problem with the connection.
-                @last_activity = nil
-                @verified = false
+                retry
               end
 
               raise translated_exception
+            rescue Exception
+              # A non-StandardError (a Timeout, or a fiber scheduler's cancel) abandoned
+              # the query partway through, so we mark the connection unverified, just as
+              # a failed query would, forcing a reconnect before it's used again.
+              @last_activity = nil
+              @verified = false
+              raise
             ensure
               dirty_current_transaction if materialize_transactions
             end
@@ -1072,7 +1263,46 @@ module ActiveRecord
           # We definitely can't retry if we were inside an invalidated transaction.
           return false if current_transaction.invalidated?
 
-          exception.is_a?(Deadlocked) || exception.is_a?(LockWaitTimeout)
+          exception.is_a?(Deadlocked) || exception.is_a?(SerializationFailure) ||
+            exception.is_a?(LockWaitTimeout)
+        end
+
+        def build_retry_budget(allow_retry:, reconnectable:)
+          RetryBudget.new(
+            retries: allow_retry ? connection_retries : 0,
+            deadline: retry_deadline && Process.clock_gettime(Process::CLOCK_MONOTONIC) + retry_deadline,
+            reconnectable: reconnectable
+          )
+        end
+
+        # Ensure the connection is ready to execute a query.
+        # Returns whether reconnect-and-restore is available for retry decisions.
+        def ensure_connection_ready(allow_retry:, materialize_transactions:)
+          connect! if !connected? && reconnect_can_restore_state?
+          self.materialize_transactions if materialize_transactions
+
+          reconnectable = reconnect_can_restore_state?
+          verify! unless skip_verification?(allow_retry:, reconnectable:)
+          reconnectable
+        end
+
+        # Decide whether the connection can be used without verification.
+        def skip_verification?(allow_retry:, reconnectable:)
+          if @verified && connected? && !@needs_reconnect
+            true
+          elsif !@needs_reconnect && (last_activity = seconds_since_last_activity) && last_activity < verify_timeout
+            true
+          elsif reconnectable
+            if @needs_reconnect
+              false
+            elsif allow_retry
+              true
+            else
+              false
+            end
+          else
+            true
+          end
         end
 
         def backoff(counter)
@@ -1080,7 +1310,7 @@ module ActiveRecord
         end
 
         def reconnect
-          raise NotImplementedError
+          raise NotImplementedError.new("#{self.class} should define `reconnect` to implement adapter-specific logic for reconnecting to the database")
         end
 
         # Returns a raw connection for internal use with methods that are known
@@ -1127,11 +1357,23 @@ module ActiveRecord
           active_record_error = translate_exception(
             native_error, message: message, sql: sql, binds: binds
           )
+          return active_record_error if active_record_error.equal?(native_error)
+
           active_record_error.set_backtrace(native_error.backtrace)
-          active_record_error
+
+          begin
+            raise active_record_error, cause: native_error
+          rescue => error
+            error
+          end
         end
 
-        def log(sql, name = "SQL", binds = [], type_casted_binds = [], async: false, &block) # :doc:
+        def log(sql, name = "SQL", binds = [], type_casted_binds = [], async: false, allow_retry: false, &block)
+          ActiveRecord.deprecator.warn(<<-MSG.squish)
+            `log` is deprecated and will be removed in Rails 8.3.
+            Queries executed through a `QueryIntent` are instrumented automatically.
+          MSG
+
           instrumenter.instrument(
             "sql.active_record",
             sql:               sql,
@@ -1139,6 +1381,7 @@ module ActiveRecord
             binds:             binds,
             type_casted_binds: type_casted_binds,
             async:             async,
+            allow_retry:       allow_retry,
             connection:        self,
             transaction:       current_transaction.user_transaction.presence,
             affected_rows:     0,
@@ -1150,7 +1393,11 @@ module ActiveRecord
         end
 
         def instrumenter # :nodoc:
-          ActiveSupport::IsolatedExecutionState[:active_record_instrumenter] ||= ActiveSupport::Notifications.instrumenter
+          if sql_notifications?
+            ActiveSupport::IsolatedExecutionState[:active_record_instrumenter] ||= ActiveSupport::Notifications.instrumenter
+          else
+            ActiveSupport::Notifications.null_instrumenter
+          end
         end
 
         def translate_exception(exception, message:, sql:, binds:)
@@ -1195,14 +1442,6 @@ module ActiveRecord
         def build_statement_pool
         end
 
-        # Builds the result object.
-        #
-        # This is an internal hook to make possible connection adapters to build
-        # custom result objects with connection-specific data.
-        def build_result(columns:, rows:, column_types: nil)
-          ActiveRecord::Result.new(columns, rows, column_types)
-        end
-
         # Perform any necessary initialization upon the newly-established
         # @raw_connection -- this is the place to modify the adapter's
         # connection settings, run queries to configure any application-global
@@ -1212,6 +1451,13 @@ module ActiveRecord
         # holding @lock (or from #initialize).
         def configure_connection
           check_version
+        end
+
+        def attempt_configure_connection
+          yield
+        rescue Exception # Need to handle things such as Timeout::ExitException
+          disconnect!
+          raise
         end
 
         def default_prepared_statements

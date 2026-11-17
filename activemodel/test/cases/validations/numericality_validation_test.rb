@@ -14,18 +14,18 @@ class NumericalityValidationTest < ActiveModel::TestCase
     Topic.clear_validators!
   end
 
-  NIL = [nil]
-  BLANK = ["", " ", " \t \r \n"]
-  BIGDECIMAL_STRINGS = %w(12345678901234567890.1234567890) # 30 significant digits
-  FLOAT_STRINGS = %w(0.0 +0.0 -0.0 10.0 10.5 -10.5 -0.0001 -090.1 90.1e1 -90.1e5 -90.1e-5 90e-5)
-  INTEGER_STRINGS = %w(0 +0 -0 10 +10 -10 0090 -090)
-  NUMERIC_FLOATS = [0.0, 10.0, 10.5, -10.5, -0.0001]
-  NUMERIC_INTEGERS = [0, 10, -10]
+  NIL = [nil].freeze
+  BLANK = ["", " ", " \t \r \n"].freeze
+  BIGDECIMAL_STRINGS = %w(12345678901234567890.1234567890).freeze # 30 significant digits
+  FLOAT_STRINGS = %w(0.0 +0.0 -0.0 10.0 10.5 -10.5 -0.0001 -090.1 90.1e1 -90.1e5 -90.1e-5 90e-5).freeze
+  INTEGER_STRINGS = %w(0 +0 -0 10 +10 -10 0090 -090).freeze
+  NUMERIC_FLOATS = [0.0, 10.0, 10.5, -10.5, -0.0001].freeze
+  NUMERIC_INTEGERS = [0, 10, -10].freeze
   FLOATS = NUMERIC_FLOATS + FLOAT_STRINGS
   INTEGERS = NUMERIC_INTEGERS + INTEGER_STRINGS
-  BIGDECIMAL = BIGDECIMAL_STRINGS.collect! { |bd| BigDecimal(bd) }
-  JUNK = ["not a number", "42 not a number", "0xdeadbeef", "-0xdeadbeef", "+0xdeadbeef", "0xinvalidhex", "0Xdeadbeef", "00-1", "--3", "+-3", "+3-1", "-+019.0", "12.12.13.12", "123\nnot a number"]
-  INFINITY = [1.0 / 0.0]
+  BIGDECIMAL = BIGDECIMAL_STRINGS.collect { |bd| BigDecimal(bd) }
+  JUNK = ["not a number", "42 not a number", "0xdeadbeef", "-0xdeadbeef", "+0xdeadbeef", "0xinvalidhex", "0Xdeadbeef", "00-1", "--3", "+-3", "+3-1", "-+019.0", "12.12.13.12", "123\nnot a number"].freeze
+  INFINITY = [1.0 / 0.0].freeze
 
   def test_default_validates_numericality_of
     Topic.validates_numericality_of :approved
@@ -237,6 +237,34 @@ class NumericalityValidationTest < ActiveModel::TestCase
     assert_valid_values([1, 2, 3])
   end
 
+  def test_validates_numericality_with_in_and_proc_as_value
+    Topic.validates_numericality_of :approved, in: ->(o) { 1..3 }
+
+    assert_invalid_values([0, 4])
+    assert_valid_values([1, 2, 3])
+  end
+
+  def test_validates_numericality_with_in_and_symbol_as_value
+    Topic.define_method(:dynamic_range) { 1..3 }
+    Topic.validates_numericality_of :approved, in: :dynamic_range
+
+    assert_invalid_values([0, 4])
+    assert_valid_values([1, 2, 3])
+  ensure
+    Topic.remove_method(:dynamic_range)
+  end
+
+  def test_validates_numericality_with_in_and_invalid_value
+    Topic.define_method(:dynamic_non_range) { "foo" }
+    Topic.validates_numericality_of :approved, in: :dynamic_non_range
+
+    assert_raises(ArgumentError, match: ":in must return a range") do
+      assert_invalid_values([0, 4])
+    end
+  ensure
+    Topic.remove_method(:dynamic_non_range)
+  end
+
   def test_validates_numericality_with_other_than_using_string_value
     Topic.validates_numericality_of :approved, other_than: 0
 
@@ -346,6 +374,39 @@ class NumericalityValidationTest < ActiveModel::TestCase
 
     assert_invalid_values([Float("65.5"), BigDecimal("65.7")], "must be equal to 65.6")
     assert_valid_values([Float("65.6"), BigDecimal("65.6")])
+  end
+
+  def test_validates_numericality_of_float_is_guaranteed_up_to_fifteen_digits
+    Topic.validates_numericality_of :approved, equal_to: BigDecimal("1.23456789012346")
+
+    assert_valid_values([1.2345678901234567, "1.2345678901234567"])
+    assert_invalid_values([1.2345678901234467, "1.2345678901234467"], "must be equal to 1.23456789012346")
+  end
+
+  def test_validates_numericality_of_decimal_attribute_with_precision_and_scale
+    klass = Class.new do
+      include ActiveModel::Model
+      include ActiveModel::Attributes
+
+      attribute :price, :decimal, precision: 4, scale: 2
+      validates_numericality_of :price, less_than_or_equal_to: 99.99
+
+      def self.name
+        "DecimalModel"
+      end
+    end
+
+    ["99.994", 99.994, BigDecimal("99.994"), Rational(99_994, 1000)].each do |raw_value|
+      subject = klass.new(price: raw_value)
+      assert_equal BigDecimal("99.99"), subject.price
+      assert_predicate subject, :valid?
+    end
+
+    ["99.999", 99.999, BigDecimal("99.999"), Rational(99_999, 1000)].each do |raw_value|
+      subject = klass.new(price: raw_value)
+      assert_equal BigDecimal("100.00"), subject.price
+      assert_not_predicate subject, :valid?
+    end
   end
 
   private

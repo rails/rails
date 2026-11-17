@@ -4,12 +4,20 @@ module AdapterHelper
   def current_adapter?(*types)
     types.any? do |type|
       ActiveRecord::ConnectionAdapters.const_defined?(type) &&
-        ActiveRecord::Base.lease_connection.is_a?(ActiveRecord::ConnectionAdapters.const_get(type))
+        ActiveRecord::Base.connection_pool.db_config.adapter_class <= ActiveRecord::ConnectionAdapters.const_get(type)
     end
   end
 
   def in_memory_db?
     current_adapter?(:SQLite3Adapter) && ActiveRecord::Base.connection_pool.db_config.database == ":memory:"
+  end
+
+  def ractor_proxy?
+    ARTest.ractor_proxy?
+  end
+
+  def without_ractor_proxy(&block)
+    ARTest.without_ractor_proxy(&block)
   end
 
   def sqlite3_adapter_strict_strings_disabled?
@@ -74,11 +82,8 @@ module AdapterHelper
     supports_insert_on_duplicate_update?
     supports_insert_conflict_target?
     supports_optimizer_hints?
-    supports_datetime_with_precision?
     supports_nulls_not_distinct?
-    supports_identity_columns?
     supports_virtual_columns?
-    supports_native_partitioning?
   ].each do |method_name|
     define_method method_name do
       ActiveRecord::Base.lease_connection.public_send(method_name)
@@ -100,5 +105,99 @@ module AdapterHelper
 
     connection.disable_extension(extension, force: :cascade)
     connection.reconnect!
+  end
+
+  def main_ractor_connection(connection)
+    handler = ActiveRecord::ConnectionAdapters::RactorConnectionHandler
+    # Only check for a proxy when its class is genuinely loaded: nothing can
+    # be a proxy otherwise, and the is_a? would needlessly autoload it.
+    if handler.autoload?(:AbstractProxyAdapter).nil? && handler.const_defined?(:AbstractProxyAdapter, false) && connection.is_a?(handler::AbstractProxyAdapter)
+      handler::Proxy.fetch_connection(connection.connection_token)
+    else
+      connection
+    end
+  end
+
+  # The driver exception class behind a translated Active Record error.
+  def driver_error_class(error)
+    ractor_proxy? ? error.cause.cause.error_class : error.cause.class
+  end
+
+  # Detects whether the server side of the connection physically has a
+  # transaction open, independently of the adapter's opinion. Skips if we don't
+  # know how to detect this.
+  def raw_transaction_open?(connection)
+    connection = main_ractor_connection(connection)
+    if current_adapter?(:PostgreSQLAdapter)
+      connection.instance_variable_get(:@raw_connection).transaction_status == ::PG::PQTRANS_INTRANS
+    elsif current_adapter?(:Mysql2Adapter, :TrilogyAdapter)
+      begin
+        connection.instance_variable_get(:@raw_connection).query("SAVEPOINT transaction_test")
+        connection.instance_variable_get(:@raw_connection).query("RELEASE SAVEPOINT transaction_test")
+
+        true
+      rescue
+        false
+      end
+    elsif current_adapter?(:SQLite3Adapter)
+      begin
+        connection.instance_variable_get(:@raw_connection).transaction { nil }
+        false
+      rescue
+        true
+      end
+    else
+      skip("raw_transaction_open? unsupported")
+    end
+  end
+
+  # Arrange for the server to disconnect the connection, leaving it broken (by
+  # setting, and then sleeping to exceed, a very short timeout). Skips if we
+  # can't do so.
+  def remote_disconnect(connection)
+    connection = main_ractor_connection(connection)
+    if current_adapter?(:PostgreSQLAdapter)
+      # Connection was left in a bad state, need to reconnect to simulate fresh disconnect
+      connection.verify! if connection.instance_variable_get(:@raw_connection).status == ::PG::CONNECTION_BAD
+      unless connection.instance_variable_get(:@raw_connection).transaction_status == ::PG::PQTRANS_INTRANS
+        connection.instance_variable_get(:@raw_connection).async_exec("begin")
+      end
+      connection.instance_variable_get(:@raw_connection).async_exec("set idle_in_transaction_session_timeout = '10ms'")
+      sleep 0.2
+    elsif current_adapter?(:Mysql2Adapter, :TrilogyAdapter)
+      connection.query_command("set @@wait_timeout=1", materialize_transactions: false)
+      sleep 1.2
+    else
+      skip("remote_disconnect unsupported")
+    end
+  end
+
+  def connection_id_from_server(connection)
+    case connection.adapter_name
+    when "Mysql2", "Trilogy"
+      connection.execute("SELECT CONNECTION_ID()").to_a[0][0]
+    when "PostgreSQL"
+      connection.execute("SELECT pg_backend_pid()").to_a[0]["pg_backend_pid"]
+    else
+      skip("connection_id_from_server unsupported")
+    end
+  end
+
+  # Uses a separate connection to admin-kill the connection with the given ID
+  # from the server side. Skips if we can't do so.
+  def kill_connection_from_server(connection_id, pool = ActiveRecord::Base.connection_pool)
+    actor_connection = pool.checkout
+    pool.remove(actor_connection)
+
+    case actor_connection.adapter_name
+    when "Mysql2", "Trilogy"
+      actor_connection.execute("KILL #{connection_id}")
+    when "PostgreSQL"
+      actor_connection.execute("SELECT pg_terminate_backend(#{connection_id})")
+    else
+      skip("kill_connection_from_server unsupported")
+    end
+
+    actor_connection.close
   end
 end

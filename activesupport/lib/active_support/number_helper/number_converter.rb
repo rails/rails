@@ -33,7 +33,7 @@ module ActiveSupport
           significant: false,
           # If set, the zeros after the decimal separator will always be stripped (e.g.: 1.200 will be 1.2)
           strip_insignificant_zeros: false
-        },
+        }.freeze,
 
         # Used in number_to_currency
         currency: {
@@ -47,23 +47,23 @@ module ActiveSupport
             precision: 2,
             significant: false,
             strip_insignificant_zeros: false
-          }
-        },
+          }.freeze
+        }.freeze,
 
         # Used in number_to_percentage
         percentage: {
           format: {
             delimiter: "",
             format: "%n%"
-          }
-        },
+          }.freeze
+        }.freeze,
 
         # Used in number_to_rounded
         precision: {
           format: {
             delimiter: ""
-          }
-        },
+          }.freeze
+        }.freeze,
 
         # Used in number_to_human_size and number_to_human
         human: {
@@ -73,7 +73,7 @@ module ActiveSupport
             precision: 3,
             significant: true,
             strip_insignificant_zeros: true
-          },
+          }.freeze,
           # Used in number_to_human_size
           storage_units: {
             # Storage units output formatting.
@@ -84,9 +84,12 @@ module ActiveSupport
               kb: "KB",
               mb: "MB",
               gb: "GB",
-              tb: "TB"
-            }
-          },
+              tb: "TB",
+              pb: "PB",
+              eb: "EB",
+              zb: "ZB"
+            }.freeze
+          }.freeze,
           # Used in number_to_human
           decimal_units: {
             format: "%n %u",
@@ -112,19 +115,35 @@ module ActiveSupport
               billion: "Billion",
               trillion: "Trillion",
               quadrillion: "Quadrillion"
-            }
-          }
-        }
-      }
+            }.freeze
+          }.freeze
+        }.freeze
+      }.freeze
 
       def self.convert(number, options)
         new(number, options).execute
       end
 
-      def initialize(number, options)
+      # Used by a converter delegating to another one: the options it passes
+      # already hold every key of the defaults and of the locale's
+      # number.format, so only this converter's namespace is resolved again.
+      def self.convert_with_resolved_options(number, options)
+        new(number, options, resolved: true).execute
+      end
+
+      def self.i18n_format_key # :nodoc:
+        @i18n_format_key ||= :"number.#{namespace}.format"
+      end
+
+      def initialize(number, options, resolved: false)
         @number = number
-        @opts = options.symbolize_keys
-        @options = nil
+        if resolved
+          @opts = options
+          @options = namespace ? namespace_format_options.merge!(options) : options
+        else
+          @opts = options.symbolize_keys
+          @options = nil
+        end
       end
 
       def execute
@@ -138,12 +157,27 @@ module ActiveSupport
       end
 
       private
+        EMPTY_FORMAT = {}.freeze
+        private_constant :EMPTY_FORMAT
+
+        # The format options, in increasing order of precedence: the defaults,
+        # the namespace's defaults, the locale's number.format, the locale's
+        # number.<namespace>.format, and the options given to the call. Built
+        # into a single Hash; the translations are only read, never copied.
         def options
-          @options ||= format_options.merge(opts)
+          @options ||= begin
+            locale = opts[:locale]
+            options = DEFAULTS[:format].dup
+            options.merge!(DEFAULTS[namespace][:format]) if namespace
+            options.merge!(I18n.translate(:'number.format', locale: locale, default: EMPTY_FORMAT))
+            options.merge!(I18n.translate(self.class.i18n_format_key, locale: locale, default: EMPTY_FORMAT)) if namespace
+            options.merge!(opts)
+          end
         end
 
-        def format_options
-          default_format_options.merge!(i18n_format_options)
+        def namespace_format_options
+          options = DEFAULTS[namespace][:format].dup
+          options.merge!(I18n.translate(self.class.i18n_format_key, locale: opts[:locale], default: EMPTY_FORMAT))
         end
 
         def default_format_options
@@ -157,7 +191,7 @@ module ActiveSupport
           options = I18n.translate(:'number.format', locale: locale, default: {}).dup
 
           if namespace
-            options.merge!(I18n.translate(:"number.#{namespace}.format", locale: locale, default: {}))
+            options.merge!(I18n.translate(self.class.i18n_format_key, locale: locale, default: {}))
           end
 
           options
@@ -180,7 +214,7 @@ module ActiveSupport
           when Float, Rational
             number.to_d(0)
           when String
-            BigDecimal(number, exception: false)
+            BigDecimal(number, exception: false) unless number.to_s.match?(/[de]/i)
           else
             number.to_d rescue nil
           end

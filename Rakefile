@@ -8,37 +8,153 @@ require "railties/lib/rails/api/task"
 require "tools/preview_docs"
 
 desc "Run all tests by default"
-task default: %w(test test:isolated)
+task default: :test
 
-%w(test test:isolated).each do |task_name|
-  desc "Run #{task_name} task for all projects"
-  task task_name do
-    errors = []
-    Releaser::FRAMEWORKS.each do |project|
-      system(%(cd #{project} && #{$0} #{task_name} --trace)) || errors << project
+desc "Run test task for all projects"
+task "test" do
+  errors = []
+  Releaser::FRAMEWORKS.each do |project|
+    system(%(cd #{project} && #{$0} test --trace)) || errors << project
+  end
+  fail("Errors in #{errors.join(', ')}") unless errors.empty?
+end
+
+Releaser::FRAMEWORKS.each do |framework|
+  namespace framework do
+    desc "Run tests for #{framework}"
+    task :test do
+      ok = system(%(cd #{framework} && #{$0} test --trace))
+      fail("Errors in #{framework}") unless ok
     end
-    fail("Errors in #{errors.join(', ')}") unless errors.empty?
+  end
+end
+
+namespace :activejob do
+  activejob_adapters = %w(async inline queue_classic resque sneakers backburner test)
+  activejob_adapters.delete("queue_classic") if defined?(JRUBY_VERSION)
+
+  desc "Run Active Job integration tests for all adapters"
+  task :integration do
+    ok = system(%(cd activejob && #{$0} test:integration --trace))
+    fail("Errors in activejob integration") unless ok
+  end
+
+  activejob_adapters.each do |adapter|
+    namespace adapter do
+      desc "Run tests for activejob #{adapter} adapter"
+      task :test do
+        ok = system(%(cd activejob && #{$0} test:#{adapter} --trace))
+        fail("Errors in activejob:#{adapter}") unless ok
+      end
+
+      desc "Run Active Job #{adapter} adapter integration tests"
+      task :integration do
+        ok = system(%(cd activejob && #{$0} test:integration:#{adapter} --trace))
+        fail("Errors in activejob:#{adapter} integration") unless ok
+      end
+    end
+  end
+end
+
+namespace :activerecord do
+  %w(mysql2 trilogy postgresql sqlite3 sqlite3_mem).each do |adapter|
+    namespace adapter do
+      desc "Run Active Record #{adapter} adapter tests"
+      task :test do
+        ok = system(%(cd activerecord && #{$0} test:#{adapter} --trace))
+        fail("Errors in activerecord:#{adapter}") unless ok
+      end
+
+      desc "Run Active Record #{adapter} adapter integration tests"
+      task :integration do
+        ok = system(%(cd activerecord && #{$0} test:integration:active_job:#{adapter} --trace))
+        fail("Errors in activerecord:#{adapter} integration") unless ok
+      end
+    end
+  end
+
+  desc "Run Active Record integration tests for all adapters"
+  task :integration do
+    ok = system(%(cd activerecord && #{$0} test:integration:active_job --trace))
+    fail("Errors in activerecord integration") unless ok
+  end
+
+  namespace :db do
+    desc "Build MySQL and PostgreSQL test databases"
+    task :create do
+      ok = system(%(cd activerecord && #{$0} db:create --trace))
+      fail("Errors in activerecord db:create") unless ok
+    end
+
+    desc "Drop MySQL and PostgreSQL test databases"
+    task :drop do
+      ok = system(%(cd activerecord && #{$0} db:drop --trace))
+      fail("Errors in activerecord db:drop") unless ok
+    end
+
+    desc "Rebuild MySQL and PostgreSQL test databases"
+    task :rebuild do
+      ok = system(%(cd activerecord && #{$0} db:mysql:rebuild --trace))
+      ok &&= system(%(cd activerecord && #{$0} db:postgresql:rebuild --trace))
+      fail("Errors in activerecord db:rebuild") unless ok
+    end
+
+    namespace :mysql do
+      desc "Build Active Record MySQL test databases"
+      task :build do
+        ok = system(%(cd activerecord && #{$0} db:mysql:build --trace))
+        fail("Errors in activerecord db:mysql:build") unless ok
+      end
+
+      desc "Drop Active Record MySQL test databases"
+      task :drop do
+        ok = system(%(cd activerecord && #{$0} db:mysql:drop --trace))
+        fail("Errors in activerecord db:mysql:drop") unless ok
+      end
+
+      desc "Rebuild Active Record MySQL test databases"
+      task :rebuild do
+        ok = system(%(cd activerecord && #{$0} db:mysql:rebuild --trace))
+        fail("Errors in activerecord db:mysql:rebuild") unless ok
+      end
+    end
+
+    namespace :postgresql do
+      desc "Build Active Record PostgreSQL test databases"
+      task :build do
+        ok = system(%(cd activerecord && #{$0} db:postgresql:build --trace))
+        fail("Errors in activerecord db:postgresql:build") unless ok
+      end
+
+      desc "Drop Active Record PostgreSQL test databases"
+      task :drop do
+        ok = system(%(cd activerecord && #{$0} db:postgresql:drop --trace))
+        fail("Errors in activerecord db:postgresql:drop") unless ok
+      end
+
+      desc "Rebuild Active Record PostgreSQL test databases"
+      task :rebuild do
+        ok = system(%(cd activerecord && #{$0} db:postgresql:rebuild --trace))
+        fail("Errors in activerecord db:postgresql:rebuild") unless ok
+      end
+    end
   end
 end
 
 desc "Smoke-test all projects"
-task :smoke, [:frameworks, :isolated] do |task, args|
+task :smoke, [:frameworks] do |task, args|
   frameworks = args[:frameworks] ? args[:frameworks].split(" ") : Releaser::FRAMEWORKS
   # The arguments are positional, and users may want to specify only the isolated flag.. so we allow 'all' as a default for the first argument:
   if frameworks.include?("all")
     frameworks = Releaser::FRAMEWORKS
   end
 
-  isolated = args[:isolated].nil? ? true : args[:isolated] == "true"
-  test_task = isolated ? "test:isolated" : "test"
-
   (frameworks - ["activerecord"]).each do |project|
-    system %(cd #{project} && #{$0} #{test_task} --trace)
+    system %(cd #{project} && #{$0} test --trace)
   end
 
   if frameworks.include? "activerecord"
-    test_task = isolated ? "sqlite3:isolated_test" : "sqlite3:test"
-    system %(cd activerecord && #{$0} #{test_task} --trace)
+    system %(cd activerecord && #{$0} sqlite3:test --trace)
   end
 end
 
@@ -54,7 +170,8 @@ task :preview_docs do
   FileUtils.mkdir_p("preview")
   PreviewDocs.new.render("preview")
 
-  require "guides/rails_guides"
+  system(%(cd guides && #{$0} guides:generate --trace))
+
   Rake::Task[:rdoc].invoke
 
   FileUtils.mv("doc/rdoc", "preview/api")

@@ -8,8 +8,6 @@ class FrameworkDefaultTest < Minitest::Test
     config = config_for_defaults <<~RUBY
       case target_version.to_s
       when "5.0"
-        ActiveSupport.to_time_preserves_timezone = true
-
         if respond_to?(:active_record)
           active_record.belongs_to_required_by_default = true
         end
@@ -28,7 +26,6 @@ class FrameworkDefaultTest < Minitest::Test
 
     ["5.0", "5.1"].each { |k| assert_includes(config, k) }
 
-    assert_equal("true", config["5.0"]["ActiveSupport.to_time_preserves_timezone"])
     assert_equal("true", config["5.0"]["active_record.belongs_to_required_by_default"])
     assert_equal("{ hsts: { subdomains: true } }", config["5.0"]["self.ssl_options"])
     assert_equal("false", config["5.1"]["assets.unknown_asset_fallback"])
@@ -111,6 +108,18 @@ class FrameworkDefaultTest < Minitest::Test
 
     assert_includes config, "8.0"
     assert_equal("1", config["8.0"]["Regexp.timeout"])
+  end
+
+  def test_post_release
+    config = config_for_defaults <<~RUBY
+      case target_version.to_s
+      when "8.1"
+        load_defaults "8.0"
+      end
+    RUBY
+
+    assert_includes config, "8.1"
+    assert_equal({}, config["8.1"])
   end
 
   private

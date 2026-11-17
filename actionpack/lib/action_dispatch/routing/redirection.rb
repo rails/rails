@@ -1,7 +1,5 @@
 # frozen_string_literal: true
 
-# :markup: markdown
-
 require "active_support/core_ext/array/extract_options"
 require "rack/utils"
 require "action_controller/metal/exceptions"
@@ -12,9 +10,10 @@ module ActionDispatch
     class Redirect < Endpoint # :nodoc:
       attr_reader :status, :block
 
-      def initialize(status, block)
+      def initialize(status, block, source_location)
         @status = status
         @block  = block
+        @source_location = source_location
       end
 
       def redirect?; true; end
@@ -27,6 +26,7 @@ module ActionDispatch
           payload[:status] = @status
           payload[:location] = response.headers["Location"]
           payload[:request] = request
+          payload[:source_location] = @source_location if @source_location
 
           response.to_a
         end
@@ -89,9 +89,13 @@ module ActionDispatch
     class PathRedirect < Redirect
       URL_PARTS = /\A([^?]+)?(\?[^#]+)?(#.+)?\z/
 
+      # https://www.rfc-editor.org/rfc/rfc3986#section-3.1
+      # https://www.rfc-editor.org/rfc/rfc3986#section-4.2
+      SCHEME_OR_AUTHORITY = /\A(?:[a-z][a-z\d\-+.]*:|\/\/)/i # :nodoc:
+
       def path(params, request)
         if block.match(URL_PARTS)
-          path     = interpolation_required?($1, params) ? $1 % escape_path(params)     : $1
+          path     = interpolation_required?($1, params) ? interpolate_path($1, params) : $1
           query    = interpolation_required?($2, params) ? $2 % escape(params)          : $2
           fragment = interpolation_required?($3, params) ? $3 % escape_fragment(params) : $3
 
@@ -108,6 +112,21 @@ module ActionDispatch
       private
         def interpolation_required?(string, params)
           !params.empty? && string && string.match(/%\{\w*\}/)
+        end
+
+        # A decoded param must not give the target a scheme or host that the template
+        # lacks, or the redirect would leave the request's host.
+        def interpolate_path(template, params)
+          path = template % escape_path(params)
+          return path if template.match?(SCHEME_OR_AUTHORITY)
+
+          if path.start_with?("//")
+            path.sub("//", "/%2F")
+          elsif path.match?(SCHEME_OR_AUTHORITY)
+            "/#{path.sub(":", "%3A")}"
+          else
+            path
+          end
         end
     end
 
@@ -202,16 +221,17 @@ module ActionDispatch
       #     get 'accounts/:name' => redirect(SubdomainRedirector.new('api'))
       #
       def redirect(*args, &block)
-        options = args.extract_options!
-        status  = options.delete(:status) || 301
-        path    = args.shift
+        options         = args.extract_options!
+        status          = options.delete(:status) || 301
+        path            = args.shift
+        source_location = caller[0] if ActionDispatch.verbose_redirect_logs
 
-        return OptionRedirect.new(status, options) if options.any?
-        return PathRedirect.new(status, path) if String === path
+        return OptionRedirect.new(status, options, source_location) if options.any?
+        return PathRedirect.new(status, path, source_location) if String === path
 
         block = path if path.respond_to? :call
         raise ArgumentError, "redirection argument not supported" unless block
-        Redirect.new status, block
+        Redirect.new status, block, source_location
       end
     end
   end

@@ -134,7 +134,7 @@ config.action_mailbox.ingress = :mailgun
 ```
 
 [Configure
-Mailgun](https://documentation.mailgun.com/docs/mailgun/user-manual/receive-forward-store/)
+Mailgun](https://documentation.mailgun.com/docs/mailgun/user-manual/receive-forward-store/receive-http)
 to forward inbound emails to
 `/rails/action_mailbox/mailgun/inbound_emails/mime`. If your application lived
 at `https://example.com`, you would specify the fully-qualified URL
@@ -165,7 +165,7 @@ config.action_mailbox.ingress = :mandrill
 ```
 
 [Configure
-Mandrill](https://mandrill.zendesk.com/hc/en-us/articles/205583197-Inbound-Email-Processing-Overview)
+Mandrill](https://mailchimp.com/developer/transactional/guides/set-up-inbound-email-processing/)
 to route inbound emails to `/rails/action_mailbox/mandrill/inbound_emails`. If
 your application lived at `https://example.com`, you would specify the
 fully-qualified URL
@@ -341,11 +341,18 @@ class ApplicationMailbox < ActionMailbox::Base
 end
 ```
 
-The regular expression matches the incoming email's `to`, `cc`, or `bcc` fields.
-For example, the above will match any email sent to `save@` to a "forwards"
-mailbox. There are other ways to route an email, see
+The regular expression matches the addresses in the incoming email's `To`,
+`Cc`, `Bcc`, `X-Original-To`, and `X-Forwarded-To` headers. For example, the
+above will match any email sent to `save@` to a "forwards" mailbox. There are
+other ways to route an email, see
 [`ActionMailbox::Base`](https://api.rubyonrails.org/classes/ActionMailbox/Base.html)
 for more.
+
+WARNING: Routing is not authentication. The sender of an email can set every
+header that string and regular expression routes match, so a route does not
+establish who sent an email or where it was delivered. A mailbox that acts on
+behalf of a user or an account must check that the email is allowed to do so
+before processing it.
 
 We need to create that "forwards" mailbox next.
 
@@ -412,7 +419,7 @@ Here is an example of an Action Mailbox that processes emails to create
 "forwards" for the user's project.
 
 The `before_processing` callback is used to ensure that certain conditions are
-met before `process` method is called. In this case, `before_processing` checks
+met before the `process` method is called. In this case, `before_processing` checks
 that the user has at least one project. Other supported [Action Mailbox
 callbacks](https://api.rubyonrails.org/classes/ActionMailbox/Callbacks.html) are
 `after_processing` and `around_processing`.
@@ -471,7 +478,7 @@ controller mounted at `/rails/conductor/action_mailbox/inbound_emails`, which
 gives you an index of all the InboundEmails in the system, their state of
 processing, and a form to create a new InboundEmail as well.
 
-Here is and example of testing an inbound email with Action Mailbox TestHelpers.
+Here is an example of testing an inbound email with Action Mailbox TestHelpers.
 
 ```ruby
 class ForwardsMailboxTest < ActionMailbox::TestCase

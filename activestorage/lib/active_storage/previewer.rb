@@ -1,7 +1,8 @@
 # frozen_string_literal: true
 
 module ActiveStorage
-  # = Active Storage \Previewer
+  # Active Storage \Previewer
+  # =========================
   #
   # This is an abstract base class for previewers, which generate images from blobs. See
   # ActiveStorage::Previewer::MuPDFPreviewer and ActiveStorage::Previewer::VideoPreviewer for
@@ -27,7 +28,7 @@ module ActiveStorage
     end
 
     private
-      # Downloads the blob to a tempfile on disk. Yields the tempfile.
+      # Downloads the blob to a tempfile on disk. See ActiveStorage::Blob#open for details.
       def download_blob_to_tempfile(&block) # :doc:
         blob.open tmpdir: tmpdir, &block
       end
@@ -35,15 +36,17 @@ module ActiveStorage
       # Executes a system command, capturing its binary output in a tempfile. Yields the tempfile.
       #
       # Use this method to shell out to a system library (e.g. muPDF or FFmpeg) for preview image
-      # generation. The resulting tempfile can be used as the +:io+ value in an attachable Hash:
+      # generation. The resulting tempfile can be used as the `:io` value in an attachable Hash:
       #
-      #   def preview
-      #     download_blob_to_tempfile do |input|
-      #       draw "my-drawing-command", input.path, "--format", "png", "-" do |output|
-      #         yield io: output, filename: "#{blob.filename.base}.png", content_type: "image/png"
-      #       end
+      # ```
+      # def preview
+      #   download_blob_to_tempfile do |input|
+      #     draw "my-drawing-command", input.path, "--format", "png", "-" do |output|
+      #       yield io: output, filename: "#{blob.filename.base}.png", content_type: "image/png"
       #     end
       #   end
+      # end
+      # ```
       #
       # The output tempfile is opened in the directory returned by #tmpdir.
       def draw(*argv) # :doc:
@@ -79,7 +82,7 @@ module ActiveStorage
         to.binmode
 
         open_tempfile do |err|
-          IO.popen(argv, err: err) { |out| IO.copy_stream(out, to) }
+          IO.popen(argv, in: IO::NULL, err: err) { |out| IO.copy_stream(out, to) }
           err.rewind
 
           unless $?.success?

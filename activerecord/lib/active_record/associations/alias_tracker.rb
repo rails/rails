@@ -26,16 +26,18 @@ module ActiveRecord
       end
 
       def self.initial_count_for(connection, name, table_joins)
-        quoted_name = nil
+        quoted_name_escaped = nil
+        name_escaped = nil
 
         counts = table_joins.map do |join|
           if join.is_a?(Arel::Nodes::StringJoin)
-            # quoted_name should be case ignored as some database adapters (Oracle) return quoted name in uppercase
-            quoted_name ||= connection.quote_table_name(name)
+            # quoted_name_escaped should be case ignored as some database adapters (Oracle) return quoted name in uppercase
+            quoted_name_escaped ||= Regexp.escape(connection.quote_table_name(name))
+            name_escaped ||= Regexp.escape(name)
 
             # Table names + table aliases
             join.left.scan(
-              /JOIN(?:\s+\w+)?\s+(?:\S+\s+)?(?:#{quoted_name}|#{name})\sON/i
+              /JOIN(?:\s+\w+)?\s+(?:\S+\s+)?(?:#{quoted_name_escaped}|#{name_escaped})\sON/i
             ).size
           elsif join.is_a?(Arel::Nodes::Join)
             join.left.name == name ? 1 : 0

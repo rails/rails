@@ -14,10 +14,6 @@ module ActionDispatch
           ActionDispatch::Request
         end
 
-        def dispatcher_class
-          RouteSet::Dispatcher
-        end
-
         def defaults
           routes.map(&:defaults)
         end
@@ -106,6 +102,22 @@ module ActionDispatch
         assert_equal("PUT", fakeset.routes.first.verb)
       end
 
+      def test_query_helper
+        fakeset = FakeSet.new
+        mapper = Mapper.new fakeset
+        mapper.query "/search", to: "posts#search", as: :search
+        assert_equal("QUERY", fakeset.routes.first.verb)
+        assert_equal({ controller: "posts", action: "search" },
+                     fakeset.defaults.first)
+      end
+
+      def test_query_helper_formatted
+        fakeset = FakeSet.new
+        mapper = Mapper.new fakeset
+        mapper.query "/search", to: "posts#search", as: :search, format: true
+        assert_equal "/search.:format", fakeset.asts.first.to_s
+      end
+
       def test_to_scope
         fakeset = FakeSet.new
         mapper = Mapper.new fakeset
@@ -173,6 +185,51 @@ module ActionDispatch
         assert_equal "/*path.:format", fakeset.asts.first.to_s
       end
 
+      def test_format_option_symbol_matches_string
+        fakeset = FakeSet.new
+        mapper = Mapper.new fakeset
+        mapper.get "/users", to: "users#index", format: :json
+        mapper.get "/posts", to: "posts#index", format: "json"
+
+        symbol_route, string_route = fakeset.routes.to_a
+
+        assert_equal "json", symbol_route.defaults[:format]
+        assert_instance_of String, symbol_route.defaults[:format]
+        assert_equal string_route.defaults[:format], symbol_route.defaults[:format]
+        assert_equal string_route.path.requirements[:format], symbol_route.path.requirements[:format]
+        assert_equal(/json/, symbol_route.path.requirements[:format])
+        assert_equal "/users(.:format)", fakeset.asts.first.to_s
+      end
+
+      def test_scope_format_symbol_matches_string
+        fakeset = FakeSet.new
+        mapper = Mapper.new fakeset
+        mapper.scope(format: :json) do
+          mapper.get "/users", to: "users#index"
+        end
+        mapper.get "/posts", to: "posts#index", format: "json"
+
+        symbol_route, string_route = fakeset.routes.to_a
+
+        assert_equal "json", symbol_route.defaults[:format]
+        assert_instance_of String, symbol_route.defaults[:format]
+        assert_equal string_route.path.requirements[:format], symbol_route.path.requirements[:format]
+      end
+
+      def test_resources_format_symbol_matches_string
+        fakeset = FakeSet.new
+        mapper = Mapper.new fakeset
+        mapper.resources :users, format: :json, only: :index
+        mapper.get "/posts", to: "posts#index", format: "json"
+
+        symbol_route = fakeset.routes.to_a.find { |route| route.defaults[:action] == "index" && route.defaults[:controller] == "users" }
+        string_route = fakeset.routes.to_a.last
+
+        assert_equal "json", symbol_route.defaults[:format]
+        assert_instance_of String, symbol_route.defaults[:format]
+        assert_equal string_route.path.requirements[:format], symbol_route.path.requirements[:format]
+      end
+
       def test_can_pass_anchor_to_mount
         fakeset = FakeSet.new
         mapper = Mapper.new fakeset
@@ -224,6 +281,17 @@ module ActionDispatch
             # pass
           end
         end
+      end
+
+      def test_deprecated_hash_honors_format_false
+        fakeset = FakeSet.new
+        mapper = Mapper.new fakeset
+
+        assert_deprecated(ActionDispatch.deprecator) do
+          mapper.get "/*path", { to: "pages#show", format: false }
+        end
+
+        assert_equal "/*path", fakeset.asts.first.to_s
       end
 
       def test_deprecated_hash

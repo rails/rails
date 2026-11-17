@@ -1,7 +1,5 @@
 # frozen_string_literal: true
 
-# :markup: markdown
-
 require "rails"
 require "action_controller"
 require "action_dispatch/railtie"
@@ -12,12 +10,16 @@ require "action_view/railtie"
 module ActionController
   class Railtie < Rails::Railtie # :nodoc:
     config.action_controller = ActiveSupport::OrderedOptions.new
-    config.action_controller.raise_on_open_redirects = false
+    config.action_controller.action_on_open_redirect = :log
+    config.action_controller.action_on_path_relative_redirect = :log
     config.action_controller.log_query_tags_around_actions = true
     config.action_controller.wrap_parameters_by_default = false
+    config.action_controller.allowed_redirect_hosts = []
 
     config.eager_load_namespaces << AbstractController
     config.eager_load_namespaces << ActionController
+
+    guard_load_hooks(:action_controller, :action_controller_base, :action_controller_api, :action_controller_test_case)
 
     initializer "action_controller.deprecator", before: :load_environment_config do |app|
       app.deprecators[:action_controller] = ActionController.deprecator
@@ -29,6 +31,12 @@ module ActionController
 
     initializer "action_controller.set_helpers_path" do |app|
       ActionController::Helpers.helpers_path = app.helpers_paths
+    end
+
+    initializer "action_controller.live_streaming_excluded_keys" do |app|
+      ActiveSupport.on_load(:action_controller_live) do
+        ActionController::Live.live_streaming_excluded_keys = app.config.action_controller.live_streaming_excluded_keys
+      end
     end
 
     initializer "action_controller.parameters_config" do |app|
@@ -55,7 +63,8 @@ module ActionController
       paths   = app.config.paths
       options = app.config.action_controller
 
-      options.logger      ||= Rails.logger
+      options.logger = options.fetch(:logger, Rails.logger)
+
       options.cache_store ||= Rails.cache
 
       options.javascripts_dir ||= paths["public/javascripts"].first
@@ -80,6 +89,8 @@ module ActionController
           :action_on_unpermitted_parameters,
           :always_permitted_parameters,
           :wrap_parameters_by_default,
+          :live_streaming_excluded_keys,
+          :rescue_from_event_backtrace
         )
 
         filtered_options.each do |k, v|
@@ -101,6 +112,22 @@ module ActionController
       end
     end
 
+    initializer "action_controller.open_redirects" do |app|
+      ActiveSupport.on_load(:action_controller, run_once: true) do
+        if app.config.action_controller.has_key?(:raise_on_open_redirects)
+          ActiveSupport.deprecator.warn(<<~MSG.squish)
+            `raise_on_open_redirects` is deprecated and will be removed in a future Rails version.
+            Use `config.action_controller.action_on_open_redirect = :raise` instead.
+          MSG
+
+          # Fallback to the default behavior in case of `load_default` set `action_on_open_redirect`, but apps set `raise_on_open_redirects`.
+          if app.config.action_controller.raise_on_open_redirects == false && app.config.action_controller.action_on_open_redirect == :raise
+            self.action_on_open_redirect = :log
+          end
+        end
+      end
+    end
+
     initializer "action_controller.query_log_tags" do |app|
       query_logs_tags_enabled = app.config.respond_to?(:active_record) &&
         app.config.active_record.query_log_tags_enabled &&
@@ -114,15 +141,7 @@ module ActionController
           ActiveRecord::QueryLogs.taggings = ActiveRecord::QueryLogs.taggings.merge(
             controller:            ->(context) { context[:controller]&.controller_name },
             action:                ->(context) { context[:controller]&.action_name },
-            namespaced_controller: ->(context) {
-              if context[:controller]
-                controller_class = context[:controller].class
-                # based on ActionController::Metal#controller_name, but does not demodulize
-                unless controller_class.anonymous?
-                  controller_class.name.delete_suffix("Controller").underscore
-                end
-              end
-            }
+            namespaced_controller: ->(context) { context[:controller]&.controller_path }
           )
         end
       end
@@ -131,6 +150,27 @@ module ActionController
     initializer "action_controller.test_case" do |app|
       ActiveSupport.on_load(:action_controller_test_case) do
         ActionController::TestCase.executor_around_each_request = app.config.active_support.executor_around_test_case
+      end
+    end
+
+    initializer "action_controller.backtrace_cleaner" do
+      ActiveSupport.on_load(:action_controller) do
+        ActionController::LogSubscriber.backtrace_cleaner = Rails.backtrace_cleaner
+      end
+    end
+
+    initializer "action_controller.structured_event_subscriber" do |app|
+      ActiveSupport.on_load(:action_controller) do
+        ActionController::StructuredEventSubscriber._rescue_from_event_backtrace = app.config.action_controller.rescue_from_event_backtrace
+      end
+    end
+
+    initializer "action_controller.ractorize" do
+      ActiveSupport.on_load(:before_ractorize) do
+        [AbstractController::Base, *AbstractController::Base.descendants].each do |controller|
+          Ractor.make_shareable(controller.config)
+          Ractor.make_shareable(controller._wrapper_options) if controller.include?(ActionController::ParamsWrapper)
+        end
       end
     end
   end

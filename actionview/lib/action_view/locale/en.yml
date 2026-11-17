@@ -43,6 +43,9 @@
       hour:   "Hour"
       minute: "Minute"
       second: "Seconds"
+    relative:
+      future: "in %{time}"
+      past: "%{time} ago"
 
   helpers:
     select:

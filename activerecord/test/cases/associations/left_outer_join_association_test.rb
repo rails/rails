@@ -24,6 +24,19 @@ class LeftOuterJoinAssociationTest < ActiveRecord::TestCase
     assert_equal 17, count
   end
 
+  def test_merging_joins_from_a_different_association_into_left_joins
+    rated = Comment.joins(:ratings)
+
+    expected = Post.joins(:comments).merge(rated).distinct.order(:id).to_a
+    posts = Post.left_joins(:comments).merge(rated).distinct.order(:id)
+
+    assert_not_empty expected
+
+    assert_queries_match(/LEFT OUTER JOIN .comments..*INNER JOIN .ratings./) do
+      assert_equal expected, posts.to_a
+    end
+  end
+
   def test_construct_finder_sql_applies_aliases_tables_on_association_conditions
     result = Author.left_outer_joins(:thinking_posts, :welcome_posts).first
     assert_equal authors(:david), result
@@ -129,5 +142,30 @@ class LeftOuterJoinAssociationTest < ActiveRecord::TestCase
 
     assert_match %r(#{Regexp.escape(quote_table_name("friendships.friend_id"))}), sql
     assert_match %r(#{Regexp.escape(quote_table_name("friendships.follower_id"))}), sql
+  end
+
+  def test_left_outer_joins_does_not_reuse_join_across_different_parent_paths
+    friend = Person.create!(first_name: "Friend")
+    follower = Person.create!(first_name: "Follower")
+    friend_job = Job.create!
+    follower_job = Job.create!
+    Reference.create!(person: friend, job: friend_job, favorite: true)
+    Reference.create!(person: follower, job: follower_job, favorite: true)
+    friendship = Friendship.create!(friend: friend, follower: follower)
+
+    jobs = Friendship.where(id: friendship).left_joins(
+      friend: :favorite_reference_job,
+      follower: :favorite_reference_job
+    ).pick("jobs.id", "favorite_reference_jobs_people.id")
+
+    assert_equal [friend_job.id, follower_job.id], jobs
+
+    loaded_friendship = Friendship.where(id: friendship).eager_load(
+      friend: :favorite_reference_job,
+      follower: :favorite_reference_job
+    ).take
+
+    assert_equal friend_job, loaded_friendship.friend.favorite_reference_job
+    assert_equal follower_job, loaded_friendship.follower.favorite_reference_job
   end
 end

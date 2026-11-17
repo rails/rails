@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+require "active_model/attribute"
+
 module Arel # :nodoc: all
   module Nodes
     class Casted < Arel::Nodes::NodeExpression # :nodoc:

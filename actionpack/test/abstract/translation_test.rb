@@ -76,6 +76,41 @@ module AbstractController
         end
       end
 
+      def test_lazy_scope_lookup
+        @controller.stub :action_name, :index do
+          assert_equal "<a>nested</a>", @controller.t("html", scope: ".nested")
+        end
+      end
+
+      def test_lazy_scope_lookup_with_symbol
+        @controller.stub :action_name, :index do
+          assert_equal "<a>nested</a>", @controller.t("html", scope: :".nested")
+        end
+      end
+
+      def test_relative_key_takes_precedence_over_relative_scope
+        @controller.stub :action_name, :index do
+          matcher_called = false
+          matcher = ->(key, options) do
+            matcher_called = true
+            assert_equal "abstract_controller.testing.translation.index.bar", key
+            assert_equal ".foo", options[:scope]
+          end
+
+          I18n.stub(:translate, matcher) do
+            @controller.t(".bar", scope: ".foo")
+          end
+
+          assert matcher_called
+        end
+      end
+
+      def test_absolute_scope_lookup_is_unaffected
+        @controller.stub :action_name, :index do
+          assert_equal "bar", @controller.t("two", scope: "one")
+        end
+      end
+
       def test_default_translation
         @controller.stub :action_name, :index do
           assert_equal "bar", @controller.t("one.two")

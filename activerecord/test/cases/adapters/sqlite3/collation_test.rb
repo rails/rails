@@ -4,6 +4,8 @@ require "cases/helper"
 require "support/schema_dumping_helper"
 
 class SQLite3CollationTest < ActiveRecord::SQLite3TestCase
+  skip_under_ractor_proxy
+
   include SchemaDumpingHelper
 
   def setup

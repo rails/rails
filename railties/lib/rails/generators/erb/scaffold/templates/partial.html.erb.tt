@@ -1,6 +1,6 @@
 <div id="<%%= dom_id <%= singular_name %> %>">
 <% attributes.reject(&:password_digest?).each do |attribute| -%>
-  <p>
+  <div>
     <strong><%= attribute.human_name %>:</strong>
 <% if attribute.attachment? -%>
     <%%= link_to <%= singular_name %>.<%= attribute.column_name %>.filename, <%= singular_name %>.<%= attribute.column_name %> if <%= singular_name %>.<%= attribute.column_name %>.attached? %>
@@ -11,7 +11,7 @@
 <% else -%>
     <%%= <%= singular_name %>.<%= attribute.column_name %> %>
 <% end -%>
-  </p>
+  </div>
 
 <% end -%>
 </div>

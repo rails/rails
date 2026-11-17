@@ -1,9 +1,13 @@
 # frozen_string_literal: true
 
 require "cases/helper"
+require "active_support/testing/ractors_assertions"
+require "active_support/core_ext/object/with"
+require "models/post"
 
 class OverloadedType < ActiveRecord::Base
   attribute :overloaded_float, :integer
+  attribute :overloaded_boolean, :integer
   attribute :overloaded_string_with_limit, :string, limit: 50
   attribute :non_existent_decimal, :decimal
   attribute :string_with_default, :string, default: "the overloaded default"
@@ -25,11 +29,26 @@ module ActiveRecord
     test "overloading types" do
       data = OverloadedType.new
 
+      assert_equal 500, data.overloaded_float
+      assert_nil data.unoverloaded_float
+
       data.overloaded_float = "1.1"
       data.unoverloaded_float = "1.1"
 
       assert_equal 1, data.overloaded_float
       assert_equal 1.1, data.unoverloaded_float
+    end
+
+    if current_adapter?(:Mysql2Adapter, :TrilogyAdapter)
+      test "overloading boolean types" do
+        # On MySQL-like databases `tinyint(1)` can easily be confused with a boolean.
+        data = OverloadedType.new
+
+        assert_equal 0, data.overloaded_boolean
+        data.overloaded_boolean = "2"
+        data.save!
+        assert_equal 2, data.overloaded_boolean
+      end
     end
 
     test "overloaded properties save" do
@@ -289,6 +308,37 @@ module ActiveRecord
       assert_equal(:bar, child.new(foo: :bar).foo)
     end
 
+    test "attributes added after attribute methods are generated still define methods" do
+      klass = Class.new(ActiveRecord::Base) do
+        self.table_name = "topics"
+      end
+      klass.new
+      assert_predicate klass, :attribute_methods_generated?
+
+      klass.attribute(:foo, Type::Value.new)
+      klass.define_attribute_methods
+
+      assert klass.method_defined?(:foo)
+      assert klass.method_defined?(:foo=)
+      assert klass.method_defined?(:foo_changed?)
+    end
+
+    test "attributes added after subclasses load define methods on the subclass" do
+      parent = Class.new(ActiveRecord::Base) do
+        self.table_name = "topics"
+      end
+
+      child = Class.new(parent)
+      child.new
+      assert_predicate child, :attribute_methods_generated?
+
+      parent.attribute(:foo, Type::Value.new)
+      child.define_attribute_methods
+
+      assert child.method_defined?(:foo)
+      assert child.method_defined?(:foo=)
+    end
+
     test "attributes not backed by database columns are not dirty when unchanged" do
       assert_not_predicate OverloadedType.new, :non_existent_decimal_changed?
     end
@@ -385,6 +435,53 @@ module ActiveRecord
       end
     end
 
+    test "immutable_strings_by_default only affects string columns" do
+      model = Class.new(Post) do
+        self.immutable_strings_by_default = true
+      end
+
+      assert_not_predicate model.type_for_attribute("title"), :mutable?
+
+      body = model.type_for_attribute("body")
+      assert_equal :text, body.type
+      assert_predicate body, :mutable?
+    end
+
+    test "immutable_strings_by_default leaves types that merely look like strings alone" do
+      # PostgreSQL's `xml`, `citext`, `macaddr` and friends subclass
+      # ActiveModel::Type::String, but carry their own #type along with their
+      # own serialization and comparison behavior.
+      type = Class.new(ActiveModel::Type::String) do
+        def type
+          :special_string
+        end
+      end.new
+      column = ActiveRecord::ConnectionAdapters::Column.new("special", type, nil)
+
+      model = Class.new(ActiveRecord::Base) do
+        self.immutable_strings_by_default = true
+      end
+
+      assert_same type, model.send(:type_for_column, column)
+    end
+
+    test "immutable_strings_by_default leaves types without an immutable counterpart alone" do
+      # PostgreSQL's `OID::Array` delegates #type to its subtype, so a
+      # `varchar[]` column reports `:string` without being a string type.
+      type = Class.new(ActiveModel::Type::Value) do
+        def type
+          :string
+        end
+      end.new
+      column = ActiveRecord::ConnectionAdapters::Column.new("tags", type, nil)
+
+      model = Class.new(ActiveRecord::Base) do
+        self.immutable_strings_by_default = true
+      end
+
+      assert_same type, model.send(:type_for_column, column)
+    end
+
     test "immutable_strings_by_default does not affect `attribute :foo, :string`" do
       with_immutable_strings do
         OverloadedType.reset_column_information
@@ -393,11 +490,81 @@ module ActiveRecord
       end
     end
 
+    test "define_attribute works after the schema is loaded with read only defaults" do
+      klass = Class.new(ActiveRecord::Base) do
+        self.table_name = "overloaded_types"
+      end
+      klass.load_schema
+      assert_predicate klass._default_attributes, :read_only?
+
+      klass.define_attribute("unoverloaded_float", Type::Integer.new)
+      klass.define_attribute("overloaded_float", Type::Integer.new, default: "3.3")
+      klass.define_attribute("non_existent_decimal", Type::Decimal.new, default: "1.5", user_provided_default: false)
+
+      assert_instance_of Type::Integer, klass.type_for_attribute("unoverloaded_float")
+      data = klass.new
+      assert_equal 3, data.overloaded_float
+      assert_equal BigDecimal("1.5"), data.non_existent_decimal
+
+      data.unoverloaded_float = "1.1"
+      assert_equal 1, data.unoverloaded_float
+    end
+
+    test "define_attribute accepts a default whose == only handles its own kind" do
+      default = Struct.new(:value) { def ==(other) = value == other.value }.new(1)
+      klass = Class.new(ActiveRecord::Base) do
+        self.table_name = "overloaded_types"
+      end
+
+      klass.define_attribute("non_existent_value", Type::Value.new, default: default)
+
+      assert_equal default, klass.new.non_existent_value
+    end
+
     test "serialize boolean for both string types" do
       default_string_type = Type.lookup(:string)
       immutable_string_type = Type.lookup(:immutable_string)
       assert_equal default_string_type.serialize(true), immutable_string_type.serialize(true)
       assert_equal default_string_type.serialize(false), immutable_string_type.serialize(false)
+    end
+
+    if RUBY_VERSION >= "4.0" && !in_memory_db?
+
+      class RactorTest < ActiveRecord::TestCase
+        include ActiveSupport::Testing::RactorsAssertions
+        include ActiveSupport::Testing::Isolation
+
+
+        test "attribute type is available in a Ractor" do
+          OverloadedType.reset_column_information
+          ActiveSupport::Ractors.with(unshareable_proc_action: :raise) do
+            OverloadedType.load_schema
+          end
+
+          type = on_ractor do
+            OverloadedType.type_for_attribute("overloaded_float")
+          end
+
+          assert_equal :integer, type.type
+        end
+      end
+    end
+
+    class RactorSchemaContextDeadlockTest < ActiveRecord::TestCase
+      include ActiveSupport::Testing::Isolation unless in_memory_db?
+
+      test "SchemaContext#attributes avoids recursive locking deadlocks when initializing modifiers" do
+        base_model = Class.new(ActiveRecord::Base) do
+          self.table_name = "topics"
+          encrypts :title # We use the encrypts modifier to demonstrate
+        end
+
+        child_model = Class.new(base_model)
+
+        assert_nothing_raised do
+          child_model.schema_context.attributes
+        end
+      end
     end
 
     private

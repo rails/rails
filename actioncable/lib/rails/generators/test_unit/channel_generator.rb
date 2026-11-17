@@ -1,7 +1,5 @@
 # frozen_string_literal: true
 
-# :markup: markdown
-
 module TestUnit
   module Generators
     class ChannelGenerator < ::Rails::Generators::NamedBase

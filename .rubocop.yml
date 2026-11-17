@@ -1,4 +1,4 @@
-require:
+plugins:
   - rubocop-minitest
   - rubocop-packaging
   - rubocop-performance
@@ -51,6 +51,10 @@ Rails/IndexWith:
 
 # Prefer &&/|| over and/or.
 Style/AndOr:
+  Enabled: true
+
+# Align `end` with the line that starts the block.
+Layout/BlockAlignment:
   Enabled: true
 
 Layout/ClosingHeredocIndentation:
@@ -120,6 +124,7 @@ Layout/IndentationWidth:
 
 Layout/LeadingCommentSpace:
   Enabled: true
+  AllowRBSInlineAnnotation: true
 
 Layout/SpaceAfterColon:
   Enabled: true
@@ -170,6 +175,12 @@ Style/FrozenStringLiteralComment:
     - 'activestorage/db/update_migrate/**/*.rb'
     - 'actionmailbox/db/migrate/**/*.rb'
     - 'actiontext/db/migrate/**/*.rb'
+    - '**/*.md'
+
+Style/MutableConstant:
+  Enabled: true
+  EnforcedStyle: literals
+  Exclude:
     - '**/*.md'
 
 Style/MapToHash:
@@ -382,7 +393,7 @@ Performance/RedundantStringChars:
 Performance/StringInclude:
   Enabled: true
 
-Minitest/AssertPredicate:
+Minitest/AssertNil:
   Enabled: true
 
 Minitest/AssertRaisesWithRegexpArgument:

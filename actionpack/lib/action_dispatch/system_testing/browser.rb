@@ -1,7 +1,5 @@
 # frozen_string_literal: true
 
-# :markup: markdown
-
 module ActionDispatch
   module SystemTesting
     class Browser # :nodoc:
@@ -65,7 +63,9 @@ module ActionDispatch
         def resolve_driver_path(namespace)
           # The path method has been deprecated in 4.20.0
           if Gem::Version.new(::Selenium::WebDriver::VERSION) >= Gem::Version.new("4.20.0")
-            namespace::Service.driver_path = ::Selenium::WebDriver::DriverFinder.new(options, namespace::Service.new).driver_path
+            driver_finder = ::Selenium::WebDriver::DriverFinder.new(options, namespace::Service.new)
+            namespace::Service.driver_path = driver_finder.driver_path
+            options.binary = driver_finder.browser_path if driver_finder.browser_path?
           else
             namespace::Service.driver_path = ::Selenium::WebDriver::DriverFinder.path(options, namespace::Service)
           end

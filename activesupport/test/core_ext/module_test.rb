@@ -56,6 +56,16 @@ Event = Struct.new(:case) do
   delegate :foo, to: :case
 end
 
+class BasicEvent < BasicObject
+  delegate :foo, to: :case
+
+  attr_reader :case
+
+  def initialize(kase)
+    @case = kase
+  end
+end
+
 Tester = Struct.new(:client) do
   delegate :name, to: :client, prefix: false
 
@@ -138,6 +148,16 @@ class Cavern
 
   def target
     @maze.passages = :twisty
+  end
+end
+
+class BasicCavern < BasicObject
+  delegate_missing_to :target
+
+  attr_reader :target
+
+  def initialize(target)
+    @target = target
   end
 end
 
@@ -490,6 +510,22 @@ class ModuleTest < ActiveSupport::TestCase
     deserialized_array = Marshal.load(serialized_array)
 
     assert_nil deserialized_array[1]
+  end
+
+  def test_delegate_to_missing_raises_delegation_error_on_basic_object
+    cavern = BasicCavern.new(nil)
+
+    assert_raises(Module::DelegationError) do
+      cavern.some_method
+    end
+  end
+
+  def test_delegate_raises_delegation_error_on_basic_object
+    cavern = BasicEvent.new(nil)
+
+    assert_raises(Module::DelegationError) do
+      cavern.foo
+    end
   end
 
   def test_delegate_with_case

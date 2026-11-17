@@ -41,7 +41,7 @@ module Rails
       test_unit: {
         fixture_replacement: "-r",
       }
-    }
+    }.freeze
 
     DEFAULT_OPTIONS = {
       rails: {
@@ -58,7 +58,7 @@ module Rails
         test_framework: nil,
         template_engine: :erb
       }
-    }
+    }.freeze
 
     # We need to store the RAILS_DEV_PATH in a constant, otherwise the path
     # can change when we FileUtils.cd.
@@ -97,14 +97,16 @@ module Rails
       # generator group to fall back to another group in case of missing generators,
       # they can add a fallback.
       #
-      # For example, shoulda is considered a +test_framework+ and is an extension
-      # of +test_unit+. However, most part of shoulda generators are similar to
-      # +test_unit+ ones.
+      # For example, shoulda is considered a `test_framework` and is an extension
+      # of `test_unit`. However, most part of shoulda generators are similar to
+      # `test_unit` ones.
       #
-      # Shoulda then can tell generators to search for +test_unit+ generators when
+      # Shoulda then can tell generators to search for `test_unit` generators when
       # some of them are not available by adding a fallback:
       #
-      #   Rails::Generators.fallbacks[:shoulda] = :test_unit
+      # ```
+      # Rails::Generators.fallbacks[:shoulda] = :test_unit
+      # ```
       def fallbacks
         @fallbacks ||= {}
       end
@@ -222,14 +224,18 @@ module Rails
 
       # Rails finds namespaces similar to Thor, it only adds one rule:
       #
-      # Generators names must end with "_generator.rb". This is required because Rails
+      # Generators names must end with "\_generator.rb". This is required because Rails
       # looks in load paths and loads the generator just before it's going to be used.
       #
-      #   find_by_namespace :webrat, :rails, :integration
+      # ```
+      # find_by_namespace :webrat, :rails, :integration
+      # ```
       #
       # Will search for the following generators:
       #
-      #   "rails:webrat", "webrat:integration", "webrat"
+      # ```
+      # "rails:webrat", "webrat:integration", "webrat"
+      # ```
       #
       # Notice that "rails:generators:webrat" could be loaded as well, what
       # Rails looks for is the first and last parts of the namespace.
@@ -319,7 +325,7 @@ module Rails
 
         def run_after_generate_callback
           if defined?(@@generated_files) && !@@generated_files.empty?
-            @after_generate_callbacks.each do |callback|
+            after_generate_callbacks.each do |callback|
               callback.call(@@generated_files)
             end
             @@generated_files = []

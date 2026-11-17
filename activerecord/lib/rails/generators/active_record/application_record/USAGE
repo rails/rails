@@ -5,4 +5,4 @@ Example:
     `bin/rails generate application_record`
 
     This generates the base class. A test is not generated because no
-    behaviour is included in `ApplicationRecord` by default.
+    behavior is included in `ApplicationRecord` by default.

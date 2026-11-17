@@ -4,7 +4,8 @@ require "active_support/core_ext/big_decimal/conversions"
 
 module ActiveRecord
   module ConnectionAdapters # :nodoc:
-    # = Active Record Connection Adapters \Quoting
+    # Active Record Connection Adapters \Quoting
+    # ==========================================
     module Quoting
       extend ActiveSupport::Concern
 
@@ -12,8 +13,10 @@ module ActiveRecord
         # Regexp for column names (with or without a table name prefix).
         # Matches the following:
         #
-        #   "#{table_name}.#{column_name}"
-        #   "#{column_name}"
+        # ```
+        # "#{table_name}.#{column_name}"
+        # "#{column_name}"
+        # ```
         def column_name_matcher
           /
             \A
@@ -32,14 +35,16 @@ module ActiveRecord
         # Regexp for column names with order (with or without a table name prefix,
         # with or without various order modifiers). Matches the following:
         #
-        #   "#{table_name}.#{column_name}"
-        #   "#{table_name}.#{column_name} #{direction}"
-        #   "#{table_name}.#{column_name} #{direction} NULLS FIRST"
-        #   "#{table_name}.#{column_name} NULLS LAST"
-        #   "#{column_name}"
-        #   "#{column_name} #{direction}"
-        #   "#{column_name} #{direction} NULLS FIRST"
-        #   "#{column_name} NULLS LAST"
+        # ```
+        # "#{table_name}.#{column_name}"
+        # "#{table_name}.#{column_name} #{direction}"
+        # "#{table_name}.#{column_name} #{direction} NULLS FIRST"
+        # "#{table_name}.#{column_name} NULLS LAST"
+        # "#{column_name}"
+        # "#{column_name} #{direction}"
+        # "#{column_name} #{direction} NULLS FIRST"
+        # "#{column_name} NULLS LAST"
+        # ```
         def column_name_with_order_matcher
           /
             \A
@@ -68,10 +73,10 @@ module ActiveRecord
       end
 
       # Quotes the column value to help prevent
-      # {SQL injection attacks}[https://en.wikipedia.org/wiki/SQL_injection].
+      # [SQL injection attacks](https://en.wikipedia.org/wiki/SQL_injection).
       def quote(value)
         case value
-        when String, Symbol, ActiveSupport::Multibyte::Chars
+        when String, Symbol
           "'#{quote_string(value.to_s)}'"
         when true       then quoted_true
         when false      then quoted_false
@@ -88,12 +93,12 @@ module ActiveRecord
         end
       end
 
-      # Cast a +value+ to a type that the database understands. For example,
+      # Cast a `value` to a type that the database understands. For example,
       # SQLite does not understand dates, so this method will convert a Date
       # to a String.
       def type_cast(value)
         case value
-        when Symbol, Type::Binary::Data, ActiveSupport::Multibyte::Chars
+        when Symbol, Type::Binary::Data
           value.to_s
         when true       then unquoted_true
         when false      then unquoted_false
@@ -146,9 +151,7 @@ module ActiveRecord
         if value.is_a?(Proc)
           value.call
         else
-          # TODO: Remove fetch_cast_type and the need for connection after we release 8.1.
-          cast_type = column.fetch_cast_type(self)
-          value = cast_type.serialize(value)
+          value = column.cast_type.serialize(value)
           quote(value)
         end
       end
@@ -198,9 +201,9 @@ module ActiveRecord
       end
 
       def sanitize_as_sql_comment(value) # :nodoc:
-        # Sanitize a string to appear within a SQL comment
+        # Sanitize a string to appear within an SQL comment
         # For compatibility, this also surrounding "/*+", "/*", and "*/"
-        # charcacters, possibly with single surrounding space.
+        # characters, possibly with single surrounding space.
         # Then follows that by replacing any internal "*/" or "/*" with
         # "* /" or "/ *"
         comment = value.to_s.dup
@@ -210,21 +213,21 @@ module ActiveRecord
         comment
       end
 
-      def lookup_cast_type(sql_type) # :nodoc:
-        # TODO: Make this method private after we release 8.1.
-        type_map.lookup(sql_type)
-      end
+      def type_casted_binds(binds) # :nodoc:
+        return binds if binds.nil? || binds.empty?
 
-      private
-        def type_casted_binds(binds)
-          binds&.map do |value|
-            if ActiveModel::Attribute === value
-              type_cast(value.value_for_database)
-            else
-              type_cast(value)
-            end
+        binds.map do |value|
+          if ActiveModel::Attribute === value
+            type_cast(value.value_for_database)
+          else
+            type_cast(value)
           end
         end
+      end
+
+      def lookup_cast_type(sql_type) # :nodoc:
+        type_map.lookup(sql_type)
+      end
     end
   end
 end

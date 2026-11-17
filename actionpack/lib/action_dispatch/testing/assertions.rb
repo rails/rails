@@ -1,7 +1,5 @@
 # frozen_string_literal: true
 
-# :markup: markdown
-
 require "rails-dom-testing"
 require "action_dispatch/testing/assertions/response"
 require "action_dispatch/testing/assertions/routing"

@@ -28,6 +28,7 @@ require "active_support/rails"
 require "active_model/version"
 require "active_model/deprecator"
 
+# :markup: rdoc
 # :include: ../README.rdoc
 module ActiveModel
   extend ActiveSupport::Autoload
@@ -49,6 +50,7 @@ module ActiveModel
   autoload :Model
   autoload :Name, "active_model/naming"
   autoload :Naming
+  autoload :SchematizedJson
   autoload :SecurePassword
   autoload :Serialization
   autoload :Translation
@@ -56,19 +58,15 @@ module ActiveModel
   autoload :Validations
   autoload :Validator
 
-  module Attributes
-    extend ActiveSupport::Autoload
-
-    autoload :Normalization
-  end
-
   eager_autoload do
     autoload :Errors
     autoload :Error
+    autoload :MissingAttributeError
     autoload :RangeError, "active_model/errors"
     autoload :StrictValidationFailed, "active_model/errors"
     autoload :UnknownAttributeError, "active_model/errors"
     autoload :ValidationError, "active_model/validations"
+    autoload :IndexedRow
   end
 
   module Serializers

@@ -2,28 +2,29 @@
 
 require "time"
 require "active_support/json"
+require "active_support/core_ext/time/calculations"
 require_relative "serializer_with_fallback"
 
 module ActiveSupport
   module Messages # :nodoc:
     module Metadata # :nodoc:
-      singleton_class.attr_accessor :use_message_serializer_for_metadata
+      singleton_class.attr_accessor :use_message_serializer_for_metadata, :envelope_serializers, :timestamp_serializers
 
-      ENVELOPE_SERIALIZERS = [
+      self.envelope_serializers = [
         *SerializerWithFallback::SERIALIZERS.values,
         ActiveSupport::JSON,
         ::JSON,
         Marshal,
-      ]
+      ].freeze
 
-      TIMESTAMP_SERIALIZERS = [
+      self.timestamp_serializers = [
         SerializerWithFallback::SERIALIZERS.fetch(:message_pack),
         SerializerWithFallback::SERIALIZERS.fetch(:message_pack_allow_marshal),
-      ]
+      ].freeze
 
       ActiveSupport.on_load(:message_pack) do
-        ENVELOPE_SERIALIZERS << ActiveSupport::MessagePack
-        TIMESTAMP_SERIALIZERS << ActiveSupport::MessagePack
+        ActiveSupport::Messages::Metadata.envelope_serializers = (ActiveSupport::Messages::Metadata.envelope_serializers | [ActiveSupport::MessagePack]).freeze
+        ActiveSupport::Messages::Metadata.timestamp_serializers = (ActiveSupport::Messages::Metadata.timestamp_serializers | [ActiveSupport::MessagePack]).freeze
       end
 
       private
@@ -58,7 +59,7 @@ module ActiveSupport
         end
 
         def use_message_serializer_for_metadata?
-          Metadata.use_message_serializer_for_metadata && Metadata::ENVELOPE_SERIALIZERS.include?(serializer)
+          Metadata.use_message_serializer_for_metadata && Metadata.envelope_serializers.include?(serializer)
         end
 
         def wrap_in_metadata_envelope(hash, expires_at: nil, expires_in: nil, purpose: nil)
@@ -104,7 +105,7 @@ module ActiveSupport
             Time.now.utc.advance(seconds: expires_in)
           end
 
-          unless Metadata::TIMESTAMP_SERIALIZERS.include?(serializer)
+          unless Metadata.timestamp_serializers.include?(serializer)
             expiry = expiry&.iso8601(3)
           end
 

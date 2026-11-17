@@ -83,9 +83,26 @@ class ParameterFilterTest < ActiveSupport::TestCase
     assert_equal "non secret value", parameter_filter.filter_param("baz", "non secret value")
   end
 
+  test "filter_param passes the pair to a proc filter as the original params" do
+    parameter_filter = ActiveSupport::ParameterFilter.new([
+      ->(key, value, original_params) { value.replace("[FILTERED]") if original_params[key] == "secret" }
+    ])
+    assert_equal "[FILTERED]", parameter_filter.filter_param("token", "secret")
+    assert_equal "visible", parameter_filter.filter_param("token", "visible")
+  end
+
   test "filter_param can work with empty filters" do
     parameter_filter = ActiveSupport::ParameterFilter.new
     assert_equal "bar", parameter_filter.filter_param("foo", "bar")
+  end
+
+  test "filter with empty filters returns a dup of the params" do
+    parameter_filter = ActiveSupport::ParameterFilter.new
+    original = { "foo" => "bar" }
+    filtered = parameter_filter.filter(original)
+
+    assert_equal original, filtered
+    assert_not_same original, filtered
   end
 
   test "parameter filter should maintain hash with indifferent access" do
@@ -122,6 +139,41 @@ class ParameterFilterTest < ActiveSupport::TestCase
     end
   end
 
+  test "anchored exact-match regexp filters" do
+    parameter_filter = ActiveSupport::ParameterFilter.new([/^token$/, /\Astate\z/, /password/])
+    result = parameter_filter.filter("token" => "t0k3n", "state" => "abc", "password" => "pass", "user_password" => "pass", "not_secret" => "visible")
+    assert_equal({ "token" => "[FILTERED]", "state" => "[FILTERED]", "password" => "[FILTERED]", "user_password" => "[FILTERED]", "not_secret" => "visible" }, result)
+  end
+
+  test "^...$ anchored regexp filters still match keys containing newlines" do
+    parameter_filter = ActiveSupport::ParameterFilter.new([/^token$/])
+
+    assert_equal "[FILTERED]", parameter_filter.filter_param("token\nfoo", "secret")
+    assert_equal "[FILTERED]", parameter_filter.filter_param("foo\ntoken", "secret")
+    assert_equal "[FILTERED]", parameter_filter.filter_param("foo\ntoken\nbar", "secret")
+    assert_equal "visible", parameter_filter.filter_param("not_token\nfoo", "visible")
+  end
+
+  test "\\A...\\z anchored regexp filters do not match keys containing newlines" do
+    parameter_filter = ActiveSupport::ParameterFilter.new([/\Atoken\z/])
+
+    assert_equal "[FILTERED]", parameter_filter.filter_param("token", "secret")
+    assert_equal "visible", parameter_filter.filter_param("token\nfoo", "visible")
+    assert_equal "visible", parameter_filter.filter_param("foo\ntoken", "visible")
+  end
+
+  test "mixed-anchor regexp filters preserve their asymmetric semantics" do
+    first_line_filter = ActiveSupport::ParameterFilter.new([/\Atoken$/])
+    assert_equal "[FILTERED]", first_line_filter.filter_param("token", "secret")
+    assert_equal "[FILTERED]", first_line_filter.filter_param("token\nfoo", "secret")
+    assert_equal "visible", first_line_filter.filter_param("foo\ntoken", "visible")
+
+    last_line_filter = ActiveSupport::ParameterFilter.new([/^token\z/])
+    assert_equal "[FILTERED]", last_line_filter.filter_param("token", "secret")
+    assert_equal "visible", last_line_filter.filter_param("token\nfoo", "visible")
+    assert_equal "[FILTERED]", last_line_filter.filter_param("foo\ntoken", "secret")
+  end
+
   test "precompile_filters" do
     patterns = [/A.a/, /b.B/i, "ccC", :ddD]
     keys = ["Aaa", "Bbb", "Ccc", "Ddd"]
@@ -134,15 +186,77 @@ class ParameterFilterTest < ActiveSupport::TestCase
     assert_equal 2, precompiled.grep(Regexp).length
     assert_equal 2 + procs.length, precompiled.length
 
-    regexp = precompiled.find { |filter| filter.to_s.include?(patterns.first.to_s) }
+    regexp = precompiled.grep(Regexp).first
     keys.each { |key| assert_match regexp, key }
     assert_no_match regexp, keys.first.swapcase
 
-    deep_regexp = precompiled.find { |filter| filter.to_s.include?(deep_patterns.first.to_s) }
+    deep_regexp = precompiled.grep(Regexp).last
     deep_keys.each { |deep_key| assert_match deep_regexp, deep_key }
     assert_no_match deep_regexp, deep_keys.first.swapcase
 
-    assert_not_equal regexp, deep_regexp
     assert_equal procs, precompiled & procs
+  end
+
+  test "precompile_filters eliminate dead patterns" do
+    assert_equal [/token/i], ActiveSupport::ParameterFilter.precompile_filters(["user.token", "token"])
+    assert_equal [/password/i], ActiveSupport::ParameterFilter.precompile_filters(["user_password", "password"])
+  end
+
+  test "precompile_filters preserves nested key matching alongside deep filters" do
+    filters = [/\Atoken\z/, "credit_card.number"]
+    params = {
+      "account" => { "token" => "secret", "name" => "visible" },
+      "accounts" => [{ "token" => "secret" }],
+      "credit_card" => { "number" => "secret", "name" => "visible" }
+    }
+    expected = {
+      "account" => { "token" => "[FILTERED]", "name" => "visible" },
+      "accounts" => [{ "token" => "[FILTERED]" }],
+      "credit_card" => { "number" => "[FILTERED]", "name" => "visible" }
+    }
+
+    assert_equal expected, ActiveSupport::ParameterFilter.new(filters).filter(params)
+    precompiled = ActiveSupport::ParameterFilter.precompile_filters(filters)
+    assert_equal expected, ActiveSupport::ParameterFilter.new(precompiled).filter(params)
+  end
+
+  test "precompile_filters preserves case insensitive string filters alongside regexps" do
+    filters = [/token/, :token]
+    params = { "TOKEN" => "secret", "access_TOKEN" => "secret", "name" => "visible" }
+    expected = { "TOKEN" => "[FILTERED]", "access_TOKEN" => "[FILTERED]", "name" => "visible" }
+
+    assert_equal expected, ActiveSupport::ParameterFilter.new(filters).filter(params)
+    precompiled = ActiveSupport::ParameterFilter.precompile_filters(filters)
+    assert_equal expected, ActiveSupport::ParameterFilter.new(precompiled).filter(params)
+  end
+
+  test "precompile_filters preserves partial string filters alongside anchored regexps" do
+    filters = [/\Atoken\z/i, :token]
+    params = { "access_token" => "secret", "token_confirmation" => "secret", "name" => "visible" }
+    expected = { "access_token" => "[FILTERED]", "token_confirmation" => "[FILTERED]", "name" => "visible" }
+
+    assert_equal expected, ActiveSupport::ParameterFilter.new(filters).filter(params)
+    precompiled = ActiveSupport::ParameterFilter.precompile_filters(filters)
+    assert_equal expected, ActiveSupport::ParameterFilter.new(precompiled).filter(params)
+  end
+
+  test "precompile_filters preserves string filters alongside end anchored regexps" do
+    filters = [/token\z/, :token]
+    params = { "token_x" => "secret", "name" => "visible" }
+    expected = { "token_x" => "[FILTERED]", "name" => "visible" }
+
+    assert_equal expected, ActiveSupport::ParameterFilter.new(filters).filter(params)
+    precompiled = ActiveSupport::ParameterFilter.precompile_filters(filters)
+    assert_equal expected, ActiveSupport::ParameterFilter.new(precompiled).filter(params)
+  end
+
+  test "precompile_filters preserves deep string filters alongside regexps" do
+    filters = [/\Auser\.token\z/, "user.token"]
+    params = { "USER" => { "TOKEN" => "secret" }, "user" => { "token_confirmation" => "secret" } }
+    expected = { "USER" => { "TOKEN" => "[FILTERED]" }, "user" => { "token_confirmation" => "[FILTERED]" } }
+
+    assert_equal expected, ActiveSupport::ParameterFilter.new(filters).filter(params)
+    precompiled = ActiveSupport::ParameterFilter.precompile_filters(filters)
+    assert_equal expected, ActiveSupport::ParameterFilter.new(precompiled).filter(params)
   end
 end

@@ -6,6 +6,7 @@ require "active_support/testing/setup_and_teardown"
 require "active_support/testing/tests_without_assertions"
 require "active_support/testing/assertions"
 require "active_support/testing/error_reporter_assertions"
+require "active_support/testing/event_reporter_assertions"
 require "active_support/testing/deprecation"
 require "active_support/testing/declarative"
 require "active_support/testing/isolation"
@@ -22,64 +23,123 @@ module ActiveSupport
   class TestCase < ::Minitest::Test
     Assertion = Minitest::Assertion
 
+    # Class variable to store the parallel worker ID
+    @@parallel_worker_id = nil
+
     class << self
+      # Returns the current parallel worker ID if tests are running in parallel,
+      # nil otherwise.
+      #
+      # ```
+      # ActiveSupport::TestCase.parallel_worker_id # => 2
+      # ```
+      def parallel_worker_id
+        @@parallel_worker_id
+      end
+
+      def parallel_worker_id=(value) # :nodoc:
+        @@parallel_worker_id = value
+      end
+
       # Sets the order in which test cases are run.
       #
-      #   ActiveSupport::TestCase.test_order = :random # => :random
+      # ```
+      # ActiveSupport::TestCase.test_order = :random # => :random
+      # ```
       #
       # Valid values are:
-      # * +:random+   (to run tests in random order)
-      # * +:parallel+ (to run tests in parallel)
-      # * +:sorted+   (to run tests alphabetically by method name)
-      # * +:alpha+    (equivalent to +:sorted+)
+      # * `:random`   (to run tests in random order)
+      # * `:parallel` (to run tests in parallel)
+      # * `:sorted`   (to run tests alphabetically by method name)
+      # * `:alpha`    (equivalent to `:sorted`)
       def test_order=(new_order)
         ActiveSupport.test_order = new_order
       end
 
       # Returns the order in which test cases are run.
       #
-      #   ActiveSupport::TestCase.test_order # => :random
+      # ```
+      # ActiveSupport::TestCase.test_order # => :random
+      # ```
       #
-      # Possible values are +:random+, +:parallel+, +:alpha+, +:sorted+.
-      # Defaults to +:random+.
+      # Possible values are `:random`, `:parallel`, `:alpha`, `:sorted`.
+      # Defaults to `:random`.
       def test_order
         ActiveSupport.test_order ||= :random
       end
 
+      if Minitest::Runnable.respond_to? :run_order # MT6 API change
+        def run_order # :nodoc:
+          test_order
+        end
+      end
+
       # Parallelizes the test suite.
       #
-      # Takes a +workers+ argument that controls how many times the process
+      # Takes a `workers` argument that controls how many times the process
       # is forked. For each process a new database will be created suffixed
       # with the worker number.
       #
-      #   test-database_0
-      #   test-database_1
+      # ```
+      # test-database_0
+      # test-database_1
+      # ```
       #
-      # If <tt>ENV["PARALLEL_WORKERS"]</tt> is set the workers argument will be ignored
+      # If `ENV["PARALLEL_WORKERS"]` is set the workers argument will be ignored
       # and the environment variable will be used instead. This is useful for CI
       # environments, or other environments where you may need more workers than
-      # you do for local testing.
+      # you do for local testing. Note that setting `PARALLEL_WORKERS` will
+      # also bypass the `threshold` check, enabling parallelization regardless of
+      # test count.
       #
-      # If the number of workers is set to +1+ or fewer, the tests will not be
+      # If the number of workers is set to `1` or fewer, the tests will not be
       # parallelized.
       #
-      # If +workers+ is set to +:number_of_processors+, the number of workers will be
+      # If `workers` is set to `:number_of_processors`, the number of workers will be
       # set to the actual core count on the machine you are on.
       #
       # The default parallelization method is to fork processes. If you'd like to
-      # use threads instead you can pass <tt>with: :threads</tt> to the +parallelize+
+      # use threads instead you can pass `with: :threads` to the `parallelize`
       # method. Note the threaded parallelization does not create multiple
       # databases and will not work with system tests.
       #
-      #   parallelize(workers: :number_of_processors, with: :threads)
+      # ```
+      # parallelize(workers: :number_of_processors, with: :threads)
+      # ```
       #
       # The threaded parallelization uses minitest's parallel executor directly.
       # The processes parallelization uses a Ruby DRb server.
       #
       # Because parallelization presents an overhead, it is only enabled when the
-      # number of tests to run is above the +threshold+ param. The default value is
-      # 50, and it's configurable via +config.active_support.test_parallelization_threshold+.
-      def parallelize(workers: :number_of_processors, with: :processes, threshold: ActiveSupport.test_parallelization_threshold)
+      # number of tests to run is above the `threshold` param. The default value is
+      # 50, and it's configurable via `config.active_support.test_parallelization_threshold`.
+      #
+      # Parallelization shuffles tests and distributes them to workers in
+      # round-robin order, so given the same seed value and worker count, the
+      # same sequence of tests will run on each worker. This makes flaky tests
+      # caused by parallel test interdependence somewhat easier to reproduce,
+      # though it is not a guarantee of deterministic test execution.
+      #
+      # This can make test runtime slower and spikier when one worker gets most
+      # of the slow tests. Enable `work_stealing` to allow idle workers to steal
+      # tests from busy workers, smoothing out runtime at the cost of less
+      # reproducible flaky-test failures:
+      #
+      # ```
+      # parallelize(workers: :number_of_processors, work_stealing: true)
+      # ```
+      #
+      # If you want to skip Rails default creation of one database per process in favor of
+      # writing your own implementation, you can set `parallelize_databases`, or configure it
+      # via `config.active_support.parallelize_test_databases`.
+      #
+      # ```
+      # parallelize(workers: :number_of_processors, parallelize_databases: false)
+      # ```
+      #
+      # Note that your test suite may deadlock if you attempt to use only one database
+      # with multiple processes.
+      def parallelize(workers: :number_of_processors, with: :processes, threshold: ActiveSupport.test_parallelization_threshold, parallelize_databases: ActiveSupport.parallelize_test_databases, work_stealing: false)
         case
         when ENV["PARALLEL_WORKERS"]
           workers = ENV["PARALLEL_WORKERS"].to_i
@@ -87,22 +147,44 @@ module ActiveSupport
           workers = (Concurrent.available_processor_count || Concurrent.processor_count).floor
         end
 
-        Minitest.parallel_executor = ActiveSupport::Testing::ParallelizeExecutor.new(size: workers, with: with, threshold: threshold)
+        if with == :processes
+          ActiveSupport.parallelize_test_databases = parallelize_databases
+        end
+
+        Minitest.parallel_executor = ActiveSupport::Testing::ParallelizeExecutor.new(size: workers, with: with, threshold: threshold, work_stealing: work_stealing)
       end
 
-      # Set up hook for parallel testing. This can be used if you have multiple
+      # Before fork hook for parallel testing. This can be used to run anything
+      # before the processes are forked.
+      #
+      # In your `test_helper.rb` add the following:
+      #
+      # ```
+      # class ActiveSupport::TestCase
+      #   parallelize_before_fork do
+      #     # run this before fork
+      #   end
+      # end
+      # ```
+      def parallelize_before_fork(&block)
+        ActiveSupport::Testing::Parallelization.before_fork_hook(&block)
+      end
+
+      # Setup hook for parallel testing. This can be used if you have multiple
       # databases or any behavior that needs to be run after the process is forked
       # but before the tests run.
       #
       # Note: this feature is not available with the threaded parallelization.
       #
-      # In your +test_helper.rb+ add the following:
+      # In your `test_helper.rb` add the following:
       #
-      #   class ActiveSupport::TestCase
-      #     parallelize_setup do
-      #       # create databases
-      #     end
+      # ```
+      # class ActiveSupport::TestCase
+      #   parallelize_setup do
+      #     # create databases
       #   end
+      # end
+      # ```
       def parallelize_setup(&block)
         ActiveSupport::Testing::Parallelization.after_fork_hook(&block)
       end
@@ -113,13 +195,15 @@ module ActiveSupport
       #
       # Note: this feature is not available with the threaded parallelization.
       #
-      # In your +test_helper.rb+ add the following:
+      # In your `test_helper.rb` add the following:
       #
-      #   class ActiveSupport::TestCase
-      #     parallelize_teardown do
-      #       # drop databases
-      #     end
+      # ```
+      # class ActiveSupport::TestCase
+      #   parallelize_teardown do
+      #     # drop databases
       #   end
+      # end
+      # ```
       def parallelize_teardown(&block)
         ActiveSupport::Testing::Parallelization.run_cleanup_hook(&block)
       end
@@ -128,7 +212,7 @@ module ActiveSupport
       #
       # Returns the ActiveRecord::FixtureSet collection.
       #
-      # In your +test_helper.rb+ you must have <tt>require "rails/test_help"</tt>.
+      # In your `test_helper.rb` you must have `require "rails/test_help"`.
 
       # :singleton-method: fixture_paths=
       #
@@ -139,18 +223,26 @@ module ActiveSupport
       #
       # Can also append multiple paths.
       #
-      #   ActiveSupport::TestCase.fixture_paths << "component1/test/fixtures"
+      # ```
+      # ActiveSupport::TestCase.fixture_paths << "component1/test/fixtures"
+      # ```
       #
-      # In your +test_helper.rb+ you must have <tt>require "rails/test_help"</tt>.
+      # In your `test_helper.rb` you must have `require "rails/test_help"`.
     end
 
     alias_method :method_name, :name
+
+    # Returns the current parallel worker ID if tests are running in parallel
+    def parallel_worker_id
+      self.class.parallel_worker_id
+    end
 
     include ActiveSupport::Testing::TaggedLogging
     prepend ActiveSupport::Testing::SetupAndTeardown
     prepend ActiveSupport::Testing::TestsWithoutAssertions
     include ActiveSupport::Testing::Assertions
     include ActiveSupport::Testing::ErrorReporterAssertions
+    include ActiveSupport::Testing::EventReporterAssertions
     include ActiveSupport::Testing::NotificationAssertions
     include ActiveSupport::Testing::Deprecation
     include ActiveSupport::Testing::ConstantStubbing
@@ -164,7 +256,7 @@ module ActiveSupport
     # :call-seq:
     #   assert_not_empty(obj, msg = nil)
     #
-    # Alias for: refute_empty[https://docs.seattlerb.org/minitest/Minitest/Assertions.html#method-i-refute_empty]
+    # Alias for: [refute_empty](https://docs.seattlerb.org/minitest/Minitest/Assertions.html#method-i-refute_empty)
 
     #
     alias :assert_not_empty :refute_empty
@@ -175,7 +267,7 @@ module ActiveSupport
     # :call-seq:
     #   assert_not_equal(exp, act, msg = nil)
     #
-    # Alias for: refute_equal[https://docs.seattlerb.org/minitest/Minitest/Assertions.html#method-i-refute_equal]
+    # Alias for: [refute_equal](https://docs.seattlerb.org/minitest/Minitest/Assertions.html#method-i-refute_equal)
 
     #
     alias :assert_not_equal :refute_equal
@@ -186,7 +278,7 @@ module ActiveSupport
     # :call-seq:
     #   assert_not_in_delta(exp, act, delta = 0.001, msg = nil)
     #
-    # Alias for: refute_in_delta[https://docs.seattlerb.org/minitest/Minitest/Assertions.html#method-i-refute_in_delta]
+    # Alias for: [refute_in_delta](https://docs.seattlerb.org/minitest/Minitest/Assertions.html#method-i-refute_in_delta)
 
     #
     alias :assert_not_in_delta :refute_in_delta
@@ -197,7 +289,7 @@ module ActiveSupport
     # :call-seq:
     #   assert_not_in_epsilon(a, b, epsilon = 0.001, msg = nil)
     #
-    # Alias for: refute_in_epsilon[https://docs.seattlerb.org/minitest/Minitest/Assertions.html#method-i-refute_in_epsilon]
+    # Alias for: [refute_in_epsilon](https://docs.seattlerb.org/minitest/Minitest/Assertions.html#method-i-refute_in_epsilon)
 
     #
     alias :assert_not_in_epsilon :refute_in_epsilon
@@ -208,7 +300,7 @@ module ActiveSupport
     # :call-seq:
     #   assert_not_includes(collection, obj, msg = nil)
     #
-    # Alias for: refute_includes[https://docs.seattlerb.org/minitest/Minitest/Assertions.html#method-i-refute_includes]
+    # Alias for: [refute_includes](https://docs.seattlerb.org/minitest/Minitest/Assertions.html#method-i-refute_includes)
 
     #
     alias :assert_not_includes :refute_includes
@@ -219,7 +311,7 @@ module ActiveSupport
     # :call-seq:
     #   assert_not_instance_of(cls, obj, msg = nil)
     #
-    # Alias for: refute_instance_of[https://docs.seattlerb.org/minitest/Minitest/Assertions.html#method-i-refute_instance_of]
+    # Alias for: [refute_instance_of](https://docs.seattlerb.org/minitest/Minitest/Assertions.html#method-i-refute_instance_of)
 
     #
     alias :assert_not_instance_of :refute_instance_of
@@ -230,7 +322,7 @@ module ActiveSupport
     # :call-seq:
     #   assert_not_kind_of(cls, obj, msg = nil)
     #
-    # Alias for: refute_kind_of[https://docs.seattlerb.org/minitest/Minitest/Assertions.html#method-i-refute_kind_of]
+    # Alias for: [refute_kind_of](https://docs.seattlerb.org/minitest/Minitest/Assertions.html#method-i-refute_kind_of)
 
     #
     alias :assert_not_kind_of :refute_kind_of
@@ -241,7 +333,7 @@ module ActiveSupport
     # :call-seq:
     #   assert_no_match(matcher, obj, msg = nil)
     #
-    # Alias for: refute_match[https://docs.seattlerb.org/minitest/Minitest/Assertions.html#method-i-refute_match]
+    # Alias for: [refute_match](https://docs.seattlerb.org/minitest/Minitest/Assertions.html#method-i-refute_match)
 
     #
     alias :assert_no_match :refute_match
@@ -252,7 +344,7 @@ module ActiveSupport
     # :call-seq:
     #   assert_not_nil(obj, msg = nil)
     #
-    # Alias for: refute_nil[https://docs.seattlerb.org/minitest/Minitest/Assertions.html#method-i-refute_nil]
+    # Alias for: [refute_nil](https://docs.seattlerb.org/minitest/Minitest/Assertions.html#method-i-refute_nil)
 
     #
     alias :assert_not_nil :refute_nil
@@ -263,10 +355,21 @@ module ActiveSupport
     # :call-seq:
     #   assert_not_operator(o1, op, o2 = UNDEFINED, msg = nil)
     #
-    # Alias for: refute_operator[https://docs.seattlerb.org/minitest/Minitest/Assertions.html#method-i-refute_operator]
+    # Alias for: [refute_operator](https://docs.seattlerb.org/minitest/Minitest/Assertions.html#method-i-refute_operator)
 
     #
     alias :assert_not_operator :refute_operator
+
+    ##
+    # :method: assert_not_pattern
+    #
+    # :call-seq:
+    #   assert_not_pattern() { || ... }
+    #
+    # Alias for: [refute_pattern](https://docs.seattlerb.org/minitest/Minitest/Assertions.html#method-i-refute_pattern)
+
+    #
+    alias :assert_not_pattern :refute_pattern if method_defined?(:refute_pattern)
 
     ##
     # :method: assert_not_predicate
@@ -274,7 +377,7 @@ module ActiveSupport
     # :call-seq:
     #   assert_not_predicate(o1, op, msg = nil)
     #
-    # Alias for: refute_predicate[https://docs.seattlerb.org/minitest/Minitest/Assertions.html#method-i-refute_predicate]
+    # Alias for: [refute_predicate](https://docs.seattlerb.org/minitest/Minitest/Assertions.html#method-i-refute_predicate)
 
     #
     alias :assert_not_predicate :refute_predicate
@@ -285,7 +388,7 @@ module ActiveSupport
     # :call-seq:
     #   assert_not_respond_to(obj, meth, msg = nil)
     #
-    # Alias for: refute_respond_to[https://docs.seattlerb.org/minitest/Minitest/Assertions.html#method-i-refute_respond_to]
+    # Alias for: [refute_respond_to](https://docs.seattlerb.org/minitest/Minitest/Assertions.html#method-i-refute_respond_to)
 
     #
     alias :assert_not_respond_to :refute_respond_to
@@ -296,7 +399,7 @@ module ActiveSupport
     # :call-seq:
     #   assert_not_same(exp, act, msg = nil)
     #
-    # Alias for: refute_same[https://docs.seattlerb.org/minitest/Minitest/Assertions.html#method-i-refute_same]
+    # Alias for: [refute_same](https://docs.seattlerb.org/minitest/Minitest/Assertions.html#method-i-refute_same)
 
     #
     alias :assert_not_same :refute_same

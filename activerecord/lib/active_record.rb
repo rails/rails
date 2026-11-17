@@ -26,20 +26,25 @@
 require "active_support"
 require "active_support/rails"
 require "active_support/ordered_options"
+require "active_support/core_ext/array/conversions"
 require "active_model"
-require "arel"
 require "yaml"
 require "zlib"
+
+# Loaded with ActiveRecord::Base, rather than by every process that requires Active Record.
+autoload :Arel, "arel"
 
 require "active_record/version"
 require "active_record/deprecator"
 require "active_model/attribute_set"
 require "active_record/errors"
 
+# :markup: rdoc
 # :include: ../README.rdoc
 module ActiveRecord
   extend ActiveSupport::Autoload
 
+  autoload :AssociationLink, "active_record/association_route"
   autoload :Base
   autoload :Callbacks
   autoload :ConnectionHandling
@@ -52,9 +57,11 @@ module ActiveRecord
   autoload :Enum
   autoload :Explain
   autoload :FixtureSet, "active_record/fixtures"
+  autoload :FilterAttributeHandler
   autoload :Inheritance
   autoload :Integration
   autoload :InternalMetadata
+  autoload :Key
   autoload :LogSubscriber
   autoload :Marshalling
   autoload :Migration
@@ -86,7 +93,6 @@ module ActiveRecord
   autoload :Timestamp
   autoload :TokenFor
   autoload :TouchLater
-  autoload :Transaction
   autoload :Transactions
   autoload :Translation
   autoload :Validations
@@ -94,6 +100,7 @@ module ActiveRecord
   eager_autoload do
     autoload :Aggregations
     autoload :AssociationRelation
+    autoload :AssociationRoute
     autoload :Associations
     autoload :AsynchronousQueriesTracker
     autoload :AttributeAssignment
@@ -108,6 +115,7 @@ module ActiveRecord
     autoload :Result
     autoload :StatementCache
     autoload :TableMetadata
+    autoload :Transaction
     autoload :Type
 
     autoload_under "relation" do
@@ -121,7 +129,7 @@ module ActiveRecord
     end
   end
 
-  module Coders
+  module Coders # :nodoc:
     autoload :ColumnSerializer, "active_record/coders/column_serializer"
     autoload :JSON, "active_record/coders/json"
     autoload :YAMLColumn, "active_record/coders/yaml_column"
@@ -173,7 +181,8 @@ module ActiveRecord
     extend ActiveSupport::Autoload
 
     autoload :DatabaseTasks
-    autoload :MySQLDatabaseTasks,  "active_record/tasks/mysql_database_tasks"
+    autoload :AbstractTasks, "active_record/tasks/abstract_tasks"
+    autoload :MySQLDatabaseTasks, "active_record/tasks/mysql_database_tasks"
     autoload :PostgreSQLDatabaseTasks, "active_record/tasks/postgresql_database_tasks"
     autoload :SQLiteDatabaseTasks, "active_record/tasks/sqlite_database_tasks"
   end
@@ -189,26 +198,61 @@ module ActiveRecord
   self.lazily_load_schema_cache = false
 
   ##
-  # :singleton-method: schema_cache_ignored_tables
-  # A list of tables or regex's to match tables to ignore when
-  # dumping the schema cache. For example if this is set to +[/^_/]+
-  # the schema cache will not dump tables named with an underscore.
-  singleton_class.attr_accessor :schema_cache_ignored_tables
-  self.schema_cache_ignored_tables = []
+  # :singleton-method: protected_environments
+  # The array of names of environments where destructive actions should be
+  # prohibited. By default, the value is `["production"]`.
+  singleton_class.attr_reader :protected_environments
 
-  # Checks to see if the +table_name+ is ignored by checking
-  # against the +schema_cache_ignored_tables+ option.
-  #
-  #   ActiveRecord.schema_cache_ignored_table?(:developers)
-  #
-  def self.schema_cache_ignored_table?(table_name)
-    ActiveRecord.schema_cache_ignored_tables.any? do |ignored|
-      ignored === table_name
-    end
+  # Sets an array of names of environments where destructive actions should be
+  # prohibited.
+  def self.protected_environments=(environments)
+    @protected_environments = environments.map(&:to_s)
+  end
+  self.protected_environments = ["production"]
+
+  # A list of tables or regex's to match tables to ignore when dumping the
+  # schema cache.
+  def self.schema_cache_ignored_tables
+    deprecator.warn(<<~MSG)
+      `config.active_record.schema_cache_ignored_tables` is deprecated and will be removed.
+      Use `config.active_record.schema_ignored_tables` instead.
+    MSG
+
+    schema_ignored_tables
   end
 
+  # Sets a list of tables or regex's to match tables to ignore when dumping the
+  # schema cache.
+  def self.schema_cache_ignored_tables=(tables)
+    deprecator.warn(<<~MSG)
+      `config.active_record.schema_cache_ignored_tables` is deprecated and will be removed.
+      Use `config.active_record.schema_ignored_tables` instead.
+    MSG
+
+    self.schema_ignored_tables = tables
+  end
+
+  ##
+  # :singleton-method: schema_ignored_tables
+  # A list of tables or regex's to match tables to ignore when dumping the
+  # schema cache and the schema file. For example if this is set to +[/^\_/]+
+  # tables named with an underscore are dumped to neither.
+  singleton_class.attr_accessor :schema_ignored_tables
+  self.schema_ignored_tables = []
+
+  # ActiveRecord.schema_ignored_table?(:developers)
+  def self.schema_ignored_table?(table_name)
+    schema_ignored_tables.any? { |ignored| ignored === table_name }
+  end
+
+  singleton_class.alias_method :schema_cache_ignored_table?, :schema_ignored_table?
+  ActiveRecord.deprecator.deprecate_methods(
+    singleton_class,
+    schema_cache_ignored_table?: :schema_ignored_table?
+  )
+
   singleton_class.attr_accessor :database_cli
-  self.database_cli = { postgresql: "psql", mysql: %w[mysql mysql5], sqlite: "sqlite3" }
+  self.database_cli = { postgresql: "psql", mysql: %w[mysql mariadb], sqlite: "sqlite3" }
 
   singleton_class.attr_reader :default_timezone
 
@@ -260,7 +304,9 @@ module ActiveRecord
   # Specify allowlist of database warnings.
   # Can be a string, regular expression, or an error code from the database.
   #
-  #   ActiveRecord::Base.db_warnings_ignore = [/`SHOW WARNINGS` did not return the warnings/, "01000"]
+  # ```
+  # ActiveRecord::Base.db_warnings_ignore = [/`SHOW WARNINGS` did not return the warnings/, "01000"]
+  # ```
   singleton_class.attr_accessor :db_warnings_ignore
   self.db_warnings_ignore = []
 
@@ -273,15 +319,17 @@ module ActiveRecord
   ##
   # :singleton-method: async_query_executor
   # Sets the async_query_executor for an application. By default the thread pool executor
-  # set to +nil+ which will not run queries in the background. Applications must configure
+  # set to `nil` which will not run queries in the background. Applications must configure
   # a thread pool executor to use this feature. Options are:
   #
-  #   * nil - Does not initialize a thread pool executor. Any async calls will be
-  #   run in the foreground.
-  #   * :global_thread_pool - Initializes a single +Concurrent::ThreadPoolExecutor+
-  #   that uses the +async_query_concurrency+ for the +max_threads+ value.
-  #   * :multi_thread_pool - Initializes a +Concurrent::ThreadPoolExecutor+ for each
-  #   database connection. The initializer values are defined in the configuration hash.
+  # ```
+  # * nil - Does not initialize a thread pool executor. Any async calls will be
+  # run in the foreground.
+  # * :global_thread_pool - Initializes a single +Concurrent::ThreadPoolExecutor+
+  # that uses the +async_query_concurrency+ for the +max_threads+ value.
+  # * :multi_thread_pool - Initializes a +Concurrent::ThreadPoolExecutor+ for each
+  # database connection. The initializer values are defined in the configuration hash.
+  # ```
   singleton_class.attr_accessor :async_query_executor
   self.async_query_executor = nil
 
@@ -296,7 +344,7 @@ module ActiveRecord
     )
   end
 
-  # Set the +global_executor_concurrency+. This configuration value can only be used
+  # Set the `global_executor_concurrency`. This configuration value can only be used
   # with the global thread pool async query executor.
   def self.global_executor_concurrency=(global_executor_concurrency)
     if self.async_query_executor.nil? || self.async_query_executor == :multi_thread_pool
@@ -313,7 +361,7 @@ module ActiveRecord
   @permanent_connection_checkout = true
   singleton_class.attr_reader :permanent_connection_checkout
 
-  # Defines whether +ActiveRecord::Base.connection+ is allowed, deprecated, or entirely disallowed.
+  # Defines whether `ActiveRecord::Base.connection` is allowed, deprecated, or entirely disallowed.
   def self.permanent_connection_checkout=(value)
     unless [true, :deprecated, :disallowed].include?(value)
       raise ArgumentError, "permanent_connection_checkout must be one of: `true`, `:deprecated` or `:disallowed`"
@@ -342,8 +390,15 @@ module ActiveRecord
   singleton_class.attr_accessor :maintain_test_schema
   self.maintain_test_schema = nil
 
-  singleton_class.attr_accessor :raise_on_assign_to_attr_readonly
-  self.raise_on_assign_to_attr_readonly = false
+  singleton_class.attr_accessor :_raise_on_assign_to_attr_readonly # :nodoc:
+  self._raise_on_assign_to_attr_readonly = true
+
+  def self.raise_on_assign_to_attr_readonly=(value)
+    deprecator.warn(<<~MSG)
+     `config.active_record.raise_on_assign_to_attr_readonly` is deprecated and will be removed in Rails 9.0.
+    MSG
+    @_raise_on_assign_to_attr_readonly = value
+  end
 
   singleton_class.attr_accessor :belongs_to_required_validates_foreign_key
   self.belongs_to_required_validates_foreign_key = true
@@ -353,6 +408,28 @@ module ActiveRecord
 
   singleton_class.attr_accessor :run_after_transaction_callbacks_in_order_defined
   self.run_after_transaction_callbacks_in_order_defined = false
+
+  singleton_class.attr_accessor :raise_on_missing_required_finder_order_columns
+  self.raise_on_missing_required_finder_order_columns = false
+
+  ##
+  # :singleton-method: shuffle_unordered_selects
+  # Shuffles the rows of every `SELECT` Active Record generates that has no
+  # +ORDER BY+ clause.
+  #
+  # The order of such a query is not specified, and databases are free to
+  # return its rows in any order. Enabling this option makes that explicit, so
+  # code (and tests) that accidentally rely on the order a given database
+  # happens to return today fails loudly instead of breaking later.
+  #
+  # It is meant to be enabled in the test or development environments only.
+  #
+  # Rows are shuffled after the database has returned them, so queries built from
+  # raw SQL strings are left untouched (Active Record cannot tell whether they are
+  # ordered), and queries ending in +LIMIT 1+ are unaffected because the database
+  # has already picked the row.
+  singleton_class.attr_accessor :shuffle_unordered_selects
+  self.shuffle_unordered_selects = false
 
   singleton_class.attr_accessor :application_record_class
   self.application_record_class = nil
@@ -371,7 +448,8 @@ module ActiveRecord
   # specific) SQL statements. If :ruby, the schema is dumped as an
   # ActiveRecord::Schema file which can be loaded into any database that
   # supports migrations. Use :ruby if you want to have different database
-  # adapters for, e.g., your development and test environments.
+  # adapters for, e.g., your development and test environments. This can be
+  # overridden per-database in the database configuration.
   singleton_class.attr_accessor :schema_format
   self.schema_format = :ruby
 
@@ -393,13 +471,14 @@ module ActiveRecord
   # :singleton-method: validate_migration_timestamps
   # Specify whether or not to validate migration timestamps. When set, an error
   # will be raised if a timestamp is more than a day ahead of the timestamp
-  # associated with the current time. +timestamped_migrations+ must be set to true.
+  # associated with the current time. `timestamped_migrations` must be set to true.
   singleton_class.attr_accessor :validate_migration_timestamps
   self.validate_migration_timestamps = false
 
   ##
   # :singleton-method: migration_strategy
-  # Specify strategy to use for executing migrations.
+  # Specify the global default strategy to use for executing migrations.
+  # Individual adapter classes can override this by setting their own migration_strategy.
   singleton_class.attr_accessor :migration_strategy
   self.migration_strategy = Migration::DefaultStrategy
 
@@ -427,6 +506,20 @@ module ActiveRecord
   # custom list.
   singleton_class.attr_accessor :dump_schemas
   self.dump_schemas = :schema_search_path
+
+  ##
+  # :singleton-method: dump_schema_migrations
+  # Specifies whether to dump the `schema_migrations` table when dumping
+  # the database schema in the `:ruby` format.
+  singleton_class.attr_accessor :dump_schema_migrations
+  self.dump_schema_migrations = false
+
+  ##
+  # :singleton-method: dump_schema_migrations_sort_by
+  # Specifies the proc used to order versions when dumping the `schema_migrations`
+  # table in the `:ruby` format.
+  singleton_class.attr_accessor :dump_schema_migrations_sort_by
+  self.dump_schema_migrations_sort_by = :reverse
 
   ##
   # :singleton-method: verify_foreign_keys_for_fixtures
@@ -464,10 +557,33 @@ module ActiveRecord
 
   ##
   # :singleton-method: generate_secure_token_on
-  # Controls when to generate a value for <tt>has_secure_token</tt>
-  # declarations. Defaults to <tt>:create</tt>.
+  # Controls when to generate a value for `has_secure_token`
+  # declarations. Defaults to `:create`.
   singleton_class.attr_accessor :generate_secure_token_on
   self.generate_secure_token_on = :create
+
+  def self.deprecated_associations_options=(options)
+    raise ArgumentError, "deprecated_associations_options must be a hash" unless options.is_a?(Hash)
+
+    valid_keys = [:mode, :backtrace]
+
+    invalid_keys = options.keys - valid_keys
+    unless invalid_keys.empty?
+      inflected_key = invalid_keys.size == 1 ? "key" : "keys"
+      raise ArgumentError, "invalid deprecated_associations_options #{inflected_key} #{invalid_keys.map(&:inspect).to_sentence} (valid keys are #{valid_keys.map(&:inspect).to_sentence})"
+    end
+
+    options.each do |key, value|
+      ActiveRecord::Associations::Deprecation.send("#{key}=", value)
+    end
+  end
+
+  def self.deprecated_associations_options
+    {
+      mode: ActiveRecord::Associations::Deprecation.mode,
+      backtrace: ActiveRecord::Associations::Deprecation.backtrace
+    }
+  end
 
   def self.marshalling_format_version
     Marshalling.format_version
@@ -481,18 +597,23 @@ module ActiveRecord
   # :singleton-method: protocol_adapters
   # Provides a mapping between database protocols/DBMSs and the
   # underlying database adapter to be used. This is used only by the
-  # <tt>DATABASE_URL</tt> environment variable.
+  # `DATABASE_URL` environment variable.
   #
-  # == Example
+  # Example
+  # -------
   #
-  #   DATABASE_URL="mysql://myuser:mypass@localhost/somedatabase"
+  # ```
+  # DATABASE_URL="mysql://myuser:mypass@localhost/somedatabase"
+  # ```
   #
   # The above URL specifies that MySQL is the desired protocol/DBMS, and the
   # application configuration can then decide which adapter to use. For this example
-  # the default mapping is from <tt>mysql</tt> to <tt>mysql2</tt>, but <tt>:trilogy</tt>
+  # the default mapping is from `mysql` to `mysql2`, but `:trilogy`
   # is also supported.
   #
-  #   ActiveRecord.protocol_adapters.mysql = "mysql2"
+  # ```
+  # ActiveRecord.protocol_adapters.mysql = "mysql2"
+  # ```
   #
   # The protocols names are arbitrary, and external database adapters can be
   # registered and set here.
@@ -504,6 +625,13 @@ module ActiveRecord
       postgres: "postgresql",
     }
   )
+
+  ##
+  # :singleton-method: message_verifiers
+  #
+  # ActiveSupport::MessageVerifiers instance for Active Record. If you are using
+  # Rails, this will be set to `Rails.application.message_verifiers`.
+  singleton_class.attr_accessor :message_verifiers
 
   def self.eager_load!
     super
@@ -555,7 +683,7 @@ module ActiveRecord
 
   def self.all_open_transactions # :nodoc:
     open_transactions = []
-    Base.connection_handler.each_connection_pool do |pool|
+    ConnectionAdapters::ConnectionPool.each_used_pool do |pool|
       if active_connection = pool.active_connection
         current_transaction = active_connection.current_transaction
 
@@ -565,6 +693,23 @@ module ActiveRecord
       end
     end
     open_transactions
+  end
+
+  def self.default_transaction_isolation_level=(isolation_level) # :nodoc:
+    ActiveSupport::IsolatedExecutionState[:active_record_transaction_isolation] = isolation_level
+  end
+
+  def self.default_transaction_isolation_level # :nodoc:
+    ActiveSupport::IsolatedExecutionState[:active_record_transaction_isolation]
+  end
+
+  # Sets a transaction isolation level for all connection pools within the block.
+  def self.with_transaction_isolation_level(isolation_level, &block)
+    original_level = self.default_transaction_isolation_level
+    self.default_transaction_isolation_level = isolation_level
+    yield
+  ensure
+    self.default_transaction_isolation_level = original_level
   end
 end
 

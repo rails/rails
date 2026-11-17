@@ -56,6 +56,16 @@ class RecordIdentifierTest < ActiveSupport::TestCase
   def test_dom_class_as_singleton_method
     assert_equal @singular, ActionView::RecordIdentifier.dom_class(@record)
   end
+
+  def test_dom_target_with_multiple_objects
+    @record.save
+    assert_equal "foo_bar_comment_comment_1_new_comment", dom_target(:foo, "bar", @klass, @record, @klass.new)
+  end
+
+  def test_dom_target_as_singleton_method
+    @record.save
+    assert_equal "#{@singular}_#{@record.id}", ActionView::RecordIdentifier.dom_target(@record)
+  end
 end
 
 class RecordIdentifierWithoutActiveModelTest < ActiveSupport::TestCase
@@ -109,5 +119,15 @@ class RecordIdentifierWithoutActiveModelTest < ActiveSupport::TestCase
 
   def test_dom_class_as_singleton_method
     assert_equal "airplane", ActionView::RecordIdentifier.dom_class(@record)
+  end
+
+  def test_dom_target_with_multiple_objects
+    @record.save
+    assert_equal "foo_bar_airplane_airplane_1_new_airplane", dom_target(:foo, "bar", @klass, @record, @klass.new)
+  end
+
+  def test_dom_target_as_singleton_method
+    @record.save
+    assert_equal "airplane_1", ActionView::RecordIdentifier.dom_target(@record)
   end
 end

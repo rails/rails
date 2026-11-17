@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+# :markup: rdoc
+
 require "erb"
 require "yaml"
 require "active_support/dependencies"
@@ -80,6 +82,8 @@ module ActiveRecord
   #
   # The testing environment will automatically load all the fixtures into the database before each
   # test. To ensure consistent data, the environment deletes the fixtures before running the load.
+  # During this deletion and insertion of fixtures before each test, the environment temporarily
+  # disables the database's referential integrity constraints.
   #
   # In addition to being available in the database, the fixture's data may also be accessed by
   # using a special dynamic method, which has the same name as the model.
@@ -242,10 +246,10 @@ module ActiveRecord
   # and one for the humans. Why don't we generate the primary key instead?
   # Hashing each fixture's label yields a consistent ID:
   #
-  #   george: # generated id: 503576764
+  #   george: # generated id: 380982691
   #     name: George the Monkey
   #
-  #   reginald: # generated id: 324201669
+  #   reginald: # generated id: 41001176
   #     name: Reginald the Pirate
   #
   # Active Record looks at the fixture's model class, discovers the correct
@@ -491,7 +495,7 @@ module ActiveRecord
   #     title: "Alice's Adventures in Wonderland"
   #
   # However, in order to support composite primary key relationships,
-  # you must use the `composite_identify` method:
+  # you must use the +composite_identify+ method:
   #
   #   # app/models/book_orders.rb
   #   class BookOrder < ApplicationRecord
@@ -537,10 +541,19 @@ module ActiveRecord
     MAX_ID = 2**30 - 1
 
     @@all_cached_fixtures = Hash.new { |h, k| h[k] = {} }
+    @@parsing_cache ||= {}
 
     cattr_accessor :all_loaded_fixtures, default: {}
 
     class << self
+      def without_parsing_cache
+        parsing_cache_was = @@parsing_cache
+        @@parsing_cache = {}
+        yield
+      ensure
+        @@parsing_cache = parsing_cache_was
+      end
+
       def default_fixture_model_name(fixture_set_name, config = ActiveRecord::Base) # :nodoc:
         config.pluralize_table_names ?
           fixture_set_name.singularize.camelize :
@@ -686,8 +699,8 @@ module ActiveRecord
               check_all_foreign_keys_valid!(conn)
 
               # Cap primary key sequences to max(pk).
-              if conn.respond_to?(:reset_pk_sequence!)
-                set.each { |fs| conn.reset_pk_sequence!(fs.table_name) }
+              if conn.respond_to?(:reset_column_sequences!)
+                conn.reset_column_sequences!(set.map { |fs| [fs.table_name] })
               end
             end
           end
@@ -770,7 +783,7 @@ module ActiveRecord
               []
             end
 
-        @ignored_fixtures << "DEFAULTS" unless @ignored_fixtures.include?("DEFAULTS")
+        @ignored_fixtures += ["DEFAULTS"] unless @ignored_fixtures.include?("DEFAULTS")
         @ignored_fixtures.compact
       end
 
@@ -779,20 +792,19 @@ module ActiveRecord
       # it uses the file value.
 
       def read_fixture_files(path)
-        yaml_files = Dir["#{path}{.yml,/{**,*}/*.yml}"].select { |f|
+        yaml_files = Dir["#{path}{.yml,/**/*.yml}"].select { |f|
           ::File.file?(f)
         }
 
         raise ArgumentError, "No fixture files found for #{@name}" if yaml_files.empty?
 
         yaml_files.each_with_object({}) do |file, fixtures|
-          FixtureSet::File.open(file) do |fh|
-            self.model_class ||= fh.model_class if fh.model_class
-            self.model_class ||= default_fixture_model_class
-            self.ignored_fixtures ||= fh.ignored_fixtures
-            fh.each do |fixture_name, row|
-              fixtures[fixture_name] = ActiveRecord::Fixture.new(row, model_class)
-            end
+          fh = (@@parsing_cache[file] ||= FixtureSet::File.open(file))
+          self.model_class ||= fh.model_class if fh.model_class
+          self.model_class ||= default_fixture_model_class
+          self.ignored_fixtures ||= fh.ignored_fixtures
+          fh.each do |fixture_name, row|
+            fixtures[fixture_name] = ActiveRecord::Fixture.new(row.dup, model_class)
           end
         end
       end
@@ -835,7 +847,7 @@ module ActiveRecord
 
     def find
       raise FixtureClassNotFound, "No class attached to find." unless model_class
-      object = model_class.unscoped do
+      object = model_class.all_queries_scope.scoping do
         pk_clauses = fixture.slice(*Array(model_class.primary_key))
         model_class.find_by!(pk_clauses)
       end

@@ -5,8 +5,18 @@ module ActiveRecord
     module SQLite3
       class SchemaDumper < ConnectionAdapters::SchemaDumper # :nodoc:
         private
+          def read_schema_metadata(tables)
+            super
+
+            @table_sqls = @connection.query_all(<<~SQL, "SCHEMA").to_h { |row| [row["name"], row["sql"]] }
+              SELECT name, sql FROM sqlite_master WHERE type = 'table'
+              UNION ALL
+              SELECT name, sql FROM sqlite_temp_master WHERE type = 'table'
+            SQL
+          end
+
           def virtual_tables(stream)
-            virtual_tables = @connection.virtual_tables
+            virtual_tables = @connection.virtual_tables.reject { |name, _| ignored?(name) }
             if virtual_tables.any?
               stream.puts
               stream.puts "  # Virtual tables defined in this database."
@@ -19,11 +29,17 @@ module ActiveRecord
           end
 
           def default_primary_key?(column)
-            schema_type(column) == :integer
+            schema_type(column) == :integer && primary_key_has_autoincrement?
           end
 
           def explicit_primary_key_default?(column)
-            column.bigint?
+            column.bigint? || (column.type == :integer && !primary_key_has_autoincrement?)
+          end
+
+          def primary_key_has_autoincrement?
+            return false unless table_name
+
+            @table_sqls[table_name].to_s.match?(/\bAUTOINCREMENT\b/i)
           end
 
           def prepare_column_options(column)

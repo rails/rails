@@ -45,6 +45,11 @@ module ActiveSupport
         end
       end
 
+      def initialize_dup(*)
+        super
+        @rotations = @rotations.dup
+      end
+
       private
         def build_rotation(*args, **options)
           self.class.new(*args, *@args.drop(args.length), **@options, **options)

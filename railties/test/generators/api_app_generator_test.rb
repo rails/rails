@@ -49,6 +49,8 @@ class ApiAppGeneratorTest < Rails::Generators::TestCase
       assert_no_match(/gem "selenium-webdriver"/, content)
       assert_match(/# gem "jbuilder"/, content)
       assert_match(/# gem "rack-cors"/, content)
+      assert_match(/group :development do\n  # Deploy this application anywhere as a Docker container \[https:\/\/kamal-deploy\.org\]\n  gem "kamal", require: false\nend/, content)
+      assert_equal 1, content.scan(/^group :development do$/).size
     end
 
     assert_file "config/application.rb", /config\.api_only = true/
@@ -140,11 +142,34 @@ class ApiAppGeneratorTest < Rails::Generators::TestCase
     assert_no_file "public/406-unsupported-browser.html"
   end
 
+  def test_kamal_deploy_yml_excludes_asset_path_for_api_apps
+    generator [destination_root], ["--api"]
+    run_generator_instance
+
+    assert_equal 1, @bundle_commands.count("binstubs kamal")
+    assert_equal 1, @bundle_commands.count("exec kamal init")
+
+    assert_file "config/deploy.yml" do |content|
+      assert_no_match(/asset_path:/, content)
+      assert_no_match(/public\/assets/, content)
+    end
+  end
+
   private
+    def run_generator_instance
+      @bundle_commands = []
+      bundle_command_stub = -> (command, *) { @bundle_commands << command }
+
+      generator.stub :bundle_command, bundle_command_stub do
+        super
+      end
+    end
+
     def default_files
       %w(.gitignore
         .ruby-version
         .dockerignore
+        .env
         README.md
         Gemfile
         Rakefile
@@ -163,6 +188,7 @@ class ApiAppGeneratorTest < Rails::Generators::TestCase
         bin/setup
         config/application.rb
         config/boot.rb
+        config/bundler-audit.yml
         config/cable.yml
         config/environment.rb
         config/environments
@@ -184,6 +210,7 @@ class ApiAppGeneratorTest < Rails::Generators::TestCase
         lib
         lib/tasks
         log
+        script
         test/fixtures
         test/controllers
         test/integration

@@ -1,12 +1,9 @@
 # frozen_string_literal: true
 
-# :markup: markdown
-
 require "rack/utils"
 require "rack/request"
 require "rack/session/abstract/id"
 require "action_dispatch/middleware/cookies"
-require "action_dispatch/request/session"
 
 module ActionDispatch
   module Session
@@ -20,8 +17,13 @@ module ActionDispatch
     end
 
     module Compatibility
+      DEFAULT_SAME_SITE = ActiveSupport::Ractors.shareable_proc { |request| request.cookies_same_site_protection } # :nodoc:
+
       def initialize(app, options = {})
         options[:key] ||= "_session_id"
+        unless options.key?(:same_site) || self.class::DEFAULT_OPTIONS.key?(:same_site)
+          options = options.merge(same_site: DEFAULT_SAME_SITE)
+        end
         super
       end
 
@@ -75,11 +77,11 @@ module ActionDispatch
       end
 
       def prepare_session(req)
-        Request::Session.create(self, req, @default_options)
+        Http::Session.create(self, req, @default_options)
       end
 
       def loaded_session?(session)
-        !session.is_a?(Request::Session) || session.loaded?
+        !session.is_a?(Http::Session) || session.loaded?
       end
     end
 

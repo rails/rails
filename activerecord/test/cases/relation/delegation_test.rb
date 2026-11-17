@@ -17,7 +17,7 @@ module ActiveRecord
       :to_ary, :to_set, :to_xml, :to_yaml, :join,
       :in_groups, :in_groups_of, :to_sentence, :to_formatted_s, :to_fs, :as_json,
       :intersect?
-    ]
+    ].freeze
 
     ARRAY_DELEGATES.each do |method|
       define_method "test_delegates_#{method}_to_Array" do
@@ -62,7 +62,7 @@ module ActiveRecord
       ActiveRecord::SpawnMethods.public_instance_methods(false) - [:spawn, :merge!] +
       ActiveRecord::QueryMethods.public_instance_methods(false).reject { |method|
         method.end_with?("=", "!", "?", "value", "values", "clause")
-      } - [:all, :reverse_order, :arel, :extensions, :construct_join_dependency] + [
+      } - [:all, :reverse_order, :arel, :extensions, :construct_join_dependency, :with] + [
         :any?, :many?, :none?, :one?,
         :first_or_create, :first_or_create!, :first_or_initialize,
         :find_or_create_by, :find_or_create_by!, :find_or_initialize_by,

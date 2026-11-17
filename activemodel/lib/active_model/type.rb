@@ -26,7 +26,7 @@ module ActiveModel
       attr_accessor :registry # :nodoc:
 
       # Add a new type to the registry, allowing it to be referenced as a
-      # symbol by {attribute}[rdoc-ref:Attributes::ClassMethods#attribute].
+      # symbol by [attribute](rdoc-ref:Attributes::ClassMethods#attribute).
       def register(type_name, klass = nil, &block)
         registry.register(type_name, klass, &block)
       end
@@ -36,9 +36,11 @@ module ActiveModel
       end
 
       def default_value # :nodoc:
-        @default_value ||= Value.new
+        DEFAULT_TYPE
       end
     end
+
+    DEFAULT_TYPE = Value.new.freeze # :nodoc:
 
     register(:big_integer, Type::BigInteger)
     register(:binary, Type::Binary)

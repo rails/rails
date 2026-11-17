@@ -5,7 +5,8 @@ Maintenance Policy for Ruby on Rails
 
 Support of the Rails framework is divided into three groups: New features, bug
 fixes, and security issues. They are handled as
-follows, all versions, except for security releases, in `X.Y.Z`, format.
+follows. All versions, except security releases, are numbered in the `X.Y.Z`
+format.
 
 --------------------------------------------------------------------------------
 
@@ -46,7 +47,7 @@ will receive bug fixes until January 1, 2024. After that, it will be considered
 unsupported.
 
 Bug fixes are typically added to the main branch, and backported to the x-y-stable
-branch of the latest release series if there is sufficient need. When enough bugs
+branch of the latest release series if there is sufficient need. When enough bug
 fixes have been added to an x-y-stable branch, a new Patch release is built from it.
 For example, a theoretical 1.2.2 Patch release would be built from the 1-2-stable branch.
 

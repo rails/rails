@@ -1,7 +1,5 @@
 # frozen_string_literal: true
 
-# :markup: markdown
-
 require "abstract_controller/error"
 require "action_view"
 require "action_view/view_paths"
@@ -24,8 +22,8 @@ module AbstractController
     #
     # Supported options depend on the underlying `render_to_body` implementation.
     def render(*args, &block)
-      options = _normalize_render(*args, &block)
-      rendered_body = render_to_body(options)
+      options = _normalize_render(*args)
+      rendered_body = render_to_body(options, &block)
       if options[:html]
         _set_html_content_type
       else
@@ -42,12 +40,12 @@ module AbstractController
     # extends it to be anything that responds to the method each), this method needs
     # to be overridden in order to still return a string.
     def render_to_string(*args, &block)
-      options = _normalize_render(*args, &block)
-      render_to_body(options)
+      options = _normalize_render(*args)
+      render_to_body(options, &block)
     end
 
     # Performs the actual template rendering.
-    def render_to_body(options = {})
+    def render_to_body(options = {}, &block)
     end
 
     # Returns `Content-Type` of rendered content.
@@ -55,7 +53,7 @@ module AbstractController
       Mime[:text]
     end
 
-    DEFAULT_PROTECTED_INSTANCE_VARIABLES = %i(@_action_name @_response_body @_formats @_prefixes)
+    DEFAULT_PROTECTED_INSTANCE_VARIABLES = %i(@_action_name @_response_body @_formats @_prefixes).freeze
 
     # This method should return a hash with assigns. You can overwrite this
     # configuration per controller.
@@ -111,8 +109,8 @@ module AbstractController
     end
 
     # Normalize args and options.
-    def _normalize_render(*args, &block) # :nodoc:
-      options = _normalize_args(*args, &block)
+    def _normalize_render(*args) # :nodoc:
+      options = _normalize_args(*args)
       _process_variant(options)
       _normalize_options(options)
       options

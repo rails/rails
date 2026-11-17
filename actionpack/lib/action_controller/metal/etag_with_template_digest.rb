@@ -1,7 +1,5 @@
 # frozen_string_literal: true
 
-# :markup: markdown
-
 module ActionController
   # # Action Controller Etag With Template Digest
   #
@@ -48,7 +46,7 @@ module ActionController
       # digest from the ETag.
       def pick_template_for_etag(options)
         unless options[:template] == false
-          options[:template] || lookup_context.find_all(action_name, _prefixes).first&.virtual_path
+          options[:template] || lookup_context.find(action_name, _prefixes)&.virtual_path
         end
       end
 

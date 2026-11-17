@@ -2,15 +2,13 @@
 
 module ActiveRecord
   module Marshalling
-    @format_version = 6.1
+    @format_version = 7.1
 
     class << self
       attr_reader :format_version
 
       def format_version=(version)
         case version
-        when 6.1
-          Methods.remove_method(:marshal_dump) if Methods.method_defined?(:marshal_dump)
         when 7.1
           Methods.alias_method(:marshal_dump, :_marshal_dump_7_1)
         else
@@ -39,11 +37,14 @@ module ActiveRecord
 
         payload
       end
+      alias_method :marshal_dump, :_marshal_dump_7_1
 
+      #: (Array[untyped]) -> void
       def marshal_load(state)
         attributes_from_database, new_record, associations = state
 
-        attributes = self.class.attributes_builder.build_from_database(attributes_from_database)
+        builder = self.class.attributes_builder
+        attributes = builder.build_from_indexed_row(builder.row_from_hash(attributes_from_database))
         init_with_attributes(attributes, new_record)
 
         if associations

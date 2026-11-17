@@ -2,8 +2,10 @@
 
 require "cases/helper"
 require "models/author"
+require "models/lesson"
 require "models/post"
 require "models/pet"
+require "models/student"
 require "models/toy"
 require "models/comment"
 require "models/cpk"
@@ -31,8 +33,17 @@ class DeleteAllTest < ActiveRecord::TestCase
   def test_delete_all
     davids = Author.where(name: "David")
 
-    assert_difference("Author.count", -1) { davids.delete_all }
+    assert_difference("Author.count", -1) do
+      assert_equal 1, davids.delete_all
+    end
     assert_not_predicate davids, :loaded?
+  end
+
+  def test_delete_all_return_value_ignores_cascades
+    student = Student.create(name: "Ruy Rocha")
+    lesson = Lesson.create(name: "Anything Possible")
+    student.lessons << lesson
+    assert_equal 1, Student.delete_all
   end
 
   def test_delete_all_with_index_hint
@@ -67,6 +78,22 @@ class DeleteAllTest < ActiveRecord::TestCase
     posts_to_be_deleted.each do |deleted_post|
       assert_raise(ActiveRecord::RecordNotFound) { deleted_post.reload }
     end
+  end
+
+  def test_delete_all_with_group_by_and_having_without_joins
+    posts = [
+      Post.create!(title: "low", body: "x", legacy_comments_count: 0),
+      Post.create!(title: "mid", body: "x", legacy_comments_count: 3),
+      Post.create!(title: "high", body: "x", legacy_comments_count: 9),
+    ]
+    relation = Post.where(id: posts).group("posts.id").having("MAX(legacy_comments_count) >= 3")
+
+    # Only the rows that survive the HAVING filter must be deleted, not every row.
+    assert_equal 2, relation.delete_all
+
+    assert Post.exists?(posts[0].id)
+    assert_not Post.exists?(posts[1].id)
+    assert_not Post.exists?(posts[2].id)
   end
 
   def test_delete_all_with_unpermitted_relation_raises_error

@@ -75,7 +75,7 @@ Notice that for the search form we are using the `url` option of `form_with`. Se
 
 In general, passing `url: my_path` to `form_with` tells the form where to make the request. The other option is to pass Active Model objects to the form, as you will learn [below](#creating-forms-with-model-objects). You can also use [URL helpers](routing.html#path-and-url-helpers).
 
-The search form example above also shows the [form builder](https://api.rubyonrails.org/classes/ActionView/Helpers/FormBuilder.html) object. You will learn about the many helpers provided by the form builder object (like`form.label` and `form.text_field`) in the next section.
+The search form example above also shows the [form builder](https://api.rubyonrails.org/classes/ActionView/Helpers/FormBuilder.html) object. You will learn about the many helpers provided by the form builder object (like `form.label` and `form.text_field`) in the next section.
 
 TIP: For every form `input` element, an `id` attribute is generated from its name (`"query"` in above example). These IDs can be very useful for CSS styling or manipulation of form controls with JavaScript.
 
@@ -249,8 +249,8 @@ The `form_with` helper has a `:model` option that allows you to bind the form bu
 For example, if we have a `@book` model object:
 
 ```ruby
-@book = Book.find(42)
-# => #<Book id: 42, title: "Walden", author: "Henry David Thoreau">
+@book = Book.new
+# => #<Book id: nil, title: nil, author: nil>
 ```
 
 And the following form to create a new book:
@@ -289,7 +289,7 @@ It will generate this HTML:
 Some important things to notice when using `form_with` with a model object:
 
 * The form `action` is automatically filled with an appropriate value, `action="/books"`. If you were updating a book, it would be `action="/books/42"`.
-* The form field names are scoped with `book[...]`. This means that `params[:book]` will be a hash containing all these field's values. You can read more about the significance of input names in chapter [Form Input Naming Conventions and Params Hash](#form-input-naming-conventions-and-params-hash) of this guide.
+* The form field names are scoped with `book[...]`. This means that `params[:book]` will be a hash containing all these fields' values. You can read more about the significance of input names in chapter [Form Input Naming Conventions and Params Hash](#form-input-naming-conventions-and-params-hash) of this guide.
 * The submit button is automatically given an appropriate text value, "Create Book" in this case.
 
 TIP: Typically your form inputs will mirror model attributes. However, they don't have to. If there is other information you need you can include a field in your form and access it via `params[:book][:my_non_attribute_input]`.
@@ -358,7 +358,7 @@ The above will produce the following output:
 
 The object yielded by `fields_for` is a form builder like the one yielded by
 `form_with`. The `fields_for` helper creates a similar binding but without
-rendering a `<form>` tag. You can learn more about `field_for` in the [API
+rendering a `<form>` tag. You can learn more about `fields_for` in the [API
 docs](https://api.rubyonrails.org/classes/ActionView/Helpers/FormBuilder.html#method-i-fields_for).
 
 ### Relying on Record Identification
@@ -424,7 +424,7 @@ Rails works around this limitation by emulating other methods over POST with a h
 form_with(url: search_path, method: "patch")
 ```
 
-The above form Will generate this HTML output:
+The above form will generate this HTML output:
 
 ```html
 <form action="/search" accept-charset="UTF-8" method="post">
@@ -469,7 +469,7 @@ In this case, the "Update" button will be treated as `PATCH` and the "Delete" bu
 Making Select Boxes with Ease
 -----------------------------
 
-Select boxes, also known as drop-down list, allow users to select from a list of options. The HTML for select boxes requires a decent amount of markup - one `<option>` element for each option to choose from. Rails provides helper methods to help generate that markup.
+Select boxes, also known as drop-down lists, allow users to select from a list of options. The HTML for select boxes requires a decent amount of markup - one `<option>` element for each option to choose from. Rails provides helper methods to help generate that markup.
 
 For example, let's say we have a list of cities for the user to choose from. We can use the [`select`](https://api.rubyonrails.org/classes/ActionView/Helpers/FormBuilder.html#method-i-select) helper:
 
@@ -631,9 +631,9 @@ Will output select boxes like:
 </select>
 <select name="person[birth_date(3i)]" id="person_birth_date_3i">
   <option value="1">1</option>
-  ...
+  <!-- ... -->
   <option value="21" selected="selected">21</option>
-  ...
+  <!-- ... -->
   <option value="31">31</option>
 </select>
 ```
@@ -689,7 +689,7 @@ Output:
   <option value="Midway Island">(GMT-11:00) Midway Island</option>
   <option value="Hawaii">(GMT-10:00) Hawaii</option>
   <option value="Alaska">(GMT-09:00) Alaska</option>
-  ...
+  <!-- ... -->
   <option value="Samoa">(GMT+13:00) Samoa</option>
   <option value="Tokelau Is.">(GMT+13:00) Tokelau Is.</option>
 </select>
@@ -698,7 +698,7 @@ Output:
 Collection Related Helpers
 --------------------------
 
-If you need to generate a set of choices from a collection of arbitrary objects, Rails has `collection_select`, `collection_radio_button`, and `collection_checkboxes` helpers.
+If you need to generate a set of choices from a collection of arbitrary objects, Rails has `collection_select`, `collection_radio_buttons`, and `collection_checkboxes` helpers.
 
 To see when these helpers are useful, suppose you have a `City` model and corresponding `belongs_to :city` association with `Person`:
 
@@ -1001,7 +1001,7 @@ This would result in `params[:person][:phone_number]` being an array containing 
 
 ### Combining Arrays and Hashes
 
-You can mix and match these two concepts. One element of a hash might be an array as in the previous example `params[:person]` hash has a key called `[:phone_number]` whose value is an array.
+You can mix and match these two concepts. One element of a hash might be an array, as in the previous example: the `params[:person]` hash has a key called `[:phone_number]` whose value is an array.
 
 You also can have an array of hashes. For example, you can create any number of addresses by repeating the following form fragment:
 
@@ -1128,7 +1128,7 @@ The following form allows a user to create a `Person` and its associated address
 
         <%= addresses_form.label :street %>
         <%= addresses_form.text_field :street %>
-        ...
+        <!-- ... -->
       </li>
     <% end %>
   </ul>
@@ -1160,7 +1160,7 @@ Will output the following HTML:
 
         <label for="person_addresses_attributes_0_street">Street</label>
         <input type="text" name="person[addresses_attributes][0][street]" id="person_addresses_attributes_0_street">
-        ...
+        <!-- ... -->
       </li>
 
       <li>
@@ -1169,7 +1169,7 @@ Will output the following HTML:
 
         <label for="person_addresses_attributes_1_street">Street</label>
         <input type="text" name="person[addresses_attributes][1][street]" id="person_addresses_attributes_1_street">
-        ...
+        <!-- ... -->
       </li>
   </ul>
 </form>
@@ -1207,7 +1207,7 @@ If the associated object is already saved, `fields_for` autogenerates a hidden i
     "name" => "John Doe",
     "addresses_attributes" => {
       "0" => {
-        "id" => 1,
+        "id" => "1",
         "kind" => "Home",
         "street" => "221b Baker Street"
       },
@@ -1224,7 +1224,7 @@ If the associated object is already saved, `fields_for` autogenerates a hidden i
 ### Permitting Parameters in the Controller
 
 As usual you need to [declare the permitted
-parameters](action_controller_overview.html#strong-parameters) in the controller
+parameters](action_controller_overview.html#securing-submitted-parameters) in the controller
 before you pass them to the model:
 
 ```ruby
@@ -1263,7 +1263,7 @@ destroyed. This form allows users to remove addresses:
         <%= addresses_form.checkbox :_destroy %>
         <%= addresses_form.label :kind %>
         <%= addresses_form.text_field :kind %>
-        ...
+        <!-- ... -->
       </li>
     <% end %>
   </ul>
@@ -1338,4 +1338,4 @@ Generally, these helpers have the same name as their form builder counterparts p
 Using `form_tag` and `form_for`
 -------------------------------
 
-Before `form_with` was introduced in Rails 5.1 its functionality was split between [`form_tag`](https://api.rubyonrails.org/classes/ActionView/Helpers/FormTagHelper.html#method-i-form_tag) and [`form_for`](https://api.rubyonrails.org/classes/ActionView/Helpers/FormHelper.html#method-i-form_for). Both are now discouraged in favor of `form_with`, but you can still find being used in some codebases.
+Before `form_with` was introduced in Rails 5.1 its functionality was split between [`form_tag`](https://api.rubyonrails.org/classes/ActionView/Helpers/FormTagHelper.html#method-i-form_tag) and [`form_for`](https://api.rubyonrails.org/classes/ActionView/Helpers/FormHelper.html#method-i-form_for). Both are now discouraged in favor of `form_with`, but you can still find them being used in some codebases.

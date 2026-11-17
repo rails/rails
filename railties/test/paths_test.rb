@@ -276,6 +276,40 @@ class PathsTest < ActiveSupport::TestCase
     end
   end
 
+  test "loading flags can be turned off and on independently" do
+    File.stub(:directory?, true) do
+      path = @root.add "app", with: "/app", autoload_once: true, eager_load: true, autoload: true, load_path: true
+
+      assert_equal false, path.skip_autoload_once!
+      assert_equal false, path.autoload_once?
+      assert_equal [], @root.autoload_once
+      assert_equal ["/app"], @root.eager_load
+      assert_equal ["/app"], @root.autoload_paths
+      assert_equal ["/app"], @root.load_paths
+
+      assert_equal false, path.skip_eager_load!
+      assert_equal false, path.eager_load?
+      assert_equal [], @root.eager_load
+
+      assert_equal false, path.skip_autoload!
+      assert_equal false, path.autoload?
+      assert_equal [], @root.autoload_paths
+
+      assert_equal false, path.skip_load_path!
+      assert_equal false, path.load_path?
+      assert_equal [], @root.load_paths
+
+      assert_equal true, path.autoload_once!
+      assert_equal true, path.eager_load!
+      assert_equal true, path.autoload!
+      assert_equal true, path.load_path!
+      assert_equal ["/app"], @root.autoload_once
+      assert_equal ["/app"], @root.eager_load
+      assert_equal ["/app"], @root.autoload_paths
+      assert_equal ["/app"], @root.load_paths
+    end
+  end
+
   test "load paths does NOT include files" do
     File.stub(:directory?, false) do
       @root.add "app/README.md", autoload_once: true, eager_load: true, autoload: true, load_path: true
@@ -313,6 +347,16 @@ class PathsIntegrationTest < ActiveSupport::TestCase
         end
         assert_match File.expand_path("foo/bar.rb"), exception.message
       end
+    end
+  end
+
+  test "expanded_files filters out directories" do
+    Dir.mktmpdir do |dir|
+      root = Rails::Paths::Root.new(dir)
+      root.add "without/config/locales", glob: "**/*.{rb,yml}"
+      without = root["without/config/locales"]
+      assert_equal [File.join(dir, "without", "config", "locales")], without.expanded
+      assert_equal [], without.expanded_files
     end
   end
 end
