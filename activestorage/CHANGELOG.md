@@ -1,3 +1,9 @@
+*   Skip looking up an existing attachment when a record is created with a `has_one_attached` attachment.
+
+    Creating a record with an attachment ran two `SELECT`s for the attachment the new record couldn't have yet.
+
+    *Andrew Fader*
+
 *   Preserve committed proxy responses when a storage error interrupts a
     streamed download.
 
