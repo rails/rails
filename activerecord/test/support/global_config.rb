@@ -18,6 +18,7 @@ module ARTest
       ActiveRecord::Base.automatically_invert_plural_associations = true
       ActiveRecord.belongs_to_required_validates_foreign_key = false
       ActiveRecord.raise_on_missing_required_finder_order_columns = true
+      ActiveRecord.association_scope_keeps_owner_conditions = true
     end
   end
 end

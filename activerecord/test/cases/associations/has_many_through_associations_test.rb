@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require "cases/helper"
+require "active_support/core_ext/object/with"
 require "support/deprecated_associations_test_helpers"
 require "models/post"
 require "models/person"
@@ -1270,10 +1271,30 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
   end
 
   def test_has_many_through_polymorphic_with_rewhere
+    message = /conditions tying the records to the owner on `taggings.taggable_type` of the `TaggedPost#(tags|taggings)` association/
+    ActiveRecord.with(association_scope_keeps_owner_conditions: false) do
+      post = TaggedPost.create!(title: "Tagged", body: "Post")
+      tag = assert_deprecated(message, ActiveRecord.deprecator) { post.tags.create!(name: "Tag") }
+      assert_deprecated(message, ActiveRecord.deprecator) do
+        assert_equal [tag], post.tags.reload.to_a
+      end
+      assert_deprecated(message, ActiveRecord.deprecator) do
+        assert_equal [tag], TaggedPost.preload(:tags).last.tags
+      end
+      assert_deprecated(message, ActiveRecord.deprecator) do
+        assert_equal [tag], TaggedPost.eager_load(:tags).last.tags
+      end
+    end
+  end
+
+  def test_has_many_through_polymorphic_with_rewhere_keeps_the_polymorphic_type
     post = TaggedPost.create!(title: "Tagged", body: "Post")
-    tag = post.tags.create!(name: "Tag")
-    assert_equal [tag], TaggedPost.preload(:tags).last.tags
-    assert_equal [tag], TaggedPost.eager_load(:tags).last.tags
+    tag = Tag.create!(name: "Tag")
+    Tagging.create!(taggable: post, tag: tag).update_columns(taggable_type: "TaggedPost")
+
+    assert_empty post.tags
+    assert_empty TaggedPost.preload(:tags).find(post.id).tags
+    assert_empty TaggedPost.eager_load(:tags).find(post.id).tags
   end
 
   def test_has_many_through_polymorphic_with_primary_key_option

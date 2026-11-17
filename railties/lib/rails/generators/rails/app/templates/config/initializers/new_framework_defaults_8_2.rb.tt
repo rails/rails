@@ -73,6 +73,20 @@
 # Rails.application.config.active_record.postgresql_adapter_decode_money = true
 
 ###
+# Always apply the conditions tying the records of an association to the owner (the foreign key,
+# and the polymorphic type of an `as:` association), even when the association scope removes or
+# replaces them with `unscope(where: ...)`, `unscope(:where)`, or `rewhere`.
+#
+# Example:
+#   has_many :all_bulbs, -> { unscope(:where) }, class_name: "Bulb"
+#
+#   car.all_bulbs # => SELECT "bulbs".* FROM "bulbs" WHERE "bulbs"."car_id" = ?
+#
+# When false, the association scope can remove them, which is deprecated.
+#++
+# Rails.application.config.active_record.association_scope_keeps_owner_conditions = true
+
+###
 # Analyze attachments immediately, making metadata available for validations.
 #
 # When enabled, attachment metadata (image dimensions, video duration, etc.) is extracted

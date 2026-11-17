@@ -121,11 +121,14 @@ module ActiveRecord
         end
 
         def add_constraints(scope, owner, chain)
+          where_clause = scope.where_clause
           scope, key_clause = last_chain_scope(scope, chain.last, owner)
 
           chain.each_cons(2) do |reflection, next_reflection|
             scope = next_chain_scope(scope, reflection, next_reflection)
           end
+
+          fixed_clause = scope.where_clause - where_clause - key_clause
 
           chain_head = chain.first
           chain.reverse_each do |reflection|
@@ -156,9 +159,7 @@ module ActiveRecord
             end
           end
 
-          # The association scope can't remove the key conditions tying the
-          # records to the owner, like it can't on joins or preloading.
-          scope.where_clause += key_clause - scope.where_clause
+          chain.first.keep_owner_conditions(scope, key_clause, fixed_clause)
 
           scope
         end

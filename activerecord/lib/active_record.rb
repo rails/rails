@@ -413,6 +413,15 @@ module ActiveRecord
   self.raise_on_missing_required_finder_order_columns = false
 
   ##
+  # :singleton-method: association_scope_keeps_owner_conditions
+  # Specifies whether an association always applies the conditions tying the
+  # records to the owner (the key and the polymorphic type of +as:+), even
+  # when its scope removes or replaces them with +unscope+ or +rewhere+.
+  # When false, the scope can remove them, which is deprecated.
+  singleton_class.attr_accessor :association_scope_keeps_owner_conditions
+  self.association_scope_keeps_owner_conditions = false
+
+  ##
   # :singleton-method: shuffle_unordered_selects
   # Shuffles the rows of every `SELECT` Active Record generates that has no
   # +ORDER BY+ clause.

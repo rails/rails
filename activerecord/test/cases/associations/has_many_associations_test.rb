@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require "cases/helper"
+require "active_support/core_ext/object/with"
 require "support/deprecated_associations_test_helpers"
 require "models/developer"
 require "models/computer"
@@ -3117,6 +3118,86 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
 
     car.all_bulbs2.update_all(name: "updated")
     assert_equal "other", other_bulb.reload.name
+  end
+
+  test "the association scope removing the foreign key is deprecated when association_scope_keeps_owner_conditions is false" do
+    car = Car.create!
+    bulb = Bulb.create! name: "defaulty", car: car
+    Bulb.create! name: "defaulty", car: Car.create!
+    message = /conditions tying the records to the owner on `bulbs.car_id` of the `Car#bulbs_unscoping_car_id` association/
+
+    ActiveRecord.with(association_scope_keeps_owner_conditions: false) do
+      assert_deprecated(message, ActiveRecord.deprecator) do
+        assert_equal Bulb.all.sort_by(&:id), car.bulbs_unscoping_car_id.sort_by(&:id)
+      end
+      assert_not_deprecated(ActiveRecord.deprecator) do
+        assert_equal [bulb], Car.preload(:bulbs_unscoping_car_id).find(car.id).bulbs_unscoping_car_id
+        assert_equal [bulb], Car.eager_load(:bulbs_unscoping_car_id).find(car.id).bulbs_unscoping_car_id
+      end
+    end
+  end
+
+  test "the association scope can't replace the polymorphic type" do
+    post = TaggedPost.create!(title: "Tagged", body: "Post")
+    Tagging.create!(taggable: post).update_columns(taggable_type: "TaggedPost")
+    Tagging.create!(taggable: post)
+
+    assert_empty post.taggings
+    assert_empty TaggedPost.preload(:taggings).find(post.id).taggings
+    assert_empty TaggedPost.eager_load(:taggings).find(post.id).taggings
+    assert_empty TaggedPost.joins(:taggings).where(id: post.id)
+  end
+
+  test "the association scope can't remove the polymorphic type" do
+    post = posts(:welcome)
+    Tagging.create!(taggable: post).update_columns(taggable_type: "Other")
+    expected = post.taggings.sort_by(&:id)
+
+    assert_equal expected, post.taggings_unscoping_type.sort_by(&:id)
+    assert_equal expected, Post.preload(:taggings_unscoping_type).find(post.id).taggings_unscoping_type.sort_by(&:id)
+    assert_equal expected, Post.eager_load(:taggings_unscoping_type).find(post.id).taggings_unscoping_type.sort_by(&:id)
+  end
+
+  test "the association scope replacing the polymorphic type is deprecated when association_scope_keeps_owner_conditions is false" do
+    post = TaggedPost.create!(title: "Tagged", body: "Post")
+    Tagging.create!(taggable: post).update_columns(taggable_type: "TaggedPost")
+    Tagging.create!(taggable: post)
+    tagging = Tagging.find_by!(taggable_type: "TaggedPost")
+    message = /conditions tying the records to the owner on `taggings.taggable_type` of the `TaggedPost#taggings` association/
+
+    ActiveRecord.with(association_scope_keeps_owner_conditions: false) do
+      assert_deprecated(message, ActiveRecord.deprecator) do
+        assert_equal [tagging], post.taggings.to_a
+      end
+      assert_deprecated(message, ActiveRecord.deprecator) do
+        assert_equal [tagging], TaggedPost.preload(:taggings).find(post.id).taggings
+      end
+      assert_deprecated(message, ActiveRecord.deprecator) do
+        assert_equal [tagging], TaggedPost.eager_load(:taggings).find(post.id).taggings
+      end
+      assert_deprecated(message, ActiveRecord.deprecator) do
+        assert_equal [post], TaggedPost.joins(:taggings).where(id: post.id).to_a
+      end
+    end
+  end
+
+  test "the association scope removing the polymorphic type is deprecated when association_scope_keeps_owner_conditions is false" do
+    post = posts(:welcome)
+    Tagging.create!(taggable: post).update_columns(taggable_type: "Other")
+    expected = Tagging.where(taggable_id: post.id).sort_by(&:id)
+    message = /conditions tying the records to the owner on `taggings.taggable_type` of the `Post#taggings_unscoping_type` association/
+
+    ActiveRecord.with(association_scope_keeps_owner_conditions: false) do
+      assert_deprecated(message, ActiveRecord.deprecator) do
+        assert_equal expected, post.taggings_unscoping_type.sort_by(&:id)
+      end
+      assert_deprecated(message, ActiveRecord.deprecator) do
+        assert_equal expected, Post.preload(:taggings_unscoping_type).find(post.id).taggings_unscoping_type.sort_by(&:id)
+      end
+      assert_deprecated(message, ActiveRecord.deprecator) do
+        assert_equal expected, Post.eager_load(:taggings_unscoping_type).find(post.id).taggings_unscoping_type.sort_by(&:id)
+      end
+    end
   end
 
   test "unscopes the default scope of associated model when used with include" do

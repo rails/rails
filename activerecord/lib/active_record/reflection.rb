@@ -229,10 +229,13 @@ module ActiveRecord
         klass_scope       = klass_join_scope(table, predicate_builder)
 
         route = association_route_for_join(foreign_klass)
+        where_clause = klass_scope.where_clause
         route.destination_fixed_values.each do |column, value|
           klass_scope._where!(column => value)
         end
+        fixed_clause = klass_scope.where_clause - where_clause
         scope_chain_items.inject(klass_scope, &:merge!)
+        keep_owner_conditions(klass_scope, Relation::WhereClause.empty, fixed_clause)
 
         route.each_match do |origin_column, destination_column|
           destination_attribute = predicate_builder.predicate_attribute(table[destination_column])
@@ -242,6 +245,43 @@ module ActiveRecord
         end
 
         klass_scope
+      end
+
+      # Re-applies the conditions tying the records to the owner (the key and
+      # the polymorphic type) that the association scope removed or replaced,
+      # or warns that it does when +association_scope_keeps_owner_conditions+
+      # is disabled.
+      def keep_owner_conditions(scope, key_clause, type_clause = Relation::WhereClause.empty) # :nodoc:
+        removed_key = key_clause - scope.where_clause
+        removed_type = type_clause - scope.where_clause
+        return if removed_key.empty? && removed_type.empty?
+
+        if ActiveRecord.association_scope_keeps_owner_conditions
+          scope.where_clause += removed_key + removed_type
+          return
+        end
+
+        columns = (removed_key + removed_type).extract_attributes.map do |attr|
+          "`#{attr.relation.table_alias || attr.relation.name}.#{attr.name}`"
+        end.uniq
+
+        hints = []
+        unless removed_key.empty?
+          hints << "To load records of other owners, use a scope or a method instead of the association."
+        end
+        unless removed_type.empty?
+          hints << "To store a different polymorphic type for the owner, override `polymorphic_name` on the owner class. " \
+            "To query records of another type, use `foreign_key:` and `where` instead of `as:`."
+        end
+
+        ActiveRecord.deprecator.warn(<<~MSG.squish)
+          An association scope removes or replaces the conditions tying the records
+          to the owner on #{columns.join(", ")} of the `#{active_record.name}##{name}` association.
+          This behavior is deprecated and in Rails 9.0 these conditions will always be applied.
+          To opt in to the new behavior now, set
+          `config.active_record.association_scope_keeps_owner_conditions = true`.
+          #{hints.join(" ")}
+        MSG
       end
 
       def association_scope_cache(klass, routes, &block)
@@ -1561,7 +1601,7 @@ module ActiveRecord
     end
 
     class RuntimeReflection < AbstractReflection # :nodoc:
-      delegate :scope, :type, :constraints, to: :@reflection
+      delegate :scope, :type, :constraints, :name, :active_record, to: :@reflection
 
       def initialize(reflection, association, route)
         super()
