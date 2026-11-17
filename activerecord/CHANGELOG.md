@@ -1,3 +1,24 @@
+*   Fix the association scope removing the association's own key condition
+    when loading the association.
+
+    `unscope(where: ...)`, `unscope(:where)`, and `rewhere` in an association
+    scope removed the condition that ties the records to the owner, so the
+    association loaded records of other owners, and `update_all`, `delete_all`,
+    and `dependent: :delete_all` affected them. Preloading, eager loading, and
+    joins already kept it.
+
+    ```ruby
+    class Car < ActiveRecord::Base
+      has_many :all_bulbs, -> { unscope(:where) }, class_name: "Bulb"
+    end
+
+    car.all_bulbs
+    # Before: SELECT "bulbs".* FROM "bulbs"
+    # After:  SELECT "bulbs".* FROM "bulbs" WHERE "bulbs"."car_id" = ?
+    ```
+
+    *Ryuta Kamizono*
+
 *   Fix a `has_many :through` applying the default scope and STI type condition
     of its through model to the wrong table when the same table appears more
     than once in the chain.

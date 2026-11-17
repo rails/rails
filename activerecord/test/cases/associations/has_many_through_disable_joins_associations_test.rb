@@ -37,6 +37,14 @@ class HasManyThroughDisableJoinsAssociationsTest < ActiveRecord::TestCase
     @rating2 = @comment.ratings.create(value: 9)
   end
 
+  def test_through_association_scope_cannot_unscope_foreign_key
+    comments = @author.comments.sort_by(&:id)
+    assert_not_equal Comment.count, comments.size
+
+    assert_equal comments, @author.comments_on_posts_with_unscoped_where.sort_by(&:id)
+    assert_equal comments, @author.no_joins_comments_on_posts_with_unscoped_where.sort_by(&:id)
+  end
+
   def test_counting_on_disable_joins_through
     assert_equal @author.comments.count, @author.no_joins_comments.count
     assert_queries_count(2) { @author.no_joins_comments.count }

@@ -36,6 +36,7 @@ require "models/club"
 require "models/cpk"
 require "models/person"
 require "models/car"
+require "models/bulb"
 require "models/sharded/blog"
 require "models/sharded/blog_post"
 require "models/sharded/comment"
@@ -2369,6 +2370,15 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
     book.non_cpk_order = other_order
 
     assert_equal(other_order.id, book.order_id)
+  end
+
+  test "the association scope can't unscope the primary key of the associated model" do
+    Car.create!
+    car = Car.create!
+    bulb = Bulb.create!(name: "defaulty", car: car)
+
+    assert_equal car, bulb.car_with_unscoped_where
+    assert_equal car, Bulb.preload(:car_with_unscoped_where).find(bulb.id).car_with_unscoped_where
   end
 end
 
