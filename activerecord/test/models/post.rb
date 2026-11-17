@@ -147,6 +147,8 @@ class Post < ActiveRecord::Base
     end
   end
 
+  has_many :no_joins_tags, through: :taggings, source: :tag, disable_joins: true
+
   has_many :indestructible_taggings, as: :taggable, counter_cache: :indestructible_tags_count
   has_many :indestructible_tags, through: :indestructible_taggings, source: :tag
 

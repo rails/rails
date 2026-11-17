@@ -8,6 +8,8 @@ require "models/comment"
 require "models/rating"
 require "models/member"
 require "models/member_type"
+require "models/tag"
+require "models/tagging"
 
 require "models/pirate"
 require "models/treasure"
@@ -235,6 +237,23 @@ class HasManyThroughDisableJoinsAssociationsTest < ActiveRecord::TestCase
   def test_limit_and_scope_in_double_join_applies_limit_in_memory
     disable_joins_sql = capture_sql { @author.no_joins_members.unnamed.first }
     assert_no_match(/LIMIT 1/, disable_joins_sql.last)
+  end
+
+  def test_disable_joins_through_polymorphic_as_association_applies_type_condition
+    tag = Tag.create!(name: "other")
+    Tagging.create!(tag: tag, taggable: @post).update_columns(taggable_type: "Other")
+
+    assert_not_includes @post.tags.to_a, tag
+    assert_equal @post.tags.to_a, @post.no_joins_tags.to_a
+    assert_not_includes @post.no_joins_tags.to_a, tag
+  end
+
+  def test_disable_joins_through_polymorphic_source_type_applies_type_condition
+    member3 = Member.create!(member_type: @member_type)
+    @post.comments.create!(body: "text", origin: member3).update_columns(origin_type: "Other")
+
+    assert_equal @author.members.to_a, @author.no_joins_members.to_a
+    assert_not_includes @author.no_joins_members.to_a, member3
   end
 
   def test_ordered_disable_joins_through_with_composite_primary_key_source
