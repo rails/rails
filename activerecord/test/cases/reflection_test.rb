@@ -41,7 +41,7 @@ require "models/cpk/book"
 class ReflectionTest < ActiveRecord::TestCase
   include ActiveRecord::Reflection
 
-  fixtures :topics, :customers, :companies, :subscribers, :price_estimates
+  fixtures :topics, :customers, :companies, :subscribers, :price_estimates, :posts, :comments
 
   def setup
     @first = Topic.find(1)
