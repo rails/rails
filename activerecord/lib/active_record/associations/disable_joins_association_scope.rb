@@ -30,11 +30,16 @@ module ActiveRecord
 
       private
         def add_constraints(reflection, lookup, owner)
-          key = reflection.association_route.destination_key.name
+          route = reflection.association_route
+          key = route.destination_key.name
           scope = reflection.build_scope(reflection.aliased_table)
           predicate = scope.where(key => lookup.ids).where_clause.ast
           scope._where!(query_constraint(predicate))
           key_clause = scope.where_clause
+
+          route.destination_fixed_values.each do |column, value|
+            scope._where!(column => value)
+          end
 
           relation = reflection.klass.scope_for_association
           scope.merge!(

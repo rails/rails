@@ -1,3 +1,19 @@
+*   Fix `has_many :through` with `disable_joins: true` ignoring the polymorphic
+    type condition of an `as:` association in the chain.
+
+    ```ruby
+    class Post < ActiveRecord::Base
+      has_many :taggings, as: :taggable
+      has_many :tags, through: :taggings, disable_joins: true
+    end
+
+    post.tags
+    # Before: SELECT "taggings"."tag_id" FROM "taggings" WHERE "taggings"."taggable_id" = ?
+    # After:  SELECT "taggings"."tag_id" FROM "taggings" WHERE "taggings"."taggable_id" = ? AND "taggings"."taggable_type" = ?
+    ```
+
+    *Ryuta Kamizono*
+
 *   Fix the association scope removing the association's own key condition
     when loading the association.
 
