@@ -1025,15 +1025,6 @@ module ActiveRecord
           super
         end
 
-        def quoted_include_columns_for_index(column_names) # :nodoc:
-          return quote_column_name(column_names) if column_names.is_a?(Symbol)
-
-          quoted_columns = column_names.each_with_object({}) do |name, result|
-            result[name.to_sym] = quote_column_name(name).dup
-          end
-          add_options_for_index_columns(quoted_columns).values.join(", ")
-        end
-
         def schema_creation  # :nodoc:
           PostgreSQL::SchemaCreation.new(self)
         end
