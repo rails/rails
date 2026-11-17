@@ -1,3 +1,50 @@
+*   Add `config.active_record.association_scope_keeps_owner_conditions` to
+    always apply the conditions tying the records of an association to the
+    owner, and deprecate removing them with the association scope.
+
+    `unscope(where: ...)`, `unscope(:where)`, and `rewhere` in an association
+    scope could remove the foreign key condition when loading the association,
+    so it loaded records of other owners, and `update_all`, `delete_all`, and
+    `dependent: :delete_all` affected them. Preloading, eager loading, and
+    joins already kept it. They could also remove or replace the polymorphic
+    type condition of an `as:` association in every path, so the association
+    loaded records it doesn't write: `taggings.create!` still stores the
+    owner's `polymorphic_name`.
+
+    When enabled (the default for new applications), these conditions are
+    always applied. Otherwise the old behavior is kept with a deprecation
+    warning, and in Rails 9.0 they will always be applied.
+
+    ```ruby
+    class Car < ActiveRecord::Base
+      has_many :all_bulbs, -> { unscope(:where) }, class_name: "Bulb"
+    end
+
+    car.all_bulbs
+    # Before: SELECT "bulbs".* FROM "bulbs"
+    # After:  SELECT "bulbs".* FROM "bulbs" WHERE "bulbs"."car_id" = ?
+    ```
+
+    To load records of other owners, use a scope or a method instead of the
+    association. To store a different polymorphic type for the owner,
+    override `polymorphic_name`. To query records of another type, use
+    `foreign_key:` and `where` instead of `as:`.
+
+    ```ruby
+    class User < ActiveRecord::Base
+      def messages
+        Message.where(sender: self).or(Message.where(recipient: self))
+      end
+    end
+
+    class TaggedPost < Post
+      def self.polymorphic_name = name
+      has_many :taggings, as: :taggable
+    end
+    ```
+
+    *Ryuta Kamizono*
+
 *   Fix `has_many :through` with `disable_joins: true` ignoring the polymorphic
     type condition of an `as:` association in the chain.
 
@@ -10,27 +57,6 @@
     post.tags
     # Before: SELECT "taggings"."tag_id" FROM "taggings" WHERE "taggings"."taggable_id" = ?
     # After:  SELECT "taggings"."tag_id" FROM "taggings" WHERE "taggings"."taggable_id" = ? AND "taggings"."taggable_type" = ?
-    ```
-
-    *Ryuta Kamizono*
-
-*   Fix the association scope removing the association's own key condition
-    when loading the association.
-
-    `unscope(where: ...)`, `unscope(:where)`, and `rewhere` in an association
-    scope removed the condition that ties the records to the owner, so the
-    association loaded records of other owners, and `update_all`, `delete_all`,
-    and `dependent: :delete_all` affected them. Preloading, eager loading, and
-    joins already kept it.
-
-    ```ruby
-    class Car < ActiveRecord::Base
-      has_many :all_bulbs, -> { unscope(:where) }, class_name: "Bulb"
-    end
-
-    car.all_bulbs
-    # Before: SELECT "bulbs".* FROM "bulbs"
-    # After:  SELECT "bulbs".* FROM "bulbs" WHERE "bulbs"."car_id" = ?
     ```
 
     *Ryuta Kamizono*

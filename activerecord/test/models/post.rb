@@ -180,6 +180,8 @@ class Post < ActiveRecord::Base
   has_many :authors_using_author_id, through: :categorizations_using_author_id, source: :author
 
   has_many :taggings_using_author_id, primary_key: :author_id, as: :taggable, class_name: "Tagging"
+  has_many :taggings_unscoping_type, -> { unscope(where: :taggable_type) }, as: :taggable, class_name: "Tagging"
+  has_many :no_joins_tags_unscoping_type, through: :taggings_unscoping_type, source: :tag, disable_joins: true
   has_many :tags_using_author_id, through: :taggings_using_author_id, source: :tag
 
   has_many :images, as: :imageable, foreign_key: :imageable_identifier, foreign_type: :imageable_class

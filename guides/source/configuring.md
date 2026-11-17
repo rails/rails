@@ -68,6 +68,7 @@ Below are the default values associated with each target version. In cases of co
 - [`config.action_dispatch.strict_accept_header`](#config-action-dispatch-strict-accept-header): `true`
 - [`config.action_view.erb_implementation`](#config-action-view-erb-implementation): `:herb`
 - [`config.active_job.enqueue_after_transaction_commit`](#config-active-job-enqueue-after-transaction-commit): `true`
+- [`config.active_record.association_scope_keeps_owner_conditions`](#config-active-record-association-scope-keeps-owner-conditions): `true`
 - [`config.active_record.postgresql_adapter_decode_bytea`](#config-active-record-postgresql-adapter-decode-bytea): `true`
 - [`config.active_record.postgresql_adapter_decode_money`](#config-active-record-postgresql-adapter-decode-money): `true`
 - [`config.active_storage.analyze`](#config-active-storage-analyze): `:immediately`
@@ -1708,6 +1709,34 @@ ActiveRecord::Base.connection
      .select_value("select '12.34'::money").class #=> BigDecimal
 ```
 
+
+The default value depends on the `config.load_defaults` target version:
+
+| Starting with version | The default value is |
+| --------------------- | -------------------- |
+| (original)            | `false`              |
+| 8.2                   | `true`               |
+
+#### `config.active_record.association_scope_keeps_owner_conditions`
+
+Specifies whether an association always applies the conditions tying the
+records to the owner: the foreign key, and the polymorphic type of an `as:`
+association. When `true`, an association scope can't remove or replace them
+with `unscope(where: ...)`, `unscope(:where)`, or `rewhere`, when loading the
+association, preloading, eager loading, and joining it.
+
+```ruby
+class Car < ActiveRecord::Base
+  has_many :all_bulbs, -> { unscope(:where) }, class_name: "Bulb"
+end
+
+car.all_bulbs
+# true:  SELECT "bulbs".* FROM "bulbs" WHERE "bulbs"."car_id" = ?
+# false: SELECT "bulbs".* FROM "bulbs"
+```
+
+When `false`, the scope removes or replaces them as before, and a deprecation
+warning is shown.
 
 The default value depends on the `config.load_defaults` target version:
 

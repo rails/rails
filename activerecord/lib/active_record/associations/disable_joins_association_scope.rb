@@ -40,6 +40,7 @@ module ActiveRecord
           route.destination_fixed_values.each do |column, value|
             scope._where!(column => value)
           end
+          type_clause = scope.where_clause - key_clause
 
           relation = reflection.klass.scope_for_association
           scope.merge!(
@@ -54,7 +55,7 @@ module ActiveRecord
             scope.default_order_values = item.default_order_values | scope.default_order_values
             scope
           end
-          scope.where_clause += key_clause - scope.where_clause
+          reflection.keep_owner_conditions(scope, key_clause, type_clause)
 
           if order_rank(scope) < lookup.order_rank
             split_scope = DisableJoinsAssociationRelation.create(scope.model, key, lookup.ids)

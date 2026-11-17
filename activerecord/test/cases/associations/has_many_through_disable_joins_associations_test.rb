@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require "cases/helper"
+require "active_support/core_ext/object/with"
 
 require "models/post"
 require "models/author"
@@ -45,6 +46,41 @@ class HasManyThroughDisableJoinsAssociationsTest < ActiveRecord::TestCase
 
     assert_equal comments, @author.comments_on_posts_with_unscoped_where.sort_by(&:id)
     assert_equal comments, @author.no_joins_comments_on_posts_with_unscoped_where.sort_by(&:id)
+  end
+
+  def test_through_association_scope_unscoping_foreign_key_is_deprecated_when_association_scope_keeps_owner_conditions_is_false
+    message = /conditions tying the records to the owner on `posts.author_id`/
+
+    ActiveRecord.with(association_scope_keeps_owner_conditions: false) do
+      assert_deprecated(message, ActiveRecord.deprecator) do
+        assert_equal Comment.count, @author.comments_on_posts_with_unscoped_where.size
+      end
+      assert_deprecated(message, ActiveRecord.deprecator) do
+        assert_equal Comment.count, @author.no_joins_comments_on_posts_with_unscoped_where.size
+      end
+    end
+  end
+
+  def test_through_association_scope_cannot_unscope_polymorphic_type
+    post = posts(:welcome)
+    Tagging.create!(taggable: post, tag: Tag.create!(name: "Other")).update_columns(taggable_type: "Other")
+    Tagging.create!(taggable: post, tag: Tag.create!(name: "Post"))
+
+    assert_equal post.tags.sort_by(&:id), post.no_joins_tags_unscoping_type.sort_by(&:id)
+    assert_not_includes post.no_joins_tags_unscoping_type.map(&:name), "Other"
+  end
+
+  def test_through_association_scope_unscoping_polymorphic_type_is_deprecated_when_association_scope_keeps_owner_conditions_is_false
+    post = posts(:welcome)
+    other_tag = Tag.create!(name: "Other")
+    Tagging.create!(taggable: post, tag: other_tag).update_columns(taggable_type: "Other")
+    message = /conditions tying the records to the owner on `taggings.taggable_type`/
+
+    ActiveRecord.with(association_scope_keeps_owner_conditions: false) do
+      assert_deprecated(message, ActiveRecord.deprecator) do
+        assert_includes post.no_joins_tags_unscoping_type, other_tag
+      end
+    end
   end
 
   def test_counting_on_disable_joins_through

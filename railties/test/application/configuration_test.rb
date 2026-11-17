@@ -5269,6 +5269,31 @@ module ApplicationTests
       end
     end
 
+    test "association_scope_keeps_owner_conditions is true in new apps" do
+      app "development"
+
+      assert_equal true, ActiveRecord.association_scope_keeps_owner_conditions
+    end
+
+    test "association_scope_keeps_owner_conditions is false in upgrading apps" do
+      remove_from_config '.*config\.load_defaults.*\n'
+      add_to_config 'config.load_defaults "8.1"'
+      app "development"
+
+      assert_equal false, ActiveRecord.association_scope_keeps_owner_conditions
+    end
+
+    test "association_scope_keeps_owner_conditions can be set via framework defaults" do
+      remove_from_config '.*config\.load_defaults.*\n'
+      add_to_config 'config.load_defaults "8.1"'
+      app_file "config/initializers/new_framework_defaults_8_2.rb", <<-RUBY
+        Rails.application.config.active_record.association_scope_keeps_owner_conditions = true
+      RUBY
+      app "development"
+
+      assert_equal true, ActiveRecord.association_scope_keeps_owner_conditions
+    end
+
     test "run_after_transaction_callbacks_in_order_defined is true in new apps" do
       app "development"
 
