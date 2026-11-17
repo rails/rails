@@ -112,11 +112,77 @@ class ActiveStorage::Blobs::ProxyControllerTest < ActionDispatch::IntegrationTes
     assert_response :range_not_satisfiable
   end
 
-  test "Byte Range is too big" do
-    with_streaming_chunk_max_size(1.kilobyte) do
-      get rails_storage_proxy_url(create_file_blob(filename: "racecar.jpg")), headers: { "Range" => "bytes=0-" }
-      assert_response :range_not_satisfiable
+  test "single Byte Range larger than streaming_chunk_max_size is streamed in chunks" do
+    blob = create_file_blob(filename: "racecar.jpg")
+    read_sizes = []
+    download_chunk = blob.service.method(:download_chunk)
+
+    with_streaming_chunk_max_size(100.kilobytes) do
+      blob.service.stub(:download_chunk, ->(key, range) { read_sizes << range.size; download_chunk.(key, range) }) do
+        get rails_storage_proxy_url(blob), headers: { "Range" => "bytes=100-" }
+      end
     end
+
+    assert_response :partial_content
+    assert_equal "1123962", response.headers["Content-Length"]
+    assert_equal "bytes 100-1124061/1124062", response.headers["Content-Range"]
+    assert_equal file_fixture("racecar.jpg").binread[100..], response.body
+    assert_equal 100.kilobytes, read_sizes.max
+  end
+
+  test "single closed Byte Range spanning several reads ends at the requested byte" do
+    blob = create_file_blob(filename: "racecar.jpg")
+    read_ranges = []
+    download_chunk = blob.service.method(:download_chunk)
+
+    with_streaming_chunk_max_size(10) do
+      blob.service.stub(:download_chunk, ->(key, range) { read_ranges << range; download_chunk.(key, range) }) do
+        get rails_storage_proxy_url(blob), headers: { "Range" => "bytes=5-29" }
+      end
+    end
+
+    assert_response :partial_content
+    assert_equal "25", response.headers["Content-Length"]
+    assert_equal "bytes 5-29/1124062", response.headers["Content-Range"]
+    assert_equal file_fixture("racecar.jpg").binread[5..29], response.body
+    assert_equal [5..14, 15..24, 25..29], read_ranges
+  end
+
+  test "single Byte Range is read in chunks of at most 5 megabytes" do
+    blob = create_blob(data: "a" * 6.megabytes)
+    read_sizes = []
+    download_chunk = blob.service.method(:download_chunk)
+
+    blob.service.stub(:download_chunk, ->(key, range) { read_sizes << range.size; download_chunk.(key, range) }) do
+      get rails_storage_proxy_url(blob), headers: { "Range" => "bytes=0-" }
+    end
+
+    assert_response :partial_content
+    assert_equal [5.megabytes, 1.megabyte], read_sizes
+  end
+
+  test "Content-Length header is passed to the server when streaming a byte range" do
+    blob = create_file_blob(filename: "racecar.jpg")
+
+    status, headers = rack_response_for(rails_storage_proxy_url(blob), "HTTP_RANGE" => "bytes=5-9")
+
+    assert_equal 206, status
+    assert_equal "5", headers["content-length"]
+  end
+
+  test "returns a 404 without range headers if the file is not found on a byte range download" do
+    blob = create_file_blob(filename: "racecar.jpg")
+    mock_download_chunk = lambda do |_, _|
+      raise ActiveStorage::FileNotFoundError.new "File still uploading!"
+    end
+
+    status, headers = blob.service.stub(:download_chunk, mock_download_chunk) do
+      rack_response_for(rails_storage_proxy_url(blob), "HTTP_RANGE" => "bytes=5-9")
+    end
+
+    assert_equal 404, status
+    assert_nil headers["content-range"]
+    assert_nil headers["content-length"]
   end
 
   test "Byte Range is too big overall" do
@@ -205,6 +271,16 @@ class ActiveStorage::Blobs::ProxyControllerTest < ActionDispatch::IntegrationTes
   end
 
   private
+    # Calls the app without the integration session, which computes its own Content-Length,
+    # and reads the streamed body to the end so the request has completed when this returns.
+    def rack_response_for(url, env = {})
+      status, headers, body = Rails.application.call(Rack::MockRequest.env_for(url, env))
+      body.each { }
+      [status, headers]
+    ensure
+      body&.close
+    end
+
     def assert_committed_download_failure_preserves_response(error_class, protocol:)
       blob = create_file_blob(filename: "racecar.jpg")
       mock_download = lambda do |_, &block|

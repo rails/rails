@@ -5,6 +5,7 @@ require "securerandom"
 module ActiveStorage::Streaming
   extend ActiveSupport::Concern
   DEFAULT_BLOB_STREAMING_DISPOSITION = "inline"
+  BLOB_RANGE_STREAMING_CHUNK_SIZE = 5.megabytes
 
   include ActionController::DataStreaming
   include ActionController::Live
@@ -18,11 +19,7 @@ module ActiveStorage::Streaming
       return head(:range_not_satisfiable) if ranges.length > ActiveStorage.streaming_max_ranges
 
       if ranges.length == 1
-        range = ranges.first
-        content_type = blob.content_type_for_serving
-        data = blob.download_chunk(range)
-
-        response.headers["Content-Range"] = "bytes #{range.begin}-#{range.end}/#{blob.byte_size}"
+        return send_blob_byte_range_stream(blob, ranges.first, disposition: disposition)
       else
         boundary = SecureRandom.hex
         content_type = "multipart/byteranges; boundary=#{boundary}"
@@ -54,6 +51,7 @@ module ActiveStorage::Streaming
 
     def ranges_valid?(ranges)
       return false if ranges.blank? || ranges.all?(&:blank?)
+      return true if ranges.one?
 
       ranges.sum { |range| range.end - range.begin } < ActiveStorage.streaming_chunk_max_size
     end
@@ -77,6 +75,42 @@ module ActiveStorage::Streaming
         # Until the first chunk is written, status and caching headers are set
         # but not committed. Change the status to 500 manually.
         unless response.committed?
+          expires_now
+          head :internal_server_error
+        end
+
+        raise
+      end
+    end
+
+    # Stream a single byte range of the blob from storage directly to the response.
+    def send_blob_byte_range_stream(blob, range, disposition: nil)
+      chunk_size = [ActiveStorage.streaming_chunk_max_size, BLOB_RANGE_STREAMING_CHUNK_SIZE].min
+
+      response.status = :partial_content
+      response.headers["Accept-Ranges"] = "bytes"
+      response.headers["Content-Range"] = "bytes #{range.begin}-#{range.end}/#{blob.byte_size}"
+      response.headers["Content-Length"] = range.size.to_s
+
+      send_stream(
+          filename: blob.filename.sanitized,
+          disposition: blob.forced_disposition_for_serving || disposition || DEFAULT_BLOB_STREAMING_DISPOSITION,
+          type: blob.content_type_for_serving) do |stream|
+        range.step(chunk_size) do |offset|
+          chunk = blob.download_chunk(offset..[offset + chunk_size - 1, range.end].min)
+          # Commit before the first write, otherwise ActionController::Live drops the Content-Length header.
+          response.commit! unless response.committed?
+          stream.write chunk
+        end
+      rescue ActiveStorage::FileNotFoundError
+        raise if response.committed?
+
+        response.headers.delete("Content-Range")
+        expires_now
+        head :not_found
+      rescue
+        unless response.committed?
+          response.headers.delete("Content-Range")
           expires_now
           head :internal_server_error
         end
