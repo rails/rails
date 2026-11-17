@@ -16,7 +16,7 @@ module ActiveRecord
       delegate :quote_column_name, :quote_table_name, :quote_default_expression, :type_to_sql,
         :options_include_default?, :supports_indexes_in_create?, :use_foreign_keys?,
         :quoted_columns_for_index, :supports_partial_index?, :supports_check_constraints?,
-        :supports_exclusion_constraints?, :supports_unique_constraints?, :lookup_cast_type,
+        :lookup_cast_type,
         to: :@conn, private: true
 
       private
@@ -59,21 +59,7 @@ module ActiveRecord
             statements.concat(o.indexes.map { |column_name, options| index_in_create(o.name, column_name, options) })
           end
 
-          if use_foreign_keys?
-            statements.concat(o.foreign_keys.map { |fk| accept fk })
-          end
-
-          if supports_check_constraints?
-            statements.concat(o.check_constraints.map { |chk| accept chk })
-          end
-
-          if supports_exclusion_constraints?
-            statements.concat(o.exclusion_constraints.map { |exc| accept exc })
-          end
-
-          if supports_unique_constraints?
-            statements.concat(o.unique_constraints.map { |exc| accept exc })
-          end
+          add_table_constraints!(statements, o)
 
           create_sql << "(#{statements.join(', ')})" if statements.present?
           add_table_options!(create_sql, o)
@@ -139,6 +125,18 @@ module ActiveRecord
 
         def supports_index_using?
           true
+        end
+
+        def add_table_constraints!(statements, o)
+          if use_foreign_keys?
+            statements.concat(o.foreign_keys.map { |fk| accept fk })
+          end
+
+          if supports_check_constraints?
+            statements.concat(o.check_constraints.map { |chk| accept chk })
+          end
+
+          statements
         end
 
         def add_index_options!(sql, index)

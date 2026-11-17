@@ -115,6 +115,12 @@ module ActiveRecord
             end
           end
 
+          def add_table_constraints!(statements, o)
+            super
+            statements.concat(o.exclusion_constraints.map { |exc| accept exc })
+            statements.concat(o.unique_constraints.map { |uc| accept uc })
+          end
+
           def add_index_options!(sql, index)
             sql << "INCLUDE (#{quoted_include_columns(index.include)})" if supports_index_include? && index.include
             sql << "NULLS NOT DISTINCT" if supports_nulls_not_distinct? && index.nulls_not_distinct
