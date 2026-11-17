@@ -1,3 +1,16 @@
+*   Add `config.action_cable.max_message_size` to limit the size of the messages a client can send.
+
+    Action Cable built its WebSocket driver without a size limit, so websocket-driver's
+    own applied: 64 MiB per message, buffered in full before Action Cable reads it.
+    A message over the configured size now closes the connection with status 1009.
+    The default is unchanged.
+
+    ```ruby
+    config.action_cable.max_message_size = 1.megabyte
+    ```
+
+    *Rafa Souza*
+
 *   Filter parameters from the message logged when a command can't be handled.
 
     When a channel action raised, the error log included the raw WebSocket message,

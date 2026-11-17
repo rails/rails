@@ -15,11 +15,12 @@ class ActionCable::Server::Socket::ClientSocketTest < ActionCable::TestCase
       def handle_close = @socket.disconnect
     end
 
-    attr_reader :connected, :websocket, :errors
+    attr_reader :connected, :websocket, :errors, :messages, :close_code
 
     def initialize(*)
       super
       @errors = []
+      @messages = []
       @connection = TestConnection.new(self)
     end
 
@@ -33,6 +34,15 @@ class ActionCable::Server::Socket::ClientSocketTest < ActionCable::TestCase
 
     def on_error(message)
       @errors << message
+    end
+
+    def on_message(message)
+      @messages << message
+    end
+
+    def on_close(reason, code)
+      @close_code = code
+      super
     end
   end
 
@@ -89,12 +99,43 @@ class ActionCable::Server::Socket::ClientSocketTest < ActionCable::TestCase
     end
   end
 
+  test "closes the connection with 1009 when a message is larger than max_message_size" do
+    @server.config.max_message_size = 16
+
+    run_in_eventmachine do
+      connection = open_connection(rfc6455_handshake)
+      skip "needs a socket pair" unless @client_io
+
+      @client_io.write(masked_text_frame("x" * 17))
+
+      wait_for { connection.close_code }
+      assert_equal 1009, connection.close_code
+      assert_equal ["WebSocket frame length too large"], connection.errors
+      assert_empty connection.messages
+    end
+  end
+
+  test "keeps the driver's own size limit when max_message_size is not set" do
+    run_in_eventmachine do
+      connection = open_connection(rfc6455_handshake)
+      skip "needs a socket pair" unless @client_io
+
+      @client_io.write(masked_text_frame("x" * 17))
+
+      wait_for { connection.messages.any? }
+      assert_equal ["x" * 17], connection.messages
+      assert_nil connection.close_code
+      assert connection.websocket.alive?
+    end
+  end
+
   private
-    def open_connection
-      env = Rack::MockRequest.env_for "/test",
+    def open_connection(headers = {})
+      env = Rack::MockRequest.env_for "/test", {
         "HTTP_CONNECTION" => "upgrade", "HTTP_UPGRADE" => "websocket",
         "HTTP_HOST" => "localhost", "HTTP_ORIGIN" => "http://rubyonrails.com"
-      io, client_io = \
+      }.merge(headers)
+      io, @client_io = \
         begin
           Socket.pair(Socket::AF_UNIX, Socket::SOCK_STREAM, 0)
         rescue
@@ -104,16 +145,29 @@ class ActionCable::Server::Socket::ClientSocketTest < ActionCable::TestCase
 
       TestSocket.new(@server, env).tap do |socket|
         socket.process
-        if client_io
+        if @client_io
           # Make sure server returns handshake response
           Timeout.timeout(1) do
             loop do
-              break if client_io.readline == "\r\n"
+              break if @client_io.readline == "\r\n"
             end
           end
         end
         socket.send :handle_open
         assert socket.connected
       end
+    end
+
+    # Without these headers websocket-driver speaks draft-75, which has no
+    # close codes.
+    def rfc6455_handshake
+      { "HTTP_SEC_WEBSOCKET_VERSION" => "13", "HTTP_SEC_WEBSOCKET_KEY" => SecureRandom.base64(16) }
+    end
+
+    # A client's text frame, masked as RFC 6455 requires, for a payload under 126 bytes.
+    def masked_text_frame(text)
+      mask = SecureRandom.random_bytes(4)
+      payload = text.bytes.each_with_index.map { |byte, i| byte ^ mask.getbyte(i % 4) }.pack("C*")
+      [0x81, 0x80 | text.bytesize].pack("CC") + mask + payload
     end
 end
