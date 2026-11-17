@@ -59,6 +59,8 @@ class ActionCable::Connection::ClientSocketTest < ActionCable::TestCase
         .instance_variable_get("@rack_hijack_io")
         .define_singleton_method(:close) { event.set }
       connection.close(reason: "testing")
+      # The server closes the socket once the client answers with a masked close frame.
+      @client_io.write("\x88\x80\x00\x00\x00\x00".b)
       event.wait
     end
   end
@@ -67,8 +69,9 @@ class ActionCable::Connection::ClientSocketTest < ActionCable::TestCase
     def open_connection
       env = Rack::MockRequest.env_for "/test",
         "HTTP_CONNECTION" => "upgrade", "HTTP_UPGRADE" => "websocket",
-        "HTTP_HOST" => "localhost", "HTTP_ORIGIN" => "http://rubyonrails.com"
-      io, client_io = \
+        "HTTP_HOST" => "localhost", "HTTP_ORIGIN" => "http://rubyonrails.com",
+        "HTTP_SEC_WEBSOCKET_VERSION" => "13", "HTTP_SEC_WEBSOCKET_KEY" => "dGhlIHNhbXBsZSBub25jZQ=="
+      io, @client_io = \
         begin
           Socket.pair(Socket::AF_UNIX, Socket::SOCK_STREAM, 0)
         rescue
@@ -78,11 +81,11 @@ class ActionCable::Connection::ClientSocketTest < ActionCable::TestCase
 
       Connection.new(@server, env).tap do |connection|
         connection.process
-        if client_io
+        if @client_io
           # Make sure server returns handshake response
           Timeout.timeout(1) do
             loop do
-              break if client_io.readline == "\r\n"
+              break if @client_io.readline == "\r\n"
             end
           end
         end
