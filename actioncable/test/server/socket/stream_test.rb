@@ -2,6 +2,7 @@
 
 require "test_helper"
 require "minitest/mock"
+require "socket"
 require "stubs/test_server"
 
 class ActionCable::Server::Socket::StreamTest < ActionCable::TestCase
@@ -45,7 +46,7 @@ class ActionCable::Server::Socket::StreamTest < ActionCable::TestCase
   [ EOFError, Errno::ECONNRESET ].each do |closed_exception|
     test "closes socket on #{closed_exception}" do
       run_in_eventmachine do
-        rack_hijack_io = File.open(File::NULL, "w")
+        rack_hijack_io, peer = Socket.pair(:UNIX, :STREAM)
         connection = open_connection(rack_hijack_io)
 
         # Internal hax = :(
@@ -56,6 +57,8 @@ class ActionCable::Server::Socket::StreamTest < ActionCable::TestCase
           end
         end
         assert_equal [], connection.errors
+      ensure
+        peer&.close
       end
     end
   end
