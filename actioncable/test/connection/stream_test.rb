@@ -38,7 +38,7 @@ class ActionCable::Connection::StreamTest < ActionCable::TestCase
   [ EOFError, Errno::ECONNRESET ].each do |closed_exception|
     test "closes socket on #{closed_exception}" do
       run_in_eventmachine do
-        rack_hijack_io = File.open(File::NULL, "w")
+        rack_hijack_io, client_io = Socket.pair(Socket::AF_UNIX, Socket::SOCK_STREAM, 0)
         connection = open_connection(rack_hijack_io)
 
         # Internal hax = :(
@@ -49,6 +49,8 @@ class ActionCable::Connection::StreamTest < ActionCable::TestCase
           end
         end
         assert_equal [], connection.errors
+      ensure
+        client_io&.close
       end
     end
   end
