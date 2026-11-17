@@ -85,11 +85,13 @@ class Author < ActiveRecord::Base
   has_many :ratings, through: :comments
   has_many :post_comment_ratings, through: :posts, source: :comment_ratings
   has_many :ratings_desc, -> { order(value: :desc) }, through: :posts, source: :comment_ratings
+  has_many :readonly_plain_comment_ratings, -> { readonly }, through: :posts, source: :plain_comment_ratings
   has_many :good_ratings,
     -> { where("ratings.value > 5").order(:id) },
     through: :comments,
     source: :ratings
   has_many :welcome_post_comments, -> { where("posts.title = 'Welcome to the weblog'") }, through: :posts, source: :comments
+  has_many :readonly_welcome_post_comments, -> { where("posts.title = 'Welcome to the weblog'").readonly }, through: :posts, source: :comments
   has_many :good_welcome_post_ratings, -> { where("ratings.value > 5") }, through: :welcome_post_comments, source: :ratings
 
   has_many :no_joins_ratings, through: :no_joins_comments, disable_joins: :true, source: :ratings

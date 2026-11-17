@@ -1,3 +1,8 @@
+*   Fix preloading a `readonly` `has_many :through` with conditions returning
+    records that are not readonly.
+
+    *William T. Nelson*
+
 *   Add `config.active_record.association_scope_keeps_owner_conditions` to
     always apply the conditions tying the records of an association to the
     owner, and deprecate removing them with the association scope.

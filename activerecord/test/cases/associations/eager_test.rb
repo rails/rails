@@ -1375,6 +1375,20 @@ class EagerAssociationTest < ActiveRecord::TestCase
     end
   end
 
+  def test_preload_readonly_filtered_has_many_through
+    Rating.create!(comment: comments(:greetings), value: 1)
+
+    %i[readonly_welcome_post_comments readonly_plain_comment_ratings].each do |association|
+      expected = authors(:david).public_send(association).sort_by(&:id)
+      assert_not_empty expected, association
+
+      preloaded = Author.preload(association).find(authors(:david).id).public_send(association).sort_by(&:id)
+
+      assert_equal expected, preloaded, association
+      preloaded.each { |record| assert_predicate record, :readonly?, association }
+    end
+  end
+
   def test_preload_filtered_has_many_through_a_nested_one_after_a_sibling
     Rating.create!(comment: comments(:greetings), value: 9)
     expected = authors(:david).good_ratings.to_a
