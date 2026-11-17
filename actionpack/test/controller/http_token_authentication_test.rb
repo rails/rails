@@ -237,6 +237,34 @@ class HttpTokenAuthenticationTest < ActionController::TestCase
     assert_equal "token", result
   end
 
+  test "authenticate calls lambdas and methods written for two arguments without the scheme" do
+    controller = Struct.new(:request).new(sample_request("token"))
+    login_procedures = [
+      ->(token, options) { token },
+      ->(token, options = {}) { token },
+      ->(token, options, strict: false) { token },
+      ->(token, options = {}, strict = false) { strict ? nil : token },
+      method(:find_token),
+    ]
+
+    login_procedures.each do |login_procedure|
+      assert_equal "token", ActionController::HttpAuthentication::Token.authenticate(controller, &login_procedure)
+    end
+  end
+
+  test "authenticate passes the scheme to lambdas that require it or take a splat" do
+    controller = Struct.new(:request).new(sample_request("token"))
+    login_procedures = [
+      ->(token, options, scheme) { scheme },
+      ->(*args) { args[2] },
+      ->(prefix, token, options, scheme) { scheme }.curry[nil],
+    ]
+
+    login_procedures.each do |login_procedure|
+      assert_equal :token, ActionController::HttpAuthentication::Token.authenticate(controller, &login_procedure)
+    end
+  end
+
   test "authentication rejects unknown schemes by default" do
     @request.env["HTTP_AUTHORIZATION"] = "Basic lifo"
     get :index
@@ -389,6 +417,10 @@ class HttpTokenAuthenticationTest < ActionController::TestCase
   end
 
   private
+    def find_token(token, options)
+      token
+    end
+
     def sample_request(token, options = { nonce: "def" })
       authorization = options.inject([%{Token token="#{token}"}]) do |arr, (k, v)|
         arr << "#{k}=\"#{v}\""
