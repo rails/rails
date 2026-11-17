@@ -1,3 +1,15 @@
+*   Mirror files through the service that uploaded them.
+
+    `ActiveStorage::MirrorJob` mirrored through `ActiveStorage::Blob.service`,
+    so a file uploaded through any other mirror service (for example an
+    attachment declared with `service: :mirror`) was looked up in the wrong
+    primary and the `ActiveStorage::FileNotFoundError` was discarded: the file
+    never reached the mirrors. `ActiveStorage::Service::MirrorService` now passes
+    its name to the job, which mirrors through that service. Jobs enqueued
+    without a service name still mirror through the default service.
+
+    *Oleksii Vasyliev*
+
 *   Preserve committed proxy responses when a storage error interrupts a
     streamed download.
 
