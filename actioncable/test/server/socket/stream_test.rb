@@ -64,7 +64,8 @@ class ActionCable::Server::Socket::StreamTest < ActionCable::TestCase
     def open_connection(io)
       env = Rack::MockRequest.env_for "/test",
         "HTTP_CONNECTION" => "upgrade", "HTTP_UPGRADE" => "websocket",
-        "HTTP_HOST" => "localhost", "HTTP_ORIGIN" => "http://rubyonrails.com"
+        "HTTP_HOST" => "localhost", "HTTP_ORIGIN" => "http://rubyonrails.com",
+        "HTTP_SEC_WEBSOCKET_VERSION" => "13", "HTTP_SEC_WEBSOCKET_KEY" => "dGhlIHNhbXBsZSBub25jZQ=="
       env["rack.hijack"] = -> { env["rack.hijack_io"] = io }
 
       TestSocket.new(@server, env).tap do |socket|
