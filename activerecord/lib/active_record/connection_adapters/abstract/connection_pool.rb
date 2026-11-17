@@ -775,8 +775,19 @@ module ActiveRecord
 
         stale_connections.each do |conn|
           if conn.active?
-            conn.reset!
-            checkin conn
+            returned = ActiveSupport.error_reporter.handle(source: "active_record.connection_pool", fallback: -> { false }) do
+              conn.reset!
+              checkin conn
+              true
+            end
+
+            unless returned
+              remove conn
+
+              ActiveSupport.error_reporter.handle(source: "active_record.connection_pool") do
+                conn.disconnect!
+              end
+            end
           else
             remove conn
           end
@@ -1088,10 +1099,12 @@ module ActiveRecord
         # this is unfortunately not concurrent
         def bulk_make_new_connections(num_new_conns_needed)
           num_new_conns_needed.times do
-            # try_to_checkout_new_connection will not exceed pool's @max_connections limit
-            if new_conn = try_to_checkout_new_connection
-              # make the new_conn available to the starving threads stuck @available Queue
-              checkin(new_conn)
+            ActiveSupport.error_reporter.handle(source: "active_record.connection_pool") do
+              # try_to_checkout_new_connection will not exceed pool's @max_connections limit
+              if new_conn = try_to_checkout_new_connection
+                # make the new_conn available to the starving threads stuck @available Queue
+                checkin(new_conn)
+              end
             end
           end
         end
