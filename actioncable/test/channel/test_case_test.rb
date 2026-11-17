@@ -281,6 +281,13 @@ class BroadcastsTestChannel < ActionCable::Channel::Base
 
     broadcast_to user, text: data["message"]
   end
+
+  def broadcast_through_connection(data)
+    connection.broadcast(
+      "broadcast_#{params[:id]}",
+      { text: data["message"], user_id: user_id }
+    )
+  end
 end
 
 class BroadcastsTestChannelTest < ActionCable::Channel::TestCase
@@ -298,6 +305,12 @@ class BroadcastsTestChannelTest < ActionCable::Channel::TestCase
   def test_broadcast_matchers_included
     assert_broadcast_on("broadcast_5", user_id: 2017, text: "SOS") do
       perform :broadcast, message: "SOS"
+    end
+  end
+
+  def test_broadcast_through_connection
+    assert_broadcast_on("broadcast_5", user_id: 2017, text: "SOS") do
+      perform :broadcast_through_connection, message: "SOS"
     end
   end
 
