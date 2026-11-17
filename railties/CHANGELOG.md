@@ -1,3 +1,13 @@
+*   Harden generated GitHub Actions workflows
+
+    Generated `ci.yml` pins versions of actions to mitigate repointed git tag
+    attacks. Pins use dependabot-friendly format so the sha and version comment
+    will be kept up-to-date by the existing `dependabot.yml` config. Sets
+    `persist-credentials: false` for checkout actions to mitigate later steps
+    reading GitHub tokens from filesystem. `ci.yml` passes zizmor scan.
+
+    *Eliot Sykes*
+
 *   Detect Kamal in `bin/rails app:update`.
 
     The update command didn't pass `skip_kamal`, so it rendered config files
