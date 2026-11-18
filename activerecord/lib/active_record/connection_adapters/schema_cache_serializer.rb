@@ -48,6 +48,7 @@ module ActiveRecord
         "sqlite3_integer" => "ActiveRecord::ConnectionAdapters::SQLite3Adapter::SQLite3Integer",
 
         "postgresql_column" => "ActiveRecord::ConnectionAdapters::PostgreSQL::Column",
+        "postgresql_index_definition" => "ActiveRecord::ConnectionAdapters::PostgreSQL::IndexDefinition",
         "postgresql_type_metadata" => "ActiveRecord::ConnectionAdapters::PostgreSQL::TypeMetadata",
 
         "postgresql_array" => "ActiveRecord::ConnectionAdapters::PostgreSQL::OID::Array",

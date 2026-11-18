@@ -237,6 +237,44 @@ module ActiveRecord
         end
       end
 
+      # Active Record PostgreSQL Adapter \Index Definition
+      # ==================================================
+      class IndexDefinition < ActiveRecord::ConnectionAdapters::IndexDefinition # :nodoc:
+        attr_reader :opclasses, :include, :nulls_not_distinct
+
+        def initialize(*args, opclasses: {}, include: nil, nulls_not_distinct: nil, **kwargs)
+          super(*args, **kwargs)
+          @opclasses = concise_options(opclasses)
+          @include = include
+          @nulls_not_distinct = nulls_not_distinct
+        end
+
+        def column_options
+          super.merge!(opclass: opclasses)
+        end
+
+        def defined_for?(columns = nil, include: nil, nulls_not_distinct: nil, **options)
+          super(columns, **options) &&
+            (include.nil? || Array(self.include) == Array(include).map(&:to_s)) &&
+            (nulls_not_distinct.nil? || self.nulls_not_distinct == nulls_not_distinct)
+        end
+
+        def as_schema_json
+          json = super
+          json["opclasses"] = @opclasses.presence
+          json["include"] = @include
+          json["nulls_not_distinct"] = @nulls_not_distinct
+          json
+        end
+
+        def init_from_schema_json(coder, references)
+          super
+          @opclasses = symbolize_concise_options(coder["opclasses"])
+          @include = coder["include"]
+          @nulls_not_distinct = coder["nulls_not_distinct"]
+        end
+      end
+
       ValidateConstraint = Data.define(:name) # :nodoc:
       AddExclusionConstraint = Data.define(:exclusion_constraint) # :nodoc:
       AddUniqueConstraint = Data.define(:unique_constraint) # :nodoc:

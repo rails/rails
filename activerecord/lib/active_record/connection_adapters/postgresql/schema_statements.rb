@@ -1025,6 +1025,10 @@ module ActiveRecord
           super
         end
 
+        def create_index_definition(table_name, name, unique, columns, **options) # :nodoc:
+          PostgreSQL::IndexDefinition.new(table_name, name, unique, columns, **options)
+        end
+
         def schema_creation  # :nodoc:
           PostgreSQL::SchemaCreation.new(self)
         end
@@ -1186,7 +1190,7 @@ module ActiveRecord
                 columns = key_definition
               end
 
-              IndexDefinition.new(
+              PostgreSQL::IndexDefinition.new(
                 table_name,
                 index_name,
                 unique,
@@ -1461,6 +1465,14 @@ module ActiveRecord
           def reference_name_for_table(table_name)
             _schema, table_name = extract_schema_qualified_name(table_name.to_s)
             table_name.singularize
+          end
+
+          def index_definition_options(options)
+            super.merge!(
+              opclasses: options[:opclass] || {},
+              include: options[:include],
+              nulls_not_distinct: options[:nulls_not_distinct],
+            )
           end
 
           def add_index_opclass(quoted_columns, **options)

@@ -256,6 +256,10 @@ module ActiveRecord
           remote_dispatch(:columns_for_distinct, ...)
         end
 
+        def create_index_definition(...)
+          remote_dispatch(:create_index_definition, ...)
+        end
+
         def create_schema_dumper(options)
           PostgreSQL::SchemaDumper.create(self, options)
         end

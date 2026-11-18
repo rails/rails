@@ -1616,15 +1616,7 @@ module ActiveRecord
           table_name, index_name,
           options[:unique],
           column_names,
-          lengths: options[:length] || {},
-          orders: options[:order] || {},
-          opclasses: options[:opclass] || {},
-          where: options[:where],
-          type: options[:type],
-          using: options[:using],
-          include: options[:include],
-          nulls_not_distinct: options[:nulls_not_distinct],
-          comment: options[:comment]
+          **index_definition_options(options)
         )
 
         [index, index_algorithm(options[:algorithm]), if_not_exists]
@@ -1787,6 +1779,17 @@ module ActiveRecord
 
         def valid_index_options
           [:unique, :length, :order, :opclass, :where, :type, :using, :comment, :algorithm, :include, :nulls_not_distinct]
+        end
+
+        def index_definition_options(options)
+          {
+            lengths: options[:length] || {},
+            orders: options[:order] || {},
+            where: options[:where],
+            type: options[:type],
+            using: options[:using],
+            comment: options[:comment],
+          }
         end
 
         def options_for_index_columns(options)

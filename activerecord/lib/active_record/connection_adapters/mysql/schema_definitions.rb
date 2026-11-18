@@ -57,8 +57,8 @@ module ActiveRecord
           super(*args, **kwargs)
         end
 
-        def defined_for?(columns = nil, name: nil, unique: nil, valid: nil, include: nil, nulls_not_distinct: nil, enabled: nil, **options)
-          super(columns, name:, unique:, valid:, include:, nulls_not_distinct:, **options) &&
+        def defined_for?(columns = nil, enabled: nil, **options)
+          super(columns, **options) &&
             (enabled.nil? || self.enabled == enabled)
         end
 

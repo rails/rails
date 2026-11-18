@@ -319,15 +319,22 @@ module ActiveRecord
         ]
         index_parts << "unique: true" if index.unique
         index_parts << "length: #{format_index_parts(index.lengths)}" if index.lengths.present?
-        index_parts << "order: #{format_index_parts(index.orders)}" if index.orders.present?
-        index_parts << "opclass: #{format_index_parts(index.opclasses)}" if index.opclasses.present?
+        add_index_column_parts!(index_parts, index)
         index_parts << "where: #{index.where.inspect}" if index.where
         index_parts << "using: #{index.using.inspect}" if !@connection.default_index_type?(index)
-        index_parts << "include: #{index.include.inspect}" if index.include
-        index_parts << "nulls_not_distinct: #{index.nulls_not_distinct.inspect}" if index.nulls_not_distinct
+        add_index_option_parts!(index_parts, index)
+        index_parts << "enabled: #{index.enabled.inspect}" if @connection.supports_disabling_indexes? && index.disabled?
+        index_parts
+      end
+
+      def add_index_column_parts!(index_parts, index)
+        index_parts << "order: #{format_index_parts(index.orders)}" if index.orders.present?
+        index_parts
+      end
+
+      def add_index_option_parts!(index_parts, index)
         index_parts << "type: #{index.type.inspect}" if index.type
         index_parts << "comment: #{index.comment.inspect}" if index.comment
-        index_parts << "enabled: #{index.enabled.inspect}" if @connection.supports_disabling_indexes? && index.disabled?
         index_parts
       end
 
