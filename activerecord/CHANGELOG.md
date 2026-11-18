@@ -1,3 +1,14 @@
+*   Raise `ActiveRecord::ConnectionFailed` instead of `SystemStackError` when a
+    connection drops during `configure_connection`.
+
+    Queries issued while `reconnect!` is configuring the connection used to
+    call `reconnect!` again. Each nested call got its own `connection_retries`
+    budget, so the retries never ran out.
+
+    Fixes #59540.
+
+    *Yashaswi Kumar*
+
 *   Add `config.active_record.association_scope_keeps_owner_conditions` to
     always apply the conditions tying the records of an association to the
     owner, and deprecate removing them with the association scope.
