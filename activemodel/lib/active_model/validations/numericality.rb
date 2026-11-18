@@ -50,7 +50,7 @@ module ActiveModel
 
         options.slice(*RESERVED_OPTIONS).each do |option, option_value|
           if NUMBER_CHECKS.include?(option)
-            unless value.to_i.public_send(NUMBER_CHECKS[option])
+            unless value.finite? && value.to_i.public_send(NUMBER_CHECKS[option])
               record.errors.add(attr_name, option, **filtered_options(value))
             end
           elsif RANGE_CHECKS.include?(option)
