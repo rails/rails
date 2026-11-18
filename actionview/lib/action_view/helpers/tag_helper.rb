@@ -1643,7 +1643,7 @@ module ActionView
             case value
             when String
               value = escape ? ERB::Util.unwrapped_html_escape(value) : value.to_s
-            when Array, Hash
+            when Array, Hash, Set
               value = TagHelper.build_tag_values(value) if key == "class"
               value = escape ? @view_context.safe_join(value, " ") : value.join(" ")
             when Regexp
@@ -1740,6 +1740,9 @@ module ActionView
       # # => <input type="text" disabled="disabled" />
       #
       # tag("input", type: 'text', class: ["strong", "highlight"])
+      # # => <input class="strong highlight" type="text" />
+      #
+      # tag("input", type: 'text', class: Set["strong", "highlight"])
       # # => <input class="strong highlight" type="text" />
       #
       # tag("img", src: "open & shut.png")
@@ -1884,7 +1887,7 @@ module ActionView
               tag_value.each do |key, val|
                 tag_values << key.to_s if val && key.present?
               end
-            when Array
+            when Array, Set
               tag_values.concat build_tag_values(*tag_value)
             else
               tag_values << tag_value.to_s if tag_value.present?
