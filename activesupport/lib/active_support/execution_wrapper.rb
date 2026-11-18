@@ -143,6 +143,10 @@ module ActiveSupport
       IsolatedExecutionState.key?(active_key)
     end
 
+    def self.deadline
+      IsolatedExecutionState[active_key]&.deadline
+    end
+
     def run! # :nodoc:
       @deadline = self.class.default_timeout ? Deadline.new(self.class.default_timeout) : Deadline::Null
       IsolatedExecutionState[self.class.active_key] = self
