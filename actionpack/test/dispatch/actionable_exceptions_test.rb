@@ -91,4 +91,27 @@ class ActionableExceptionsTest < ActionDispatch::IntegrationTest
 
     assert_equal 400, response.status
   end
+
+  test "only redirects to a path on this host" do
+    ["https://example.com/", "http://example.com/", "//example.com", "/\\example.com", "javascript:alert(1)", ""].each do |location|
+      post ActionDispatch::ActionableExceptions.endpoint, params: {
+        error: ActionError.name,
+        action: "Successful action",
+        location: location,
+      }, headers: { "action_dispatch.show_detailed_exceptions" => true }
+
+      assert_equal 400, response.status, "location: #{location.inspect}"
+    end
+  end
+
+  test "redirects to a path with a query string" do
+    post ActionDispatch::ActionableExceptions.endpoint, params: {
+      error: ActionError.name,
+      action: "Successful action",
+      location: "/posts?page=2",
+    }, headers: { "action_dispatch.show_detailed_exceptions" => true }
+
+    assert_equal 302, response.status
+    assert_equal "/posts?page=2", response.headers["location"]
+  end
 end
