@@ -35,6 +35,9 @@ module ActiveRecord
             end
 
             records.compact!
+            # The through scope eager loads the source records with the scope of
+            # the source association, which lacks our `readonly`.
+            records.each(&:readonly!) if scope.readonly_value && through_scope_filters_source?
             if source_order_applies?
               # A reused loaded target can hold records missing from the index,
               # such as new ones: keep them last, in their loaded order.
