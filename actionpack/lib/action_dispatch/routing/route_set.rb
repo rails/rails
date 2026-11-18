@@ -493,7 +493,10 @@ module ActionDispatch
 
         routes.filter_map do |route|
           next unless route.dispatcher?
-          next if StaticDispatcher === route.app
+
+          app = route.app
+          app = app.app if Mapper::Constraints === app
+          next if StaticDispatcher === app
 
           begin
             request.controller_class_for(route.defaults[:controller])

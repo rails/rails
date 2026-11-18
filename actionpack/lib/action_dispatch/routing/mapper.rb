@@ -295,7 +295,8 @@ module ActionDispatch
 
           def app(blocks)
             if to.respond_to?(:action)
-              Routing::RouteSet::StaticDispatcher.new to
+              static_dispatcher = Routing::RouteSet::StaticDispatcher.new to
+              blocks.any? ? Constraints.new(static_dispatcher, blocks, Constraints::SERVE) : static_dispatcher
             elsif to.respond_to?(:call)
               Constraints.new(to, blocks, Constraints::CALL)
             elsif blocks.any?

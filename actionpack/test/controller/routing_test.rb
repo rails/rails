@@ -872,6 +872,7 @@ class LegacyRouteSetTests < ActiveSupport::TestCase
       get "/milestones" => "milestones#index"
       get "/constrained" => "milestones#index", constraints: ->(req) { true }
       get "/static" => MilestonesController, action: "index"
+      get "/static_constrained" => MilestonesController, action: "index", constraints: ->(req) { true }
       get "/rack" => ->(env) { [200, {}, []] }
       get "/redirect" => redirect("/milestones")
     end

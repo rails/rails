@@ -4593,6 +4593,55 @@ class TestConstraintsAccessingParameters < ActionDispatch::IntegrationTest
   end
 end
 
+class TestConstraintsWithControllerClassTarget < ActionDispatch::IntegrationTest
+  class SecretController < ActionController::Base
+    def show
+      render plain: "secret"
+    end
+  end
+
+  class Allow
+    def self.matches?(request)
+      request.params[:allow] == "1"
+    end
+  end
+
+  Routes = ActionDispatch::Routing::RouteSet.new.tap do |app|
+    app.draw do
+      constraints(->(request) { request.params[:allow] == "1" }) do
+        get "/scope", to: SecretController, action: "show"
+      end
+
+      get "/route", to: SecretController, action: "show", constraints: Allow
+      get "/unconstrained", to: SecretController, action: "show"
+    end
+  end
+
+  APP = build_app Routes
+  def app; APP end
+
+  test "scope constraint is checked for a controller class target" do
+    get "/scope"
+    assert_equal 404, response.status
+
+    get "/scope", params: { allow: "1" }
+    assert_equal "secret", response.body
+  end
+
+  test "route constraint is checked for a controller class target" do
+    get "/route"
+    assert_equal 404, response.status
+
+    get "/route", params: { allow: "1" }
+    assert_equal "secret", response.body
+  end
+
+  test "controller class target without constraints is dispatched" do
+    get "/unconstrained"
+    assert_equal "secret", response.body
+  end
+end
+
 class TestGlobRoutingMapper < ActionDispatch::IntegrationTest
   Routes = ActionDispatch::Routing::RouteSet.new.tap do |app|
     app.draw do
