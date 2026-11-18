@@ -16,12 +16,6 @@ module ActiveRecord
           MySQL::IndexDefinition.new(table_name, name, unique, columns, **options)
         end
 
-        def add_index_options(table_name, column_name, name: nil, if_not_exists: false, internal: false, **options) # :nodoc:
-          index, algorithm, if_not_exists = super
-          index.enabled = options[:enabled] unless options[:enabled].nil?
-          [index, algorithm, if_not_exists]
-        end
-
         def remove_foreign_key(from_table, to_table = nil, **options)
           # RESTRICT is by default in MySQL.
           options.delete(:on_update) if options[:on_update] == :restrict
@@ -239,6 +233,15 @@ module ActiveRecord
             quoted_columns.each do |name, column|
               column << "(#{lengths[name]})" if lengths[name].present?
             end
+          end
+
+          def index_definition_options(options)
+            index_options = super.merge!(
+              lengths: options[:length] || {},
+              type: options[:type],
+            )
+            index_options[:enabled] = options[:enabled] unless options[:enabled].nil?
+            index_options
           end
 
           def valid_index_options

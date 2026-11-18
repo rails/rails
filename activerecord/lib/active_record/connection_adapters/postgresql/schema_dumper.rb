@@ -113,6 +113,18 @@ module ActiveRecord
             end
           end
 
+          def add_index_column_parts!(index_parts, index)
+            super
+            index_parts << "opclass: #{format_index_parts(index.opclasses)}" if index.opclasses.present?
+            index_parts
+          end
+
+          def add_index_option_parts!(index_parts, index)
+            index_parts << "include: #{index.include.inspect}" if index.include
+            index_parts << "nulls_not_distinct: #{index.nulls_not_distinct.inspect}" if index.nulls_not_distinct
+            super
+          end
+
           def prepare_column_options(column)
             spec = super
             spec[:array] = "true" if column.array?

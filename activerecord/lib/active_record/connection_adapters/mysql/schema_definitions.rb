@@ -50,15 +50,21 @@ module ActiveRecord
       # Active Record MySQL Adapter \Index Definition
       # =============================================
       class IndexDefinition < ActiveRecord::ConnectionAdapters::IndexDefinition # :nodoc:
-        attr_accessor :enabled
+        attr_reader :lengths, :type, :enabled
 
-        def initialize(*args, enabled: true, **kwargs)
-          @enabled = enabled
+        def initialize(*args, lengths: {}, type: nil, enabled: true, **kwargs)
           super(*args, **kwargs)
+          @lengths = concise_options(lengths)
+          @type = type
+          @enabled = enabled
         end
 
-        def defined_for?(columns = nil, name: nil, unique: nil, valid: nil, include: nil, nulls_not_distinct: nil, enabled: nil, **options)
-          super(columns, name:, unique:, valid:, include:, nulls_not_distinct:, **options) &&
+        def column_options
+          super.merge!(length: lengths)
+        end
+
+        def defined_for?(columns = nil, enabled: nil, **options)
+          super(columns, **options) &&
             (enabled.nil? || self.enabled == enabled)
         end
 
@@ -68,12 +74,16 @@ module ActiveRecord
 
         def as_schema_json
           json = super
+          json["lengths"] = @lengths.presence
+          json["type"] = @type
           json["disabled"] = true unless @enabled
           json
         end
 
         def init_from_schema_json(coder, references)
           super
+          @lengths = coder["lengths"] || {}
+          @type = coder["type"]&.to_sym
           @enabled = !coder["disabled"]
         end
       end

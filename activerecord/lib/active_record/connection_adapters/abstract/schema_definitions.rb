@@ -6,20 +6,15 @@ module ActiveRecord
     # this type are typically created and returned by methods in database
     # adapters. e.g. ActiveRecord::ConnectionAdapters::MySQL::SchemaStatements#indexes
     class IndexDefinition # :nodoc:
-      attr_reader :table, :name, :unique, :columns, :lengths, :orders, :opclasses, :where, :type, :using, :include, :nulls_not_distinct, :comment, :valid
+      attr_reader :table, :name, :unique, :columns, :orders, :where, :using, :comment, :valid
 
       def initialize(
         table, name,
         unique = false,
         columns = [],
-        lengths: {},
         orders: {},
-        opclasses: {},
         where: nil,
-        type: nil,
         using: nil,
-        include: nil,
-        nulls_not_distinct: nil,
         comment: nil,
         valid: true
       )
@@ -27,14 +22,9 @@ module ActiveRecord
         @name = name
         @unique = unique
         @columns = columns
-        @lengths = concise_options(lengths)
         @orders = concise_options(orders)
-        @opclasses = concise_options(opclasses)
         @where = where
-        @type = type
         @using = using
-        @include = include
-        @nulls_not_distinct = nulls_not_distinct
         @comment = comment
         @valid = valid
       end
@@ -44,21 +34,15 @@ module ActiveRecord
       end
 
       def column_options
-        {
-          length: lengths,
-          order: orders,
-          opclass: opclasses,
-        }
+        { order: orders }
       end
 
-      def defined_for?(columns = nil, name: nil, unique: nil, valid: nil, include: nil, nulls_not_distinct: nil, **options)
+      def defined_for?(columns = nil, name: nil, unique: nil, valid: nil, **options)
         columns = options[:column] if columns.blank?
         (columns.nil? || Array(self.columns) == Array(columns).map(&:to_s)) &&
           (name.nil? || self.name == name.to_s) &&
           (unique.nil? || self.unique == unique) &&
-          (valid.nil? || self.valid == valid) &&
-          (include.nil? || Array(self.include) == Array(include).map(&:to_s)) &&
-          (nulls_not_distinct.nil? || self.nulls_not_distinct == nulls_not_distinct)
+          (valid.nil? || self.valid == valid)
       end
 
       def as_schema_json
@@ -67,14 +51,9 @@ module ActiveRecord
           "name" => @name,
           "unique" => @unique || nil,
           "columns" => @columns,
-          "lengths" => @lengths.presence,
           "orders" => @orders.presence,
-          "opclasses" => @opclasses.presence,
           "where" => @where,
-          "type" => @type,
           "using" => @using,
-          "include" => @include,
-          "nulls_not_distinct" => @nulls_not_distinct,
           "comment" => @comment,
           "invalid" => !@valid || nil
         }
@@ -85,14 +64,9 @@ module ActiveRecord
         @name = coder["name"]
         @unique = coder["unique"] || false
         @columns = coder["columns"]
-        @lengths = coder["lengths"] || {}
         @orders = symbolize_concise_options(coder["orders"])
-        @opclasses = symbolize_concise_options(coder["opclasses"])
         @where = coder["where"]
-        @type = coder["type"]&.to_sym
         @using = coder["using"]&.to_sym
-        @include = coder["include"]
-        @nulls_not_distinct = coder["nulls_not_distinct"]
         @comment = coder["comment"]
         @valid = !coder["invalid"]
       end

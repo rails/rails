@@ -10,6 +10,18 @@ module ActiveRecord
             @table_collations = @connection.table_collation(tables)
           end
 
+          def add_index_column_parts!(index_parts, index)
+            index_parts << "length: #{format_index_parts(index.lengths)}" if index.lengths.present?
+            super
+          end
+
+          def add_index_option_parts!(index_parts, index)
+            index_parts << "type: #{index.type.inspect}" if index.type
+            super
+            index_parts << "enabled: #{index.enabled.inspect}" if @connection.supports_disabling_indexes? && index.disabled?
+            index_parts
+          end
+
           def prepare_column_options(column)
             spec = super
             spec[:unsigned] = "true" if column.unsigned?
