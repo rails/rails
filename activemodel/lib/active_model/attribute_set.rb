@@ -341,7 +341,7 @@ module ActiveModel
 
     #: () -> Array[String]
     def keys
-      keys = row_keys | @ctx.type_keys | cached_names
+      keys = row_keys | @ctx.type_keys
       keys.keep_if do |name|
         index = index_for_name(name)
         if attribute = lookup(index)
@@ -580,13 +580,6 @@ module ActiveModel
       #: () -> Array[String]
       def row_keys
         indexes.keys
-      end
-
-      #: () -> Array[String]
-      def cached_names
-        names = []
-        indexes.each_key { |name| names << name if lookup(index_for_name(name)) }
-        names
       end
 
       #: () -> void
