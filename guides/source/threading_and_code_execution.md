@@ -240,7 +240,7 @@ constants are only loaded when it is safe.
 Load Interlock
 --------------
 
-The Reloading Interlock ensures that code reloading can be performed safely in a
+The Load Interlock ensures that code reloading can be performed safely in a
 multi-threaded runtime environment.
 
 It is only safe to perform an unload/reload when no application code is in
@@ -248,10 +248,9 @@ mid-execution: after the reload, the `User` constant, for example, may point to
 a different class. Without this rule, a poorly-timed reload would mean
 `User.new.class == User`, or even `User == User`, could be false.
 
-The Reloading Interlock addresses this constraint by keeping track of which
+The Load Interlock addresses this constraint by keeping track of which
 threads are currently running application code, and ensuring that reloading
 waits until no other threads are executing application code.
-
 
 ### `permit_concurrent_loads`
 
