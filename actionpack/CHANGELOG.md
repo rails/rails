@@ -1,3 +1,13 @@
+*   Fix `ActionDispatch::ExceptionWrapper#unwrapped_exception` returning a proxy
+    instead of the `SyntaxError`.
+
+    When the error pages were rendered by `ActionDispatch::ShowExceptions`, the
+    proxy was rejected by the error reporter, so a `SyntaxError` raised while
+    processing a request escaped the middleware stack as an `ArgumentError`,
+    instead of being reported and rendered by the exceptions app.
+
+    *Lawrence Lin*
+
 *   Apply `config.action_dispatch.cookies_same_site_protection` to every session
     store.
 

@@ -287,6 +287,26 @@ module ActionDispatch
       end
     end
 
+    test "#unwrapped_exception returns a SyntaxError rather than its proxy" do
+      exception = begin eval "class Foo; yield; end"; rescue SyntaxError => ex; ex; end
+
+      wrapper = ExceptionWrapper.new(nil, exception)
+
+      assert_same exception, wrapper.unwrapped_exception
+      assert_instance_of ActiveSupport::SyntaxErrorProxy, wrapper.exception
+    end
+
+    test "uses the rescue response of a SyntaxError" do
+      exception = begin eval "class Foo; yield; end"; rescue SyntaxError => ex; ex; end
+
+      ExceptionWrapper.with(rescue_responses: ExceptionWrapper.rescue_responses.merge("SyntaxError" => :bad_request)) do
+        wrapper = ExceptionWrapper.new(nil, exception)
+
+        assert_equal 400, wrapper.status_code
+        assert_predicate wrapper, :rescue_response?
+      end
+    end
+
     test "#application_trace returns traces only from the application" do
       exception = begin index; rescue TestError => ex; ex; end
       wrapper = ExceptionWrapper.new(@cleaner, TopErrorProxy.new(exception, 1))

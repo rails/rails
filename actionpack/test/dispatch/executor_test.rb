@@ -148,6 +148,27 @@ class ExecutorTest < ActiveSupport::TestCase
     assert_instance_of TypeError, error_report.error
   end
 
+  def test_error_reporting_of_a_syntax_error_with_show_exception
+    middleware = Rack::Lint.new(
+      ActionDispatch::Executor.new(
+        ActionDispatch::ShowExceptions.new(
+          Rack::Lint.new(->(_env) { eval "class Foo; yield; end" }),
+          ->(_env) { [500, {}, ["Oops"]] },
+        ),
+        executor,
+      )
+    )
+
+    env = Rack::MockRequest.env_for("", {})
+    response = nil
+    error_report = assert_error_reported(SyntaxError) do
+      response = middleware.call(env)
+    end
+
+    assert_instance_of SyntaxError, error_report.error
+    assert_equal 500, response.first
+  end
+
   class BusinessAsUsual < StandardError; end
 
   def test_handled_error_is_not_reported

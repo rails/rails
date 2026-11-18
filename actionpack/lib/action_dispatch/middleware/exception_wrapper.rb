@@ -53,6 +53,7 @@ module ActionDispatch
       @backtrace_cleaner = backtrace_cleaner
       @exception_class_name = exception.class.name
       @wrapped_causes = wrapped_causes_for(exception, backtrace_cleaner)
+      @raised_exception = exception
       @exception = exception
       if exception.is_a?(SyntaxError)
         @exception = ActiveSupport::SyntaxErrorProxy.new(exception)
@@ -108,7 +109,7 @@ module ActionDispatch
       if self.class.wrapper_exceptions.include?(@exception_class_name)
         @exception.cause
       else
-        @exception
+        @raised_exception
       end
     end
 
@@ -199,7 +200,7 @@ module ActionDispatch
     end
 
     def rescue_response?
-      self.class.rescue_responses.key?(exception.class.name)
+      self.class.rescue_responses.key?(@exception_class_name)
     end
 
     def source_extracts
