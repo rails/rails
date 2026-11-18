@@ -36,12 +36,14 @@ module ActionView
       ARIA_PREFIXES = ["aria", :aria].to_set.freeze
       DATA_PREFIXES = ["data", :data].to_set.freeze
       CLASS_PREFIXES = ["class", :class].to_set.freeze
+      POPOVER_ATTRIBUTES = ["popover", :popover].to_set.freeze
 
       TAG_TYPES = {} # rubocop:disable Style/MutableConstant
       TAG_TYPES.merge! BOOLEAN_ATTRIBUTES.index_with(:boolean)
       TAG_TYPES.merge! DATA_PREFIXES.index_with(:data)
       TAG_TYPES.merge! ARIA_PREFIXES.index_with(:aria)
       TAG_TYPES.merge! CLASS_PREFIXES.index_with(:class)
+      TAG_TYPES.merge! POPOVER_ATTRIBUTES.index_with(:popover)
       TAG_TYPES.freeze
 
       PRE_CONTENT_STRINGS = {
@@ -1590,6 +1592,12 @@ module ActionView
                 else
                   append_boolean_tag_option(output, name)
                 end
+              end
+            elsif type == :popover
+              if value
+                output << sep
+                # "true" or "popover" would fall back to the manual state, "" is auto
+                append_tag_option(output, name, value == true ? "" : value, escape)
               end
             elsif !value.nil?
               output << sep
