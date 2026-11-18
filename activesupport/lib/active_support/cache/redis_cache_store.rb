@@ -139,6 +139,7 @@ module ActiveSupport
       def initialize(error_handler: DEFAULT_ERROR_HANDLER, **redis_options)
         universal_options = redis_options.extract!(*UNIVERSAL_OPTIONS)
         pool_options = self.class.send(:retrieve_pool_options, redis_options)
+        @checkout_timeout = (pool_options || DEFAULT_POOL_OPTIONS)[:timeout]
 
         if redis_options.key?(:client)
           client = redis_options.delete(:client)
@@ -318,12 +319,9 @@ module ActiveSupport
         infos.size == 1 ? infos.first : infos
       end
 
-      # From `connection_pool` source.
-      DEFAULT_CHECKOUT_TIMEOUT = 5 # :nodoc:
-
       private
         def with_connection(node, deadline, *)
-          node.with(timeout: deadline.clamp(DEFAULT_CHECKOUT_TIMEOUT)) do |connection|
+          node.with(timeout: deadline.clamp(@checkout_timeout)) do |connection|
             connect_timeout_was, read_timeout_was, write_timeout_was = connection.connect_timeout, connection.read_timeout, connection.write_timeout
             begin
               connection.connect_timeout = deadline.clamp(connect_timeout_was)

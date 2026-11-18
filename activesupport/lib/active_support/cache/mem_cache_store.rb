@@ -40,6 +40,20 @@ module ActiveSupport
         true
       end
 
+      if Dalli::Client.instance_method(:with).arity != 0 && Dalli::Client.method_defined?(:with_deadline) # Dalli >- 5.4
+        Client = Dalli::Client # :nodoc:
+      else
+        class Client < Dalli::Client # :nodoc:
+          def with(...)
+            yield self
+          end
+
+          def with_deadline(...)
+            yield self
+          end
+        end
+      end
+
       prepend Strategy::LocalCache
 
       # Creates a new Dalli::Client instance with specified addresses and options.
@@ -53,16 +67,13 @@ module ActiveSupport
       # ActiveSupport::Cache::MemCacheStore.build_mem_cache('localhost:10290')
       #   # => #<Dalli::Client:0x007f98a47b3a60 @servers=["localhost:10290"], @options={}, @ring=nil>
       # ```
-      def self.build_mem_cache(*addresses) # :nodoc:
-        addresses = addresses.flatten
-        options = addresses.extract_options!
+      def self.build_mem_cache(addresses, options, pool_options) # :nodoc:
         addresses = nil if addresses.compact.empty?
-        pool_options = retrieve_pool_options(options)
 
         if pool_options
-          ConnectionPool.new(**pool_options) { Dalli::Client.new(addresses, options.merge(threadsafe: false)) }
+          ConnectionPool.new(**pool_options) { Client.new(addresses, options.merge(threadsafe: false)) }
         else
-          Dalli::Client.new(addresses, options)
+          Client.new(addresses, options)
         end
       end
 
@@ -96,7 +107,9 @@ module ActiveSupport
         # Set the default serializer for Dalli to prevent warning about
         # inheriting the default serializer.
         @mem_cache_options[:serializer] = Marshal
-        @data = self.class.build_mem_cache(*(addresses + [@mem_cache_options]))
+        pool_options = self.class.send(:retrieve_pool_options, @mem_cache_options)
+        @checkout_timeout = pool_options && pool_options[:timeout]
+        @data = self.class.build_mem_cache(addresses, @mem_cache_options, pool_options)
       end
 
       def inspect
@@ -149,7 +162,7 @@ module ActiveSupport
 
         instrument(:increment, key, amount: amount) do
           rescue_error_with nil do
-            @data.with { |c| c.incr(key, amount, options[:expires_in], amount) }
+            with_connection { |c| c.incr(key, amount, options[:expires_in], amount) }
           end
         end
       end
@@ -186,7 +199,7 @@ module ActiveSupport
 
         instrument(:decrement, key, amount: amount) do
           rescue_error_with nil do
-            @data.with { |c| c.decr(key, amount, options[:expires_in], 0) }
+            with_connection { |c| c.decr(key, amount, options[:expires_in], 0) }
           end
         end
       end
@@ -194,15 +207,28 @@ module ActiveSupport
       # Clear the entire cache on all memcached servers. This method should
       # be used with care when shared cache is being used.
       def clear(options = nil)
-        rescue_error_with(nil) { @data.with { |c| c.flush_all } }
+        rescue_error_with(nil) { with_connection { |c| c.flush_all } }
       end
 
       # Get the statistics from the memcached servers.
       def stats
-        @data.with { |c| c.stats }
+        with_connection { |c| c.stats }
       end
 
       private
+        def with_connection(&block)
+          deadline = ActiveSupport.deadline
+          if @checkout_timeout
+            @data.with(timeout: deadline.clamp(@checkout_timeout)) do |c|
+              c.with_deadline(deadline.remaining, &block)
+            end
+          else
+            @data.with do |c|
+              c.with_deadline(deadline.remaining, &block)
+            end
+          end
+        end
+
         # Read an entry from the cache.
         def read_entry(key, **options)
           deserialize_entry(read_serialized_entry(key, **options), **options)
@@ -210,7 +236,7 @@ module ActiveSupport
 
         def read_serialized_entry(key, **options)
           rescue_error_with(nil) do
-            @data.with { |c| c.get(key, options) }
+            with_connection { |c| c.get(key, options) }
           end
         end
 
@@ -223,11 +249,11 @@ module ActiveSupport
           method = options[:unless_exist] ? :add : :set
           expires_in, dalli_options = dalli_write_options(options)
           rescue_error_with nil do
-            @data.with { |c| !!c.send(method, key, payload, expires_in, **dalli_options) }
+            with_connection { |c| !!c.send(method, key, payload, expires_in, **dalli_options) }
           end
         end
 
-        if Dalli::Client.method_defined?(:set_multi)
+        if Client.method_defined?(:set_multi)
           def write_multi_entries(entries, **options)
             return if entries.empty?
             # Dalli has no multi counterpart to add.
@@ -236,7 +262,7 @@ module ActiveSupport
             entries = entries.transform_values { |entry| serialize_entry(entry, **options) }
             expires_in, dalli_options = dalli_write_options(options)
             rescue_error_with(nil) do
-              @data.with { |c| c.set_multi(entries, expires_in, dalli_options) }
+              with_connection { |c| c.set_multi(entries, expires_in, dalli_options) }
             end
           end
         end
@@ -256,7 +282,7 @@ module ActiveSupport
           keys_to_names = names.index_by { |name| normalize_key(name, options) }
 
           rescue_error_with({}) do
-            raw_values = @data.with { |c| c.get_multi(keys_to_names.keys) }
+            raw_values = with_connection { |c| c.get_multi(keys_to_names.keys) }
 
             values = {}
 
@@ -277,7 +303,7 @@ module ActiveSupport
 
         # Delete an entry from the cache.
         def delete_entry(key, **options)
-          rescue_error_with(false) { @data.with { |c| c.delete(key) } }
+          rescue_error_with(false) { with_connection { |c| c.delete(key) } }
         end
 
         # Dalli's delete_multi doesn't return the deleted count before version 5.0.6.
@@ -286,7 +312,7 @@ module ActiveSupport
             return 0 if entries.empty?
 
             rescue_error_with(0) do
-              @data.with { |c| c.delete_multi(entries) }
+              with_connection { |c| c.delete_multi(entries) }
             end
           end
         end
@@ -326,6 +352,11 @@ module ActiveSupport
             severity: :warning,
             source: "mem_cache_store.active_support",
           )
+
+          if defined?(Dalli::DeadlineExceededError) && error.is_a?(Dalli::DeadlineExceededError)
+            raise Deadline::Exceeded, error.message
+          end
+
           fallback
         end
     end

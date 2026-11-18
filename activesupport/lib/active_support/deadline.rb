@@ -38,6 +38,14 @@ module ActiveSupport
           Float(maximum) # Ensure coerced to Float
         end
 
+        def remaining
+          Float::INFINITY
+        end
+
+        def check!
+          self
+        end
+
         def close
         end
       end
@@ -47,6 +55,25 @@ module ActiveSupport
       @timeout = timeout
       @started_at = now
       @ends_at = @started_at + timeout
+    end
+
+    # Returns the number of seconds remaining before the deadline is exceeded,
+    # or raises if the deadline is already exceeded.
+    #
+    # ```
+    # client.with_deadline(deadline.remaining) do
+    #   client.query(...)
+    # end
+    # ```
+    #
+    # The error to raise in case of exceeded deadline can be provided through the
+    # `error:` keyword argument.
+    def remaining(minimum: 0.0, error: Exceeded)
+      remaining = @ends_at - now
+      if remaining <= Float(minimum)
+        raise error, "Deadline exceeded"
+      end
+      remaining
     end
 
     # Returns a suitable timeout to use, or raises if the
@@ -74,6 +101,27 @@ module ActiveSupport
     def close
       @ends_at = -1.0
       nil
+    end
+
+    # Raises if the deadline is already exceeded.
+    #
+    # Can be used as an alternative to #clamp when the client doesn't allow updating
+    # and existing connection timeouts. While it won't prevent going past the deadline,
+    # it at least prevent doing any more blocking calls when it is already exceeded.
+    #
+    # ```
+    # deadline.check!
+    # client.query(...)
+    # ```
+    #
+    # The error to raise in case of exceeded deadline can be provided through the
+    # `error:` keyword argument.
+    def check!(minimum: 0.0, error: Exceeded)
+      remaining = @ends_at - now
+      if remaining <= Float(minimum)
+        raise error, "Deadline exceeded"
+      end
+      self
     end
 
     private
