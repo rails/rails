@@ -1,4 +1,3 @@
-# :markup: markdown
 # frozen_string_literal: true
 
 require "active_support/core_ext/class/attribute"
@@ -66,6 +65,13 @@ module ActiveSupport
     end
 
     attr_writer :silenced_events # :nodoc:
+
+    # Whether any event reporter subscriber would currently consume an event
+    # with the given name. Handlers can use this to skip building payloads
+    # for events that would go nowhere.
+    def emitting?(name)
+      ActiveSupport.event_reporter.emitting?(name)
+    end
 
     # Emit a structured event via Rails.event.notify.
     #

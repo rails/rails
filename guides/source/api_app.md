@@ -31,7 +31,7 @@ mobile apps and other integrations.
 approach where HTML is used for web browsers, but a JSON API is also provided
 for external software integrations. Certain parts of
 [Shopify](https://shopify.dev/docs/api/storefront/latest)
-uses the latter approach in where a frontend framework consumes JSON resources
+uses the latter approach in which a frontend framework consumes JSON resources
 from an API.
 
 This guide covers Rails' support for building an API application without any

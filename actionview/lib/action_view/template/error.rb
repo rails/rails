@@ -4,7 +4,8 @@ require "active_support/core_ext/enumerable"
 require "active_support/syntax_error_proxy"
 
 module ActionView
-  # = Action View Errors
+  # Action View Errors
+  # ==================
   class ActionViewError < StandardError # :nodoc:
   end
 
@@ -218,6 +219,12 @@ module ActionView
       def sub_template_of(template_path)
         @sub_templates ||= []
         @sub_templates << template_path
+      end
+
+      # The templates that were rendering when the error was raised: the one
+      # that raised it, then each template that rendered it, outwards.
+      def templates
+        @sub_templates ? [@template, *@sub_templates] : [@template]
       end
 
       def line_number

@@ -1,7 +1,5 @@
 # frozen_string_literal: true
 
-# :markup: markdown
-
 module ActionDispatch
   module Journey # :nodoc:
     module GTG # :nodoc:
@@ -48,8 +46,8 @@ module ActionDispatch
           while i < states_count
             if state[i + 1].nil?
               s = state[i]
-              if tt.accepting?(s)
-                acceptance_states.concat(tt.memo(s))
+              if memos = tt.memo(s)
+                acceptance_states.concat(memos)
               end
             end
             i += 2

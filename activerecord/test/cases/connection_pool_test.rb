@@ -1052,7 +1052,7 @@ module ActiveRecord
 
       def test_connection_pool_stat
         Thread.report_on_exception, original_report_on_exception = false, Thread.report_on_exception
-        with_single_connection_pool do |pool|
+        with_single_connection_pool(reaping_frequency: nil) do |pool|
           pool.with_connection do |connection|
             stats = pool.stat
             assert_equal({ size: 1, connections: 1, busy: 1, dead: 0, idle: 0, waiting: 0, checkout_timeout: 0.2 }, stats)
@@ -1221,6 +1221,46 @@ module ActiveRecord
 
         @pool.unpin_connection!
         assert_equal ActiveSupport::Concurrency::NullLock, @pool.lease_connection.lock
+      end
+
+      def test_pin_connection_nesting_keeps_lock
+        assert_equal ActiveSupport::Concurrency::NullLock, @pool.lease_connection.lock
+
+        @pool.pin_connection!(true)
+        actual_lock = @pool.lease_connection.lock
+        assert_not_equal ActiveSupport::Concurrency::NullLock, actual_lock
+
+        @pool.pin_connection!(true)
+        assert_same actual_lock, @pool.lease_connection.lock
+
+        @pool.unpin_connection!
+        assert_same actual_lock, @pool.lease_connection.lock
+
+        @pool.unpin_connection!
+        assert_equal ActiveSupport::Concurrency::NullLock, @pool.lease_connection.lock
+      end
+
+      def test_pin_connection_installs_the_lock_before_another_thread_can_check_the_connection_out
+        connection = @pool.lease_connection
+        pool = @pool
+        checked_out = nil
+
+        # Another thread checks out a connection while the pin is installing
+        # the lock, as a background thread may during a test's setup.
+        connection.singleton_class.prepend(Module.new do
+          define_method(:lock_thread=) do |context|
+            if context && checked_out.nil?
+              Thread.new { pool.with_connection { |conn| checked_out = conn } }.join
+            end
+            super(context)
+          end
+        end)
+
+        @pool.pin_connection!(true)
+
+        assert_not_same connection, checked_out
+      ensure
+        @pool.unpin_connection!
       end
 
       def test_inspect_does_not_show_secrets
@@ -1465,6 +1505,39 @@ module ActiveRecord
         assert_equal connection, t.join.value
       end
 
+      def test_checkout_wait_is_instrumented_when_the_pool_is_full
+        events = []
+        subscriber = ActiveSupport::Notifications.subscribe("checkout_wait.active_record") { |event| events << event }
+
+        cs = @pool.size.times.map { @pool.checkout }
+        assert_empty events
+
+        t = new_thread { @pool.checkout }
+        pass_to(t) until @pool.num_waiting_in_queue == 1
+        cs.first.close
+        t.join
+
+        assert_equal 1, events.size
+        assert_same @pool, events.first.payload[:connection_pool]
+        assert_equal @pool.checkout_timeout, events.first.payload[:checkout_timeout]
+      ensure
+        ActiveSupport::Notifications.unsubscribe(subscriber)
+      end
+
+      def test_checkout_wait_is_instrumented_when_the_checkout_times_out
+        events = []
+        subscriber = ActiveSupport::Notifications.subscribe("checkout_wait.active_record") { |event| events << event }
+
+        @pool.checkout_timeout = 0.001
+        @pool.size.times { @pool.checkout }
+        assert_raises(ConnectionTimeoutError) { @pool.checkout }
+
+        assert_equal 1, events.size
+        assert_equal ConnectionTimeoutError.name, events.first.payload[:exception].first
+      ensure
+        ActiveSupport::Notifications.unsubscribe(subscriber)
+      end
+
       def test_full_pool_blocking_shares_load_interlock
         @pool.instance_variable_set(:@max_connections, 1)
 
@@ -1561,7 +1634,7 @@ module ActiveRecord
         end
 
         # this should wake up the waiting threads one by one in order
-        conns.each { |conn| @pool.checkin(conn); sleep 0.01 }
+        conns.each { |conn| @pool.checkin(conn); sleep 0.1 }
 
         dispose_held_connections.set
         threads.each(&:join)

@@ -60,6 +60,18 @@ class ActionCable::Connection::SubscriptionsTest < ActionCable::TestCase
     assert_empty @subscriptions.identifiers
   end
 
+  test "filtering parameters from a subscribe command without an identifier" do
+    @server.config.filter_parameters = [:password]
+    setup_connection
+
+    error = assert_raises ActionCable::Connection::Subscriptions::MalformedCommandError do
+      @subscriptions.execute_command "command" => "subscribe", "data" => ActiveSupport::JSON.encode(email: "alice@example.com", password: "secret")
+    end
+
+    assert_match(/Malformed command: .*alice@example\.com/, error.message)
+    assert_no_match "secret", error.message
+  end
+
   test "subscribe command with Base channel" do
     setup_connection
 
@@ -94,6 +106,20 @@ class ActionCable::Connection::SubscriptionsTest < ActionCable::TestCase
     end
 
     assert_equal 1, @subscriptions.identifiers.size
+  end
+
+  test "filtering parameters from the identifier of a double subscribe command" do
+    @server.config.filter_parameters = [:password]
+    setup_connection
+    identifier = ActiveSupport::JSON.encode(channel: "ActionCable::Connection::SubscriptionsTest::ChatChannel", password: "secret")
+    subscribe_to_chat_channel(identifier)
+
+    error = assert_raises ActionCable::Connection::Subscriptions::AlreadySubscribedError do
+      subscribe_to_chat_channel(identifier)
+    end
+
+    assert_match(/Already subscribed to .*ChatChannel/, error.message)
+    assert_no_match "secret", error.message
   end
 
   test "unsubscribe command" do
@@ -140,6 +166,29 @@ class ActionCable::Connection::SubscriptionsTest < ActionCable::TestCase
       end
       assert_match(/Unable to find subscription/, error.message)
     end
+  end
+
+  test "filtering parameters from the identifier of a non-existent subscription" do
+    @server.config.filter_parameters = [:password]
+    setup_connection
+    identifier = ActiveSupport::JSON.encode(channel: "ActionCable::Connection::SubscriptionsTest::ChatChannel", password: "secret")
+
+    error = assert_raises ActionCable::Connection::Subscriptions::UnknownSubscription do
+      @subscriptions.perform_action("identifier" => identifier, "data" => ActiveSupport::JSON.encode(action: "speak"))
+    end
+
+    assert_match(/Unable to find subscription with identifier: .*ChatChannel/, error.message)
+    assert_no_match "secret", error.message
+  end
+
+  test "redacting an identifier that is not a JSON object" do
+    setup_connection
+
+    error = assert_raises ActionCable::Connection::Subscriptions::UnknownSubscription do
+      @subscriptions.perform_action("identifier" => "password=secret", "data" => ActiveSupport::JSON.encode(action: "speak"))
+    end
+
+    assert_equal "Unable to find subscription with identifier: [FILTERED]", error.message
   end
 
   test "message command" do

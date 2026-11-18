@@ -35,7 +35,7 @@ module Rails
           end
 
           def action_missing?
-            @controller_class && @controller_class.instance_methods.exclude?(@action_name.to_sym)
+            @controller_class && !@controller_class.method_defined?(@action_name)
           end
       end
 

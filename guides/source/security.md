@@ -97,7 +97,7 @@ $ bin/rails db:migrate
 
 Then, if you visit `/session/new` in your browser (you will see this route has
 been added in `routes.rb`), you'll see a form that accepts an email and a
-password with "sign in" button. This form routes to the `SessionsController`
+password with a "sign in" button. This form routes to the `SessionsController`
 which was added by the generator. If you provide an email/password for a user
 that exists in the database, you will be able to successfully authenticate with
 those credentials and log in to the application.
@@ -572,7 +572,7 @@ security token doesn't match what was expected, an exception will be thrown.
 
 When submitting forms with [Turbo](https://turbo.hotwired.dev/) the security
 token is required as well. Turbo looks for the token in the `csrf` meta tags of
-your application layout and adds it to request in the `X-CSRF-Token` request
+your application layout and adds it to the request in the `X-CSRF-Token` request
 header. These meta tags are created with the [`csrf_meta_tags`][] helper
 method:
 
@@ -693,7 +693,13 @@ WARNING: _ffmpeg and ffprobe decode untrusted media in memory-unsafe code. Restr
 
 Active Storage shells out to ffmpeg to generate video previews, and to ffprobe to extract video and audio metadata. Neither tool is shipped by Rails, and a stock ffmpeg build registers several hundred decoders and demuxers where an application needs a handful. Attachments are analyzed on upload by default, so ffprobe reads attacker-supplied bytes without any further interaction.
 
-Narrow that attack surface by naming the codecs these tools may decode. An application that accepts only H.264 video with AAC audio would configure:
+By default, Active Storage limits the demuxers both tools may use to common audio and video container formats. Narrow the list further with `config.active_storage.ffmpeg_allowed_formats`:
+
+```ruby
+config.active_storage.ffmpeg_allowed_formats = %w[ mov ]
+```
+
+Narrow the attack surface further by naming the codecs these tools may decode. An application that accepts only H.264 video with AAC audio would configure:
 
 ```ruby
 config.active_storage.video_preview_input_arguments = "-codec_whitelist h264,aac"
@@ -956,7 +962,7 @@ SELECT * FROM projects WHERE (name = '') UNION
   SELECT id,login AS name,password AS description,1,1,1 FROM users --'
 ```
 
-The result won't be a list of projects (because there is no project with an empty name), but a list of usernames and their password. So hopefully you [securely hashed the passwords](#user-management) in the database! The only problem for the attacker is, that the number of columns has to be the same in both queries. That's why the second query includes a list of ones (1), which will be always the value 1, in order to match the number of columns in the first query.
+The result won't be a list of projects (because there is no project with an empty name), but a list of usernames and their passwords. So hopefully you [securely hashed the passwords](#user-management) in the database! The only problem for the attacker is, that the number of columns has to be the same in both queries. That's why the second query includes a list of ones (1), which will be always the value 1, in order to match the number of columns in the first query.
 
 Also, the second query renames some columns with the AS statement so that the
 Web application displays the values from the user table.
@@ -1001,7 +1007,7 @@ INFO: _The most widespread, and one of the most devastating security vulnerabili
 
 An entry point is a vulnerable URL and its parameters where an attacker can start an attack.
 
-The most common entry points are message posts, user comments, and guest books, but project titles, document names, and search result pages have also been vulnerable - just about everywhere where the user can input data. But the input does not necessarily have to come from input boxes on websites, it can be in any URL parameter - obvious, hidden or internal. Remember that the user may intercept any traffic. Applications or client-site proxies make it easy to change requests. There are also other attack vectors like banner advertisements.
+The most common entry points are message posts, user comments, and guest books, but project titles, document names, and search result pages have also been vulnerable - just about everywhere where the user can input data. But the input does not necessarily have to come from input boxes on websites, it can be in any URL parameter - obvious, hidden or internal. Remember that the user may intercept any traffic. Applications or client-side proxies make it easy to change requests. There are also other attack vectors like banner advertisements.
 
 XSS attacks work like this: An attacker injects some code, the web application saves it and displays it on a page, later presented to a victim. Most XSS examples simply display an alert box, but it is more powerful than that. XSS can steal the cookie, hijack the session, redirect the victim to a fake website, display advertisements for the benefit of the attacker, change elements on the website to get confidential information or install malicious software through security holes in the web browser.
 
@@ -1283,7 +1289,7 @@ Rails.application.config.hosts << "product.com"
 
 Rails.application.config.host_authorization = {
   # Exclude requests for the /healthcheck/ path from host checking
-  exclude: ->(request) { request.path.include?("healthcheck") },
+  exclude: ->(request) { request.path.start_with?("/healthcheck") },
   # Add custom Rack application for the response
   response_app: -> env do
     [400, { "Content-Type" => "text/plain" }, ["Bad Request"]]
@@ -1715,6 +1721,17 @@ The common admin interface works like this: it's located at www.example.com/admi
 * Does the admin really have to access the interface from everywhere in the world? Think about _limiting the login to a bunch of source IP addresses_. Examine request.remote_ip to find out about the user's IP address. This is not bullet-proof, but a great barrier. Remember that there might be a proxy in use, though.
 
 * _Put the admin interface to a special subdomain_ such as admin.application.com and make it a separate application with its own user management. This makes stealing an admin cookie from the usual domain, www.application.com, impossible. This is because of the same origin policy in your browser: An injected (XSS) script on www.application.com may not read the cookie for admin.application.com and vice-versa.
+
+Ruby Runtime Security
+---------------------
+
+The security of a Rails application relies on the security of the underlying Ruby interpreter and runtime. Please ensure your application is using an up-to-date version of Ruby with all security patches applied to the interpreter as well as the [default and bundled gems](https://guides.rubygems.org/default-gems-and-bundled-gems/).
+
+### GMP Support (CRuby)
+
+Production applications should be run on a Ruby built with [GMP](https://gmplib.org/), the GNU Multiple Precision Arithmetic Library. GMP mitigates a class of denial-of-service attack vectors related to large numerical inputs.
+
+Ruby links GMP only when the GMP development headers are present at build time, so a Ruby compiled from source may lack it. The official `ruby` Docker images, which the `Dockerfile` that Rails generates is based on, include it. To check a Ruby, run `ruby -e 'p Integer::GMP_VERSION'`, which raises `NameError` when Ruby was built without GMP.
 
 Environmental Security
 ----------------------

@@ -4,7 +4,8 @@ require "rails"
 require "action_view"
 
 module ActionView
-  # = Action View Railtie
+  # Action View Railtie
+  # ===================
   class Railtie < Rails::Engine # :nodoc:
     config.action_view = ActiveSupport::OrderedOptions.new
     config.action_view.embed_authenticity_token_in_remote_forms = nil
@@ -144,6 +145,13 @@ module ActionView
           require_unload_lock!
           view_reloader.execute
         end
+      end
+    end
+
+    initializer "action_view.ractorize" do
+      ActiveSupport.on_load(:before_ractorize) do
+        ActionView::PathRegistry.make_shareable!
+        ActionView::DependencyTracker.share_registry
       end
     end
 

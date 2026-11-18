@@ -2,9 +2,10 @@
 
 module ActiveRecord
   class Migration
-    # = \Migration Command Recorder
+    # \Migration Command Recorder
+    # ===========================
     #
-    # +ActiveRecord::Migration::CommandRecorder+ records commands done during
+    # `ActiveRecord::Migration::CommandRecorder` records commands done during
     # a migration and knows how to reverse those commands. The CommandRecorder
     # knows how to invert the following commands:
     #
@@ -16,10 +17,10 @@ module ActiveRecord
     # * add_index
     # * add_reference
     # * add_timestamps
-    # * change_column_default (must supply a +:from+ and +:to+ option)
+    # * change_column_default (must supply a `:from` and `:to` option)
     # * change_column_null
-    # * change_column_comment (must supply a +:from+ and +:to+ option)
-    # * change_table_comment (must supply a +:from+ and +:to+ option)
+    # * change_column_comment (must supply a `:from` and `:to` option)
+    # * change_table_comment (must supply a `:from` and `:to` option)
     # * create_enum
     # * create_join_table
     # * create_virtual_table
@@ -31,7 +32,7 @@ module ActiveRecord
     # * drop_table (must supply a block)
     # * enable_extension
     # * remove_column (must supply a type)
-    # * remove_columns (must supply a +:type+ option)
+    # * remove_columns (must supply a `:type` option)
     # * remove_foreign_key (must supply a second table)
     # * remove_check_constraint
     # * remove_exclusion_constraint
@@ -41,7 +42,7 @@ module ActiveRecord
     # * remove_timestamps
     # * rename_column
     # * rename_enum
-    # * rename_enum_value (must supply a +:from+ and +:to+ option)
+    # * rename_enum_value (must supply a `:from` and `:to` option)
     # * rename_index
     # * rename_table
     # * enable_index
@@ -77,8 +78,10 @@ module ActiveRecord
       # and in reverse order.
       # For example:
       #
-      #   recorder.revert { recorder.rename_table(:old, :new) }
-      #   # same effect as recorder.rename_table(:new, :old)
+      # ```
+      # recorder.revert { recorder.rename_table(:old, :new) }
+      # # same effect as recorder.rename_table(:new, :old)
+      # ```
       def revert
         @reverting = !@reverting
         previous = @commands

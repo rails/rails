@@ -235,11 +235,11 @@ module ActiveRecord
             env => {
               primary: {
                 adapter: "sqlite3",
-                database: "test/fixtures/fixture_database.sqlite3",
+                database: ARTest.test_configuration_hashes["arunit"]["database"],
               },
               secondary: {
                 adapter: "sqlite3",
-                database: "test/fixtures/fixture_database_2.sqlite3",
+                database: ARTest.test_configuration_hashes["arunit2"]["database"],
               }
             }
           }

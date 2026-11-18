@@ -27,7 +27,7 @@ module ActiveRecord
 
           reflection_chain = reflection.chain
           reflection_chain.each_with_index do |reflection, index|
-            table, terminated = yield reflection, reflection_chain[index..]
+            table, terminated = yield reflection, reflection_chain.drop(index)
             @table ||= table
 
             if terminated
@@ -53,7 +53,14 @@ module ActiveRecord
               end
             end
 
-            arel = scope.arel(alias_tracker.aliases)
+            # Build the scope with a copy of the aliases, and keep the copy only
+            # if its joins are used below. Otherwise the tables of the unused
+            # joins would make later joins of the same tables use an alias.
+            aliases = alias_tracker.aliases
+            unless scope.joins_values.empty? && scope.left_outer_joins_values.empty?
+              aliases = aliases.dup
+            end
+            arel = scope.arel(aliases)
             nodes = arel.constraints.first
 
             if nodes.is_a?(Arel::Nodes::And)
@@ -67,6 +74,7 @@ module ActiveRecord
             if others && !others.empty?
               joins.concat arel.join_sources
               append_constraints(joins.last, others)
+              alias_tracker.aliases.replace(aliases) unless aliases.equal?(alias_tracker.aliases)
             end
 
             # The current table in this iteration becomes the foreign table in the next
@@ -74,6 +82,12 @@ module ActiveRecord
           end
 
           joins
+        end
+
+        # Columns on the associated table used to detect a match in an outer join.
+        def destination_key(parent_klass)
+          first, adjacent = reflection.chain
+          first.association_route_for_join(adjacent&.klass || parent_klass, destination_class: base_klass).destination_key
         end
 
         def readonly?

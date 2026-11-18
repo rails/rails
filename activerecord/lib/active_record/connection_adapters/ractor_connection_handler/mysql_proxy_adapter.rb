@@ -1,7 +1,5 @@
 # frozen_string_literal: true
 
-# :markup: markdown
-
 require "active_record/connection_adapters/ractor_connection_handler/abstract_proxy_adapter"
 
 module ActiveRecord
@@ -177,14 +175,6 @@ module ActiveRecord
           remote_dispatch(:create_table, ...)
         end
 
-        def indexes(...)
-          remote_dispatch(:indexes, ...)
-        end
-
-        def internal_string_options_for_primary_key
-          remote_dispatch(:internal_string_options_for_primary_key)
-        end
-
         def remove_foreign_key(...)
           remote_dispatch(:remove_foreign_key, ...)
         end
@@ -307,12 +297,8 @@ module ActiveRecord
           remote_dispatch(:rename_table, ...)
         end
 
-        def return_value_after_insert?(...)
-          remote_dispatch(:return_value_after_insert?, ...)
-        end
-
-        def savepoint_errors_invalidate_transactions?
-          remote_dispatch(:savepoint_errors_invalidate_transactions?)
+        def return_value_after_insert?(column)
+          supports_insert_returning? ? column.auto_populated_on_insert? : column.auto_increment?
         end
 
         def table_comment(...)
@@ -368,10 +354,6 @@ module ActiveRecord
 
           def drop_table_sql(...)
             remote_dispatch(:drop_table_sql, ...)
-          end
-
-          def fetch_column_definitions(...)
-            remote_dispatch(:fetch_column_definitions, ...)
           end
 
           def fetch_table_options(...)

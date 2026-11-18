@@ -59,6 +59,17 @@ module ApplicationTests
       }
     end
 
+    def test_no_test_runner_loaded_outside_tests
+      app_file "bin/print_features.rb", <<-SCRIPT
+      p $LOADED_FEATURES.grep(%r{/rails/test_unit/(runner|test_parser|line_filtering)\\.rb\\z})
+      SCRIPT
+
+      %w(development production).each do |env|
+        output = Dir.chdir(app_path) { `RAILS_ENV=#{env} bin/rails runner "bin/print_features.rb"` }
+        assert_equal "[]", output.lines.last&.chomp, "in #{env}"
+      end
+    end
+
     def test_should_set_dollar_0_to_file
       app_file "bin/dollar0.rb", <<-SCRIPT
       puts $0

@@ -3,49 +3,66 @@
 module ActiveRecord
   class PredicateBuilder
     class PolymorphicArrayValue # :nodoc:
-      def initialize(reflection, values)
+      def initialize(reflection, values, origin_model)
         @reflection = reflection
         @values = values
+        @origin_model = origin_model
       end
 
       def queries
-        return [ reflection.join_foreign_key => values ] if values.empty?
+        return [ reference_key_name => values ] if values.empty?
 
-        type_to_ids_mapping.map do |type, ids|
-          query = {}
-          query[reflection.join_foreign_type] = type if type
-          query[reflection.join_foreign_key] = ids
-          query
+        route_groups.filter_map do |_key, (fixed_values, origin_key, ids)|
+          fixed_values.merge(origin_key => ids) unless ids.empty?
         end
       end
 
       private
         attr_reader :reflection, :values
 
-        def type_to_ids_mapping
-          default_hash = Hash.new { |hsh, key| hsh[key] = [] }
-          values.each_with_object(default_hash) do |value, hash|
-            hash[klass(value)&.polymorphic_name] << convert_to_id(value)
+        def route_groups
+          values.each_with_object({}) do |value, groups|
+            if route = route_for(value)
+              fixed_values = route.origin_fixed_values
+              origin_key = route.origin_key.name
+            else
+              # Bare ids carry no target class, so match them directly against the foreign
+              # key, without a fixed value for the polymorphic type.
+              fixed_values = {}
+              origin_key = reference_key_name
+            end
+
+            key = [fixed_values, origin_key]
+            group = groups[key] ||= [fixed_values, origin_key, []]
+            ids = convert_to_id(value, route)
+            if value.is_a?(Relation) && route.destination_key.composite?
+              group.last.concat(ids)
+            else
+              group.last << ids
+            end
           end
         end
 
-        def primary_key(value)
-          reflection.join_primary_key(klass(value))
+        def reference_key_name
+          @reference_key_name ||= reflection.association_route(origin_class: @origin_model).reference_origin_key.name
         end
 
-        def klass(value)
-          if value.is_a?(Base)
-            value.class
-          elsif value.is_a?(Relation)
-            value.model
+        def route_for(value)
+          if value.is_a?(Base) || value.is_a?(Relation)
+            destination_class = value.is_a?(Relation) ? value.model : value.class
+            reflection.association_route(origin_class: @origin_model, destination_class: destination_class)
           end
         end
 
-        def convert_to_id(value)
+        def convert_to_id(value, route)
           if value.is_a?(Base)
-            ActiveRecord::Key.for(primary_key(value)).value_of(value)
+            route.destination_key.value_of(value)
           elsif value.is_a?(Relation)
-            value.select(primary_key(value))
+            if route.destination_key.composite?
+              value.pluck(route.destination_key.name)
+            else
+              value.select(route.destination_key.name)
+            end
           else
             value
           end

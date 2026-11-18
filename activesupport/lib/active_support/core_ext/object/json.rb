@@ -1,4 +1,3 @@
-# :markup: markdown
 # frozen_string_literal: true
 
 # Hack to load JSON gem first so we can override its to_json.

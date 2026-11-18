@@ -17,6 +17,37 @@ module ActiveRecord
           assert_not_equal value, "foo"
         end
 
+        def test_time_zone_aware_model_default_attributes_are_shareable
+          timezone_aware_topic = Class.new(ActiveRecord::Base) do
+            self.table_name = "topics"
+            self.time_zone_aware_attributes = true
+          end
+
+          assert_instance_of TimeZoneConverter, timezone_aware_topic.type_for_attribute(:written_on)
+          assert Ractor.shareable?(timezone_aware_topic._default_attributes)
+        end
+
+        def test_unfrozen_subtype_stays_unfrozen
+          subtype = ActiveRecord::Type::DateTime.new
+          converter = TimeZoneConverter.new(subtype)
+
+          assert_not_predicate converter, :frozen?
+          assert_not_predicate subtype, :frozen?
+        end
+
+        def test_subclass_with_its_own_state_stays_unfrozen
+          subclass = Class.new(TimeZoneConverter) do
+            def cast(value)
+              @last_value = value
+              super
+            end
+          end
+          converter = subclass.new(ActiveRecord::Type::DateTime.new.freeze)
+
+          assert_not_predicate converter, :frozen?
+          assert_nothing_raised { converter.cast("2026-11-03 12:00:00") }
+        end
+
         def test_time_attributes_with_fixed_date_normalization
           old_time_zone = Time.zone
 

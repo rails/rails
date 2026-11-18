@@ -7,17 +7,19 @@ module ActiveRecord
     class Column
       include Deduplicable
 
-      attr_reader :name, :default, :sql_type_metadata, :null, :default_function, :collation, :comment, :cast_type
+      attr_reader :name, :default, :sql_type_metadata, :null, :default_function, :collation, :comment, :cast_type, :slot
 
       delegate :precision, :scale, :limit, :type, :sql_type, to: :sql_type_metadata, allow_nil: true
 
       # Instantiates a new column in the table.
       #
-      # +name+ is the column's name, such as <tt>supplier_id</tt> in <tt>supplier_id bigint</tt>.
-      # +default+ is the type-casted default value, such as +new+ in <tt>sales_stage varchar(20) default 'new'</tt>.
-      # +sql_type_metadata+ is various information about the type of the column
-      # +null+ determines if this column allows +NULL+ values.
-      def initialize(name, cast_type, default, sql_type_metadata = nil, null = true, default_function = nil, collation: nil, comment: nil, **)
+      # `name` is the column's name, such as `supplier_id` in `supplier_id bigint`.
+      # `default` is the type-casted default value, such as `new` in `sales_stage varchar(20) default 'new'`.
+      # `sql_type_metadata` is various information about the type of the column
+      # `null` determines if this column allows `NULL` values.
+      # `slot` is the column's position in the table, starting at 0.
+      #: (String, ActiveModel::Type::Value, untyped, ?untyped, ?bool, ?String?, ?collation: String?, ?comment: String?, ?slot: Integer?, **untyped) -> void
+      def initialize(name, cast_type, default, sql_type_metadata = nil, null = true, default_function = nil, collation: nil, comment: nil, slot: nil, **)
         @name = name.freeze
         @cast_type = cast_type
         @sql_type_metadata = sql_type_metadata
@@ -26,6 +28,7 @@ module ActiveRecord
         @default_function = default_function
         @collation = collation
         @comment = comment
+        @slot = slot
       end
 
       def has_default?
@@ -38,12 +41,16 @@ module ActiveRecord
 
       # Returns the human name of the column name.
       #
-      # ===== Examples
-      #  Column.new('sales_stage', ...).human_name # => 'Sales stage'
+      # ##### Examples
+      #
+      # ```
+      # Column.new('sales_stage', ...).human_name # => 'Sales stage'
+      # ```
       def human_name
         Base.human_attribute_name(@name)
       end
 
+      #: (Psych::Coder | Hash[String, untyped]) -> void
       def init_with(coder)
         @name = coder["name"]
         @cast_type = coder["cast_type"]
@@ -53,8 +60,10 @@ module ActiveRecord
         @default_function = coder["default_function"]
         @collation = coder["collation"]
         @comment = coder["comment"]
+        @slot = coder["slot"]
       end
 
+      #: (Psych::Coder | Hash[String, untyped]) -> void
       def encode_with(coder)
         coder["name"] = @name
         coder["cast_type"] = @cast_type
@@ -64,6 +73,7 @@ module ActiveRecord
         coder["default_function"] = @default_function
         coder["collation"] = @collation
         coder["comment"] = @comment
+        coder["slot"] = @slot
       end
 
       def as_schema_json
@@ -73,9 +83,9 @@ module ActiveRecord
       end
 
       def init_from_schema_json(coder, references)
-        coder["cast_type"] = references[coder["cast_type"]] if coder["cast_type"]
-        coder["sql_type_metadata"] = references[coder["sql_type_metadata"]] if coder["sql_type_metadata"]
         init_with(coder)
+        @cast_type = references[@cast_type] if @cast_type
+        @sql_type_metadata = references[@sql_type_metadata] if @sql_type_metadata
       end
 
       # whether the column is auto-populated by the database using a sequence
@@ -96,6 +106,7 @@ module ActiveRecord
         virtual?
       end
 
+      #: (untyped) -> bool
       def ==(other)
         other.is_a?(Column) &&
           name == other.name &&
@@ -105,10 +116,12 @@ module ActiveRecord
           null == other.null &&
           default_function == other.default_function &&
           collation == other.collation &&
-          comment == other.comment
+          comment == other.comment &&
+          slot == other.slot
       end
       alias :eql? :==
 
+      #: () -> Integer
       def hash
         [
           Column,
@@ -121,6 +134,7 @@ module ActiveRecord
           @default_function,
           @collation,
           @comment,
+          @slot,
         ].hash
       end
 

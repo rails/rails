@@ -254,6 +254,17 @@ module ActiveRecord
       assert_match(/\Adevelopers\/query-(\h+)-(\d+)-(\d+)\z/, developers.cache_key)
     end
 
+    test "cache_key with a relation having default_order" do
+      developers = Developer.where(salary: 100000).default_order(:name)
+
+      queries = capture_sql do
+        assert_match(/\Adevelopers\/query-(\h+)-(\d+)-(\d+)\z/, developers.cache_key)
+      end
+
+      assert_equal 1, queries.length
+      assert_no_match(/ORDER BY/, queries.first)
+    end
+
     test "cache_key should be stable when using collection_cache_versioning" do
       with_collection_cache_versioning do
         developers = Developer.where(salary: 100000)

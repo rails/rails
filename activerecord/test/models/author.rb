@@ -11,6 +11,8 @@ class Author < ActiveRecord::Base
   has_many :posts_sorted_by_id, -> { order(:id) }, class_name: "Post"
   has_many :posts_sorted_by_id_limited, -> { order("posts.id").limit(1) }, class_name: "Post"
   has_many :posts_with_default_order, class_name: "Post", default_order: "posts.id DESC"
+  has_many :posts_with_ascending_default_order, class_name: "Post", default_order: "posts.id ASC"
+  has_many :posts_with_default_order_overriding_scope, -> { default_order(id: :desc) }, class_name: "Post", default_order: "posts.id ASC"
   has_many :posts_with_categories, -> { includes(:categories) }, class_name: "Post"
   has_many :posts_with_comments_and_categories, -> { includes(:comments, :categories).order("posts.id") }, class_name: "Post"
   has_many :posts_with_special_categorizations, class_name: "PostWithSpecialCategorization"
@@ -29,6 +31,10 @@ class Author < ActiveRecord::Base
 
   has_many :comments_with_foreign_key, through: :posts, source: :comments, foreign_key: :post_id
   has_many :no_joins_comments_with_foreign_key, through: :posts, disable_joins: :true, source: :comments, foreign_key: :post_id
+
+  has_many :posts_with_unscoped_where, -> { unscope(:where) }, class_name: "Post"
+  has_many :comments_on_posts_with_unscoped_where, through: :posts_with_unscoped_where, source: :comments
+  has_many :no_joins_comments_on_posts_with_unscoped_where, through: :posts_with_unscoped_where, source: :comments, disable_joins: true
 
   has_many :members,
     through: :comments_with_order,
@@ -54,11 +60,37 @@ class Author < ActiveRecord::Base
     source_type: "Member",
     disable_joins: true
 
+  has_many :posts_ordered_by_default, -> { default_order(id: :desc) }, class_name: "Post"
+
+  has_many :comments_of_posts_ordered_by_default,
+    through: :posts_ordered_by_default,
+    source: :comments
+
+  has_many :no_joins_comments_of_posts_ordered_by_default,
+    through: :posts_ordered_by_default,
+    source: :comments,
+    disable_joins: true
+
+  has_many :default_ordered_comments_of_posts_ordered_by_default,
+    -> { default_order(id: :asc) },
+    through: :posts_ordered_by_default,
+    source: :comments
+
+  has_many :no_joins_default_ordered_comments_of_posts_ordered_by_default,
+    -> { default_order(id: :asc) },
+    through: :posts_ordered_by_default,
+    source: :comments,
+    disable_joins: true
+
   has_many :ratings, through: :comments
+  has_many :post_comment_ratings, through: :posts, source: :comment_ratings
+  has_many :ratings_desc, -> { order(value: :desc) }, through: :posts, source: :comment_ratings
   has_many :good_ratings,
     -> { where("ratings.value > 5").order(:id) },
     through: :comments,
     source: :ratings
+  has_many :welcome_post_comments, -> { where("posts.title = 'Welcome to the weblog'") }, through: :posts, source: :comments
+  has_many :good_welcome_post_ratings, -> { where("ratings.value > 5") }, through: :welcome_post_comments, source: :ratings
 
   has_many :no_joins_ratings, through: :no_joins_comments, disable_joins: :true, source: :ratings
   has_many :no_joins_good_ratings,
@@ -67,9 +99,24 @@ class Author < ActiveRecord::Base
     source: :ratings,
     disable_joins: true
 
+  has_many :ratings_ordered_by_default,
+    -> { default_order(value: :desc) },
+    through: :comments,
+    source: :ratings
+
+  has_many :no_joins_ratings_ordered_by_default,
+    -> { default_order(value: :desc) },
+    through: :comments,
+    source: :ratings,
+    disable_joins: true
+
   has_many :comments_containing_the_letter_e, through: :posts, source: :comments
   has_many :comments_with_order_and_conditions, -> { order("comments.body").where("comments.body like 'Thank%'") }, through: :posts, source: :comments
   has_many :comments_with_include, -> { includes(:post).where(posts: { type: "Post" }) }, through: :posts, source: :comments
+  has_many :comments_with_preload, -> { preload(:ratings).where(posts: { type: "Post" }) }, through: :posts, source: :comments
+  has_many :comments_with_eager_load, -> { eager_load(:ratings).where(posts: { type: "Post" }) }, through: :posts, source: :comments
+  has_many :good_ratings_of_comments_with_preload, -> { where("ratings.value > 5") }, through: :comments_with_preload, source: :ratings
+  has_many :good_ratings_of_comments_with_eager_load, -> { where("ratings.value > 5") }, through: :comments_with_eager_load, source: :ratings
   has_many :comments_for_first_author, -> { for_first_author }, through: :posts, source: :comments
 
   has_many :first_posts
@@ -154,6 +201,16 @@ class Author < ActiveRecord::Base
 
   has_many :categorized_posts, through: :categorizations, source: :post
   has_many :unique_categorized_posts, -> { distinct }, through: :categorizations, source: :post
+  has_many :categorized_posts_desc, -> { order(id: :desc) }, through: :categorizations, source: :post
+  has_many :commented_categorized_posts, -> { joins(:comments).distinct }, through: :categorizations, source: :post
+  has_many :readonly_categorized_posts, -> { readonly }, through: :categorizations, source: :post
+  has_many :first_categorized_posts, -> { order(:id).limit(1) }, through: :categorizations, source: :post
+  has_many :categorized_posts_by_default_desc, -> { default_order(id: :desc) }, through: :categorizations, source: :post
+  has_many :popular_categorized_posts_by_default_desc, -> { where(legacy_comments_count: 2..).default_order(id: :desc) }, through: :categorizations, source: :post
+  has_many :popular_categorized_posts_reordered_by_default_desc, -> { where(legacy_comments_count: 2..).reorder(nil).default_order(id: :desc) }, through: :categorizations, source: :post
+  has_many :categorized_posts_with_default_order_scope, through: :categorizations, source: :post_with_default_order_scope
+  has_many :ordered_categorizations, -> { order(:id) }, class_name: "Categorization"
+  has_many :ordered_categorized_posts_by_default_desc, -> { default_order(id: :desc) }, through: :ordered_categorizations, source: :post
 
   has_many :nothings, through: :kateggorizatons, class_name: "Category"
 
@@ -165,6 +222,8 @@ class Author < ActiveRecord::Base
   has_many :tags,            through: :posts
   has_many :ordered_tags,    through: :posts
   has_many :post_categories, through: :posts, source: :categories
+  has_many :post_categories_desc, -> { order(id: :desc) }, through: :posts, source: :categories
+  has_many :readonly_post_categories, -> { readonly.order(:id) }, through: :posts, source: :categories
   has_many :tagging_tags,    through: :taggings, source: :tag
 
   has_many :similar_posts, -> { distinct }, through: :tags, source: :tagged_posts

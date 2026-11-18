@@ -1,7 +1,5 @@
 # frozen_string_literal: true
 
-# :markup: markdown
-
 require "active_storage"
 require "active_support/core_ext/string/filters"
 

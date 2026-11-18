@@ -9,8 +9,8 @@ module Arel # :nodoc: all
       include Arel::OrderPredications
       include Arel::Math
 
-      def type_caster
-        relation.type_for_attribute(name)
+      def type_caster(&block)
+        relation.type_for_attribute(name, &block)
       end
 
       ###

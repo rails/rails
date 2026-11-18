@@ -1,4 +1,3 @@
-# :markup: markdown
 # frozen_string_literal: true
 
 require "active_support/concern"
@@ -54,6 +53,8 @@ module ActiveSupport
       # ```
       #
       # Exceptions raised inside exception handlers are not propagated up.
+      #: (*(Module | String)) { (Exception) [self: untyped] -> void } -> void
+      #: (*(Module | String), with: Symbol | Proc) -> void
       def rescue_from(*klasses, with: nil, &block)
         unless with
           if block_given?
@@ -62,6 +63,8 @@ module ActiveSupport
             raise ArgumentError, "Need a handler. Pass the with: keyword argument or provide a block."
           end
         end
+
+        with = Ractors.try_shareable_proc(with) if with.is_a?(Proc)
 
         klasses.each do |klass|
           key = if klass.is_a?(Module) && klass.respond_to?(:===)

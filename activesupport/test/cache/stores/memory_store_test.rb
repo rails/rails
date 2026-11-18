@@ -95,6 +95,15 @@ class MemoryStoreTest < StoreTest
     assert_equal false, namespaced_cache.write(1, "aaaaaaaaaa", unless_exist: true)
   end
 
+  def test_local_cache_with_anonymous_subclass
+    cache = Class.new(ActiveSupport::Cache::MemoryStore).new
+
+    cache.with_local_cache do
+      cache.write("foo", "bar")
+      assert_equal "bar", cache.read("foo")
+    end
+  end
+
   def test_write_expired_value_with_unless_exist
     assert_equal true, @cache.write(1, "aaaa", expires_in: 1.second)
     travel 2.seconds

@@ -7,7 +7,7 @@ require "active_storage/analyzer/video_analyzer"
 
 class ActiveStorage::Analyzer::VideoAnalyzerTest < ActiveSupport::TestCase
   setup do
-    if !ENV["BUILDKITE"] && !system("command", "-v", ActiveStorage.paths[:ffprobe] || "ffprobe")
+    if !ENV["BUILDKITE"] && !system("command", "-v", ActiveStorage.paths[:ffprobe] || "ffprobe", out: File::NULL)
       skip("ffprobe isn't available")
     end
   end
@@ -101,6 +101,42 @@ class ActiveStorage::Analyzer::VideoAnalyzerTest < ActiveSupport::TestCase
       assert metadata[:audio]
       assert_not metadata[:video]
       assert_not metadata[:width]
+    end
+  end
+
+  test "analyzing a video file with duplicate tags from ffprobe" do
+    blob = create_file_blob(filename: "video_with_duplicate_tags.avi", content_type: "video/vnd.avi")
+    metadata = assert_nothing_raised { extract_metadata_from(blob) }
+    assert metadata[:video]
+  end
+
+  test "analyzing a playlist declared as a video" do
+    blob = create_playlist_blob(referencing: "video.mp4", filename: "video.m3u8", content_type: "video/mp4")
+    metadata = extract_metadata_from(blob)
+
+    assert_nil metadata[:width]
+    assert_nil metadata[:duration]
+  end
+
+  test "analyzing a playlist declared as a video with ffprobe arguments that allow it" do
+    blob = create_playlist_blob(referencing: "video.mp4", filename: "video.m3u8", content_type: "video/mp4")
+
+    ActiveStorage.with(ffprobe_arguments: "-format_whitelist hls,mov") do
+      metadata = extract_metadata_from(blob)
+
+      assert_nil metadata[:width]
+      assert_nil metadata[:duration]
+    end
+  end
+
+  test "analyzing a video whose format is not allowed" do
+    blob = create_file_blob(filename: "video.mp4", content_type: "video/mp4")
+
+    ActiveStorage.with(ffmpeg_allowed_formats: %w[ matroska ], logger: ActiveSupport::Logger.new(log = StringIO.new)) do
+      metadata = extract_metadata_from(blob)
+
+      assert_nil metadata[:width]
+      assert_match "Video analysis failed because ffprobe exited with status 1", log.string
     end
   end
 

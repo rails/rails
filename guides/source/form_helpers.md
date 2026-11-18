@@ -289,7 +289,7 @@ It will generate this HTML:
 Some important things to notice when using `form_with` with a model object:
 
 * The form `action` is automatically filled with an appropriate value, `action="/books"`. If you were updating a book, it would be `action="/books/42"`.
-* The form field names are scoped with `book[...]`. This means that `params[:book]` will be a hash containing all these field's values. You can read more about the significance of input names in chapter [Form Input Naming Conventions and Params Hash](#form-input-naming-conventions-and-params-hash) of this guide.
+* The form field names are scoped with `book[...]`. This means that `params[:book]` will be a hash containing all these fields' values. You can read more about the significance of input names in chapter [Form Input Naming Conventions and Params Hash](#form-input-naming-conventions-and-params-hash) of this guide.
 * The submit button is automatically given an appropriate text value, "Create Book" in this case.
 
 TIP: Typically your form inputs will mirror model attributes. However, they don't have to. If there is other information you need you can include a field in your form and access it via `params[:book][:my_non_attribute_input]`.
@@ -698,7 +698,7 @@ Output:
 Collection Related Helpers
 --------------------------
 
-If you need to generate a set of choices from a collection of arbitrary objects, Rails has `collection_select`, `collection_radio_button`, and `collection_checkboxes` helpers.
+If you need to generate a set of choices from a collection of arbitrary objects, Rails has `collection_select`, `collection_radio_buttons`, and `collection_checkboxes` helpers.
 
 To see when these helpers are useful, suppose you have a `City` model and corresponding `belongs_to :city` association with `Person`:
 
@@ -1224,7 +1224,7 @@ If the associated object is already saved, `fields_for` autogenerates a hidden i
 ### Permitting Parameters in the Controller
 
 As usual you need to [declare the permitted
-parameters](action_controller_overview.html#strong-parameters) in the controller
+parameters](action_controller_overview.html#securing-submitted-parameters) in the controller
 before you pass them to the model:
 
 ```ruby

@@ -204,6 +204,74 @@ module ActiveRecord
         assert_equal "bar-1-2-3", mapping.fetch("bar", 1, 2, 3) { |*args| args.join("-") }
       end
 
+      def test_fetch_result_type_matches_fetch_without_sql_type
+        mapping = HashLookupTypeMap.new
+        mapping.register_type("numeric") { |_, modifier, sql_type| +"numeric(#{modifier}, #{sql_type.inspect})" }
+
+        type = mapping.fetch_result_type("numeric", 5)
+
+        assert_equal 'numeric(5, "")', type
+        assert_same type, mapping.fetch("numeric", 5, "")
+        assert_same type, mapping.fetch_result_type("numeric", 5)
+        assert_equal 'numeric(6, "")', mapping.fetch_result_type("numeric", 6)
+        assert_equal "fallback", mapping.fetch_result_type("missing", 5) { "fallback" }
+      end
+
+      def test_fetch_result_type_after_register_and_clear
+        mapping = HashLookupTypeMap.new
+        mapping.register_type("numeric", "old")
+        assert_equal "old", mapping.fetch_result_type("numeric", 5)
+
+        mapping.register_type("numeric", "new")
+        assert_equal "new", mapping.fetch_result_type("numeric", 5)
+
+        mapping.clear
+        assert_equal "fallback", mapping.fetch_result_type("numeric", 5) { "fallback" }
+        mapping.register_type("numeric", "newest")
+        assert_equal "newest", mapping.fetch_result_type("numeric", 5)
+      end
+
+      def test_result_type_keys_belong_to_the_type_map
+        mapping = HashLookupTypeMap.new
+        mapping.register_type("numeric", "decimal")
+        mapping.fetch_result_type("numeric", 5)
+        keys = mapping.instance_variable_get(:@result_type_keys)
+
+        assert_equal [5], keys.keys
+        assert_empty HashLookupTypeMap.new.instance_variable_get(:@result_type_keys).keys
+
+        mapping.clear
+        assert_empty keys.keys
+      end
+
+      def test_failed_result_type_lookups_retain_no_keys
+        mapping = HashLookupTypeMap.new
+        mapping.register_type("numeric") { raise ArgumentError }
+
+        3.times do |modifier|
+          assert_raises(ArgumentError) { mapping.fetch_result_type("numeric", modifier) }
+        end
+        assert_raises(ArgumentError) { mapping.fetch_result_type("missing", 3) { raise ArgumentError } }
+
+        assert_empty mapping.instance_variable_get(:@result_type_keys).keys
+      end
+
+      def test_blocks_mutating_their_arguments_do_not_change_the_result_type_key
+        mapping = HashLookupTypeMap.new
+        calls = 0
+        mapping.register_type("numeric") do |_, *args|
+          calls += 1
+          args.clear
+          "decimal"
+        end
+
+        assert_equal "decimal", mapping.fetch_result_type("numeric", 5)
+        assert_equal "decimal", mapping.fetch_result_type("numeric", 5)
+        assert_equal "missing", mapping.fetch_result_type("other", 5) { |*args| args.clear; "missing" }
+        assert_equal "missing", mapping.fetch_result_type("other", 5) { flunk "the cached type was not used" }
+        assert_equal 1, calls
+      end
+
       private
         def klass
           HashLookupTypeMap

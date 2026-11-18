@@ -1,7 +1,5 @@
 # frozen_string_literal: true
 
-# :markup: markdown
-
 require "active_record/connection_adapters/ractor_connection_handler/abstract_proxy_adapter"
 
 module ActiveRecord
@@ -159,10 +157,6 @@ module ActiveRecord
           remote_dispatch(:high_precision_current_timestamp)
         end
 
-        def reset_isolation_level
-          remote_dispatch(:reset_isolation_level)
-        end
-
         def write_query?(...)
           remote_dispatch(:write_query?, ...)
         end
@@ -183,10 +177,6 @@ module ActiveRecord
 
         def create_schema_dumper(options)
           SQLite3::SchemaDumper.create(self, options)
-        end
-
-        def indexes(...)
-          remote_dispatch(:indexes, ...)
         end
 
         def remove_check_constraint(...)
@@ -298,12 +288,6 @@ module ActiveRecord
 
           def validate_index_length!(...)
             remote_dispatch(:validate_index_length!, ...)
-          end
-
-          # ADAPTER SPECIFIC ========================================
-
-          def fetch_column_definitions(...)
-            remote_dispatch(:fetch_column_definitions, ...)
           end
       end
     end

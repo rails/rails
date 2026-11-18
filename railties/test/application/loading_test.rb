@@ -494,7 +494,7 @@ class LoadingTest < ActiveSupport::TestCase
 
     app_file "config/routes.rb", <<-RUBY
       Rails.application.routes.draw do
-        get "/:controller(/:action)"
+        get "/omg/show", to: "omg#show"
       end
     RUBY
 
@@ -529,6 +529,16 @@ class LoadingTest < ActiveSupport::TestCase
     end
   end
 
+  test "Arel is loaded with ActiveRecord::Base" do
+    boot_app "development"
+
+    assert_equal "arel", Object.autoload?(:Arel)
+
+    assert_kind_of Class, ActiveRecord::Base
+    assert_nil Object.autoload?(:Arel)
+    assert_equal ActiveRecord::Base, Arel::Table.engine
+  end
+
   test "active record query cache hooks are installed before first request in production" do
     app_file "app/controllers/omg_controller.rb", <<-RUBY
       begin
@@ -549,7 +559,7 @@ class LoadingTest < ActiveSupport::TestCase
 
     app_file "config/routes.rb", <<-RUBY
       Rails.application.routes.draw do
-        get "/:controller(/:action)"
+        get "/omg/show", to: "omg#show"
       end
     RUBY
 
@@ -582,7 +592,7 @@ class LoadingTest < ActiveSupport::TestCase
 
     app_file "config/routes.rb", <<-RUBY
       Rails.application.routes.draw do
-        get "/:controller(/:action)"
+        get "/omg/show", to: "omg#show"
       end
     RUBY
 

@@ -1,7 +1,8 @@
 # frozen_string_literal: true
 
 module ActionView
-  # == TODO
+  # TODO
+  # ----
   #
   # * Support streaming from child templates, partials and so on.
   # * Rack::Cache needs to support streaming bodies

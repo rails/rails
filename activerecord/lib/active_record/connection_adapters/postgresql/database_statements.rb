@@ -98,8 +98,8 @@ module ActiveRecord
         #
         # Not passing any specific constraint names will set the value for all deferrable constraints.
         #
-        # [<tt>deferred</tt>]
-        #   Valid values are +:deferred+ or +:immediate+.
+        # `deferred`
+        # :   Valid values are `:deferred` or `:immediate`.
         #
         # See https://www.postgresql.org/docs/current/sql-set-constraints.html
         def set_constraints(deferred, *constraints)
@@ -129,6 +129,11 @@ module ActiveRecord
           )
           intent.execute!
           intent.finish
+        end
+
+        def tables_to_truncate # :nodoc:
+          internal_tables = [pool.schema_migration.table_name, pool.internal_metadata.table_name]
+          search_path_tables.filter_map { |name, table| name unless internal_tables.include?(table) }
         end
 
         private
@@ -220,25 +225,22 @@ module ActiveRecord
           end
 
           def cast_result(result)
-            ar_result = if result.fields.empty?
+            ar_result = if (fields = result.fields).empty?
               ActiveRecord::Result.empty(affected_rows: result.cmd_tuples)
             else
-              fields = result.fields
               types = Array.new(fields.size)
-              field_types = Array.new(fields.size)
-              missing_oids = []
+              missing_oids = nil
 
               fields.size.times do |index|
                 ftype = result.ftype(index)
-                field_types[index] = ftype
-                missing_oids << ftype unless type_map.key?(ftype)
+                (missing_oids ||= []) << ftype unless type_map.key?(ftype)
               end
 
-              if missing_oids.any?
+              if missing_oids
                 load_additional_types(missing_oids)
 
                 fields.size.times do |index|
-                  ftype = field_types[index]
+                  ftype = result.ftype(index)
                   next if type_map.key?(ftype)
 
                   register_unknown_oid_type(ftype, fields[index])
@@ -246,7 +248,7 @@ module ActiveRecord
               end
 
               fields.size.times do |index|
-                ftype = field_types[index]
+                ftype = result.ftype(index)
                 fmod  = result.fmod(index)
                 types[index] = get_oid_type(ftype, fmod, fields[index])
               end
@@ -269,6 +271,8 @@ module ActiveRecord
           end
 
           def collect_warnings(_result)
+            return super if @notice_receiver_sql_warnings.empty?
+
             warnings, @notice_receiver_sql_warnings = @notice_receiver_sql_warnings, []
             warnings
           end

@@ -87,6 +87,15 @@ class SerializationTest < ActiveModel::TestCase
     assert_equal expected, @user.serializable_hash(except: [:name, :email], methods: [:foo, :bar])
   end
 
+  def test_method_serializable_hash_should_give_the_same_keys_for_symbol_and_string_options
+    symbols = @user.serializable_hash(only: [:email, :name], methods: [:foo])
+    strings = @user.serializable_hash(only: ["email", "name"], methods: ["foo"])
+
+    assert_equal ["email", "name", "foo"], symbols.keys
+    assert_equal strings, symbols
+    assert_equal @user.serializable_hash(except: ["name"]), @user.serializable_hash(except: [:name])
+  end
+
   def test_should_raise_NoMethodError_for_non_existing_method
     assert_raise(NoMethodError) { @user.serializable_hash(methods: [:nada]) }
   end

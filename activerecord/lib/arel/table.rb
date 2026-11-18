@@ -8,7 +8,6 @@ module Arel # :nodoc: all
     @engine = nil
     class << self; attr_accessor :engine; end
 
-    attr_writer :name
     attr_reader :table_alias, :klass
 
     def initialize(name: nil, as: nil, klass: nil, type_caster: klass&.type_caster)
@@ -110,8 +109,8 @@ module Arel # :nodoc: all
       type_caster.type_cast_for_database(attr_name, value)
     end
 
-    def type_for_attribute(name)
-      type_caster.type_for_attribute(name)
+    def type_for_attribute(name, &block)
+      type_caster.type_for_attribute(name, &block)
     end
 
     def able_to_type_cast?

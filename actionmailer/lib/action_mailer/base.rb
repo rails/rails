@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+# :markup: rdoc
+
 require "mail"
 require "action_mailer/collector"
 require "active_support/core_ext/string/inflections"
@@ -875,6 +877,7 @@ module ActionMailer
     #     format.html
     #   end
     #
+    #: (?Hash[untyped, untyped]) ?{ (ActionMailer::Collector) -> void } -> Mail::Message
     def mail(headers = {}, &block)
       return message if @_mail_was_called && headers.blank? && !block
 

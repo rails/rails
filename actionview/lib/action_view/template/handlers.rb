@@ -2,7 +2,8 @@
 
 module ActionView # :nodoc:
   class Template # :nodoc:
-    # = Action View Template Handlers
+    # Action View Template Handlers
+    # =============================
     module Handlers # :nodoc:
       autoload :Raw, "action_view/template/handlers/raw"
       autoload :ERB, "action_view/template/handlers/erb"
@@ -54,6 +55,18 @@ module ActionView # :nodoc:
       # Opposite to register_template_handler.
       def unregister_template_handler(*extensions)
         Handlers.unregister(*extensions)
+      end
+
+      def template_handler_extensions
+        Handlers.extensions.map(&:to_s).sort
+      end
+
+      def registered_template_handler(extension)
+        extension && Handlers.template_handlers[extension.to_sym]
+      end
+
+      def register_default_template_handler(extension, handler)
+        Handlers.register_default(extension.to_sym, handler)
       end
 
       def handler_for_extension(extension)

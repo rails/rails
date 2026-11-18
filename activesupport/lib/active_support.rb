@@ -1,4 +1,3 @@
-# :markup: markdown
 # frozen_string_literal: true
 
 #--
@@ -32,7 +31,7 @@ require "active_support/logger"
 require "active_support/broadcast_logger"
 require "active_support/lazy_load_hooks"
 
-# :include: ../README.rdoc
+# :include: ../README.md
 module ActiveSupport
   extend ActiveSupport::Autoload
 
@@ -62,6 +61,8 @@ module ActiveSupport
   autoload :Reloader
   autoload :SecureCompareRotator
   autoload :TimeFormats
+  autoload :WeakKeyMap
+  autoload :WeakSet
 
   eager_autoload do
     autoload :BacktraceCleaner

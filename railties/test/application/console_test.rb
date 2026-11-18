@@ -32,7 +32,7 @@ class FullStackConsoleTest < ActiveSupport::TestCase
     teardown_app
   end
 
-  def write_prompt(command, expected_output = nil, prompt: "> ")
+  def write_prompt(command, expected_output = nil, prompt: /\d> /)
     @primary.puts command
     assert_output command, @primary
     assert_output expected_output, @primary, 100 if expected_output
@@ -203,6 +203,12 @@ class FullStackConsoleTest < ActiveSupport::TestCase
     spawn_console
 
     write_prompt "ActiveRecord::Base.connection_pool.query_cache_enabled", "=> false"
+  end
+
+  def test_console_query_cache_disabled_for_pools_established_later
+    spawn_console
+
+    write_prompt "ActiveRecord::Base.connection_handler.establish_connection(ActiveRecord::Base.connection_db_config, shard: :later).query_cache_enabled", "=> false"
   end
 
   def test_console_query_cache_option

@@ -5,11 +5,12 @@ require "active_support/core_ext/module/attribute_accessors"
 require "action_view/template/resolver"
 
 module ActionView
-  # = Action View Lookup Context
+  # Action View Lookup Context
+  # ==========================
   #
-  # <tt>LookupContext</tt> is the object responsible for holding all information
+  # `LookupContext` is the object responsible for holding all information
   # required for looking up templates, i.e. view paths and details.
-  # <tt>LookupContext</tt> is also responsible for generating a key, given to
+  # `LookupContext` is also responsible for generating a key, given to
   # view paths, used in the resolver cache lookup. Since this key is generated
   # only once during the request, it speeds up all cache accesses.
   class LookupContext # :nodoc:
@@ -157,6 +158,7 @@ module ActionView
         end
         @view_paths.find!(name, prefixes, partial, details, details_key, keys)
       end
+      alias :find_template :find!
 
       def find_all(name, prefixes = [], partial = false, keys = [], options = {})
         if options.empty?
@@ -208,6 +210,7 @@ module ActionView
 
       # Compute details hash and key according to user options (e.g. passed from #render).
       def detail_args_for(options) # :doc:
+        return @details, details_key if options.empty? # most common path.
         user_details = @details.merge(options)
 
         if @cache
@@ -273,7 +276,7 @@ module ActionView
     end
     private :initialize_details
 
-    # Override formats= to expand ["*/*"] values and automatically
+    # Override formats= to expand ["\*/*"] values and automatically
     # add :html as fallback to :js.
     def formats=(values)
       if values

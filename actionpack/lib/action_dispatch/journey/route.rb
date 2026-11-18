@@ -1,7 +1,5 @@
 # frozen_string_literal: true
 
-# :markup: markdown
-
 module ActionDispatch
   # :stopdoc:
   module Journey
@@ -13,14 +11,59 @@ module ActionDispatch
 
       module VerbMatchers
         VERBS = %w{ DELETE GET HEAD OPTIONS LINK PATCH POST PUT QUERY TRACE UNLINK }.freeze
-        VERBS.each do |v|
-          class_eval <<-eoc, __FILE__, __LINE__ + 1
-            # frozen_string_literal: true
-            class #{v}
-              def self.verb; name.split("::").last; end
-              def self.call(req); req.#{v.downcase}?; end
-            end
-          eoc
+        class DELETE
+          def self.verb = "DELETE"
+          def self.call(req) = req.delete?
+        end
+
+        class GET
+          def self.verb = "GET"
+          def self.call(req) = req.get?
+        end
+
+        class HEAD
+          def self.verb = "HEAD"
+          def self.call(req) = req.head?
+        end
+
+        class OPTIONS
+          def self.verb = "OPTIONS"
+          def self.call(req) = req.options?
+        end
+
+        class LINK
+          def self.verb = "LINK"
+          def self.call(req) = req.link?
+        end
+
+        class PATCH
+          def self.verb = "PATCH"
+          def self.call(req) = req.patch?
+        end
+
+        class POST
+          def self.verb = "POST"
+          def self.call(req) = req.post?
+        end
+
+        class PUT
+          def self.verb = "PUT"
+          def self.call(req) = req.put?
+        end
+
+        class QUERY
+          def self.verb = "QUERY"
+          def self.call(req) = req.query?
+        end
+
+        class TRACE
+          def self.verb = "TRACE"
+          def self.call(req) = req.trace?
+        end
+
+        class UNLINK
+          def self.verb = "UNLINK"
+          def self.call(req) = req.unlink?
         end
 
         class Unknown

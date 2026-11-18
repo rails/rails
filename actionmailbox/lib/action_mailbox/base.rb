@@ -1,4 +1,3 @@
-# :markup: markdown
 # frozen_string_literal: true
 
 require "active_support/rescuable"
@@ -12,14 +11,15 @@ module ActionMailbox
   #
   # The base class for all application mailboxes. Not intended to be inherited from directly. Inherit from
   # `ApplicationMailbox` instead, as that's where the app-specific routing is configured. This routing
-  # is specified in the following ways:
+  # is specified in the following ways. String and regexp routes match the recipients of the mail: the addresses in
+  # its `To`, `Cc`, `Bcc`, `X-Original-To`, and `X-Forwarded-To` headers.
   #
   # ```
   # class ApplicationMailbox < ActionMailbox::Base
-  #   # Any of the recipients of the mail (whether to, cc, bcc) are matched against the regexp.
+  #   # Any of the recipients of the mail are matched against the regexp.
   #   routing /^replies@/i => :replies
   #
-  #   # Any of the recipients of the mail (whether to, cc, bcc) needs to be an exact match for the string.
+  #   # Any of the recipients of the mail needs to be an exact match for the string.
   #   routing "help@example.com" => :help
   #
   #   # Any callable (proc, lambda, etc) object is passed the inbound_email record and is a match if true.
@@ -32,6 +32,9 @@ module ActionMailbox
   #   routing :all => :backstop
   # end
   # ```
+  #
+  # Routing is not authentication. The sender of an email can set every header that string and regexp routes match,
+  # so a mailbox that acts on behalf of a user or an account must check that the email is allowed to do so.
   #
   # Application mailboxes need to override the #process method, which is invoked by the framework after
   # callbacks have been run. The callbacks available are: `before_processing`, `after_processing`, and

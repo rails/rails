@@ -189,7 +189,9 @@ class AsynchronousQueriesTest < ActiveRecord::TestCase
 
   private
     def with_async_query_failures(failures, matching:, repeat_last: false)
-      adapter_class = @connection.class
+      # Under the Ractor proxy, queries are performed and retried by the
+      # main-side connection, so that's where we inject failures.
+      adapter_class = main_ractor_connection(@connection).class
       original_perform_query = adapter_class.instance_method(:perform_query)
       visibility = if adapter_class.private_instance_methods(false).include?(:perform_query)
         :private

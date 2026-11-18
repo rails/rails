@@ -90,16 +90,16 @@ class ConnectionTest < ActiveRecord::AbstractMysqlTestCase
   def test_character_set_connection_is_configured
     run_without_connection do |orig_connection|
       configuration_hash = orig_connection.except(:encoding, :collation)
-      ActiveRecord::Base.establish_connection(configuration_hash.merge!(encoding: "cp932"))
+      ActiveRecord::Base.establish_connection(configuration_hash.merge!(encoding: "ujis"))
       connection = ActiveRecord::Base.lease_connection
 
-      assert_equal "cp932", connection.show_variable("character_set_client")
-      assert_equal "cp932", connection.show_variable("character_set_results")
-      assert_equal "cp932", connection.show_variable("character_set_connection")
-      assert_equal "cp932_japanese_ci", connection.show_variable("collation_connection")
+      assert_equal "ujis", connection.show_variable("character_set_client")
+      assert_equal "ujis", connection.show_variable("character_set_results")
+      assert_equal "ujis", connection.show_variable("character_set_connection")
+      assert_equal "ujis_japanese_ci", connection.show_variable("collation_connection")
 
-      expected = "こんにちは".encode(Encoding::CP932)
-      assert_equal expected, connection.select_value("SELECT 'こんにちは'")
+      expected = "こんにちは".encode(Encoding::EucJP_ms)
+      assert_equal expected, connection.select_value("SELECT '#{expected}'")
     end
   end
 
@@ -205,7 +205,8 @@ class ConnectionTest < ActiveRecord::AbstractMysqlTestCase
   end
 
   def test_get_and_release_advisory_lock
-    lock_name = "test lock'n'name"
+    # MySQL named locks are server-wide.
+    lock_name = "test lock'n'name #{SecureRandom.hex(16)}"
 
     got_lock = @connection.get_advisory_lock(lock_name)
     assert got_lock, "get_advisory_lock should have returned true but it didn't"

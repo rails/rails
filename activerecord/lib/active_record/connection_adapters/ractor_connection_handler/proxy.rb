@@ -1,7 +1,5 @@
 # frozen_string_literal: true
 
-# :markup: markdown
-
 module ActiveRecord
   module ConnectionAdapters
     class RactorConnectionHandler # :nodoc:
@@ -220,6 +218,18 @@ module ActiveRecord
             connection = @connections_lock.synchronize { @connections[connection_token] }
             unless connection
               raise ConnectionNotEstablished, "The Ractor-pinned connection for token #{connection_token.inspect} has been released"
+            end
+            connection
+          end
+
+          # As fetch_connection, but raises if the connection's transaction
+          # manager has been replaced since `transaction_manager_id` was recorded:
+          # work belonging to the lost transactions would otherwise run outside
+          # any transaction.
+          def fetch_transaction_connection(connection_token, transaction_manager_id)
+            connection = fetch_connection(connection_token)
+            if transaction_manager_id && connection.transaction_manager.object_id != transaction_manager_id
+              raise ConnectionNotEstablished, "The Ractor-pinned connection was reset while a transaction was open, and the server rolled it back"
             end
             connection
           end

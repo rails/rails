@@ -31,6 +31,40 @@ require "models/cpk/chapter_destroy_async"
 class DestroyAssociationAsyncTest < ActiveRecord::TestCase
   include ActiveJob::TestHelper
 
+  class ArrayKeyTarget < ActiveRecord::Base
+    self.table_name = "posts"
+    serialize :body, coder: YAML, type: Array
+  end
+
+  class ArrayKeyOwner < ActiveRecord::Base
+    self.table_name = "comments"
+    serialize :body, coder: YAML, type: Array
+    belongs_to :array_key_target,
+      class_name: "DestroyAssociationAsyncTest::ArrayKeyTarget",
+      foreign_key: :body,
+      primary_key: :body,
+      dependent: :destroy_async
+  end
+
+  class AliasedKeyPost < ActiveRecord::Base
+    self.table_name = "posts"
+    alias_attribute :post_key, :author_id
+  end
+
+  class RemappedKeyPost < AliasedKeyPost
+    alias_attribute :post_key, :id
+  end
+
+  class AliasedKeyComment < ActiveRecord::Base
+    self.table_name = "comments"
+    self.inheritance_column = nil
+    belongs_to :keyed_post,
+      class_name: "DestroyAssociationAsyncTest::AliasedKeyPost",
+      primary_key: :post_key,
+      foreign_key: :post_id,
+      dependent: :destroy_async
+  end
+
   test "destroying a record destroys the has_many :through records using a job" do
     tag = Tag.create!(name: "Der be treasure")
     tag2 = Tag.create!(name: "Der be rum")
@@ -166,6 +200,57 @@ class DestroyAssociationAsyncTest < ActiveRecord::TestCase
   ensure
     EssayDestroyAsync.delete_all
     BookDestroyAsync.delete_all
+  end
+
+  test "belongs to destroys a target identified by an Array-valued key" do
+    key = ["array", "identity"]
+    target = ArrayKeyTarget.create!(title: "Target", body: key)
+    other = ArrayKeyTarget.create!(title: "Other", body: ["other", "identity"])
+    owner = ArrayKeyOwner.create!(post_id: target.id, array_key_target: target)
+    owner.destroy
+
+    assert_difference -> { ArrayKeyTarget.count }, -1 do
+      perform_enqueued_jobs only: ActiveRecord::DestroyAssociationAsyncJob
+    end
+    assert_equal ["other", "identity"], other.reload.body
+  ensure
+    ArrayKeyOwner.delete_all
+    ArrayKeyTarget.delete_all
+  end
+
+  test "belongs to falls back to the owner's key for columns the target didn't select" do
+    comment_class = Class.new(ActiveRecord::Base) do
+      self.table_name = "comments"
+      self.inheritance_column = nil
+
+      def self.name; "PartialTargetComment"; end
+
+      belongs_to :post, -> { select(:title) }, dependent: :destroy_async
+    end
+    post = Post.create!(title: "Partial target", body: "Partial target")
+    comment = comment_class.create!(post_id: post.id, body: "Partial target comment")
+
+    job = assert_enqueued_with(job: ActiveRecord::DestroyAssociationAsyncJob) { comment.destroy }
+
+    assert_equal [post.id], job.arguments.first[:association_ids]
+  end
+
+  test "belongs to destroys a target whose class remaps the primary key alias" do
+    [:assigned, :loaded].each do |target_source|
+      post = RemappedKeyPost.create!(author_id: 9_000_811, title: "Aliased key", body: "Aliased key")
+      decoy = AliasedKeyPost.create!(author_id: post.id, title: "Decoy", body: "Decoy")
+      comment = if target_source == :assigned
+        AliasedKeyComment.create!(keyed_post: post, body: "Aliased key comment")
+      else
+        AliasedKeyComment.create!(post_id: post.author_id, body: "Aliased key comment")
+      end
+
+      comment.destroy
+      perform_enqueued_jobs only: ActiveRecord::DestroyAssociationAsyncJob
+
+      assert_not AliasedKeyPost.exists?(post.id), "#{target_source} target"
+      assert AliasedKeyPost.exists?(decoy.id), "#{target_source} target"
+    end
   end
 
   test "belongs to associated by composite primary key" do

@@ -907,7 +907,7 @@ The [`route`][] method adds an entry to the `config/routes.rb` file. To make
 `PeopleController#index` the default page for the application, we can add:
 
 ```ruby
-route "root to: 'person#index'"
+route "root to: 'people#index'"
 ```
 
 There are also many helper methods that can manipulate the local file system,
@@ -940,7 +940,7 @@ see examples of using `ask`, `yes?` and `no?`:
 
 ### ask
 
-The [`ask`][] methods allows you to get feedback from the user and use it in
+The [`ask`][] method allows you to get feedback from the user and use it in
 your templates. Let's say you want your user to name the new shiny library
 you're adding:
 

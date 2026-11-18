@@ -1,7 +1,5 @@
 # frozen_string_literal: true
 
-# :markup: markdown
-
 require "active_record/connection_adapters/ractor_connection_handler"
 
 module ActiveRecord
@@ -11,22 +9,6 @@ module ActiveRecord
         include Proxy
 
         Lease = Struct.new(:connection, :sticky)
-
-        # Dispatches schema cache lookups to the schema cache of this pool's
-        # main-Ractor counterpart.
-        class SchemaCacheProxy
-          def initialize(pool)
-            @pool = pool
-          end
-
-          BoundSchemaReflection.public_instance_methods(false).each do |method_name|
-            class_eval(<<~RUBY, __FILE__, __LINE__ + 1)
-              def #{method_name}(*args, **kwargs)
-                @pool.dispatch_to_main_schema_cache(:#{method_name}, args, kwargs)
-              end
-            RUBY
-          end
-        end
 
         attr_reader :db_config, :role, :shard, :key
 
@@ -67,29 +49,7 @@ module ActiveRecord
         end
 
         def schema_cache
-          state.schema_cache ||= SchemaCacheProxy.new(self)
-        end
-
-        def dispatch_to_main_schema_cache(method_name, args, kwargs) # :nodoc:
-          connection_name, role, shard = @connection_name, @role, @shard
-          connection_token = connection_lease.connection&.connection_token
-          main_args = ActiveSupport::Ractors.make_shareable(args)
-          main_kwargs = ActiveSupport::Ractors.make_shareable(kwargs)
-
-          main_operation(connection_pool: self) do
-            pool = main_pool(connection_name, role, shard)
-            schema_cache =
-              if connection_token
-                # Bind to the pinned connection so the worker observes its own uncommitted DDL.
-                connection = fetch_connection(connection_token)
-                # Proxied connections don't connect on demand, so connect explicitly.
-                connection.connect! unless connection.connected?
-                BoundSchemaReflection.for_lone_connection(pool.schema_reflection, connection)
-              else
-                pool.schema_cache
-              end
-            schema_cache.public_send(method_name, *main_args, **main_kwargs)
-          end
+          state.schema_cache ||= BoundSchemaReflection.new(schema_reflection, self)
         end
 
         def migration_context
@@ -97,7 +57,7 @@ module ActiveRecord
         end
 
         def migrations_paths
-          db_config.migrations_paths || Migrator.migrations_paths
+          main_pool_value(:migrations_paths)
         end
 
         def schema_migration
@@ -159,6 +119,8 @@ module ActiveRecord
         end
 
         def checkout(_checkout_timeout = nil)
+          ConnectionPool.used_pools!.add(self)
+
           if pinned = state.pinned_connection
             return pinned
           end
@@ -226,6 +188,10 @@ module ActiveRecord
           main_pool_value(:connected?)
         end
 
+        def discarded?
+          false
+        end
+
         def disconnect!
           release_connection
         end
@@ -262,6 +228,11 @@ module ActiveRecord
           query_cache.dirties = true
         end
 
+        def reset_query_cache! # :nodoc:
+          prepare_query_cache(query_cache)
+          clear_query_cache
+        end
+
         def query_cache_enabled
           query_cache.enabled
         end
@@ -276,8 +247,17 @@ module ActiveRecord
         end
 
         def query_cache
-          caches = (ActiveSupport::IsolatedExecutionState[:active_record_ractor_query_caches] ||= {})
-          caches[key] ||= QueryCache::Store.new(state.query_cache_version, query_cache_max_size)
+          ConnectionPool.used_pools!.query_cache_for(self)
+        end
+
+        def build_query_cache # :nodoc:
+          QueryCache::Store.new(state.query_cache_version, query_cache_max_size).tap { |cache| prepare_query_cache(cache) }
+        end
+
+        def prepare_query_cache(cache) # :nodoc:
+          cache.enabled = QueryCache.enabled_by_default && db_config&.query_cache != false
+          cache.dirties = true
+          cache.clear
         end
 
         def pool_transaction_isolation_level
@@ -404,8 +384,6 @@ module ActiveRecord
             main_operation do
               connection = main_pool(connection_name, role, shard).checkout
               begin
-                # A proxied connection is never verified by the query pipeline, so it must be usable up front.
-                connection.connect!
                 profile = connection.ractor_connection_profile
                 token = register_connection(connection)
               rescue Exception

@@ -1,4 +1,3 @@
-# :markup: markdown
 # frozen_string_literal: true
 
 require "active_support/inflections"
@@ -367,7 +366,8 @@ module ActiveSupport
         e.name.to_s == camel_cased_word.to_s)
     rescue LoadError => e
       message = e.respond_to?(:original_message) ? e.original_message : e.message
-      raise unless /Unable to autoload constant #{const_regexp(camel_cased_word)}/.match?(message)
+      constant_name = camel_cased_word.split("::").find { |part| !part.empty? } || camel_cased_word
+      raise unless message.include?("Unable to autoload constant #{constant_name}")
     end
 
     # Returns the suffix that should be added to a number to denote the position
@@ -401,25 +401,6 @@ module ActiveSupport
     end
 
     private
-      # Mounts a regular expression, returned as a string to ease interpolation,
-      # that will match part by part the given constant.
-      #
-      # ```
-      # const_regexp("Foo::Bar::Baz") # => "Foo(::Bar(::Baz)?)?"
-      # const_regexp("::")            # => "::"
-      # ```
-      def const_regexp(camel_cased_word)
-        parts = camel_cased_word.split("::")
-
-        return Regexp.escape(camel_cased_word) if parts.empty?
-
-        last = parts.pop
-
-        parts.reverse!.inject(last) do |acc, part|
-          part.empty? ? acc : "#{part}(::#{acc})?"
-        end
-      end
-
       # Applies inflection rules for `singularize` and `pluralize`.
       #
       # If passed an optional `locale` parameter, the uncountables will be
@@ -435,7 +416,14 @@ module ActiveSupport
         if word.empty? || inflections(locale).uncountables.uncountable?(result)
           result
         else
-          rules.each { |(rule, replacement)| break if result.sub!(rule, replacement) }
+          # Most rules don't match, and a failed match? is much cheaper than a
+          # failed sub!, so only call sub! for the rule that applies.
+          rules.each do |(rule, replacement)|
+            if rule.is_a?(Regexp) ? rule.match?(result) : result.include?(rule)
+              result.sub!(rule, replacement)
+              break
+            end
+          end
           result
         end
       end

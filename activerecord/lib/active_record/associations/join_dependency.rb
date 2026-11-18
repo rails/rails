@@ -54,6 +54,8 @@ module ActiveRecord
         case associations
         when Symbol, String
           hash[associations.to_sym] ||= {}
+        when Reflection::AbstractReflection
+          hash[associations] ||= {}
         when Array
           associations.each do |assoc|
             walk_tree assoc, hash
@@ -73,6 +75,7 @@ module ActiveRecord
         @join_root = JoinBase.new(base, table, build(tree, base))
         @join_type = join_type
         @remappers = {}
+        @primary_key_aliases = {}
       end
 
       def base_klass
@@ -106,6 +109,7 @@ module ActiveRecord
       EMPTY_HASH = {}.freeze
       private_constant :EMPTY_HASH
 
+      #: (ActiveRecord::Result, bool?) ?{ (ActiveRecord::Base) -> void } -> Array[ActiveRecord::Base]
       def instantiate(result_set, strict_loading_value, &block)
         primary_key = Array(join_root.primary_key).map { |column| aliases.column_alias(join_root, column) }
 
@@ -144,7 +148,7 @@ module ActiveRecord
         }
 
         primary_key_indexes = primary_key.map { |name| result_set.column_indexes.fetch(name) }.freeze
-        remapper = ActiveModel::IndexedRow::Remapper.new(result_set.column_indexes, column_aliases.map(&:alias), column_aliases.map(&:name))
+        remapper = ActiveModel::IndexedRow::Remapper.new(result_set.column_indexes, column_aliases.map(&:alias), column_aliases.map(&:name), join_root.base_klass.attributes_builder.indexes)
 
         message_bus.instrument("instantiation.active_record", payload) do
           result_set.indexed_rows.each do |indexed_row|
@@ -199,11 +203,12 @@ module ActiveRecord
           foreign_table = parent.table
           foreign_klass = parent.base_klass
           child.join_constraints(foreign_table, foreign_klass, join_type, alias_tracker) do |reflection, remaining_reflection_chain|
-            table, terminated = @joined_tables[remaining_reflection_chain]
+            joined_table_key = [foreign_table, remaining_reflection_chain]
+            table, terminated = @joined_tables[joined_table_key]
             root = reflection == child.reflection
 
             if table && (!root || !terminated)
-              @joined_tables[remaining_reflection_chain] = [table, root] if root
+              @joined_tables[joined_table_key] = [table, root] if root
               next table, true
             end
 
@@ -214,7 +219,7 @@ module ActiveRecord
               root ? name : "#{name}_join"
             end
 
-            @joined_tables[remaining_reflection_chain] ||= [table, root] if join_type == Arel::Nodes::OuterJoin
+            @joined_tables[joined_table_key] ||= [table, root] if join_type == Arel::Nodes::OuterJoin
             table
           end.concat child.children.flat_map { |c| make_constraints(child, c, join_type) }
         end
@@ -235,7 +240,7 @@ module ActiveRecord
 
         def build(associations, base_klass)
           associations.map do |name, right|
-            reflection = find_reflection base_klass, name
+            reflection = name.is_a?(Reflection::AbstractReflection) ? name : find_reflection(base_klass, name)
             reflection.check_validity!
             reflection.check_eager_loadable!
 
@@ -262,12 +267,11 @@ module ActiveRecord
               next
             end
 
-            if node.primary_key
-              keys = Array(node.primary_key).map { |column| aliases.column_alias(node, column) }
+            if (keys = primary_key_aliases(node))
               id = keys.map { |key| row[key] }
             else
-              keys = Array(node.reflection.join_primary_key).map { |column| aliases.column_alias(node, column.to_s) }
-              id = keys.map { nil } # Avoid id-based model caching.
+              keys = node.destination_key(parent.base_klass).map { |column| aliases.column_alias(node, column) }
+              id = nil # Avoid id-based model caching.
             end
 
             if keys.any? { |key| row[key].nil? }
@@ -285,10 +289,11 @@ module ActiveRecord
           end
         end
 
+        #: (ActiveRecord::Associations::JoinDependency::JoinPart, Hash[String, Integer]) -> ActiveModel::IndexedRow::Remapper
         def remapper(node, indexes)
           @remappers[node] ||= begin
             column_aliases = aliases.column_aliases(node)
-            ActiveModel::IndexedRow::Remapper.new(indexes, column_aliases.map(&:alias), column_aliases.map(&:name))
+            ActiveModel::IndexedRow::Remapper.new(indexes, column_aliases.map(&:alias), column_aliases.map(&:name), node.base_klass.attributes_builder.indexes)
           end
         end
 
@@ -312,6 +317,12 @@ module ActiveRecord
           model.readonly! if node.readonly?
           model.strict_loading! if node.strict_loading?
           model
+        end
+
+        def primary_key_aliases(node)
+          @primary_key_aliases.fetch(node) do
+            @primary_key_aliases[node] = node.primary_key && Array(node.primary_key).map { |column| aliases.column_alias(node, column) }
+          end
         end
     end
   end

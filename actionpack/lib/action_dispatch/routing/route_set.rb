@@ -1,7 +1,5 @@
 # frozen_string_literal: true
 
-# :markup: markdown
-
 require "action_dispatch/journey"
 require "active_support/core_ext/object/to_query"
 require "active_support/core_ext/module/redefine_method"
@@ -37,10 +35,6 @@ module ActionDispatch
       alias inspect to_s
 
       class Dispatcher < Routing::Endpoint
-        def initialize(raise_on_name_error)
-          @raise_on_name_error = raise_on_name_error
-        end
-
         def dispatcher?; true; end
 
         def serve(req)
@@ -48,12 +42,6 @@ module ActionDispatch
           controller = controller req
           res        = controller.make_response! req
           dispatch(controller, params[:action], req, res)
-        rescue ActionController::RoutingError
-          if @raise_on_name_error
-            raise
-          else
-            [404, { Constants::X_CASCADE => "pass" }, []]
-          end
         end
 
         private
@@ -68,7 +56,6 @@ module ActionDispatch
 
       class StaticDispatcher < Dispatcher
         def initialize(controller_class)
-          super(false)
           @controller_class = controller_class
         end
 
@@ -99,6 +86,10 @@ module ActionDispatch
 
         def helper_names
           @path_helpers.map(&:to_s) + @url_helpers.map(&:to_s)
+        end
+
+        def helper_name_symbols # :nodoc:
+          @path_helpers.to_a + @url_helpers.to_a
         end
 
         def clear!
@@ -197,25 +188,59 @@ module ActionDispatch
           end
 
           def self.optimize_helper?(route)
-            route.path.requirements.empty? && !route.glob?
+            return false if route.glob?
+            # A route with requirements is optimized only without optional segments
+            # other than the format, which the general path fills from the current
+            # request.
+            route.path.requirements.empty? || (route.segment_keys - route.required_parts - [:format]).empty?
           end
 
           attr_reader :route_name
 
           class OptimizedUrlHelper < UrlHelper
+            # Options the general path reads besides the route's segments and defaults.
+            GENERAL_PATH_OPTIONS = [:controller, :action, :params, :path_params, :_recall, :user, :password].freeze
+
             attr_reader :arg_size
 
             def initialize(route, options, route_name)
               super
               @required_parts = @route.required_parts
               @arg_size       = @required_parts.size
+              # The general path omits a format equal to the route's default, and fills
+              # optional segments before the format from the current request.
+              @format_optimizable = !route.defaults.key?(:format) && @segment_keys - @required_parts == [:format]
+              # As in the general path, a trailing slash isn't added after a format,
+              # including a format passed as a required segment.
+              @format_required = @required_parts.include?(:format)
+              # With options, the general path assigns positional arguments to all
+              # segment keys in order, so an optional segment before a required one
+              # (as in <tt>scope "(:locale)"</tt>) would take the first argument.
+              @options_optimizable = @segment_keys.first(@arg_size) == @required_parts &&
+                !@segment_keys.intersect?(RESERVED_OPTIONS)
+              # As in the general path, only required segments are checked against
+              # the route's requirements.
+              @requirements = route.path.requirements_for_missing_keys_check.slice(*@required_parts)
+              @requirements = nil if @requirements.empty?
             end
 
             def call(t, method_name, args, inner_options, url_strategy)
-              if args.size == arg_size && !inner_options && optimize_routes_generation?(t)
+              if args.size == arg_size && optimizable_options?(inner_options) && optimize_routes_generation?(t) &&
+                  (@options_optimizable || !default_url_options?(t))
                 options = t.url_options.merge @options
-                path = optimized_helper(args)
-                path << "/" if options[:trailing_slash] && !path.end_with?("/")
+                # As in RouteSet#url_for, the route set's default URL options come last.
+                route_set_defaults = t._routes.default_url_options
+                options = route_set_defaults.merge(options) unless route_set_defaults.empty?
+                format = inner_options && inner_options[:format]
+                path = optimized_helper(args, format)
+                if path.nil?
+                  # With options or default URL options, the general path handles a
+                  # missing argument, as it does any argument that fails a requirement.
+                  return super if inner_options || @requirements || default_url_options?(t)
+                  raise_generation_error(args)
+                end
+                merge_url_and_query_options!(options, inner_options) if inner_options && !sole_format?(inner_options)
+                path << "/" if options[:trailing_slash] && !format && !@format_required && !options[:format] && !path.end_with?("/")
                 options[:path] = path
 
                 original_script_name = options.delete(:original_script_name)
@@ -234,9 +259,45 @@ module ActionDispatch
             end
 
             private
-              def optimized_helper(args)
-                params = parameterize_args(args) do
-                  raise_generation_error(args)
+              def optimizable_options?(inner_options)
+                return true if inner_options.nil?
+                return false unless @options_optimizable
+                return @format_optimizable && inner_options[:format] if sole_format?(inner_options)
+
+                !inner_options.any? do |key, value|
+                  key == :format ? !(@format_optimizable && value) : general_path_option?(key)
+                end
+              end
+
+              def sole_format?(inner_options)
+                inner_options.size == 1 && inner_options.key?(:format)
+              end
+
+              def general_path_option?(key)
+                @segment_keys.include?(key) || @options.key?(key) || GENERAL_PATH_OPTIONS.include?(key)
+              end
+
+              # As in the general path, every other option becomes a query parameter.
+              def merge_url_and_query_options!(options, inner_options)
+                query_params = nil
+                inner_options.each do |key, value|
+                  if key == :format || RESERVED_OPTIONS.include?(key)
+                    options[key] = value
+                  else
+                    (query_params ||= {})[key] = value
+                  end
+                end
+                options[:params] = query_params if query_params
+              end
+
+              def optimized_helper(args, format = nil)
+                params = parameterize_args(args) { return }
+                return if @requirements && !@requirements.all? { |key, test| test.match?(params[key]) }
+                if format
+                  # As in the general path, a blank format is dropped rather than
+                  # rendered as a trailing dot.
+                  format = format.to_param
+                  params[:format] = format if format.present?
                 end
 
                 @route.format params
@@ -244,6 +305,13 @@ module ActionDispatch
 
               def optimize_routes_generation?(t)
                 t.send(:optimize_routes_generation?)
+              end
+
+              # Whether default URL options apply, which the general path handles
+              # differently on routes whose options aren't optimizable.
+              def default_url_options?(t)
+                !t._routes.default_url_options.empty? ||
+                  (t.respond_to?(:default_url_options, true) && !t.send(:default_url_options).empty?)
               end
 
               def parameterize_args(args)
@@ -414,6 +482,28 @@ module ActionDispatch
         routes.each(&:eager_load!)
         formatter.eager_load!
         nil
+      end
+
+      # Resolves the controller of every route that dispatches to one and returns
+      # a message for each route whose controller is missing, so that a broken
+      # route can be reported when the routes are loaded rather than on the first
+      # request that matches it.
+      def missing_controller_messages # :nodoc:
+        request = request_class.empty
+
+        routes.filter_map do |route|
+          next unless route.dispatcher?
+          next if StaticDispatcher === route.app
+
+          begin
+            request.controller_class_for(route.defaults[:controller])
+            nil
+          rescue MissingController => error
+            message = +"#{route.verb} #{route.path.spec} references a missing controller: #{error.message}"
+            message << " (defined at #{route.source_location})" if route.source_location
+            message
+          end
+        end
       end
 
       def relative_url_root
@@ -665,20 +755,6 @@ module ActionDispatch
         route = @set.add_route(name, mapping)
         named_routes[name] = route if name
 
-        if route.segment_keys.include?(:controller)
-          ActionDispatch.deprecator.warn(<<-MSG.squish)
-            Using a dynamic :controller segment in a route is deprecated and
-            will be removed in Rails 9.0.
-          MSG
-        end
-
-        if route.segment_keys.include?(:action)
-          ActionDispatch.deprecator.warn(<<-MSG.squish)
-            Using a dynamic :action segment in a route is deprecated and
-            will be removed in Rails 9.0.
-          MSG
-        end
-
         route
       end
 
@@ -850,8 +926,18 @@ module ActionDispatch
                           :trailing_slash, :anchor, :params, :only_path, :script_name,
                           :original_script_name].freeze
 
+      # Default URL options that the optimized URL helpers handle as the general path
+      # does: it passes them to ActionDispatch::Http::URL without generating the path
+      # from them.
+      OPTIMIZABLE_DEFAULT_URL_OPTIONS = (RESERVED_OPTIONS - [:params]).freeze
+
+      def self.optimizable_default_url_options?(options) # :nodoc:
+        options.each_key { |key| return false unless OPTIMIZABLE_DEFAULT_URL_OPTIONS.include?(key) }
+        true
+      end
+
       def optimize_routes_generation?
-        default_url_options.empty?
+        RouteSet.optimizable_default_url_options?(default_url_options)
       end
 
       def find_script_name(options)
@@ -904,7 +990,10 @@ module ActionDispatch
 
       def call(env)
         req = make_request(env)
-        req.path_info = Journey::Router::Utils.normalize_path(req.path_info)
+        path_info = req.path_info
+        unless Journey::Router::Utils.normalized_path?(path_info)
+          req.path_info = Journey::Router::Utils.normalize_path(path_info)
+        end
         @router.serve(req)
       end
 

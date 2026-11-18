@@ -1,4 +1,3 @@
-# :markup: markdown
 # frozen_string_literal: true
 
 require "active_support/notifications"
@@ -85,6 +84,11 @@ module ActiveSupport
         @@subscribers ||= []
       end
 
+      # Method names for the String patterns attached on this class, frozen and
+      # replaced on change so that it can be read concurrently and from other
+      # Ractors.
+      attr_reader :event_method_names # :nodoc:
+
       private
         attr_reader :subscriber, :notifier, :namespace
 
@@ -96,6 +100,9 @@ module ActiveSupport
           # Don't add multiple subscribers (e.g. if methods are redefined).
           return if pattern_subscribed?(pattern)
 
+          if pattern.instance_of?(String) && (dot = pattern.index("."))
+            @event_method_names = (@event_method_names || {}).merge(pattern => pattern[0, dot].to_sym).freeze
+          end
           subscriber.patterns[pattern] = notifier.subscribe(pattern, subscriber)
         end
 
@@ -108,6 +115,7 @@ module ActiveSupport
 
           notifier.unsubscribe(subscriber.patterns[pattern])
           subscriber.patterns.delete(pattern)
+          @event_method_names = @event_method_names.except(pattern).freeze if @event_method_names&.key?(pattern)
         end
 
         def find_attached_subscriber
@@ -139,8 +147,8 @@ module ActiveSupport
     end
 
     def call(event)
-      method = event.name[0, event.name.index(".")]
-      send(method, event)
+      name = event.name
+      send(self.class.event_method_names&.[](name) || name[0, name.index(".")], event)
     end
   end
 end

@@ -15,10 +15,11 @@ require "models/sharded/comment"
 require "models/friendship"
 require "models/reference"
 require "models/job"
+require "models/item"
 
 class InnerJoinAssociationTest < ActiveRecord::TestCase
   fixtures :authors, :author_addresses, :essays, :posts, :comments, :categories, :categories_posts, :categorizations,
-           :taggings, :tags, :people, :sharded_comments, :sharded_blog_posts
+           :taggings, :tags, :people, :sharded_comments, :sharded_blog_posts, :items
 
   def test_construct_finder_sql_applies_aliases_tables_on_association_conditions
     result = Author.joins(:thinking_posts, :welcome_posts).first
@@ -60,6 +61,17 @@ class InnerJoinAssociationTest < ActiveRecord::TestCase
     assert_queries_match(/agents_people_2/i) do
       assert_equal [expected], Person.joins(:agents).joins(agents.create_join(agents, agents.create_on(constraint)))
     end
+  end
+
+  def test_construct_finder_sql_does_not_alias_tables_included_by_the_association_scope
+    authors = Author.joins(posts_with_comments_and_categories: :comments).merge(Comment.where(body: "Thank you for the welcome"))
+    assert_equal [authors(:david)], authors
+
+    authors = Author.eager_load(posts_with_comments_and_categories: :comments).where(comments: { body: "Thank you for the welcome" })
+    assert_equal [authors(:david)], authors
+
+    authors = Author.left_joins(posts_with_comments_and_categories: :comments).where(comments: { body: "Thank you for the welcome" })
+    assert_equal [authors(:david)], authors
   end
 
   def test_user_supplied_joins_order_should_be_preserved
@@ -179,6 +191,13 @@ class InnerJoinAssociationTest < ActiveRecord::TestCase
     assert_empty scope.where("comments.type" => "Comment")
     assert_not_empty scope.where("comments.type" => "SpecialComment")
     assert_not_empty scope.where("comments.type" => "SubSpecialComment")
+  end
+
+  def test_join_polymorphic_has_one_declared_on_an_abstract_class
+    item = items(:dvd)
+    tagging = taggings(:godfather)
+
+    assert Item.joins(:tagging).where(items: { id: item.id }, taggings: { id: tagging.id }).exists?
   end
 
   def test_find_with_conditions_on_reflection

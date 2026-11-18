@@ -286,6 +286,26 @@ class Rails::Command::QueryTest < ActiveSupport::TestCase
     assert_match(/does not exist/, output)
   end
 
+  test "instruments the expression it runs" do
+    record_instrumented_expressions
+
+    query_json("Post.count")
+    query_json("schema", "posts")
+    query_json("models")
+
+    assert_equal [ "Post.count", "schema posts", "models" ], instrumented_expressions
+  end
+
+  test "instruments an expression read from stdin" do
+    record_instrumented_expressions
+
+    query_stdin("Post.where(status: :draft).count", "-")
+    query_stdin("Post.count")
+    query_stdin("Post.where(status: :draft)", "explain", "-")
+
+    assert_equal [ "Post.where(status: :draft).count", "Post.count", "explain Post.where(status: :draft)" ], instrumented_expressions
+  end
+
   test "shows help with no arguments" do
     output = run_query_command("-h")
 
@@ -304,5 +324,27 @@ class Rails::Command::QueryTest < ActiveSupport::TestCase
 
     def query_error(*args)
       run_query_command(*args)
+    end
+
+    def query_stdin(input, *args)
+      Dir.chdir(app_path) do
+        IO.popen([ "bin/rails", "query", *args ], "r+") do |io|
+          io.write(input)
+          io.close_write
+          JSON.parse(io.read)
+        end
+      end
+    end
+
+    def record_instrumented_expressions
+      app_file "config/initializers/record_queries.rb", <<-RUBY
+        ActiveSupport::Notifications.subscribe("query.rails") do |event|
+          File.open(Rails.root.join("tmp/instrumented"), "a") { |f| f.puts JSON.generate(event.payload[:expression]) }
+        end
+      RUBY
+    end
+
+    def instrumented_expressions
+      File.readlines(File.join(app_path, "tmp/instrumented")).map { |line| JSON.parse(line) }
     end
 end

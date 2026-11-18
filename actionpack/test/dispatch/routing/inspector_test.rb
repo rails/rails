@@ -149,45 +149,6 @@ module ActionDispatch
         ], output
       end
 
-      def test_inspect_routes_shows_dynamic_action_route
-        output = draw do
-          ActionDispatch.deprecator.silence do
-            get "api/:action" => "api"
-          end
-        end
-
-        assert_equal [
-          "Prefix Verb URI Pattern            Controller#Action",
-          "       GET  /api/:action(.:format) api#:action"
-        ], output
-      end
-
-      def test_inspect_routes_shows_controller_and_action_only_route
-        output = draw do
-          ActionDispatch.deprecator.silence do
-            get ":controller/:action"
-          end
-        end
-
-        assert_equal [
-          "Prefix Verb URI Pattern                    Controller#Action",
-          "       GET  /:controller/:action(.:format) :controller#:action"
-        ], output
-      end
-
-      def test_inspect_routes_shows_controller_and_action_route_with_constraints
-        output = draw do
-          ActionDispatch.deprecator.silence do
-            get ":controller(/:action(/:id))", id: /\d+/
-          end
-        end
-
-        assert_equal [
-          "Prefix Verb URI Pattern                            Controller#Action",
-          "       GET  /:controller(/:action(/:id))(.:format) :controller#:action #{{ id: /\d+/ }}"
-        ], output
-      end
-
       def test_rails_routes_shows_route_with_defaults
         output = draw do
           get "photos/:id" => "photos#show", :defaults => { format: "jpg" }
@@ -431,17 +392,6 @@ module ActionDispatch
                       "                DELETE /admin/posts/:id(.:format)      admin/posts#destroy"], output
       end
 
-      def test_regression_route_with_controller_regexp
-        output = draw do
-          ActionDispatch.deprecator.silence do
-            get ":controller(/:action)", controller: /api\/[^\/]+/, format: false
-          end
-        end
-
-        assert_equal ["Prefix Verb URI Pattern            Controller#Action",
-                      "       GET  /:controller(/:action) :controller#:action"], output
-      end
-
       def test_routes_with_undefined_filter
         output = draw(controller: "Rails::MissingController") do
           get "photos/:id" => "photos#show", :id => /[A-Z]\d{5}/
@@ -617,19 +567,6 @@ module ActionDispatch
         health = routes.first
 
         assert_nil health.action_source_location
-      end
-
-      def test_action_source_location_returns_nil_for_dynamic_controller
-        @set.draw do
-          ActionDispatch.deprecator.silence do
-            get ":controller/:action"
-          end
-        end
-
-        routes = @set.routes.routes.map { |r| RouteWrapper.new(r) }
-        dynamic = routes.first
-
-        assert_nil dynamic.action_source_location
       end
 
       def test_action_source_location_included_in_to_h

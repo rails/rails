@@ -111,6 +111,15 @@ class TransactionCallbacksTest < ActiveRecord::TestCase
     end
   end
 
+  def test_before_commit_rollback_rolls_back_the_savepoint
+    @first.before_commit_block { raise ActiveRecord::Rollback }
+    @first.title = "rolled back"
+
+    @first.save
+
+    assert_not_equal "rolled back", @first.reload.title
+  end
+
   def test_call_after_commit_after_transaction_commits
     @first.after_commit_block { |r| r.history << :after_commit }
     @first.after_rollback_block { |r| r.history << :after_rollback }

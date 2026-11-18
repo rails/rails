@@ -73,10 +73,6 @@ class RenderXmlTest < ActionController::TestCase
     with_routing do |set|
       set.draw do
         resources :customers
-
-        ActionDispatch.deprecator.silence do
-          get ":controller/:action"
-        end
       end
 
       get :render_with_object_location

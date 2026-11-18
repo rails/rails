@@ -56,6 +56,24 @@ class ActiveStorage::Analyzer::ImageAnalyzer::VipsTest < ActiveSupport::TestCase
     end
   end
 
+  test "analyzing images with every orientation" do
+    analyze_with_vips do
+      # JPEG carries the orientation in an EXIF block, TIFF in a format-native tag with no EXIF.
+      { ".jpg" => "image/jpeg", ".tif" => "image/tiff" }.each do |extension, content_type|
+        (1..8).each do |orientation|
+          data = ::Vips::Image.black(400, 300)
+            .mutate { |mutable| mutable.set_type!(GObject::GINT_TYPE, "orientation", orientation) }
+            .write_to_buffer(extension)
+          blob = create_blob(data: data, filename: "orientation_#{orientation}#{extension}", content_type: content_type)
+          metadata = extract_metadata_from(blob)
+
+          expected = orientation >= 5 ? [300, 400] : [400, 300]
+          assert_equal expected, [metadata[:width], metadata[:height]], "#{extension} orientation #{orientation}"
+        end
+      end
+    end
+  end
+
   test "analyzing an SVG image without an XML declaration is skipped because the SVG loader is disabled by default" do
     analyze_with_vips do
       blob = create_file_blob(filename: "icon.svg", content_type: "image/svg+xml")

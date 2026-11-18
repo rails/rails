@@ -39,11 +39,13 @@ module ActiveRecord
 
         # Register callback to be invoked when an encrypted attribute is declared.
         #
-        # === Example
+        # ### Example
         #
-        #   ActiveRecord::Encryption.on_encrypted_attribute_declared do |klass, attribute_name|
-        #     ...
-        #   end
+        # ```
+        # ActiveRecord::Encryption.on_encrypted_attribute_declared do |klass, attribute_name|
+        #   ...
+        # end
+        # ```
         def on_encrypted_attribute_declared(&block)
           self.encrypted_attribute_declaration_listeners ||= Concurrent::Array.new
           self.encrypted_attribute_declaration_listeners << block

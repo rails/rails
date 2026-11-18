@@ -245,15 +245,15 @@ method within the view:
 
 This will look for a file named `_product.html.erb` in the same folder to render
 within that view. If no such file exists, Rails will look for it under the
-`app/view/application/` folder. This makes `app/views/application/` a great
+`app/views/application/` folder. This makes `app/views/application/` a great
 place for your shared partials.
 
 NOTE: Rails doesn't automatically create `app/views/application/`. You'll
 need to create this folder yourself.
 
 NOTE: Refer to the
-[Layouts and Rendering guide](layouts_and_rendering.html#template_lookup_hierarchy)
-for further information on the lookup hierarchy of partials and template.
+[Layouts and Rendering guide](layouts_and_rendering.html#template-lookup-hierarchy)
+for further information on the lookup hierarchy of partials and templates.
 
 Partial file names start with leading underscore character by
 convention. The file name distinguishes partials from regular views. However, no
@@ -714,7 +714,7 @@ render "messages/message"
 # => "Hello, world!"
 ```
 
-Rendering the partial with local variables not specified in the `local:` signature will also raise an exception:
+Rendering the partial with local variables not specified in the `locals:` signature will also raise an exception:
 
 ```ruby
 render "messages/message", unknown_local: "will raise"
@@ -748,7 +748,7 @@ render "messages/message", unknown_local: "will raise"
 ```
 
 WARNING: When using strict locals with collection rendering, you need to
-explicity allow the `<object>_counter` and `<object>_iteration` variables or
+explicitly allow the `<object>_counter` and `<object>_iteration` variables or
 they will not be set: `<%# locals: (product_counter: nil, product_iteration: nil)`.
 The `nil` default values are needed so the partial doesn't break
 when rendered outside of collections, where these two variables will
@@ -762,7 +762,7 @@ CAUTION: Only keyword arguments are supported. Defining positional or block
 arguments will raise an Action View Error at render-time.
 
 The `local_assigns` method does not contain default values specified in the
-`local:` signature. To access a local variable with a default value that
+`locals:` signature. To access a local variable with a default value that
 is named the same as a reserved Ruby keyword, like `class` or `if`, the values
 can be accessed through `binding.local_variable_get`:
 
@@ -792,7 +792,7 @@ example, rendering actions from the `ProductsController` class will use
 
 Rails will use `app/views/layouts/application.html.erb` if a controller-specific layout does not exist.
 
-Here is an example of a basic layout in `application.html.erb` file:
+Here is an example of a basic layout in the `application.html.erb` file:
 
 ```html+erb
 <!DOCTYPE html>
@@ -825,7 +825,7 @@ In the above example layout, view content will be rendered in place of `<%=
 yield %>`, and surrounded by the same `<head>`, `<nav>`, and `<footer>` content.
 
 To learn more about controller-specific layouts, see the [Layouts and
-Rendering in Rails](layouts_and_rendering.html#setting_layouts_in_controllers)
+Rendering in Rails](layouts_and_rendering.html#specifying-layouts-for-controllers)
 guide.
 
 ### Structuring Layouts
@@ -941,7 +941,7 @@ slot was provided:
 ```
 
 This example is functionally equivalent to the previous one where we
-used `yield :head`.
+used `yield :header`.
 
 TIP: The `content_for` method is very helpful when your layout contains
 distinct regions such as sidebars and footers that should get their own

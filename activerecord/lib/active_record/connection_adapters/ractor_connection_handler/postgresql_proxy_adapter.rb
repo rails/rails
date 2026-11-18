@@ -1,7 +1,5 @@
 # frozen_string_literal: true
 
-# :markup: markdown
-
 require "active_record/connection_adapters/ractor_connection_handler/abstract_proxy_adapter"
 require "active_record/connection_adapters/postgresql/referential_integrity"
 
@@ -258,6 +256,10 @@ module ActiveRecord
           remote_dispatch(:columns_for_distinct, ...)
         end
 
+        def create_index_definition(...)
+          remote_dispatch(:create_index_definition, ...)
+        end
+
         def create_schema_dumper(options)
           PostgreSQL::SchemaDumper.create(self, options)
         end
@@ -286,10 +288,6 @@ module ActiveRecord
           remote_dispatch(:index_name_exists?, ...)
         end
 
-        def indexes(...)
-          remote_dispatch(:indexes, ...)
-        end
-
         def remove_index(...)
           remote_dispatch(:remove_index, ...)
         end
@@ -308,6 +306,10 @@ module ActiveRecord
 
         def table_comment(...)
           remote_dispatch(:table_comment, ...)
+        end
+
+        def tables_to_truncate
+          remote_dispatch(:tables_to_truncate)
         end
 
         def type_to_sql(...)
@@ -437,6 +439,10 @@ module ActiveRecord
             remote_dispatch(:reference_name_for_table, ...)
           end
 
+          def search_path_tables
+            remote_dispatch(:search_path_tables)
+          end
+
           def validate_table_length!(...)
             remote_dispatch(:validate_table_length!, ...)
           end
@@ -445,10 +451,6 @@ module ActiveRecord
 
           def can_perform_case_insensitive_comparison_for?(...)
             pure_remote_dispatch(:can_perform_case_insensitive_comparison_for?, ...)
-          end
-
-          def fetch_column_definitions(...)
-            remote_dispatch(:fetch_column_definitions, ...)
           end
       end
     end

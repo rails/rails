@@ -10,13 +10,15 @@ module ActionView
   # checked for nil before they are assigned and `to_s` is called on
   # the input. For example:
   #
-  #   obuf = ActionView::OutputBuffer.new "hello"
-  #   obuf << 5
-  #   puts obuf # => "hello5"
+  # ```
+  # obuf = ActionView::OutputBuffer.new "hello"
+  # obuf << 5
+  # puts obuf # => "hello5"
   #
-  #   sbuf = ActiveSupport::SafeBuffer.new "hello"
-  #   sbuf << 5
-  #   puts sbuf # => "hello\u0005"
+  # sbuf = ActiveSupport::SafeBuffer.new "hello"
+  # sbuf << 5
+  # puts sbuf # => "hello\u0005"
+  # ```
   #
   class OutputBuffer # :nodoc:
     def initialize(buffer = "")
@@ -45,7 +47,7 @@ module ActionView
         @raw_buffer << if value.html_safe?
           value
         else
-          ERB::Util.unwrapped_html_escape(value)
+          ERB::Escape.html_escape(value)
         end
       end
       self

@@ -12,8 +12,8 @@ module ActiveRecord
         type.serialize(value)
       end
 
-      def type_for_attribute(name)
-        klass.type_for_attribute(name)
+      def type_for_attribute(name, &block)
+        klass.type_for_attribute(name, &block)
       end
 
       private

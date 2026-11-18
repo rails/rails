@@ -1,7 +1,5 @@
 # frozen_string_literal: true
 
-# :markup: markdown
-
 require "delegate"
 require "io/console/size"
 
@@ -50,11 +48,11 @@ module ActionDispatch
       end
 
       def controller
-        parts.include?(:controller) ? ":controller" : requirements[:controller]
+        requirements[:controller]
       end
 
       def action
-        parts.include?(:action) ? ":action" : requirements[:action]
+        requirements[:action]
       end
 
       def internal?
@@ -74,7 +72,6 @@ module ActionDispatch
 
         controller_name = controller.to_s
         action_name = action.to_s
-        return if controller_name.start_with?(":") || action_name.start_with?(":")
 
         begin
           controller_class = "#{controller_name.camelize}Controller".constantize

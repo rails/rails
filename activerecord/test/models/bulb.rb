@@ -3,6 +3,7 @@
 class Bulb < ActiveRecord::Base
   default_scope { where(name: "defaulty") }
   belongs_to :car, touch: true, counter_cache: { active: false }
+  belongs_to :car_with_unscoped_where, -> { unscope(:where).order(:id) }, class_name: "Car", foreign_key: :car_id
   scope :awesome, -> { where(frickinawesome: true) }
 
   attr_reader :scope_after_initialize, :attributes_after_initialize, :count_after_create

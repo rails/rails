@@ -44,6 +44,10 @@ class InheritanceTest < ActiveRecord::TestCase
     end
   end
 
+  def test_class_clone_accepts_freeze_option
+    assert_not_predicate Company.clone(freeze: false), :frozen?
+  end
+
   def test_class_with_blank_sti_name
     company = Company.first
     company = company.dup
@@ -150,6 +154,31 @@ class InheritanceTest < ActiveRecord::TestCase
 
     # Concrete subclass of an abstract class which has a type column.
     assert_not_predicate SubAbstractStiPost, :descends_from_active_record?
+  end
+
+  def test_finder_needs_type_condition_below_abstract_classes
+    application = Class.new(ActiveRecord::Base) { self.abstract_class = true }
+    base = Class.new(application) do
+      def self.name = "TypeConditionTopic"
+      self.table_name = "topics"
+    end
+    child = Class.new(base) { def self.name = "TypeConditionReply" }
+
+    assert_not_predicate base, :finder_needs_type_condition?
+    assert_predicate child, :finder_needs_type_condition?
+    assert_match(/TypeConditionReply/, child.all.to_sql)
+  end
+
+  def test_top_level_model_overriding_descends_from_active_record_gets_a_type_condition
+    application = Class.new(ActiveRecord::Base) { self.abstract_class = true }
+    model = Class.new(application) do
+      self.table_name = "topics"
+      def self.name = "TypeConditionTopic"
+      def self.descends_from_active_record? = false
+    end
+
+    assert_predicate model, :finder_needs_type_condition?
+    assert_match(/TypeConditionTopic/, model.all.to_sql)
   end
 
   def test_company_descends_from_active_record
@@ -628,6 +657,42 @@ class InheritanceAttributeTest < ActiveRecord::TestCase
     empire = Company.new(type: "InheritanceAttributeTest::Empire") # without arguments
     assert_equal "InheritanceAttributeTest::Empire", empire.type
     assert_instance_of Empire, empire
+  end
+end
+
+class InheritanceDeclaredAttributeTest < ActiveRecord::TestCase
+  class Company < ActiveRecord::Base
+    self.table_name = "companies"
+    attribute :rank, :integer, default: 1
+  end
+
+  class Startup < Company
+    attribute :runway, :integer, default: 7
+  end
+
+  class Empire < Company
+  end
+
+  def test_subclass_declared_attribute_loaded_through_parent
+    Startup.create!(name: "startup")
+
+    startup = Company.find_by!(name: "startup")
+    assert_instance_of Startup, startup
+    assert_equal 1, startup.rank
+    assert_equal 7, startup.runway
+  end
+
+  def test_subclass_declared_attribute_loaded_through_parent_with_alias
+    Startup.create!(name: "startup")
+
+    startup = Company.select("companies.*, 42 AS answer").find_by!(name: "startup")
+    assert_equal 7, startup.runway
+    assert_equal 42, startup[:answer]
+  end
+
+  def test_subclass_without_declared_attributes_shares_the_parent_layout
+    assert_same Company.attributes_builder.indexes, Empire.attributes_builder.indexes
+    assert_not_same Company.attributes_builder.indexes, Startup.attributes_builder.indexes
   end
 end
 

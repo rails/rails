@@ -27,7 +27,7 @@ single column's value isn't enough to uniquely identify every row of a table.
 This can occur with legacy database schemas that lack a single `id` primary key,
 or in applications where the schema has been designed to partition data across
 [multiple databases (sharding)](active_record_multiple_databases.html) or
-isolate data per customer or tenant (multitenancy). Composite primary keys is an
+isolate data per customer or tenant (multitenancy). Composite primary keys are an
 Active Record feature that spans migrations, query methods, and associations.
 
 For example, an inventory tracking application may have a table where each row
@@ -125,7 +125,7 @@ add_foreign_key "products", "stores", column: "store_id", primary_key: "id"
 When using a composite primary key, uniqueness is enforced by the combination of
 columns rather than a single auto-incrementing `id`. In the above example,
 `store_id` is a foreign key to a `stores` table, and `sku` is a string (like
-"ABC-123"). Neither needs to be auto-generated, their combination is what's
+"ABC-123"). Neither needs to be auto-generated; their combination is what's
 unique.
 
 NOTE: If your composite primary key contains no conventional `id` column, you
@@ -246,7 +246,7 @@ WARNING: When using  `where` or `find_by`, the key `id` matches against an `:id`
 attribute on the model only (if the model has one). It does not resolve to the
 full composite primary key the way `find` does. Use `find` when you want to look
 up a record by its full composite primary key. See the [Active Record
-Querying](active_record_querying.html#conditions-with-id) guide for more detail.
+Querying](active_record_querying.html#find-by) guide for more detail.
 
 Associations
 ------------
@@ -322,7 +322,7 @@ class Book < ApplicationRecord
 end
 ```
 
-In this setup, `Book` belongs to `Author` and the a composite foreign key is
+In this setup, `Book` belongs to `Author` and a composite foreign key is
 specified as `[:author_first_name, :author_last_name]`.
 
 Create an `Author` and a `Book` associated with it:

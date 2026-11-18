@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require "cases/helper"
+require "active_support/core_ext/object/with"
 
 require "models/post"
 require "models/author"
@@ -8,6 +9,8 @@ require "models/comment"
 require "models/rating"
 require "models/member"
 require "models/member_type"
+require "models/tag"
+require "models/tagging"
 
 require "models/pirate"
 require "models/treasure"
@@ -19,6 +22,7 @@ require "models/department"
 require "models/cpk/author"
 require "models/cpk/book"
 require "models/cpk/order"
+require "models/cpk/order_agreement"
 
 class HasManyThroughDisableJoinsAssociationsTest < ActiveRecord::TestCase
   fixtures :posts, :authors, :comments, :pirates, :author_addresses
@@ -34,6 +38,49 @@ class HasManyThroughDisableJoinsAssociationsTest < ActiveRecord::TestCase
     @comment2 = @post2.comments.create(body: "text", origin: @member2)
     @rating1 = @comment.ratings.create(value: 8)
     @rating2 = @comment.ratings.create(value: 9)
+  end
+
+  def test_through_association_scope_cannot_unscope_foreign_key
+    comments = @author.comments.sort_by(&:id)
+    assert_not_equal Comment.count, comments.size
+
+    assert_equal comments, @author.comments_on_posts_with_unscoped_where.sort_by(&:id)
+    assert_equal comments, @author.no_joins_comments_on_posts_with_unscoped_where.sort_by(&:id)
+  end
+
+  def test_through_association_scope_unscoping_foreign_key_is_deprecated_when_association_scope_keeps_owner_conditions_is_false
+    message = /conditions tying the records to the owner on `posts.author_id`/
+
+    ActiveRecord.with(association_scope_keeps_owner_conditions: false) do
+      assert_deprecated(message, ActiveRecord.deprecator) do
+        assert_equal Comment.count, @author.comments_on_posts_with_unscoped_where.size
+      end
+      assert_deprecated(message, ActiveRecord.deprecator) do
+        assert_equal Comment.count, @author.no_joins_comments_on_posts_with_unscoped_where.size
+      end
+    end
+  end
+
+  def test_through_association_scope_cannot_unscope_polymorphic_type
+    post = posts(:welcome)
+    Tagging.create!(taggable: post, tag: Tag.create!(name: "Other")).update_columns(taggable_type: "Other")
+    Tagging.create!(taggable: post, tag: Tag.create!(name: "Post"))
+
+    assert_equal post.tags.sort_by(&:id), post.no_joins_tags_unscoping_type.sort_by(&:id)
+    assert_not_includes post.no_joins_tags_unscoping_type.map(&:name), "Other"
+  end
+
+  def test_through_association_scope_unscoping_polymorphic_type_is_deprecated_when_association_scope_keeps_owner_conditions_is_false
+    post = posts(:welcome)
+    other_tag = Tag.create!(name: "Other")
+    Tagging.create!(taggable: post, tag: other_tag).update_columns(taggable_type: "Other")
+    message = /conditions tying the records to the owner on `taggings.taggable_type`/
+
+    ActiveRecord.with(association_scope_keeps_owner_conditions: false) do
+      assert_deprecated(message, ActiveRecord.deprecator) do
+        assert_includes post.no_joins_tags_unscoping_type, other_tag
+      end
+    end
   end
 
   def test_counting_on_disable_joins_through
@@ -129,6 +176,35 @@ class HasManyThroughDisableJoinsAssociationsTest < ActiveRecord::TestCase
     assert_equal [@rating1, @rating2], assert_queries_count(3) { @author.no_joins_good_ratings.to_a }
   end
 
+  def test_to_a_on_disable_joins_with_a_default_order_scope
+    assert_queries_match(/ORDER BY .*value.* DESC/i, count: 1) do
+      assert_equal [@rating2, @rating1], @author.no_joins_ratings_ordered_by_default.to_a
+    end
+    assert_equal [@rating2, @rating1], @author.ratings_ordered_by_default.to_a
+  end
+
+  def test_to_a_on_disable_joins_through_a_default_ordered_association
+    author = authors(:bob)
+    first_post = author.posts.create!(title: "first", body: "body")
+    second_post = author.posts.create!(title: "second", body: "body")
+    first_comment = first_post.comments.create!(body: "first")
+    second_comment = second_post.comments.create!(body: "second")
+
+    assert_equal [second_comment, first_comment], author.comments_of_posts_ordered_by_default.to_a
+    assert_equal [second_comment, first_comment], author.no_joins_comments_of_posts_ordered_by_default.to_a
+  end
+
+  def test_to_a_on_disable_joins_with_a_default_order_scope_through_a_default_ordered_association
+    author = authors(:bob)
+    first_post = author.posts.create!(title: "first", body: "body")
+    second_post = author.posts.create!(title: "second", body: "body")
+    first_comment = first_post.comments.create!(body: "first")
+    second_comment = second_post.comments.create!(body: "second")
+
+    assert_equal [first_comment, second_comment], author.default_ordered_comments_of_posts_ordered_by_default.to_a
+    assert_equal [first_comment, second_comment], author.no_joins_default_ordered_comments_of_posts_ordered_by_default.to_a
+  end
+
   def test_preloading_has_many_through_disable_joins
     assert_queries_count(3) { Author.all.preload(:good_ratings).map(&:good_ratings) }
     assert_queries_count(4) { Author.all.preload(:no_joins_good_ratings).map(&:good_ratings) }
@@ -199,6 +275,23 @@ class HasManyThroughDisableJoinsAssociationsTest < ActiveRecord::TestCase
     assert_no_match(/LIMIT 1/, disable_joins_sql.last)
   end
 
+  def test_disable_joins_through_polymorphic_as_association_applies_type_condition
+    tag = Tag.create!(name: "other")
+    Tagging.create!(tag: tag, taggable: @post).update_columns(taggable_type: "Other")
+
+    assert_not_includes @post.tags.to_a, tag
+    assert_equal @post.tags.to_a, @post.no_joins_tags.to_a
+    assert_not_includes @post.no_joins_tags.to_a, tag
+  end
+
+  def test_disable_joins_through_polymorphic_source_type_applies_type_condition
+    member3 = Member.create!(member_type: @member_type)
+    @post.comments.create!(body: "text", origin: member3).update_columns(origin_type: "Other")
+
+    assert_equal @author.members.to_a, @author.no_joins_members.to_a
+    assert_not_includes @author.no_joins_members.to_a, member3
+  end
+
   def test_ordered_disable_joins_through_with_composite_primary_key_source
     author = Cpk::Author.create!(name: "Eddie")
     order1 = Cpk::Order.create!(shop_id: 1, status: "open")
@@ -208,5 +301,13 @@ class HasManyThroughDisableJoinsAssociationsTest < ActiveRecord::TestCase
 
     assert_equal author.orders.to_a, author.no_joins_orders.to_a
     assert_equal [order2, order1], author.no_joins_orders.to_a
+  end
+
+  def test_disable_joins_through_with_composite_owner_foreign_key
+    order = Cpk::Order.create!(shop_id: 1)
+    book = Cpk::BookWithOrderAgreements.create!(id: [1, 2], order: order)
+    order_agreement = Cpk::OrderAgreement.create!(order: order)
+
+    assert_equal [order_agreement], book.no_joins_order_agreements.to_a
   end
 end

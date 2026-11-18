@@ -252,6 +252,33 @@ class UniquenessValidationTest < ActiveRecord::TestCase
     end
   end
 
+  def test_validate_uniqueness_of_polymorphic_association
+    repair_validations(Essay) do
+      Essay.validates_uniqueness_of(:writer, scope: :writer_type)
+
+      writer = Author.create!(name: "Sergey")
+      Essay.create!(writer: writer)
+
+      duplicate = Essay.new(writer: writer)
+      assert_not_predicate duplicate, :valid?
+      assert_equal ["has already been taken"], duplicate.errors[:writer]
+
+      assert_predicate Essay.new(writer: Author.create!(name: "Dmitry")), :valid?
+    end
+  end
+
+  def test_validate_uniqueness_of_unset_polymorphic_association
+    repair_validations(Essay) do
+      Essay.validates_uniqueness_of(:writer)
+
+      Essay.create!(name: "Unattributed")
+
+      duplicate = Essay.new(name: "Also unattributed")
+      assert_not_predicate duplicate, :valid?
+      assert_equal ["has already been taken"], duplicate.errors[:writer]
+    end
+  end
+
   def test_validate_uniqueness_with_composed_attribute_scope
     r1 = ReplyWithTitleObject.create "title" => "r1", "content" => "hello world"
     assert_predicate r1, :valid?, "Saving r1"
