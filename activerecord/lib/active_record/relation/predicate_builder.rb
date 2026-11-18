@@ -237,7 +237,7 @@ module ActiveRecord
         else
           queries.map! { |query|
             if query.one?
-              query
+              query.first
             else
               Arel::Nodes::And.new(query)
             end
