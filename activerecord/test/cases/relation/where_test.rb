@@ -360,6 +360,12 @@ module ActiveRecord
       assert_equal expected.sort_by(&:id), actual.sort_by(&:id)
     end
 
+    def test_polymorphic_array_where_with_nil_and_unscope
+      relation = PriceEstimate.where(estimate_of: [nil, treasures(:diamond)])
+
+      assert_equal relation.to_sql, relation.unscope(where: :estimate_of_id).to_sql
+    end
+
     def test_polymorphic_array_where_multiple_types
       treasure_1 = treasures(:diamond)
       treasure_2 = treasures(:sapphire)
