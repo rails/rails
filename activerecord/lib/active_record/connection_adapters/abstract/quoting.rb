@@ -83,6 +83,9 @@ module ActiveRecord
         when nil        then "NULL"
         # BigDecimals need to be put in a non-normalized form and quoted.
         when BigDecimal then value.to_s("F")
+        # Rational#to_s returns a fraction like "1/2", which databases evaluate
+        # with integer division.
+        when Rational then value.to_f.to_s
         when Numeric then value.to_s
         when Type::Binary::Data then quoted_binary(value)
         when Type::Time::Value then "'#{quoted_time(value)}'"

@@ -1,3 +1,13 @@
+*   Fix quoting of `Rational` values.
+
+    `Rational(1, 2)` was quoted as `1/2`, which PostgreSQL and SQLite evaluate
+    with integer division, so `where("price < ?", Rational(1, 2))` compared
+    against `0` when prepared statements were disabled, and
+    `sanitize_sql_array` produced the same SQL. Rationals are now quoted as
+    floats, matching how they are type cast for bind parameters.
+
+    *Sonal Sachdev*
+
 *   Log source location when scoped order is ignored in batching.
 
     *fatkodima*

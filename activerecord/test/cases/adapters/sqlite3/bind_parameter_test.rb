@@ -30,7 +30,7 @@ module ActiveRecord
         end
 
         def test_where_with_rational_for_string_column_using_bind_parameters
-          assert_quoted_as "0/1", Rational(0)
+          assert_quoted_as "0.0", Rational(0)
         end
 
         private

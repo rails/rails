@@ -178,6 +178,15 @@ if ActiveRecord::Base.lease_connection.prepared_statements
         end
       end
 
+      def test_where_with_rational_with_unprepared_statements
+        expected = Topic.where("id < 1.5").pluck(:id)
+        assert_not_empty expected
+
+        @connection.unprepared_statement do
+          assert_equal expected, Topic.where("id < ?", Rational(3, 2)).pluck(:id)
+        end
+      end
+
       def test_nested_unprepared_statements
         assert_predicate @connection, :prepared_statements?
 
