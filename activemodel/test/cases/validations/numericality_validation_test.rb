@@ -26,6 +26,7 @@ class NumericalityValidationTest < ActiveModel::TestCase
   BIGDECIMAL = BIGDECIMAL_STRINGS.collect { |bd| BigDecimal(bd) }
   JUNK = ["not a number", "42 not a number", "0xdeadbeef", "-0xdeadbeef", "+0xdeadbeef", "0xinvalidhex", "0Xdeadbeef", "00-1", "--3", "+-3", "+3-1", "-+019.0", "12.12.13.12", "123\nnot a number"].freeze
   INFINITY = [1.0 / 0.0].freeze
+  NON_FINITE = [Float::INFINITY, -Float::INFINITY, Float::NAN, "1e400", "-1e400"].freeze
 
   def test_default_validates_numericality_of
     Topic.validates_numericality_of :approved
@@ -205,14 +206,14 @@ class NumericalityValidationTest < ActiveModel::TestCase
   def test_validates_numericality_with_odd
     Topic.validates_numericality_of :approved, odd: true
 
-    assert_invalid_values([-2, 2], "must be odd")
+    assert_invalid_values([-2, 2] + NON_FINITE, "must be odd")
     assert_valid_values([-1, 1])
   end
 
   def test_validates_numericality_with_even
     Topic.validates_numericality_of :approved, even: true
 
-    assert_invalid_values([-1, 1], "must be even")
+    assert_invalid_values([-1, 1] + NON_FINITE, "must be even")
     assert_valid_values([-2, 2])
   end
 

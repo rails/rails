@@ -1,3 +1,13 @@
+*   Fix numericality `odd` and `even` validations raising `FloatDomainError` for infinite or NaN values.
+
+    A value such as `Float::INFINITY`, `Float::NAN` or a numeric string that
+    overflows to infinity (`"1e400"`) now adds the `odd` or `even` error
+    instead of raising.
+
+    Fixes #59852.
+
+    *M Ibtehaj Nasar*
+
 *   Fix `:integer` attributes silently truncating 64-bit integer strings.
 
     Strings cast by `ActiveModel::Type::Integer` are cut to `limit * 4` bytes.
