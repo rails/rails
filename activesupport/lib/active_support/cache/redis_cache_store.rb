@@ -216,11 +216,9 @@ module ActiveSupport
         pattern = namespace_key(matcher, options)
 
         instrument :delete_matched, pattern do
-          redis.nodes.each do |node|
-            node.with do |conn|
-              conn.scan(match: pattern, count: SCAN_BATCH_SIZE).each_slice(SCAN_BATCH_SIZE).each do |keys|
-                conn.call("unlink", *keys)
-              end
+          with_connection_for_each_node do |conn|
+            conn.scan(match: pattern, count: SCAN_BATCH_SIZE).each_slice(SCAN_BATCH_SIZE).each do |keys|
+              conn.call("unlink", *keys)
             end
           end
         end
@@ -308,18 +306,54 @@ module ActiveSupport
           if namespace = merged_options(options)[:namespace]
             delete_matched "*", namespace: namespace
           else
-            redis.nodes.each { |node| node.call("flushdb") }
+            with_connection_for_each_node { |c| c.call("flushdb") }
           end
         end
       end
 
       # Get info from redis servers.
       def stats
-        infos = redis.nodes.map { |node| node.call("info") }
+        infos = []
+        with_connection_for_each_node { |c| infos << c.call("info") }
         infos.size == 1 ? infos.first : infos
       end
 
+      # From `connection_pool` source.
+      DEFAULT_CHECKOUT_TIMEOUT = 5 # :nodoc:
+
       private
+        def with_connection(node, deadline, *)
+          node.with(timeout: deadline.clamp(DEFAULT_CHECKOUT_TIMEOUT)) do |connection|
+            connect_timeout_was, read_timeout_was, write_timeout_was = connection.connect_timeout, connection.read_timeout, connection.write_timeout
+            begin
+              connection.connect_timeout = deadline.clamp(connect_timeout_was)
+              connection.read_timeout = deadline.clamp(read_timeout_was)
+              connection.write_timeout = deadline.clamp(write_timeout_was)
+              yield(connection, *)
+            ensure
+              connection.connect_timeout, connection.read_timeout, connection.write_timeout = connect_timeout_was, read_timeout_was, write_timeout_was
+            end
+          end
+        end
+
+        def with_connection_for(key, &block)
+          with_connection(redis.node_for(key), ActiveSupport.deadline, &block)
+        end
+
+        def with_connection_for_each_node(keys = nil, &block)
+          deadline = ActiveSupport.deadline
+          if keys
+            redis.nodes_for(keys).each do |node, keys_subset|
+              with_connection(node, deadline, keys_subset, &block)
+            end
+          else
+            redis.nodes.each do |node|
+              with_connection(node, deadline, &block)
+            end
+          end
+          nil
+        end
+
         def instance_variables_to_inspect
           [:@options, :@redis].freeze
         end
@@ -333,7 +367,9 @@ module ActiveSupport
         def read_serialized_entry(key, raw: false, **options)
           failsafe :read_entry do
             command = options[:delete] ? "getdel" : "get"
-            redis.node_for(key).call(command, key)
+            with_connection_for(key) do |c|
+              c.call(command, key)
+            end
           end
         end
 
@@ -347,11 +383,11 @@ module ActiveSupport
 
           results = {}
 
-          redis.nodes_for(keys).each do |node, key_subset|
+          with_connection_for_each_node(keys) do |c, keys_subset|
             failsafe(:read_multi_entries) do
-              node.call("mget", *key_subset).each_with_index do |value, index|
+              c.call("mget", *keys_subset).each_with_index do |value, index|
                 if value
-                  results[names[keys_index[key_subset[index]]]] = value
+                  results[names[keys_index[keys_subset[index]]]] = value
                 end
               end
             end
@@ -391,7 +427,9 @@ module ActiveSupport
             pipeline.call("set", key, payload, *modifiers)
           else
             failsafe :write_entry, returning: nil do
-              redis.node_for(key).call("set", key, payload, *modifiers) == "OK"
+              with_connection_for(key) do |c|
+                c.call("set", key, payload, *modifiers) == "OK"
+              end
             end
           end
         end
@@ -399,7 +437,9 @@ module ActiveSupport
         # Delete an entry from the cache.
         def delete_entry(key, **options)
           failsafe :delete_entry, returning: false do
-            redis.node_for(key).call("unlink", key) == 1
+            with_connection_for(key) do |c|
+              c.call("unlink", key) == 1
+            end
           end
         end
 
@@ -408,9 +448,9 @@ module ActiveSupport
           return 0 if entries.empty?
 
           count = 0
-          redis.nodes_for(*entries).each do |node, keys|
+          with_connection_for_each_node(entries) do |c, keys_subset|
             failsafe :delete_multi_entries do
-              count += node.call("unlink", *keys)
+              count += c.call("unlink", *keys_subset)
             end
           end
 
@@ -421,10 +461,10 @@ module ActiveSupport
         def write_multi_entries(entries, **options)
           return if entries.empty?
 
-          redis.nodes_for(entries.keys).each do |node, keys|
+          with_connection_for_each_node(entries.keys) do |c, keys_subset|
             failsafe :write_multi_entries do
-              node.pipelined do |pipeline|
-                entries.slice(*keys).each do |key, entry|
+              c.pipelined do |pipeline|
+                entries.slice(*keys_subset).each do |key, entry|
                   write_entry key, entry, **options, pipeline: pipeline
                 end
               end
@@ -449,7 +489,7 @@ module ActiveSupport
         end
 
         def change_counter(key, amount, options)
-          redis.node_for(key).with do |c|
+          with_connection_for(key) do |c|
             expires_in = options[:expires_in]
 
             if expires_in
@@ -476,7 +516,10 @@ module ActiveSupport
         def supports_expire_nx?
           return @supports_expire_nx if defined?(@supports_expire_nx)
 
-          redis_versions = redis.nodes.map { |n| n.call("info", "server").scan(/edis_version:([\d.]+)/)[0][0] || "0" }
+          redis_versions = []
+          with_connection_for_each_node do |c|
+            redis_versions << (c.call("info", "server").scan(/edis_version:([\d.]+)/)[0][0] || "0")
+          end
           @supports_expire_nx = redis_versions.all? { |v| Gem::Version.new(v) >= Gem::Version.new("7.0.0") }
         end
 
