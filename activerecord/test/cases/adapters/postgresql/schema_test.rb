@@ -912,8 +912,10 @@ class SchemaIndexDefinitionRoundTripTest < ActiveRecord::PostgreSQLTestCase
     assert_equal ["name"], include_index.columns
     assert_equal :desc, include_index.orders
     assert_equal ["position"], include_index.include
+    assert_equal "fillfactor='70'", include_index.storage_parameters
     assert_equal "lower((name)::text)", expression_index.columns
     assert_equal '("position" IS NOT NULL)', expression_index.where
+    assert_equal "fillfactor='70'", expression_index.storage_parameters
   end
 
   private
@@ -1335,5 +1337,61 @@ class DumpSchemasTest < ActiveRecord::PostgreSQLTestCase
       assert_includes output, 'add_foreign_key "test_schema.cross_schema_fk_table", "test_schema2.referenced_table"'
       assert_not_includes output, 'add_foreign_key "test_schema.cross_schema_fk_table", "test_schema.test_schema2.referenced_table"'
     end
+  end
+end
+
+class SchemaIndexStorageParametersTest < ActiveRecord::PostgreSQLTestCase
+  include SchemaDumpingHelper
+
+  setup do
+    @connection = ActiveRecord::Base.lease_connection
+    @connection.create_table "trains" do |t|
+      t.string :name
+      t.datetime :departed_at
+    end
+  end
+
+  teardown do
+    @connection.drop_table "trains", if_exists: true
+  end
+
+  def test_index_storage_parameters
+    @connection.add_index "trains", :departed_at, using: :brin, with: "autosummarize = on, pages_per_range = 32", where: "name IS NOT NULL"
+
+    index = @connection.indexes("trains").find { |i| i.name == "index_trains_on_departed_at" }
+    assert_equal "autosummarize='on', pages_per_range='32'", index.storage_parameters
+    assert_equal :brin, index.using
+    assert_equal ["departed_at"], index.columns
+    assert_equal "(name IS NOT NULL)", index.where
+
+    output = dump_table_schema "trains"
+    assert_match(/t\.index \["departed_at"\], name: "index_trains_on_departed_at", where: "\(name IS NOT NULL\)", using: :brin, with: "autosummarize='on', pages_per_range='32'"/, output)
+  end
+
+  def test_index_storage_parameters_as_pg_get_indexdef_prints
+    @connection.add_index "trains", "to_tsvector('english', name)", name: "index_trains_on_name_tsvector", using: :gin, with: "fastupdate = off", where: "name <> ' WITH (x)'"
+
+    index = @connection.indexes("trains").find { |i| i.name == "index_trains_on_name_tsvector" }
+    assert_equal "fastupdate=off", index.storage_parameters
+    assert_equal "to_tsvector('english'::regconfig, (name)::text)", index.columns
+    assert_equal "((name)::text <> ' WITH (x)'::text)", index.where
+  end
+
+  def test_index_storage_parameters_round_trip
+    @connection.add_index "trains", :name, with: "fillfactor = 70"
+    output = dump_table_schema "trains"
+
+    @connection.drop_table "trains"
+    silence_stream($stdout) { eval(output) }
+
+    index = @connection.indexes("trains").find { |i| i.name == "index_trains_on_name" }
+    assert_equal "fillfactor='70'", index.storage_parameters
+  end
+
+  def test_index_without_storage_parameters_is_not_dumped
+    @connection.add_index "trains", :name
+
+    assert_nil @connection.indexes("trains").first.storage_parameters
+    assert_no_match(/with:/, dump_table_schema("trains"))
   end
 end

@@ -940,6 +940,16 @@ module ActiveRecord
       #
       # Note: only supported by PostgreSQL version 15.0.0 and greater.
       #
+      # ====== Creating an index with storage parameters
+      #
+      #   add_index(:events, :updated_at, using: :brin, with: "autosummarize = on")
+      #
+      # generates:
+      #
+      #   CREATE INDEX index_events_on_updated_at ON events USING brin (updated_at) WITH (autosummarize = on)
+      #
+      # Note: only supported by PostgreSQL.
+      #
       # ====== Creating an index with a specific method
       #
       #   add_index(:developers, :name, using: 'btree')
@@ -1778,7 +1788,7 @@ module ActiveRecord
         end
 
         def valid_index_options
-          [:unique, :length, :order, :opclass, :where, :type, :using, :comment, :algorithm, :include, :nulls_not_distinct]
+          [:unique, :length, :order, :opclass, :where, :type, :using, :comment, :algorithm, :include, :nulls_not_distinct, :with]
         end
 
         def index_definition_options(options)
