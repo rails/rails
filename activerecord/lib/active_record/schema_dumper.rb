@@ -318,12 +318,10 @@ module ActiveRecord
           "name: #{index.name.inspect}",
         ]
         index_parts << "unique: true" if index.unique
-        index_parts << "length: #{format_index_parts(index.lengths)}" if index.lengths.present?
         add_index_column_parts!(index_parts, index)
         index_parts << "where: #{index.where.inspect}" if index.where
         index_parts << "using: #{index.using.inspect}" if !@connection.default_index_type?(index)
         add_index_option_parts!(index_parts, index)
-        index_parts << "enabled: #{index.enabled.inspect}" if @connection.supports_disabling_indexes? && index.disabled?
         index_parts
       end
 
@@ -333,7 +331,6 @@ module ActiveRecord
       end
 
       def add_index_option_parts!(index_parts, index)
-        index_parts << "type: #{index.type.inspect}" if index.type
         index_parts << "comment: #{index.comment.inspect}" if index.comment
         index_parts
       end

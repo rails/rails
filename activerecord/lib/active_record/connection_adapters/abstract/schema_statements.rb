@@ -1783,10 +1783,8 @@ module ActiveRecord
 
         def index_definition_options(options)
           {
-            lengths: options[:length] || {},
             orders: options[:order] || {},
             where: options[:where],
-            type: options[:type],
             using: options[:using],
             comment: options[:comment],
           }

@@ -6,16 +6,14 @@ module ActiveRecord
     # this type are typically created and returned by methods in database
     # adapters. e.g. ActiveRecord::ConnectionAdapters::MySQL::SchemaStatements#indexes
     class IndexDefinition # :nodoc:
-      attr_reader :table, :name, :unique, :columns, :lengths, :orders, :where, :type, :using, :comment, :valid
+      attr_reader :table, :name, :unique, :columns, :orders, :where, :using, :comment, :valid
 
       def initialize(
         table, name,
         unique = false,
         columns = [],
-        lengths: {},
         orders: {},
         where: nil,
-        type: nil,
         using: nil,
         comment: nil,
         valid: true
@@ -24,10 +22,8 @@ module ActiveRecord
         @name = name
         @unique = unique
         @columns = columns
-        @lengths = concise_options(lengths)
         @orders = concise_options(orders)
         @where = where
-        @type = type
         @using = using
         @comment = comment
         @valid = valid
@@ -38,10 +34,7 @@ module ActiveRecord
       end
 
       def column_options
-        {
-          length: lengths,
-          order: orders,
-        }
+        { order: orders }
       end
 
       def defined_for?(columns = nil, name: nil, unique: nil, valid: nil, **options)
@@ -58,10 +51,8 @@ module ActiveRecord
           "name" => @name,
           "unique" => @unique || nil,
           "columns" => @columns,
-          "lengths" => @lengths.presence,
           "orders" => @orders.presence,
           "where" => @where,
-          "type" => @type,
           "using" => @using,
           "comment" => @comment,
           "invalid" => !@valid || nil
@@ -73,10 +64,8 @@ module ActiveRecord
         @name = coder["name"]
         @unique = coder["unique"] || false
         @columns = coder["columns"]
-        @lengths = coder["lengths"] || {}
         @orders = symbolize_concise_options(coder["orders"])
         @where = coder["where"]
-        @type = coder["type"]&.to_sym
         @using = coder["using"]&.to_sym
         @comment = coder["comment"]
         @valid = !coder["invalid"]
