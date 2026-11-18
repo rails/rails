@@ -121,10 +121,9 @@ end
 
 #### Running Mode
 
-The Executor will put the current thread into `running` mode in the [Load
-Interlock](#load-interlock). This operation will block temporarily if another
-thread is currently either autoloading a constant or unloading/reloading the
-application.
+The Executor will put the current thread into `running` mode in the [Reloading
+Interlock](#reloading-interlock). This operation will block temporarily if
+another thread is currently unloading/reloading the application.
 
 ### The Reloader
 
@@ -233,12 +232,12 @@ Reloader is only a pass-through to the Executor.
 The Executor always has important work to do, like database connection
 management. When `config.enable_reloading` is `false` and `config.eager_load` is
 `true` (`production` defaults), no reloading will occur, so it does not need the
-[Load Interlock](#load-interlock). With the default settings in the
-`development` environment, the Executor will use the Load Interlock to ensure
-constants are only loaded when it is safe.
+[Reloading Interlock](#reloading-interlock). With the default settings in the
+`development` environment, the Executor will use the Reloading Interlock to
+ensure code reloading is performed safely.
 
-Load Interlock
---------------
+Reloading Interlock
+-------------------
 
 The Reloading Interlock ensures that code reloading can be performed safely in a
 multi-threaded runtime environment.
@@ -252,74 +251,9 @@ The Reloading Interlock addresses this constraint by keeping track of which
 threads are currently running application code, and ensuring that reloading
 waits until no other threads are executing application code.
 
-
-### `permit_concurrent_loads`
-
-The Executor automatically acquires a `running` lock for the duration of its
-block, and autoload knows when to upgrade to a `load` lock, and switch back to
-`running` again afterwards.
-
-Other blocking operations performed inside the Executor block (which includes
-all application code), however, can needlessly retain the `running` lock. If
-another thread encounters a constant that it must autoload, this can cause a
-deadlock.
-
-For example, assuming `User` is not yet loaded, the following will deadlock:
-
-```ruby
-Rails.application.executor.wrap do
-  th = Thread.new do
-    Rails.application.executor.wrap do
-      User # inner thread waits here; it cannot load
-           # User while another thread is running
-    end
-  end
-
-  th.join # outer thread waits here, holding 'running' lock
-end
-```
-
-To prevent this deadlock, the outer thread can `permit_concurrent_loads`. By
-calling this method, the thread guarantees it will not dereference any
-possibly-autoloaded constant inside the supplied block. The safest way to meet
-that promise is to put it as close as possible to the blocking call:
-
-```ruby
-Rails.application.executor.wrap do
-  th = Thread.new do
-    Rails.application.executor.wrap do
-      User # inner thread can acquire the 'load' lock,
-           # load User, and continue
-    end
-  end
-
-  ActiveSupport::Dependencies.interlock.permit_concurrent_loads do
-    th.join # outer thread waits here, but has no lock
-  end
-end
-```
-
-Another example, using Concurrent Ruby:
-
-```ruby
-Rails.application.executor.wrap do
-  futures = 3.times.collect do |i|
-    Concurrent::Promises.future do
-      Rails.application.executor.wrap do
-        # do work here
-      end
-    end
-  end
-
-  values = ActiveSupport::Dependencies.interlock.permit_concurrent_loads do
-    futures.collect(&:value)
-  end
-end
-```
-
 ### ActionDispatch::DebugLocks
 
-If your application is deadlocking and you think the Load Interlock may be
+If your application is deadlocking and you think the Reloading Interlock may be
 involved, you can temporarily add the ActionDispatch::DebugLocks middleware to
 `config/application.rb`:
 
@@ -334,5 +268,5 @@ interlock, which lock level they are holding or awaiting, and their current
 backtrace.
 
 Generally a deadlock will be caused by the interlock conflicting with some other
-external lock or blocking I/O call. Once you find it, you can wrap it with
-`permit_concurrent_loads`.
+external lock or blocking I/O call. These cannot be automatically identified,
+but should be visible in the displayed backtraces.
