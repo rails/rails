@@ -3710,3 +3710,24 @@ class DeprecatedHasManyAssociationsTest < ActiveRecord::TestCase
     assert_predicate @car, :destroyed?
   end
 end
+
+class HasManyOwnerConditionsSerializationTest < ActiveRecord::TestCase
+  # Array#- hashes its elements, serializing bind values, once both sides have more than 16.
+  KEYS = Array.new(17) { |i| :"key#{i}" }
+
+  test "joining an association whose default scope has an out of range condition matches no records" do
+    child = Class.new(ActiveRecord::Base) do
+      self.table_name = "owner_conditions_children"
+      default_scope { where(KEYS.index_with(1).merge(key0: 2**70)) }
+    end
+    parent = Class.new(ActiveRecord::Base) do
+      self.table_name = "owner_conditions_parents"
+      has_many :children, anonymous_class: child, foreign_key: :parent_id
+    end
+    owner = parent.create!
+    child.unscoped.create!(parent_id: owner.id)
+
+    assert_empty parent.joins(:children)
+    assert_empty parent.eager_load(:children).where.not(children: { id: nil })
+  end
+end

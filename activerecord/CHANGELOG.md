@@ -1,3 +1,11 @@
+*   Don't compare owner conditions when joining an association without a scope.
+
+    Comparing the where clauses could serialize their bind values early, so a
+    join raised `ActiveModel::RangeError` for an out of range condition in the
+    target's default scope instead of matching no records.
+
+    *Thomas Klemm*
+
 *   Return all records from `in_order_of` with `filter: false` when no values are left.
 
     An empty `values` list, or one where every value is dropped because the column
