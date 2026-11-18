@@ -905,6 +905,15 @@ ActiveRecord::Schema.define do
     t.string :name
   end
 
+  create_table :owner_conditions_children, force: true do |t|
+    t.integer :parent_id
+    (0..16).each do |i|
+      t.integer :"key#{i}"
+    end
+  end
+
+  create_table :owner_conditions_parents, force: true
+
   create_table :owners, primary_key: :owner_id, force: true do |t|
     t.string :name
     t.column :updated_at, :datetime
