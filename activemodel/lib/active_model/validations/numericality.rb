@@ -13,7 +13,7 @@ module ActiveModel
       RANGE_CHECKS = { in: :in? }.freeze
       NUMBER_CHECKS = { odd: :odd?, even: :even? }.freeze
 
-      RESERVED_OPTIONS = COMPARE_CHECKS.keys + NUMBER_CHECKS.keys + RANGE_CHECKS.keys + [:only_integer, :only_numeric]
+      RESERVED_OPTIONS = (COMPARE_CHECKS.keys + NUMBER_CHECKS.keys + RANGE_CHECKS.keys + [:only_integer, :only_numeric]).freeze
 
       INTEGER_REGEX = /\A[+-]?\d+\z/
 
