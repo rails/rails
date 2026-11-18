@@ -4,6 +4,16 @@ require "test_helper"
 require "database/setup"
 require "active_support/testing/method_call_assertions"
 
+class ExtensionRecordingTransformer < ActiveStorage::Transformers::Transformer # :nodoc:
+  cattr_accessor :source_paths, default: []
+
+  private
+    def process(file, format:)
+      self.class.source_paths << file.path
+      Tempfile.new([ "recorded", ".png" ], binmode: true)
+    end
+end
+
 class ActiveStorage::AttachmentTest < ActiveSupport::TestCase
   include ActiveJob::TestHelper
 
@@ -206,6 +216,16 @@ class ActiveStorage::AttachmentTest < ActiveSupport::TestCase
 
     assert_changes -> { @user.avatar_with_immediate_variants.variant(:immediate_thumb)&.processed? }, from: nil, to: true do
       @user.avatar_with_immediate_variants.attach blob
+    end
+  end
+
+  test "immediate variants are processed from a path without the uploaded extension when it does not match the content type" do
+    assert_equal [ "" ], immediate_variant_source_extensions
+  end
+
+  test "untracked immediate variants are processed from a path without the uploaded extension when it does not match the content type" do
+    without_variant_tracking do
+      assert_equal [ "" ], immediate_variant_source_extensions
     end
   end
 
@@ -489,6 +509,25 @@ class ActiveStorage::AttachmentTest < ActiveSupport::TestCase
       blob.stub(:identify_without_saving, track_transaction_depth, &block)
 
       assert_equal 0, (max_transaction_depth - baseline_transaction_depth)
+    end
+
+    def immediate_variant_source_extensions
+      previous_transformer = ActiveStorage.variant_transformer
+      ActiveStorage.variant_transformer = ExtensionRecordingTransformer
+      ExtensionRecordingTransformer.source_paths = []
+
+      Tempfile.open([ "RackMultipart", ".mvg" ], binmode: true) do |io|
+        io.write "push graphic-context\nviewbox 0 0 1 1\npop graphic-context\n"
+        io.rewind
+
+        @user.avatar_with_immediate_variants.attach(
+          ActionDispatch::Http::UploadedFile.new(tempfile: io, filename: "attack.mvg", type: "image/jpeg")
+        )
+      end
+
+      ExtensionRecordingTransformer.source_paths.map { |path| File.extname(path) }
+    ensure
+      ActiveStorage.variant_transformer = previous_transformer
     end
 
     def assert_create_variants_job(blob:, variants:, &block)

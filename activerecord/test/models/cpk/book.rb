@@ -53,10 +53,17 @@ module Cpk
   class BookWithOrderAgreements < Book
     has_many :order_agreements, through: :order
     has_one :order_agreement, through: :order, source: :order_agreements
+    has_many :no_joins_order_agreements, through: :order, source: :order_agreements, disable_joins: true
   end
 
   class BookWithRequiredOrder < ActiveRecord::Base
     self.table_name = :cpk_books
     belongs_to :order, class_name: "Cpk::Order", foreign_key: [:shop_id, :order_id], primary_key: [:shop_id, :id], optional: false
+  end
+
+  class BookWithTouchableOrder < ActiveRecord::Base
+    self.table_name = :cpk_books
+    belongs_to :order, class_name: "Cpk::Order", foreign_key: [:shop_id, :order_id],
+      primary_key: [:shop_id, :id], touch: true, optional: true
   end
 end

@@ -1,3 +1,184 @@
+*   Detect Kamal in `bin/rails app:update`.
+
+    The update command didn't pass `skip_kamal`, so it rendered config files
+    as if every application deployed with Kamal. For applications without the
+    `kamal` gem, that proposed commenting out `config.assume_ssl` and
+    `config.force_ssl` in `config/environments/production.rb`.
+
+    *Richard Desmarais*
+
+*   Fix `/rails/info/notes` raising `Encoding::CompatibilityError` when notes
+    from Ruby and non-Ruby files contain non-ASCII characters.
+
+    Notes extracted from files such as ERB, YAML, JS or CSS are now UTF-8
+    like the ones extracted from Ruby files, with invalid bytes replaced.
+
+    *alexandre184*
+
+*   Fix `bin/rails test -n ClassName#test_name` running no tests.
+
+    This has been broken since Rails 7.1. It also made isolated tests fail on
+    platforms without `fork`, like JRuby and Windows.
+
+    *Sampo Kuokkanen*
+
+*   Add support for comma-separated values in ENV["RAILS_MASTER_KEY"].
+
+    When multiple keys are provided as comma-separated values, Rails will
+    try each key until it finds one that works.
+
+    *Jeff Tsang*
+
+*   Don't load Capybara and Selenium on boot in new applications.
+
+    The generated `Gemfile` now declares `capybara` and `selenium-webdriver`
+    with `require: false`. `ActionDispatch::SystemTestCase` already requires
+    both when a system test is loaded, so `Bundler.require` no longer loads
+    them into test processes that don't run system tests. Code that uses
+    Capybara outside of system tests, such as `Capybara.string` in a view
+    test, needs to `require "capybara"` itself.
+
+    *Mick Zijdel*
+
+*   Create the local development/test secret file (`tmp/local_secret.txt`) with
+    owner-only permissions (`0600`) instead of inheriting the process umask,
+    and tighten the permissions of an existing file on read on non-Windows
+    platforms.
+
+    The file holds the `secret_key_base` used in development and test to derive
+    keys for signing and encrypting cookies. With a common umask of `022` it was
+    created world-readable, so other local users able to access the application's
+    directory could read it and forge signed or encrypted cookies.
+    This brings it in line with how `config/master.key` and the other
+    credentials key files are created.
+
+    *Sebastian Stange*
+
+*   Add `config.zjit` to enable ZJIT after the application has booted.
+
+    Like `config.yjit`, it enables the JIT once boot is done, so it doesn't
+    compile code that only runs while booting, as `--zjit` or
+    `RUBY_ZJIT_ENABLE` would. When ZJIT is available it takes precedence over
+    `config.yjit`, since only one JIT can be enabled.
+
+    ```ruby
+    config.zjit = true
+    ```
+
+    *Sampo Kuokkanen*
+
+*   Add a `before_ractorize` load hook that runs in `Rails::Application#ractorize!`
+    so frameworks, engines, and gems can prepare their own state to be shared
+    with Ractors.
+
+    Frameworks now use this hook instead of `ractorize!` reaching into them,
+    and gems can use it too:
+
+    ```ruby
+    ActiveSupport.on_load(:before_ractorize) do
+      MyGem.make_shareable!
+    end
+    ```
+
+    *Ben Sheldon*
+
+*   Automatically detect Aube as a javaScript package manager.
+
+    Rails generators now detect Aube as the javaScript package manager
+    when `aube-lock.yaml` is present.
+
+    *Florent Beaurain*
+
+*   Fix `rails.deprecation` structured events not being emitted.
+
+    *Azmi Muwahid*
+
+*   Log a warning on boot for each route that references a missing controller
+    when eager loading is enabled.
+
+    With `config.eager_load` on, every route that dispatches to a controller
+    now resolves it once the routes are loaded, so a typo or a deleted
+    controller is reported at boot rather than discovered on the first
+    request to that route:
+
+    ```
+    GET /photos(.:format) references a missing controller: uninitialized constant PhotosController
+    ```
+
+    *Aaron Patterson*
+
+*   Stop probing for a local MySQL socket when generating `config/database.yml`.
+
+    *Ryuta Kamizono*
+
+*   Mark the generated `public/*.html` error pages as `linguist-generated` in
+    the default `.gitattributes`.
+
+    The five error pages generated since Rails 8.0 total about 36 KB of HTML,
+    more than the Ruby in a freshly generated application, so GitHub reported
+    new Rails applications as HTML repositories. Marking the pages as generated
+    excludes them from language statistics, as is already done for
+    `db/schema.rb`.
+
+    *Irina Nazarova*
+
+*   A generated application's ci.yml file now sets `timeout-minutes: 15` for
+    each job to prevent transisent network errors, etc. from hanging the
+    action until the default 360 minutes kicks in and potentially eat up an
+    org's allotted runner minutes.
+
+    *Tony Drake*
+
+*   Make mounted route helpers (e.g. `main_app`, engine mount proxies) trigger
+    the lazy route load instead of raising `NoMethodError` when called before
+    routes are drawn.
+
+    Named url helpers already loaded routes on demand, but mounted helpers are
+    only defined when `mount` runs during the route draw, so calling one first
+    (in the console or a test) failed until something else drew the routes.
+
+    *Abdelkader Boudih*
+
+*   Report zero tests instead of raising a `LoadError` when a `bin/rails test:*`
+    folder command names a folder the application does not have.
+
+    A generated application has no `test/system` folder, so the `system-test`
+    job in the generated `.github/workflows/ci.yml` failed on the first push
+    with `cannot load such file -- <app>/test/system (LoadError)`. The same
+    happened for `bin/rails test:channels`, `test:jobs`, `test:mailboxes`,
+    `test:units`, `test:functionals`, and `test:generators`, which all name
+    folders that an application does not necessarily have.
+
+    *Ariel Rzezak*
+
+*   Add `--no-banner` to `bin/rails console` to suppress the startup banner.
+
+    Users can already set `IRB.conf[:SHOW_BANNER] = false` in `.irbrc`; this
+    flag is for one-off or scripted sessions without editing config.
+
+    ```bash
+    bin/rails console --no-banner
+    ```
+
+    *Said Kaldybaev*
+
+*   Show a Rails-flavored startup banner (a small logo, Rails/Ruby
+    version, a rotating tip about console helpers like `app`/`reload!`, and
+    `Rails.root`) when starting `bin/rails console`.
+
+    `rails console` bypassed IRB's normal startup path, so the banner IRB
+    shows when run directly via `irb` (see ruby/irb#1183) never appeared in
+    a Rails console session.
+
+    Set `RAILS_TIPS=false` to hide the rotating tip.
+
+    *Elia Gamberi*
+
+*   Don't filter nonexistent i18n paths on initialize. This negatively impacts
+    applications with lots of translation files.
+
+    *Gannon McGibbon*
+
 *   Validate subcommand in `rails plugin` command.
 
     `rails plugin foo bar` silently ignored the invalid subcommand "foo"

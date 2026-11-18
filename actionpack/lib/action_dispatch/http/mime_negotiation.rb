@@ -1,9 +1,5 @@
 # frozen_string_literal: true
 
-# :markup: markdown
-
-require "active_support/core_ext/module/attribute_accessors"
-
 module ActionDispatch
   module Http
     module MimeNegotiation
@@ -16,18 +12,20 @@ module ActionDispatch
         ActionDispatch::Http::Parameters::ParseError,
       ].freeze
 
+      @ignore_accept_header = false
+      @strict_accept_header = false
+      accessors = singleton_class.attr_accessor :ignore_accept_header, :strict_accept_header
+
       included do
-        mattr_accessor :ignore_accept_header, default: false
-        mattr_accessor :strict_accept_header, default: false
+        singleton_class.delegate(*accessors, to: MimeNegotiation)
       end
 
       # The MIME type of the HTTP request, such as [Mime](:xml).
       def content_mime_type
         fetch_header("action_dispatch.request.content_type") do |k|
-          v = if get_header("CONTENT_TYPE") =~ /^([^,;]*)/
-            Mime::Type.lookup($1.strip.downcase)
-          else
-            nil
+          v = if (content_type = get_header("CONTENT_TYPE"))
+            type = media_type_of(content_type)
+            Mime.lookup_by_string[type] || Mime::Type.lookup(type.strip.downcase)
           end
           set_header k, v
         rescue ::Mime::Type::InvalidMimeType => e
@@ -213,7 +211,17 @@ module ActionDispatch
       end
 
       def should_apply_vary_header?
-        !params_readable? && use_accept_header && valid_accept_header
+        !params_readable?
+      end
+
+      def vary_headers # :nodoc:
+        if use_accept_header
+          headers = ["Accept", "X-Requested-With"]
+          headers.insert(1, "Content-Type") if xhr? && accept.blank?
+          headers
+        else
+          ["X-Requested-With"]
+        end
       end
 
       private
@@ -231,12 +239,24 @@ module ActionDispatch
           if xhr?
             accept.present? || content_mime_type
           elsif accept.present?
-            self.class.strict_accept_header || !accept.match?(BROWSER_LIKE_ACCEPTS)
+            MimeNegotiation.strict_accept_header || !accept.match?(BROWSER_LIKE_ACCEPTS)
           end
         end
 
         def use_accept_header
-          !self.class.ignore_accept_header
+          !MimeNegotiation.ignore_accept_header
+        end
+
+        # The media type is whatever precedes the first ";" or ",". Most
+        # requests send a bare one, which is returned as is; scanning for the
+        # separators with String#index rather than a Regexp keeps the common
+        # case free of allocations.
+        def media_type_of(content_type)
+          index = content_type.index(";")
+          if (comma = content_type.index(",")) && (!index || comma < index)
+            index = comma
+          end
+          index ? content_type[0, index] : content_type
         end
 
         def format_from_path_extension

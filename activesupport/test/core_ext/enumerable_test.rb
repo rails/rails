@@ -3,6 +3,7 @@
 require_relative "../abstract_unit"
 require "active_support/core_ext/array"
 require "active_support/core_ext/enumerable"
+require "active_support/hash_with_indifferent_access"
 
 Payment = Struct.new(:price)
 ExpandedPayment = Struct.new(:dollars, :cents)
@@ -176,6 +177,13 @@ class EnumerableTests < ActiveSupport::TestCase
     assert_typed_equal 5.0, (10..0).sum(5.0), Float
   end
 
+  def test_range_sum_falsey_initial_value
+    assert_raises(NoMethodError) { (1..4).sum(nil) }
+    assert_raises(NoMethodError) { (1..4).sum(false) }
+    assert_nil (10..0).sum(nil)
+    assert_equal false, (10..0).sum(false)
+  end
+
   def test_array_sums
     enum = [5, 15, 10]
     assert_equal 30, enum.sum
@@ -266,6 +274,18 @@ class EnumerableTests < ActiveSupport::TestCase
     assert_nil payments.index_with.size
     assert_equal 42, (1..42).index_with.size
     assert_equal({ Payment.new(5) => 5, Payment.new(15) => 15, Payment.new(10) => 10 }, payments.index_with.each(&:price))
+  end
+
+  def test_index_with_indexes_what_each_yields
+    hash = { a: 1, b: 2 }
+    assert_equal({ [:a, 1] => 1, [:b, 2] => 2 }, hash.index_with { |pair| pair.last })
+    assert_equal({ [:a, 1] => "a1", [:b, 2] => "b2" }, hash.index_with { |key, value| "#{key}#{value}" })
+    assert_equal({ [:a, 1] => 0, [:b, 2] => 0 }, hash.index_with(0))
+    assert_equal({ ["a", 1] => 1 }, ActiveSupport::HashWithIndifferentAccess.new(a: 1).index_with(&:last))
+
+    point = Struct.new(:x, :y).new(3, 4)
+    assert_equal({ 3 => 6, 4 => 8 }, point.index_with { |value| value * 2 })
+    assert_equal({ [:x, 3] => 0, [:y, 4] => 0 }, point.each_pair.index_with(0))
   end
 
   def test_many

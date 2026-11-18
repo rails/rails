@@ -1,7 +1,5 @@
 # frozen_string_literal: true
 
-# :markup: markdown
-
 module ActiveSupport
   class Editor
     @editors = {}
@@ -13,7 +11,9 @@ module ActiveSupport
       #
       # Example:
       #
-      #  ActiveSupport::Editor.register("myeditor", "myeditor://%s:%d")
+      # ```
+      # ActiveSupport::Editor.register("myeditor", "myeditor://%s:%d")
+      # ```
       def register(name, url_pattern, aliases: [])
         editor = new(url_pattern)
         @editors[name] = editor

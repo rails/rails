@@ -1,25 +1,10 @@
 # frozen_string_literal: true
 
-begin
-  require "nokogiri"
-rescue LoadError
-  # Ensure nokogiri is loaded before vips, which also depends on libxml2.
-  # See Nokogiri RFC: Stop exporting symbols:
-  #   https://github.com/sparklemotion/nokogiri/discussions/2746
-end
-
-begin
-  gem "ruby-vips"
-  require "ruby-vips"
-  ActiveStorage::VIPS_AVAILABLE = true # :nodoc:
-rescue LoadError => error
-  ActiveStorage::VIPS_AVAILABLE = false # :nodoc:
-  raise error unless error.message.match?(/libvips|ruby-vips/)
-end
+require "active_storage/vips"
 
 module ActiveStorage
-  # This analyzer relies on the third-party {ruby-vips}[https://github.com/libvips/ruby-vips] gem. Ruby-vips requires
-  # the {libvips}[https://libvips.github.io/libvips/] system library.
+  # This analyzer relies on the third-party [ruby-vips](https://github.com/libvips/ruby-vips) gem. Ruby-vips requires
+  # the [libvips](https://libvips.github.io/libvips/) system library.
   class Analyzer::ImageAnalyzer::Vips < Analyzer::ImageAnalyzer
     def self.accept?(blob)
       super && ActiveStorage.variant_processor == :vips
@@ -31,6 +16,8 @@ module ActiveStorage
           logger.error "Skipping image analysis because the ruby-vips gem isn't installed"
           return {}
         end
+
+        ActiveStorage.require_securable_vips!
 
         download_blob_to_tempfile do |file|
           image = instrument("vips") do
@@ -55,9 +42,12 @@ module ActiveStorage
         {}
       end
 
-      ROTATIONS = /Left-top|Right-top|Right-bottom|Left-bottom/
+
+      # Orientations 5 to 8 involve a 90 or 270 degree rotation, so the stored width and height are
+      # transposed. This is the same libvips field that `autorot` reads when generating variants.
+      AXIS_SWAPPING_ORIENTATIONS = 5..8
       def rotated_image?(image)
-        ROTATIONS === image.get("exif-ifd0-Orientation")
+        AXIS_SWAPPING_ORIENTATIONS.cover?(image.get("orientation"))
       rescue ::Vips::Error
         false
       end

@@ -138,17 +138,9 @@ module Arel # :nodoc: all
             collector << " "
           end
 
-          collector = o.cores.inject(collector) { |c, x|
-            visit_Arel_Nodes_SelectCore(x, c)
-          }
+          o.cores.each { |core| collector = visit_Arel_Nodes_SelectCore(core, collector) }
 
-          unless o.orders.empty?
-            collector << " ORDER BY "
-            o.orders.each_with_index do |x, i|
-              collector << ", " unless i == 0
-              collector = visit(x, collector)
-            end
-          end
+          collect_nodes_for o.orders, collector, " ORDER BY "
 
           visit_Arel_Nodes_SelectOptions(o, collector)
         end
@@ -363,6 +355,12 @@ module Arel # :nodoc: all
 
           if values.empty?
             collector << @connection.quote(nil)
+          elsif o.attribute.respond_to?(:comparison_expression)
+            # Comparison values need SQL around each bind, so they cannot use
+            # the collector's bulk bind path.
+            binds = values.map(&o.proc_for_binds)
+            expressions = binds.map { |bind| o.attribute.comparison_expression(bind) }
+            collector = inject_join(expressions, collector, ", ")
           else
             collector.add_binds(values, o.proc_for_binds, &bind_block)
           end
@@ -633,6 +631,8 @@ module Arel # :nodoc: all
         end
 
         def visit_Arel_Nodes_Or(o, collector)
+          return collector << "1=0" if o.children.empty?
+
           inject_join o.children, collector, " OR "
         end
 
@@ -774,6 +774,14 @@ module Arel # :nodoc: all
           collector.add_bind(o, &bind_block)
         end
 
+        def visit_ActiveRecord_PredicateBuilder_ComparisonAttribute(o, collector)
+          visit o.expression, collector
+        end
+
+        def visit_ActiveRecord_PredicateBuilder_ComparisonValue(o, collector)
+          visit o.expression, collector
+        end
+
         def visit_Arel_Nodes_BindParam(o, collector)
           collector.add_bind(o.value, &bind_block)
         end
@@ -912,8 +920,10 @@ module Arel # :nodoc: all
         end
 
         def inject_join(list, collector, join_str)
-          list.each_with_index do |x, i|
-            collector << join_str unless i == 0
+          first = true
+          list.each do |x|
+            collector << join_str unless first
+            first = false
             collector = visit(x, collector)
           end
           collector
@@ -955,6 +965,21 @@ module Arel # :nodoc: all
           end
         end
         alias :prepare_delete_statement :prepare_update_statement
+
+        # Used by dialects that support `UPDATE ... FROM` (PostgreSQL, SQLite).
+        # Join clauses cannot reference the target table, so alias the updated
+        # table, place the entire relation in the FROM clause, and add a
+        # self-join (which requires the primary key).
+        def prepare_update_statement_with_self_join(o)
+          stmt = o.clone
+          stmt.relation, stmt.wheres = o.relation.clone, o.wheres.clone
+          stmt.relation.right = [stmt.relation.left, *stmt.relation.right]
+          stmt.relation.left = stmt.relation.left.alias("__active_record_update_alias")
+          Array.wrap(o.key).each do |key|
+            stmt.wheres << key.eq(stmt.relation.left[key.name])
+          end
+          stmt
+        end
 
         # FIXME: we should probably have a 2-pass visitor for this
         def build_subselect(key, o)

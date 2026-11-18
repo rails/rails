@@ -289,7 +289,7 @@ It will generate this HTML:
 Some important things to notice when using `form_with` with a model object:
 
 * The form `action` is automatically filled with an appropriate value, `action="/books"`. If you were updating a book, it would be `action="/books/42"`.
-* The form field names are scoped with `book[...]`. This means that `params[:book]` will be a hash containing all these field's values. You can read more about the significance of input names in chapter [Form Input Naming Conventions and Params Hash](#form-input-naming-conventions-and-params-hash) of this guide.
+* The form field names are scoped with `book[...]`. This means that `params[:book]` will be a hash containing all these fields' values. You can read more about the significance of input names in chapter [Form Input Naming Conventions and Params Hash](#form-input-naming-conventions-and-params-hash) of this guide.
 * The submit button is automatically given an appropriate text value, "Create Book" in this case.
 
 TIP: Typically your form inputs will mirror model attributes. However, they don't have to. If there is other information you need you can include a field in your form and access it via `params[:book][:my_non_attribute_input]`.
@@ -631,9 +631,9 @@ Will output select boxes like:
 </select>
 <select name="person[birth_date(3i)]" id="person_birth_date_3i">
   <option value="1">1</option>
-  ...
+  <!-- ... -->
   <option value="21" selected="selected">21</option>
-  ...
+  <!-- ... -->
   <option value="31">31</option>
 </select>
 ```
@@ -689,7 +689,7 @@ Output:
   <option value="Midway Island">(GMT-11:00) Midway Island</option>
   <option value="Hawaii">(GMT-10:00) Hawaii</option>
   <option value="Alaska">(GMT-09:00) Alaska</option>
-  ...
+  <!-- ... -->
   <option value="Samoa">(GMT+13:00) Samoa</option>
   <option value="Tokelau Is.">(GMT+13:00) Tokelau Is.</option>
 </select>
@@ -698,7 +698,7 @@ Output:
 Collection Related Helpers
 --------------------------
 
-If you need to generate a set of choices from a collection of arbitrary objects, Rails has `collection_select`, `collection_radio_button`, and `collection_checkboxes` helpers.
+If you need to generate a set of choices from a collection of arbitrary objects, Rails has `collection_select`, `collection_radio_buttons`, and `collection_checkboxes` helpers.
 
 To see when these helpers are useful, suppose you have a `City` model and corresponding `belongs_to :city` association with `Person`:
 
@@ -1128,7 +1128,7 @@ The following form allows a user to create a `Person` and its associated address
 
         <%= addresses_form.label :street %>
         <%= addresses_form.text_field :street %>
-        ...
+        <!-- ... -->
       </li>
     <% end %>
   </ul>
@@ -1160,7 +1160,7 @@ Will output the following HTML:
 
         <label for="person_addresses_attributes_0_street">Street</label>
         <input type="text" name="person[addresses_attributes][0][street]" id="person_addresses_attributes_0_street">
-        ...
+        <!-- ... -->
       </li>
 
       <li>
@@ -1169,7 +1169,7 @@ Will output the following HTML:
 
         <label for="person_addresses_attributes_1_street">Street</label>
         <input type="text" name="person[addresses_attributes][1][street]" id="person_addresses_attributes_1_street">
-        ...
+        <!-- ... -->
       </li>
   </ul>
 </form>
@@ -1224,7 +1224,7 @@ If the associated object is already saved, `fields_for` autogenerates a hidden i
 ### Permitting Parameters in the Controller
 
 As usual you need to [declare the permitted
-parameters](action_controller_overview.html#strong-parameters) in the controller
+parameters](action_controller_overview.html#securing-submitted-parameters) in the controller
 before you pass them to the model:
 
 ```ruby
@@ -1263,7 +1263,7 @@ destroyed. This form allows users to remove addresses:
         <%= addresses_form.checkbox :_destroy %>
         <%= addresses_form.label :kind %>
         <%= addresses_form.text_field :kind %>
-        ...
+        <!-- ... -->
       </li>
     <% end %>
   </ul>

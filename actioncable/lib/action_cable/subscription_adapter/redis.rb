@@ -1,11 +1,10 @@
 # frozen_string_literal: true
 
-# :markup: markdown
-
 gem "redis-client"
 require "redis-client"
 
 require "active_support/core_ext/hash/except"
+require "active_support/core_ext/hash/keys"
 
 module ActionCable
   module SubscriptionAdapter

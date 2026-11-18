@@ -32,7 +32,7 @@ class ActiveRecordMessagePackTest < ActiveRecord::TestCase
     post = Post.create!(title: "A Title", body: "A body.")
     post.create_author!(name: "An Author")
     post.comments.create!(body: "A comment.")
-    post.comments.create!(body: "Another comment.", author: post.author)
+    comment_with_author = post.comments.create!(body: "Another comment.", author: post.author)
     post.comments.load
 
     assert_no_queries do
@@ -45,7 +45,7 @@ class ActiveRecordMessagePackTest < ActiveRecord::TestCase
 
       assert_same roundtripped_post, roundtripped_post.comments[0].post
       assert_same roundtripped_post, roundtripped_post.comments[1].post
-      assert_same roundtripped_post.author, roundtripped_post.comments[1].author
+      assert_same roundtripped_post.author, roundtripped_post.comments.find { |comment| comment.id == comment_with_author.id }.author
     end
   end
 

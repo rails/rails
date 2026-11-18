@@ -1,7 +1,10 @@
 # frozen_string_literal: true
 
+require "shellwords"
+
 module ActiveStorage
-  # = Active Storage Video \Analyzer
+  # Active Storage Video \Analyzer
+  # ==============================
   #
   # Extracts the following from a video blob:
   #
@@ -15,12 +18,14 @@ module ActiveStorage
   #
   # Example:
   #
-  #   ActiveStorage::Analyzer::VideoAnalyzer.new(blob).metadata
-  #   # => { width: 640.0, height: 480.0, duration: 5.0, angle: 0, display_aspect_ratio: [4, 3], audio: true, video: true }
+  # ```
+  # ActiveStorage::Analyzer::VideoAnalyzer.new(blob).metadata
+  # # => { width: 640.0, height: 480.0, duration: 5.0, angle: 0, display_aspect_ratio: [4, 3], audio: true, video: true }
+  # ```
   #
   # When a video's angle is 90, -90, 270 or -270 degrees, its width and height are automatically swapped for convenience.
   #
-  # This analyzer requires the {FFmpeg}[https://www.ffmpeg.org] system library, which is not provided by \Rails.
+  # This analyzer requires the [FFmpeg](https://www.ffmpeg.org) system library, which is not provided by \Rails.
   class Analyzer::VideoAnalyzer < Analyzer
     def self.accept?(blob)
       blob.video?
@@ -140,9 +145,13 @@ module ActiveStorage
             "-show_streams",
             "-show_format",
             "-v", "error",
+            *Shellwords.split(ActiveStorage.ffprobe_arguments),
+            *ActiveStorage.ffmpeg_format_whitelist_arguments,
             file.path
           ]) do |output|
-            JSON.parse(output.read)
+            JSON.parse(output.read, allow_duplicate_key: true)
+          end.tap do
+            logger.warn "Video analysis failed because ffprobe exited with status #{$?.exitstatus}. The file may be corrupt, or in a format outside config.active_storage.ffmpeg_allowed_formats." unless $?.success?
           end
         end
       rescue Errno::ENOENT

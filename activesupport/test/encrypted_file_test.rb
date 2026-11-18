@@ -163,6 +163,30 @@ class EncryptedFileTest < ActiveSupport::TestCase
     end
   end
 
+  test "inspect does not show the key or decrypted content but shows paths" do
+    @encrypted_file.write @content
+    @encrypted_file.read
+
+    assert_no_match(/#{@key}/, @encrypted_file.inspect)
+    assert_no_match(/#{@content}/, @encrypted_file.inspect)
+    assert_match(/@content_path=#{Regexp.escape(Pathname.new(@content_path).inspect)}/, @encrypted_file.inspect)
+    assert_match(/@key_path=#{Regexp.escape(Pathname.new(@key_path).inspect)}/, @encrypted_file.inspect)
+    assert_match(/\A#<ActiveSupport::EncryptedFile:0x[0-9a-f]+ @content_path=#<Pathname:.*>, @key_path=#<Pathname:.*>>\z/, @encrypted_file.inspect)
+  end
+
+  test "inspect does not show the env key or decrypted content but shows paths" do
+    FileUtils.rm_rf @key_path
+    ENV["CONTENT_KEY"] = @key
+    @encrypted_file.write @content
+    @encrypted_file.read
+
+    assert_no_match(/#{@key}/, @encrypted_file.inspect)
+    assert_no_match(/#{@content}/, @encrypted_file.inspect)
+    assert_match(/@content_path=#{Regexp.escape(Pathname.new(@content_path).inspect)}/, @encrypted_file.inspect)
+    assert_match(/@key_path=#{Regexp.escape(Pathname.new(@key_path).inspect)}/, @encrypted_file.inspect)
+    assert_match(/\A#<ActiveSupport::EncryptedFile:0x[0-9a-f]+ @content_path=#<Pathname:.*>, @key_path=#<Pathname:.*>>\z/, @encrypted_file.inspect)
+  end
+
   private
     def encrypted_file(content_path, key_path: @key_path, env_key: "CONTENT_KEY")
       ActiveSupport::EncryptedFile.new(content_path: @content_path, key_path: key_path,

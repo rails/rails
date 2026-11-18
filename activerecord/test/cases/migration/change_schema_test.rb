@@ -5,6 +5,8 @@ require "cases/helper"
 module ActiveRecord
   class Migration
     class ChangeSchemaTest < ActiveRecord::TestCase
+      skip_under_ractor_proxy
+
       attr_reader :connection, :table_name
 
       def setup
@@ -72,7 +74,7 @@ module ActiveRecord
         assert_equal "hello", one.default
         assert_equal true, two.cast_type.deserialize(two.default)
         assert_equal false, three.cast_type.deserialize(three.default)
-        assert_equal 1, four.default
+        assert_equal "1", four.default
         assert_equal "hello", five.default unless mysql
       end
 
@@ -521,6 +523,8 @@ module ActiveRecord
 
     if ActiveRecord::Base.lease_connection.supports_foreign_keys?
       class ChangeSchemaWithDependentObjectsTest < ActiveRecord::TestCase
+        skip_under_ractor_proxy
+
         self.use_transactional_tests = false
 
         setup do

@@ -4,7 +4,7 @@ Product Reviews
 ===============
 
 This guide covers adding Reviews to the e-commerce application you created in
-the [Getting Started Guide](getting_started.html)). We will use the code from
+the [Getting Started Guide](getting_started.html). We will use the code from
 the [Wishlists Guide](wishlists.html) as a starting place.
 
 After reading this guide, you will know how to:
@@ -90,7 +90,7 @@ $ bin/rails db:migrate
    -> 0.0036s
 -- add_column(:products, :reviews_count, :integer, {default: 0})
    -> 0.0005s
--- add_column(:products, :rating, :decimal, {precision: 2, scale: 1})
+-- add_column(:products, :rating, :decimal, {precision: 2, scale: 1, default: 0})
    -> 0.0004s
 == 20260421200530 CreateReviews: migrated (0.0045s) ===========================
 ```
@@ -196,10 +196,9 @@ class Products::ReviewsController < ApplicationController
   end
 
   private
-
-  def set_product
-    @product = Product.find(params[:product_id])
-  end
+    def set_product
+      @product = Product.find(params[:product_id])
+    end
 end
 ```
 
@@ -325,7 +324,7 @@ Next, we need to save reviews in the database when the form is submitted.
 
 Add the `create` action to the controller:
 
-```ruby#8-15,23-25
+```ruby#8-15,22-24
 class Products::ReviewsController < ApplicationController
   before_action :set_product
 
@@ -343,14 +342,13 @@ class Products::ReviewsController < ApplicationController
   end
 
   private
+    def set_product
+      @product = Product.find(params[:product_id])
+    end
 
-  def set_product
-    @product = Product.find(params[:product_id])
-  end
-
-  def review_params
-    params.expect(review: [ :rating, :body, images: [] ]).with_defaults(user: Current.user)
-  end
+    def review_params
+      params.expect(review: [ :rating, :body, images: [] ]).with_defaults(user: Current.user)
+    end
 end
 ```
 
@@ -361,7 +359,7 @@ is always set.
 
 ## Displaying Product Reviews
 
-We need to a way to view these product reviews next. Let's use a two-column
+We need a way to view these product reviews next. Let's use a two-column
 layout that shows an overview of ratings on the left and the reviews on the
 right.
 
@@ -437,8 +435,8 @@ alongside the reviews.
 
       <div>
         <% 5.downto(1).each do |i| %>
-          <%= link_to product_path(product, rating: i), class: "review__summary", aria: { label: "#{pluralize(i, "star")} — #{product.rating_percentage(i)}% of reviews" } do %>
-            <div aria-hidden="true">
+          <%= link_to product_path(product, rating: i), aria: { label: "#{pluralize(i, "star")} — #{product.rating_percentage(i)}% of reviews" } do %>
+            <div class="review__summary", aria-hidden="true">
               <div class="review__stars"><%= i %></div>
               <div class="gold">★</div>
               <div class="review__bars">
@@ -566,7 +564,7 @@ average rating on the `Product`.
 
 To solve this, we can add a callback to the `Review` model to update the
 associated `Product` rating. This works very similarly to a counter cache, but
-instead we're calcuating an average.
+instead we're calculating an average.
 
 Let's add the callback to `app/models/review.rb`:
 
@@ -625,7 +623,8 @@ class Review < ApplicationRecord
 
   scope :rated, ->(rating) { rating.present? ? where(rating: rating.to_i) : all }
 
-  validates :body, :rating, presence: true
+  validates :body, presence: true
+  validates :rating, presence: true, numericality: { in: 1..5, only_integer: true }
 
   after_commit :update_product_rating
 
@@ -743,14 +742,13 @@ class Store::ReviewsController < Store::BaseController
   end
 
   private
+    def set_review
+      @review = Review.find(params[:id])
+    end
 
-  def set_review
-    @review = Review.find(params[:id])
-  end
-
-  def review_params
-    params.expect(review: [ :rating, :body, images: [] ])
-  end
+    def review_params
+      params.expect(review: [ :rating, :body, images: [] ])
+    end
 end
 ```
 
@@ -967,9 +965,9 @@ By default, Rails will replace all of the existing images when a new value is
 assigned. To preserve existing images when editing a review, we need to create
 hidden fields for each image that's already uploaded. These hidden fields use
 the image's `signed_id` to reference the existing ActiveRecord object and also
-ensures that it wasn't tampered with. We use `multiple: true` so Rails generates
+ensure that it wasn't tampered with. We use `multiple: true` so Rails generates
 the correct name to add the `images` param as an array. We also disable the `id`
-generated for this fields since it would generate duplicates and we don't need
+generated for these fields since it would generate duplicates and we don't need
 them.
 
 With that added, store admins can now view, edit, and delete reviews as needed.
@@ -1175,7 +1173,7 @@ $ bin/rails generate integration_test reviews
       create    test/integration/reviews_test.rb
 ```
 
-In `test/integrations/reviews_test.rb`, let's add a test that submits a review
+In `test/integration/reviews_test.rb`, let's add a test that submits a review
 as a logged-in user.
 
 ```ruby
@@ -1336,7 +1334,7 @@ $ bin/kamal deploy
 Your e-commerce store now has product reviews to help customers make more
 informed decisions about your products!
 
-Here are a few ideas to build on to this:
+Here are a few ideas to build on top of this:
 
 - Write more tests
 - Finish translating the app into another language

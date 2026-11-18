@@ -64,9 +64,6 @@ module TestHelpers
       end
     end
 
-    def framework_path
-      RAILS_FRAMEWORK_ROOT
-    end
 
     def rails_root
       app_path
@@ -116,7 +113,7 @@ module TestHelpers
       @prev_rails_application ||= Rails.application
       Rails.app_class = Rails.application = nil
 
-      @prev_rails_env ||= ENV["RAILS_ENV"]
+      @prev_rails_env = ENV["RAILS_ENV"] unless defined?(@prev_rails_env)
       ENV["RAILS_ENV"] = "development"
 
       FileUtils.rm_rf(app_path)
@@ -361,7 +358,7 @@ module TestHelpers
 
       app_file "config/routes.rb", <<-RUBY
         Rails.application.routes.draw do
-          get ':controller(/:action)'
+          get 'foo', to: 'foo#index'
         end
       RUBY
     end
@@ -559,7 +556,7 @@ module TestHelpers
     end
 
     def use_frameworks(arr)
-      to_remove = [:actionmailer, :activerecord, :activestorage, :activejob, :actionmailbox] - arr
+      to_remove = [:actionmailer, :activerecord, :activestorage, :activejob, :actionmailbox, :actiontext] - arr
 
       if to_remove.include?(:activerecord)
         remove_from_config "config.active_record.*"

@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+# :markup: rdoc
+
 require "yaml"
 require "active_support/core_ext/hash/keys"
 require "active_support/key_generator"
@@ -123,8 +125,8 @@ module Rails
       @revision          = nil
       @revision_initialized = false
 
-      @executor          = Class.new(ActiveSupport::Executor)
-      @reloader          = Class.new(ActiveSupport::Reloader)
+      @executor          = Class.new(ActiveSupport::Executor).set_temporary_name("ActiveSupport::Executor(#{inspect})")
+      @reloader          = Class.new(ActiveSupport::Reloader).set_temporary_name("ActiveSupport::Reloader(#{inspect})")
       @reloader.executor = @executor
 
       @autoloaders = Rails::Autoloaders.new
@@ -162,11 +164,7 @@ module Rails
 
     # Reload application routes regardless if they changed or not.
     def reload_routes!
-      if routes_reloader.execute_unless_loaded
-        routes_reloader.loaded = false
-      else
-        routes_reloader.reload!
-      end
+      routes_reloader.reload!
     end
 
     def reload_routes_unless_loaded # :nodoc:
@@ -215,8 +213,8 @@ module Rails
     #
     def message_verifiers
       @message_verifiers ||=
-        ActiveSupport::MessageVerifiers.new do |salt, secret_key_base: self.secret_key_base|
-          key_generator(secret_key_base).generate_key(salt)
+        ActiveSupport::MessageVerifiers.new do |salt, secret_key_base: Rails.application.secret_key_base|
+          Rails.application.key_generator(secret_key_base).generate_key(salt)
         end.rotate_defaults
     end
 
@@ -584,7 +582,7 @@ module Rails
     #   Rails.app.dotenvs.option(:cache_host, default: "cache-host-1") # CACHE_HOST from .env or "cache-host-1"
     #   Rails.app.dotenvs.option(:cache_host, default: -> { HostProvider.cache }) # CACHE_HOST from .env or HostProvider.cache
     #
-    # In development mode, this configuration backend is automatically part of `Rails.app.creds`.
+    # In development mode, this configuration backend is automatically part of +Rails.app.creds+.
     def dotenvs(path = Rails.root.join(".env"))
       @dotenvs ||= {}
       @dotenvs[path] ||= ActiveSupport::DotEnvConfiguration.new(path)
@@ -666,6 +664,33 @@ module Rails
     # Eager loads the application code.
     def eager_load!
       Rails.autoloaders.each(&:eager_load)
+    end
+
+    def ractorize! # :nodoc:
+      warn "Ractor support in Rails is experimental and subject to change.", category: :experimental, uplevel: 1
+
+      env_config
+      revision
+      routes
+
+      @autoloaders, @reloaders, @routes_reloader = nil, nil, nil
+
+      ActiveSupport.run_load_hooks(:before_ractorize, self)
+
+      ActiveSupport::TimeZone.make_shareable!
+
+      Ractor.make_shareable(self)
+      Ractor.make_shareable(Rails.env)
+      Ractor.make_shareable(Rails.logger)
+      Ractor.make_shareable(Rails.event)
+      Ractor.make_shareable(Rails.error)
+      Ractor.make_shareable(Rails.backtrace_cleaner)
+
+      begin
+        require "rack/ractorize"
+      rescue LoadError
+        raise "rack/ractorize not available, but required for Ractor support."
+      end
     end
 
   protected
@@ -772,7 +797,7 @@ module Rails
       end
 
       def coerce_same_site_protection(protection)
-        protection.respond_to?(:call) ? protection : proc { protection }
+        protection.respond_to?(:call) ? protection : ActiveSupport::Ractors.shareable_proc { protection }
       end
 
       def filter_parameters

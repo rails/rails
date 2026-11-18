@@ -49,8 +49,6 @@ There are also numerous related guides that you may find useful:
   connection between Active Record models
 * [Composite Primary Keys](active_record_composite_primary_keys.html) - Learn
   how to work with composite primary keys
-* [Active Record Transactions](active_record_basics.html#transactions) - Learn
-  about database transactions
 
 A Bookstore Model Example
 -------------------------
@@ -482,8 +480,8 @@ Customer.where(first_name: "does not exist").take!
 ```
 
 If you are using [composite primary
-keys](active_record_composite_primary_keys.html), see the [Conditions with
-`id`](active_record_composite_primary_keys.html#conditions-with-id) section of
+keys](active_record_composite_primary_keys.html), see the [Using
+`where`](active_record_composite_primary_keys.html#using-where) section of
 the Composite Primary Keys guide for the `find_by(id:)` behavior.
 
 [`find_by`]:
@@ -683,7 +681,7 @@ database and retrieving instantiated records.
 `find_by_sql` has a close relative called [`lease_connection.select_all`][].
 `select_all` will retrieve results from the database using custom SQL just like
 `find_by_sql` but will not instantiate them. This method will return an instance
-of `ActiveRecord::Result` class and calling `to_a` on it returns an array of hashes where each hash represents a row.
+of the `ActiveRecord::Result` class and calling `to_a` on it returns an array of hashes where each hash represents a row.
 
 ```irb
 store(dev)> Customer.lease_connection.select_all("SELECT first_name, created_at FROM customers WHERE id = \"1\"").to_a
@@ -795,7 +793,7 @@ store(dev)> assoc.unscope(:includes).pluck(:id)
 
 [`pick`][] can be used to pick the value(s) from the named column(s) in the
 current relation. It accepts a list of column names as an argument and returns
-the first row of the specified column values ​​with corresponding data type.
+the first row of the specified column values with the corresponding data type.
 `pick` is a short-hand for `relation.limit(1).pluck(*column_names).first`, which
 is primarily useful when you already have a relation that is limited to one row.
 
@@ -917,7 +915,7 @@ constraint violations atomically.
 ### `find_or_create_by!`
 
 You can also use [`find_or_create_by!`][] to raise an exception if the new
-record is invalid. Validations are not covered on this guide, however let's
+record is invalid. Validations are not covered in this guide, however let's
 assume that you have temporarily added the following validation to your
 `Customer` model:
 
@@ -946,7 +944,7 @@ You can use `find_or_initialize_by` to find the customer named 'Nina':
 
 ```irb
 store(dev)> nina = Customer.find_or_initialize_by(first_name: "Nina")
-=> #<Customer id: nil, first_name: "Nina", orders_count: 0, locked: true, created_at: "2011-08-30 06:09:27", updated_at: "2011-08-30 06:09:27">
+=> #<Customer id: nil, first_name: "Nina", orders_count: 0, locked: true, created_at: nil, updated_at: nil>
 
 store(dev)> nina.persisted?
 => false
@@ -1221,7 +1219,7 @@ end
 
 If an order is present in the relation, the behavior depends on the flag
 [`config.active_record.error_on_ignored_order`][]. If this flag is set to true,
-`ArgumentError` is raised, otherwise the order is ignored and a warning issued,
+`ArgumentError` is raised, otherwise the order is ignored and a warning is issued,
 which is the default behavior. This can be overridden with the option
 `:error_on_ignore`, explained below.
 
@@ -1270,7 +1268,7 @@ useful, for example, if you wanted to run a batch process using a subset of
 records based on `:start` and `:finish`.
 
 For example, to send newsletters only to customers with the primary key starting
-from 2000 up to including 9999:
+from 2000 up to and including 9999:
 
 ```ruby
 Customer.find_each(start: 2000, finish: 9999) do |customer|
@@ -1359,7 +1357,7 @@ end
 
 The `finish` option allows specifying the ending ID of the records to be
 retrieved. The code below shows the case of retrieving customers in batches, up
-to including the customer with ID: 7000:
+to and including the customer with ID: 7000:
 
 ```ruby
 Customer.find_in_batches(finish: 7000) do |customers|
@@ -1699,8 +1697,8 @@ If you want to call `order` multiple times, subsequent orders will be appended
 to the first:
 
 ```irb
-store(dev)> Book.order("title ASC").order("created_at DESC")
-SELECT * FROM books ORDER BY title ASC, created_at DESC
+store(dev)> Book.order(title: :asc).order(created_at: :desc)
+SELECT * FROM books ORDER BY books.title ASC, books.created_at DESC
 ```
 
 You can also order from a joined table:
@@ -1750,7 +1748,7 @@ ActiveModel::MissingAttributeError: missing attribute '<attribute>' for Book
 ```
 
 In the above example, `<attribute>` would be the requested attribute. The `id`
-method will not raise the `ActiveRecord::MissingAttributeError`, so exercise
+method will not raise the `ActiveModel::MissingAttributeError`, so exercise
 caution when working with associations, which need the `id` method to function
 properly.
 
@@ -1906,7 +1904,7 @@ You can specify certain conditions to be removed using the [`unscope`][] method.
 For example:
 
 ```ruby
-Book.where("id > 100").limit(20).order("id desc").unscope(:order)
+Book.where("id > 100").limit(20).order(id: :desc).unscope(:order)
 ```
 
 The SQL that would be executed:
@@ -1921,7 +1919,7 @@ SELECT *
 SELECT *
   FROM books
   WHERE id > 100
-  ORDER BY id desc
+  ORDER BY books.id DESC
   LIMIT 20
 ```
 
@@ -1943,7 +1941,7 @@ merged. In the following example the `order` is removed from the original
 relation:
 
 ```ruby
-Book.order("id desc").merge(Book.unscope(:order))
+Book.order(id: :desc).merge(Book.unscope(:order))
 ```
 
 This will generate the following SQL:
@@ -2002,7 +2000,7 @@ example only the `:order` and `:where` scopes are applied, but the `:limit`
 scope is removed:
 
 ```ruby
-Book.where("id > 10").limit(20).order("id desc").only(:order, :where)
+Book.where("id > 10").limit(20).order(id: :desc).only(:order, :where)
 ```
 
 The SQL that would be executed:
@@ -2011,13 +2009,13 @@ The SQL that would be executed:
 SELECT *
   FROM books
   WHERE id > 10
-  ORDER BY id DESC
+  ORDER BY books.id DESC
 
 -- Original query without `only`
 SELECT *
   FROM books
   WHERE id > 10
-  ORDER BY id DESC
+  ORDER BY books.id DESC
   LIMIT 20
 ```
 
@@ -2029,7 +2027,7 @@ SELECT *
 You can remove specific conditions using the [`except`][] method. For example:
 
 ```ruby
-Book.where("id > 100").limit(20).order("id desc").except(:order)
+Book.where("id > 100").limit(20).order(id: :desc).except(:order)
 ```
 
 The SQL that will be executed ignores the `:order` clause:
@@ -2044,14 +2042,14 @@ SELECT *
 SELECT *
   FROM books
   WHERE id > 100
-  ORDER BY id desc
+  ORDER BY books.id DESC
   LIMIT 20
 ```
 
 You can also remove multiple conditions:
 
 ```ruby
-Book.where("id > 100").limit(20).order("id desc").except(:order, :limit)
+Book.where("id > 100").limit(20).order(id: :desc).except(:order, :limit)
 ```
 
 This will generate the following SQL:
@@ -2128,15 +2126,15 @@ SELECT *
   ORDER BY year_published ASC
 ```
 
-The `reorder` method also works with any previously defined order, not just
-association order:
+The `reorder` method also works with any order defined earlier in the query
+chain, not just one from a default scope:
 
 ```ruby
-Book.where("id > 100").order("id desc").reorder("title ASC")
+Book.where("id > 100").order(id: :desc).reorder(title: :asc)
 ```
 
-This will override the previous `order("id desc")` clause and only order by
-title.
+This will override both the default scope order and the previous
+`order(id: :desc)` clause, and only order by title.
 
 ### `reverse_order`
 
@@ -2363,7 +2361,7 @@ The above session produces the following SQL for a MySQL backend:
 
 ```sql
 SQL (0.2ms)   BEGIN
-Book Load (0.3ms)   SELECT * FROM books LIMIT 1 FOR UPDATE
+Book Load (0.3ms)   SELECT * FROM books ORDER BY books.id ASC LIMIT 1 FOR UPDATE
 Book Update (0.4ms)   UPDATE books SET updated_at = "2009-02-07 18:05:56", title = "Algorithms, second edition" WHERE id = 1
 SQL (0.8ms)   COMMIT
 ```
@@ -2656,7 +2654,7 @@ books.each do |book|
 end
 ```
 
-This code looks fine at the first sight, but the problem lies within the total
+This code looks fine at first sight, but the problem lies within the total
 number of queries executed. The above code executes 1 (to find 10 books) + 10
 (one per each book to load the author) = **11** queries in total.
 
@@ -2995,7 +2993,7 @@ end
 
 However, there is one important caveat: A scope will always return an
 `ActiveRecord::Relation` object, even if the conditional evaluates to `false`,
-whereas a class method, will return `nil`. This can cause `NoMethodError` when
+whereas a class method will return `nil`. This can cause `NoMethodError` when
 chaining class methods with conditionals, if any of the conditionals return
 `false`.
 
@@ -3052,8 +3050,7 @@ scope arguments are given as a `Hash`. It is not applied while updating a
 record.
 
 For example, if you have a `default_scope` that sets `out_of_print` to `false`,
-and you create a new book with the `out_of_print` attribute set to `true`, the
-`default_scope` will be applied:
+new books will have `out_of_print` set to `false` by default:
 
 ```ruby
 class Book < ApplicationRecord
@@ -3064,6 +3061,8 @@ end
 ```irb
 store(dev)> Book.new
 => #<Book id: nil, out_of_print: false>
+store(dev)> Book.new(out_of_print: true)
+=> #<Book id: nil, out_of_print: true>
 store(dev)> Book.unscoped.new
 => #<Book id: nil, out_of_print: nil>
 ```
@@ -3270,7 +3269,7 @@ For example:
 
 ```ruby
 class Order < ApplicationRecord
-  enum :status, [:shipped, :being_packaged, :complete, :cancelled]
+  enum :status, [:shipped, :being_packed, :complete, :cancelled]
 end
 ```
 
@@ -3355,7 +3354,7 @@ SELECT COUNT(DISTINCT customers.id) FROM customers
   WHERE (customers.first_name = "Ryan" AND orders.status = 0)
 ```
 
-assuming that Order has `enum status: [ :shipped, :being_packed, :cancelled ]`.
+assuming that Order has `enum :status, [ :shipped, :being_packed, :cancelled ]`.
 
 ### `count`
 

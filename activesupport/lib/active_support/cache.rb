@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+# :markup: rdoc
+
 require "zlib"
 require "active_support/core_ext/array/extract_options"
 require "active_support/core_ext/class/attribute"
@@ -478,7 +480,7 @@ module ActiveSupport
           end
 
           if entry
-            get_entry_value(entry, name, options)
+            get_entry_value(entry, key, options)
           else
             save_block_result_to_cache(name, key, options, &block)
           end
@@ -1065,6 +1067,16 @@ module ActiveSupport
           end
         end
 
+        INSTRUMENT_EVENT_NAMES = %i[
+          read read_multi write write_multi delete delete_multi exist? fetch_hit generate
+          delete_matched increment decrement cleanup prune
+        ].index_with { |operation| "cache_#{operation}.active_support".freeze }.freeze
+        private_constant :INSTRUMENT_EVENT_NAMES
+
+        def instrument_event_name(operation)
+          INSTRUMENT_EVENT_NAMES[operation] || "cache_#{operation}.active_support"
+        end
+
         def instrument(operation, key, options = nil, &block)
           unless silence?
             logger&.debug do
@@ -1079,7 +1091,7 @@ module ActiveSupport
             key: key
           }
           payload.merge!(options) if options.is_a?(Hash)
-          ActiveSupport::Notifications.instrument("cache_#{operation}.active_support", payload) do
+          ActiveSupport::Notifications.instrument(instrument_event_name(operation), payload) do
             block&.call(payload)
           end
         end
@@ -1098,7 +1110,7 @@ module ActiveSupport
             key: keys
           }
           payload.merge!(options) if options.is_a?(Hash)
-          ActiveSupport::Notifications.instrument("cache_#{operation}.active_support", payload) do
+          ActiveSupport::Notifications.instrument(instrument_event_name(operation), payload) do
             block&.call(payload)
           end
         end
@@ -1119,8 +1131,8 @@ module ActiveSupport
           entry
         end
 
-        def get_entry_value(entry, name, options)
-          instrument(:fetch_hit, name, options)
+        def get_entry_value(entry, key, options)
+          instrument(:fetch_hit, key, options)
           entry.value
         end
 

@@ -1,8 +1,6 @@
 # frozen_string_literal: true
 
-# :markup: markdown
-
-require "active_support/core_ext/array/extract_options"
+require "active_support/ractors"
 require "action_dispatch/middleware/stack"
 
 module ActionController
@@ -16,11 +14,79 @@ module ActionController
   #     end
   #
   class MiddlewareStack < ActionDispatch::MiddlewareStack # :nodoc:
+    class Proxy # :nodoc:
+      delegate_missing_to :middleware_stack
+
+      def initialize(controller)
+        @controller = controller
+      end
+
+      def unshift(...)
+        update_middleware_stack { |stack| stack.unshift(...) }
+      end
+
+      def insert(...)
+        update_middleware_stack { |stack| stack.insert(...) }
+      end
+
+      def insert_before(...)
+        update_middleware_stack { |stack| stack.insert_before(...) }
+      end
+
+      def insert_after(...)
+        update_middleware_stack { |stack| stack.insert_after(...) }
+      end
+
+      def swap(...)
+        update_middleware_stack { |stack| stack.swap(...) }
+      end
+
+      def delete(...)
+        update_middleware_stack { |stack| stack.delete(...) }
+      end
+
+      def delete!(...)
+        update_middleware_stack { |stack| stack.delete!(...) }
+      end
+
+      def move(...)
+        update_middleware_stack { |stack| stack.move(...) }
+      end
+
+      def move_before(...)
+        update_middleware_stack { |stack| stack.move_before(...) }
+      end
+
+      def move_after(...)
+        update_middleware_stack { |stack| stack.move_after(...) }
+      end
+
+      def use(...)
+        update_middleware_stack { |stack| stack.use(...) }
+      end
+
+      def middlewares=(middlewares)
+        update_middleware_stack { |stack| stack.middlewares = middlewares }
+      end
+
+      private
+        def middleware_stack
+          @controller.middleware_stack
+        end
+
+        def update_middleware_stack
+          stack = middleware_stack.dup
+          result = yield stack
+          @controller.middleware_stack = ActiveSupport::Ractors.try_make_shareable(stack)
+          result
+        end
+    end
+
     class Middleware < ActionDispatch::MiddlewareStack::Middleware # :nodoc:
-      def initialize(klass, args, actions, strategy, block)
+      def initialize(klass, args, kwargs, actions, strategy, block)
         @actions = actions
         @strategy = strategy
-        super(klass, args, block)
+        super(klass, args, kwargs, block)
       end
 
       def valid?(action)
@@ -41,11 +107,9 @@ module ActionController
       EXCLUDE = ActiveSupport::Ractors.shareable_lambda { |list, action| !list.include? action }
       NULL    = ActiveSupport::Ractors.shareable_lambda { |list, action| true }
 
-      def build_middleware(klass, args, block)
-        options = args.extract_options!
-        only   = Array(options.delete(:only)).map(&:to_s)
-        except = Array(options.delete(:except)).map(&:to_s)
-        args << options unless options.empty?
+      def build_middleware(klass, args, kwargs, block)
+        only   = Array(kwargs.delete(:only)).map(&:to_s)
+        except = Array(kwargs.delete(:except)).map(&:to_s)
 
         strategy = NULL
         list     = nil
@@ -58,7 +122,7 @@ module ActionController
           list     = except
         end
 
-        Middleware.new(klass, args, list, strategy, block)
+        Middleware.new(klass, args, kwargs, list, strategy, block)
       end
   end
 
@@ -128,7 +192,12 @@ module ActionController
     # #### Returns
     # *   `string`
     def self.controller_name
-      @controller_name ||= (name.demodulize.delete_suffix("Controller").underscore unless anonymous?)
+      @controller_name ||= (name.demodulize.delete_suffix("Controller").underscore.freeze unless anonymous?)
+    end
+
+    def self.eager_load! # :nodoc:
+      controller_name
+      super
     end
 
     def self.make_response!(request)
@@ -145,7 +214,7 @@ module ActionController
       private
         def inherited(subclass)
           super
-          subclass.middleware_stack = middleware_stack.dup
+          subclass.middleware_stack = ActiveSupport::Ractors.try_make_shareable(middleware_stack.dup)
           subclass.class_eval do
             @controller_name = nil
           end
@@ -216,6 +285,7 @@ module ActionController
       super
     end
 
+    #: () -> ActiveSupport::HashWithIndifferentAccess
     def params
       @_params ||= request.parameters
     end
@@ -291,7 +361,7 @@ module ActionController
       # Pushes the given Rack middleware and its arguments to the bottom of the
       # middleware stack.
       def use(...)
-        middleware_stack.use(...)
+        middleware.use(...)
       end
     end
 
@@ -308,7 +378,7 @@ module ActionController
     # (https://guides.rubyonrails.org/rails_on_rack.html#action-dispatcher-middleware-stack)
     # in the guides.
     def self.middleware
-      middleware_stack
+      ActionController::MiddlewareStack::Proxy.new(self)
     end
 
     # Returns a Rack endpoint for the given action name.

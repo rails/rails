@@ -17,10 +17,18 @@ module ActiveRecord
     end
 
     def create_version(version)
+      create_versions([version])
+      version.to_s
+    end
+
+    def create_versions(versions) # :nodoc:
+      return if versions.empty?
+
       im = Arel::InsertManager.new(arel_table)
-      im.insert(arel_table[primary_key] => version)
+      im.columns << arel_table[primary_key]
+      im.values = im.create_values_list(versions.map { |version| [version] })
       @pool.with_connection do |connection|
-        connection.insert(im, "#{self.class} Create", primary_key, version)
+        connection.execute(connection.to_sql(im), "#{self.class} Create")
       end
     end
 
@@ -54,7 +62,7 @@ module ActiveRecord
       @pool.with_connection do |connection|
         unless connection.table_exists?(table_name)
           connection.create_table(table_name, id: false) do |t|
-            t.string :version, **connection.internal_string_options_for_primary_key
+            t.string :version, primary_key: true
           end
         end
       end

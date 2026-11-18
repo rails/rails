@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 
+require "active_support/testing/ractors_assertions"
 require "isolation/abstract_unit"
 require "rack/test"
 require "env_helpers"
@@ -40,6 +41,7 @@ class ::MyOldKeyProvider; end
 module ApplicationTests
   class ConfigurationTest < ActiveSupport::TestCase
     include ActiveSupport::Testing::Isolation
+    include ActiveSupport::Testing::RactorsAssertions
     include Rack::Test::Methods
     include EnvHelpers
 
@@ -338,6 +340,13 @@ module ApplicationTests
       assert_instance_of Pathname, Rails.public_path
     end
 
+    test "Rails.app executor and reloader are named" do
+      app "development"
+
+      assert Rails.app.executor.name.starts_with?("ActiveSupport::Executor(#<AppTemplate::Application:")
+      assert Rails.app.reloader.name.starts_with?("ActiveSupport::Reloader(#<AppTemplate::Application:")
+    end
+
     test "config.enable_reloading is !config.cache_classes" do
       app "development"
 
@@ -623,6 +632,31 @@ module ApplicationTests
       assert_equal [:password, :foo, "bar"], Rails.application.env_config["action_dispatch.parameter_filter"]
     end
 
+    test "config.action_dispatch.default_headers can be set in an initializer and is applied to responses" do
+      app_file "config/initializers/default_headers.rb", <<-RUBY
+        Rails.application.config.action_dispatch.default_headers = { "X-Custom-Header" => "custom" }
+      RUBY
+
+      app_file "app/controllers/pages_controller.rb", <<-RUBY
+        class PagesController < ApplicationController
+          def index
+            render plain: "OK"
+          end
+        end
+      RUBY
+
+      add_to_config <<-RUBY
+        routes.prepend do
+          get "/pages", to: "pages#index"
+        end
+      RUBY
+
+      app "development"
+
+      get "/pages"
+      assert_equal "custom", last_response.headers["X-Custom-Header"]
+    end
+
     test "filter_parameters is precompiled when config.precompile_filter_parameters is true" do
       filters = [/foo/, :bar, "baz.qux"]
 
@@ -864,6 +898,59 @@ module ApplicationTests
 
       assert_not_nil app.secret_key_base
       assert File.exist?(app_path("tmp/local_secret.txt"))
+    end
+
+    unless Gem.win_platform?
+      test "generated local secret file is only readable by the owner" do
+        app_file "config/initializers/secret_token.rb", <<-RUBY
+          Rails.application.config.secret_key_base = nil
+        RUBY
+
+        with_umask(0o022) do
+          # The file must be private even when its permissions cannot be repaired.
+          File.stub(:chmod, ->(*) { raise Errno::EPERM }) do
+            app "development"
+          end
+        end
+
+        assert_not_nil app.secret_key_base
+        assert_equal 0o600, local_secret_file_mode
+      end
+
+      test "existing world-readable local secret file is tightened to owner-only" do
+        app_file "config/initializers/secret_token.rb", <<-RUBY
+          Rails.application.config.secret_key_base = nil
+        RUBY
+
+        secret = SecureRandom.hex(64)
+        app_dir("tmp")
+        File.binwrite(app_path("tmp/local_secret.txt"), secret)
+        File.chmod(0o644, app_path("tmp/local_secret.txt"))
+
+        app "development"
+
+        assert_equal secret, app.secret_key_base
+        assert_equal secret, File.binread(app_path("tmp/local_secret.txt"))
+        assert_equal 0o600, local_secret_file_mode
+      end
+
+      test "existing empty local secret file is regenerated as owner-only" do
+        app_file "config/initializers/secret_token.rb", <<-RUBY
+          Rails.application.config.secret_key_base = nil
+        RUBY
+
+        app_dir("tmp")
+        File.binwrite(app_path("tmp/local_secret.txt"), "")
+        File.chmod(0o644, app_path("tmp/local_secret.txt"))
+
+        with_umask(0o022) do
+          app "development"
+        end
+
+        assert_not_nil app.secret_key_base
+        assert_equal app.secret_key_base, File.binread(app_path("tmp/local_secret.txt"))
+        assert_equal 0o600, local_secret_file_mode
+      end
     end
 
     test "application will generate secret_key_base in tmp file if blank in test" do
@@ -2061,6 +2148,17 @@ module ApplicationTests
 
         assert_includes File.read(app_path("log/ractor.log")), "[request-id] hello"
       end
+
+      test "config.action_dispatch.default_headers can still be mutated after ActionDispatch::Response is loaded" do
+        app "development"
+
+        assert_predicate(ActionDispatch::Response.default_headers, :frozen?)
+        assert_not Rails.application.config.action_dispatch.default_headers.frozen?
+
+        assert_nothing_raised do
+          Rails.application.config.action_dispatch.default_headers["X-Custom-Header"] = "custom"
+        end
+      end
     end
 
     test "respond_to? accepts include_private" do
@@ -2081,6 +2179,32 @@ module ApplicationTests
       app "development"
 
       assert ActiveRecord.dump_schema_after_migration
+    end
+
+    test "config.active_record.dump_schema_migrations is false by default" do
+      app "development"
+
+      assert_not ActiveRecord.dump_schema_migrations
+    end
+
+    test "config.active_record.dump_schema_migrations can be configured" do
+      add_to_config "config.active_record.dump_schema_migrations = true"
+      app "development"
+
+      assert ActiveRecord.dump_schema_migrations
+    end
+
+    test "config.active_record.dump_schema_migrations_sort_by is :reverse by default" do
+      app "development"
+
+      assert_equal :reverse, ActiveRecord.dump_schema_migrations_sort_by
+    end
+
+    test "config.active_record.dump_schema_migrations_sort_by can be configured" do
+      add_to_config "config.active_record.dump_schema_migrations_sort_by = :itself"
+      app "development"
+
+      assert_equal :itself, ActiveRecord.dump_schema_migrations_sort_by
     end
 
     test "config.active_record.verbose_query_logs is false by default in development" do
@@ -2774,7 +2898,7 @@ module ApplicationTests
           key: foo:
       RUBY
 
-      error = assert_raises RuntimeError do
+      error = assert_raises ActiveSupport::ConfigurationFile::FormatError do
         app "development"
       end
       assert_match "YAML syntax error occurred while parsing", error.message
@@ -3401,6 +3525,7 @@ module ApplicationTests
 
     test "config.active_job.verbose_enqueue_logs defaults to true in development" do
       restore_default_config
+
       app "development"
 
       assert ActiveJob.verbose_enqueue_logs
@@ -3410,6 +3535,51 @@ module ApplicationTests
       app "production"
 
       assert_not ActiveJob.verbose_enqueue_logs
+    end
+
+    test "config.action_view.erb_implementation defaults to Herb for new apps" do
+      restore_default_config
+
+      app "production"
+
+      assert_equal ActionView::Template::Handlers::ERB::Herb, ActionView::Template::Handlers::ERB.erb_implementation
+    end
+
+    test "config.action_view.erb_implementation is Erubi before the 8.2 defaults" do
+      restore_default_config
+
+      remove_from_config '.*config\.load_defaults.*\n'
+      add_to_config 'config.load_defaults "8.1"'
+
+      app "production"
+
+      assert_equal ActionView::Template::Handlers::ERB::Erubi, ActionView::Template::Handlers::ERB.erb_implementation
+    end
+
+    test "config.action_view.erb_implementation can be set back to :erubi" do
+      restore_default_config
+
+      app_file "config/initializers/erb_implementation.rb", <<-RUBY
+        Rails.application.config.action_view.erb_implementation = :erubi
+      RUBY
+
+      app "production"
+
+      assert_equal ActionView::Template::Handlers::ERB::Erubi, ActionView::Template::Handlers::ERB.erb_implementation
+    end
+
+    test "config.action_view.erb_implementation can be set to :herb before the 8.2 defaults" do
+      restore_default_config
+
+      remove_from_config '.*config\.load_defaults.*\n'
+      add_to_config 'config.load_defaults "8.1"'
+      app_file "config/initializers/erb_implementation.rb", <<-RUBY
+        Rails.application.config.action_view.erb_implementation = :herb
+      RUBY
+
+      app "production"
+
+      assert_equal ActionView::Template::Handlers::ERB::Herb, ActionView::Template::Handlers::ERB.erb_implementation
     end
 
     test "config.active_job.enqueue_after_transaction_commit defaults to true for new apps" do
@@ -3522,20 +3692,33 @@ module ApplicationTests
       assert_equal true, ActionView::Helpers::FormTagHelper.default_enforce_utf8
     end
 
-    test "ActionView::Helpers::UrlHelper.button_to_generates_button_tag is true by default" do
-      app "development"
-      assert_equal true, ActionView::Helpers::UrlHelper.button_to_generates_button_tag
+    if RUBY_VERSION >= "4.0"
+      test "ActionView::Template::Handlers::ERB.escape_ignore_list is frozen after boot" do
+        app "development"
+
+        escape_ignore_list = on_ractor do
+          ActionView::Template::Handlers::ERB.escape_ignore_list
+        end
+
+        assert_equal(["text/plain"], escape_ignore_list)
+        assert_predicate(escape_ignore_list, :frozen?)
+      end
     end
 
-    test "ActionView::Helpers::UrlHelper.button_to_generates_button_tag is false by default for upgraded apps" do
+    test "ActionView::Helpers::NavigationHelper.button_to_generates_button_tag is true by default" do
+      app "development"
+      assert_equal true, ActionView::Helpers::NavigationHelper.button_to_generates_button_tag
+    end
+
+    test "ActionView::Helpers::NavigationHelper.button_to_generates_button_tag is false by default for upgraded apps" do
       remove_from_config '.*config\.load_defaults.*\n'
       add_to_config 'config.load_defaults "6.1"'
       app "development"
 
-      assert_equal false, ActionView::Helpers::UrlHelper.button_to_generates_button_tag
+      assert_equal false, ActionView::Helpers::NavigationHelper.button_to_generates_button_tag
     end
 
-    test "ActionView::Helpers::UrlHelper.button_to_generates_button_tag can be configured via config.action_view.button_to_generates_button_tag" do
+    test "ActionView::Helpers::NavigationHelper.button_to_generates_button_tag can be configured via config.action_view.button_to_generates_button_tag" do
       remove_from_config '.*config\.load_defaults.*\n'
 
       app_file "config/initializers/new_framework_defaults_7_0.rb", <<-RUBY
@@ -3544,7 +3727,7 @@ module ApplicationTests
 
       app "development"
 
-      assert_equal true, ActionView::Helpers::UrlHelper.button_to_generates_button_tag
+      assert_equal true, ActionView::Helpers::NavigationHelper.button_to_generates_button_tag
     end
 
     test "ActionView::Helpers::AssetTagHelper.image_loading is nil by default" do
@@ -4340,6 +4523,21 @@ module ApplicationTests
       assert_not_includes(output, "rails_direct_uploads")
     end
 
+    test "ActiveStorage.draw_direct_upload_route can be configured via config.active_storage.draw_direct_upload_route" do
+      app_file "config/environments/development.rb", <<-RUBY
+        Rails.application.configure do
+          config.active_storage.draw_direct_upload_route = false
+        end
+      RUBY
+
+      output = rails("routes")
+      assert_not_includes(output, "rails_direct_uploads")
+      assert_includes(output, "rails_service_blob")
+      assert_includes(output, "rails_blob_representation")
+      assert_includes(output, "rails_disk_service")
+      assert_includes(output, "update_rails_disk_service")
+    end
+
     test "ActiveStorage.video_preview_arguments uses the old arguments without Rails 7 defaults" do
       remove_from_config '.*config\.load_defaults.*\n'
 
@@ -4355,6 +4553,65 @@ module ApplicationTests
       assert_equal \
         "-vf 'select=eq(n\\,0)+eq(key\\,1)+gt(scene\\,0.015),loop=loop=-1:size=2,trim=start_frame=1' -frames:v 1 -f image2",
         ActiveStorage.video_preview_arguments
+    end
+
+    test "ActiveStorage.video_preview_input_arguments is empty by default" do
+      app "development"
+
+      assert_equal "", ActiveStorage.video_preview_input_arguments
+    end
+
+    test "ActiveStorage.video_preview_input_arguments can be configured" do
+      add_to_config 'config.active_storage.video_preview_input_arguments = "-codec_whitelist h264"'
+
+      app "development"
+
+      assert_equal "-codec_whitelist h264", ActiveStorage.video_preview_input_arguments
+    end
+
+    test "ActiveStorage.ffprobe_arguments is empty by default" do
+      app "development"
+
+      assert_equal "", ActiveStorage.ffprobe_arguments
+    end
+
+    test "ActiveStorage.ffprobe_arguments can be configured" do
+      add_to_config 'config.active_storage.ffprobe_arguments = "-codec_whitelist h264"'
+
+      app "development"
+
+      assert_equal "-codec_whitelist h264", ActiveStorage.ffprobe_arguments
+    end
+
+    test "ActiveStorage.ffmpeg_allowed_formats restricts ffmpeg to common media formats by default" do
+      app "development"
+
+      assert_equal %w[ mov matroska avi mpeg mpegts flv asf ogg mp3 wav flac aac aiff caf ], ActiveStorage.ffmpeg_allowed_formats
+    end
+
+    test "ActiveStorage.ffmpeg_allowed_formats can be configured" do
+      add_to_config "config.active_storage.ffmpeg_allowed_formats = %w[ mov ]"
+
+      app "development"
+
+      assert_equal %w[ mov ], ActiveStorage.ffmpeg_allowed_formats
+    end
+
+    test "ActiveStorage.ffmpeg_allowed_formats can be extended" do
+      add_to_config "config.active_storage.ffmpeg_allowed_formats += %w[ mxf ]"
+
+      app "development"
+
+      assert_includes ActiveStorage.ffmpeg_allowed_formats, "mov"
+      assert_includes ActiveStorage.ffmpeg_allowed_formats, "mxf"
+    end
+
+    test "ActiveStorage.ffmpeg_allowed_formats can be disabled" do
+      add_to_config "config.active_storage.ffmpeg_allowed_formats = nil"
+
+      app "development"
+
+      assert_nil ActiveStorage.ffmpeg_allowed_formats
     end
 
     test "ActiveStorage.variant_processor uses mini_magick without Rails 7 defaults" do
@@ -4488,7 +4745,16 @@ module ApplicationTests
       assert_equal true, Rails.application.config.rake_eager_load
     end
 
-    test "ActiveSupport::Messages::Codec.default_serializer is :json_allow_marshal by default for new apps" do
+    test "ActiveSupport::Messages::Codec.default_serializer is :json by default for new apps" do
+      app "development"
+
+      assert_equal :json, ActiveSupport::Messages::Codec.default_serializer
+    end
+
+    test "ActiveSupport::Messages::Codec.default_serializer is :json_allow_marshal for apps upgraded from 7.1" do
+      remove_from_config '.*config\.load_defaults.*\n'
+      add_to_config 'config.load_defaults "7.1"'
+
       app "development"
 
       assert_equal :json_allow_marshal, ActiveSupport::Messages::Codec.default_serializer
@@ -4839,6 +5105,33 @@ module ApplicationTests
       assert_equal true, ActiveSupport::Cache::Store.raise_on_invalid_cache_expiration_time
     end
 
+    test "raise_on_invalid_time_zone_parse is false with 8.1 defaults" do
+      remove_from_config '.*config\.load_defaults.*\n'
+      add_to_config 'config.load_defaults "8.1"'
+      app "development"
+
+      assert_equal false, ActiveSupport.raise_on_invalid_time_zone_parse
+    end
+
+    test "raise_on_invalid_time_zone_parse is true with 8.2 defaults" do
+      remove_from_config '.*config\.load_defaults.*\n'
+      add_to_config 'config.load_defaults "8.2"'
+      app "development"
+
+      assert_equal true, ActiveSupport.raise_on_invalid_time_zone_parse
+    end
+
+    test "raise_on_invalid_time_zone_parse can be set via new framework defaults" do
+      remove_from_config '.*config\.load_defaults.*\n'
+      add_to_config 'config.load_defaults "8.1"'
+      app_file "config/initializers/new_framework_defaults_8_2.rb", <<-RUBY
+        ActiveSupport.raise_on_invalid_time_zone_parse = true
+      RUBY
+      app "development"
+
+      assert_equal true, ActiveSupport.raise_on_invalid_time_zone_parse
+    end
+
     test "adds a time zone aware type if using PostgreSQL" do
       original_configurations = ActiveRecord::Base.configurations
       ActiveRecord::Base.configurations = { production: { db1: { adapter: "postgresql" } } }
@@ -4974,6 +5267,31 @@ module ApplicationTests
       assert_raises I18n::InvalidPluralizationData do
         assert_equal "pears", I18n.t(:pears, count: 0)
       end
+    end
+
+    test "association_scope_keeps_owner_conditions is true in new apps" do
+      app "development"
+
+      assert_equal true, ActiveRecord.association_scope_keeps_owner_conditions
+    end
+
+    test "association_scope_keeps_owner_conditions is false in upgrading apps" do
+      remove_from_config '.*config\.load_defaults.*\n'
+      add_to_config 'config.load_defaults "8.1"'
+      app "development"
+
+      assert_equal false, ActiveRecord.association_scope_keeps_owner_conditions
+    end
+
+    test "association_scope_keeps_owner_conditions can be set via framework defaults" do
+      remove_from_config '.*config\.load_defaults.*\n'
+      add_to_config 'config.load_defaults "8.1"'
+      app_file "config/initializers/new_framework_defaults_8_2.rb", <<-RUBY
+        Rails.application.config.active_record.association_scope_keeps_owner_conditions = true
+      RUBY
+      app "development"
+
+      assert_equal true, ActiveRecord.association_scope_keeps_owner_conditions
     end
 
     test "run_after_transaction_callbacks_in_order_defined is true in new apps" do
@@ -5281,6 +5599,27 @@ module ApplicationTests
       assert_equal 5, Regexp.timeout
     end
 
+    test "config.zjit is false by default" do
+      app "development"
+      assert_equal false, Rails.application.config.zjit
+    end
+
+    test "config.zjit enables ZJIT instead of YJIT, and YJIT on a Ruby without ZJIT" do
+      yjit_enabled_at_boot = defined?(RubyVM::YJIT.enabled?) && RubyVM::YJIT.enabled?
+
+      add_to_config "config.yjit = true"
+      add_to_config "config.zjit = true"
+      silence_warnings { app "development" }
+
+      if defined?(RubyVM::ZJIT.enable) && !yjit_enabled_at_boot
+        assert_predicate RubyVM::ZJIT, :enabled?
+        assert_not RubyVM::YJIT.enabled? if defined?(RubyVM::YJIT)
+      elsif defined?(RubyVM::YJIT.enable)
+        assert_predicate RubyVM::YJIT, :enabled?
+        assert_not RubyVM::ZJIT.enabled? if defined?(RubyVM::ZJIT)
+      end
+    end
+
     test "action_controller.logger defaults to Rails.logger" do
       restore_default_config
       add_to_config "config.logger = Logger.new(STDOUT, level: Logger::INFO)"
@@ -5349,7 +5688,65 @@ module ApplicationTests
       assert_equal "[:active_record_connected_to_stack, :custom_key]", last_response.body
     end
 
+    test "ActiveRecord configuration lists can be appended to after boot" do
+      app_file "config/initializers/append_to_active_record_config.rb", <<~RUBY
+        module AppendedQueryTransformer
+          def self.call(sql, _connection) = sql
+        end
+
+        ActiveSupport.on_load(:active_record) do
+          ActiveRecord.schema_ignored_tables << "from_initializer"
+          ActiveRecord.query_transformers << AppendedQueryTransformer
+        end
+
+        Rails.application.config.after_initialize do
+          ActiveSupport.on_load(:active_record) do
+            ActiveRecord.schema_ignored_tables << "from_after_initialize"
+          end
+        end
+      RUBY
+
+      app "development"
+
+      assert ActiveRecord.autoload?(:Base), "expected Active Record to load after boot"
+
+      require "active_record/base"
+      ActiveRecord.schema_ignored_tables << "after_boot"
+
+      assert_equal %w[ from_initializer from_after_initialize after_boot ], ActiveRecord.schema_ignored_tables
+      assert_includes ActiveRecord.query_transformers, AppendedQueryTransformer
+    end
+
+    test "ActionDispatch configuration is not frozen after boot" do
+      app "development"
+
+      assert_not_predicate ActionDispatch::ExceptionWrapper.rescue_responses, :frozen?
+      assert_not_predicate ActionDispatch::ExceptionWrapper.rescue_templates, :frozen?
+      assert_not_predicate ActionDispatch::ExceptionWrapper.wrapper_exceptions, :frozen?
+      assert_not_predicate ActionDispatch::ExceptionWrapper.silent_exceptions, :frozen?
+    end
+
+    test "ActiveRecord time zone configuration is not frozen after boot" do
+      app "development"
+
+      require "active_record/base"
+
+      assert_not_predicate ActiveRecord::Base.time_zone_aware_types, :frozen?
+      assert_not_predicate ActiveRecord::Base.skip_time_zone_conversion_for_attributes, :frozen?
+    end
+
     private
+      def with_umask(umask)
+        old_umask = File.umask(umask)
+        yield
+      ensure
+        File.umask(old_umask)
+      end
+
+      def local_secret_file_mode
+        File.stat(app_path("tmp/local_secret.txt")).mode & 0o777
+      end
+
       def set_custom_config(contents, config_source = "custom".inspect)
         app_file "config/custom.yml", contents
 

@@ -10,7 +10,7 @@ module ApplicationTests
     include Rack::Test::Methods
     include Rails::Dom::Testing::Assertions
 
-    self.file_fixture_path = "#{RAILS_FRAMEWORK_ROOT}/activestorage/test/fixtures/files"
+    self.file_fixture_path = "test/fixtures/files"
 
     def setup
       build_app
@@ -170,6 +170,34 @@ module ApplicationTests
 
       file_data = {
         key: key,
+        filename: file.basename.to_s,
+        content_type: "image/jpeg",
+        byte_size: file.size,
+        checksum: checksum
+      }
+
+      post(
+        "/rails/active_storage/direct_uploads",
+        { blob: file_data }.to_json,
+        { "CONTENT_TYPE" => "application/json", "HTTP_SEC_FETCH_SITE" => "cross-site" }
+      )
+      assert_equal 422, last_response.status
+    end
+
+    def test_forgery_protection_without_default_protect_from_forgery
+      add_to_config "config.action_controller.allow_forgery_protection = true"
+      add_to_config "config.action_controller.default_protect_from_forgery = false"
+
+      rails "active_storage:install"
+      rails "db:migrate"
+
+      app("development")
+
+      file = file_fixture("racecar.jpg")
+      checksum = OpenSSL::Digest::MD5.new(file.read).base64digest
+
+      file_data = {
+        key: SecureRandom.base58(24),
         filename: file.basename.to_s,
         content_type: "image/jpeg",
         byte_size: file.size,

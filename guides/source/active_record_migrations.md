@@ -65,7 +65,7 @@ These special columns are automatically managed by Active Record if they exist.
 # db/schema.rb
 ActiveRecord::Schema[8.2].define(version: 2024_05_02_100843) do
   # These are extensions that must be enabled in order to support this database
-  enable_extension "pg_catalog.plpgsql"
+  enable_extension "plpgsql"
 
   create_table "products", force: :cascade do |t|
     t.string "name"
@@ -100,7 +100,7 @@ Generating Migration Files
 Migrations are stored as files in the `db/migrate` directory, one for each
 migration class.
 
-The name of the file is of the form `YYYYMMDDHHMMSS_create_products.rb`, it
+The name of the file is of the form `YYYYMMDDHHMMSS_create_products.rb`; it
 contains a UTC timestamp identifying the migration followed by an underscore
 followed by the name of the migration. The name of the migration class
 (CamelCased version) should match the latter part of the file name.
@@ -418,7 +418,7 @@ make to your database schema.
 
 ### Creating a Table
 
-The [`create_table`][] method is one of the most fundamental migration type, but
+The [`create_table`][] method is one of the most fundamental migration types, but
 most of the time, will be generated for you from using a model, resource, or
 scaffold generator. A typical use would be
 
@@ -1483,6 +1483,47 @@ applied to the database. Rails uses this information to determine which
 migrations need to be run when you run rails db:migrate or rails db:migrate:up
 commands.
 
+#### Recording Migration Versions in Schema Dumps
+
+By default, Ruby schema dumps record only the current schema version. That is
+simple and may be enough in some projects, but it does not fully capture the
+state in some edge cases, and it is a source of merge conflicts in busy repos.
+
+You can alternatively dump the `schema_migrations` table into `db/schema.rb` by
+setting:
+
+```ruby
+config.active_record.dump_schema_migrations = true
+```
+
+The `:dump_schema_migrations` database configuration key allows you to override
+the global flag per database.
+
+The dump includes only versions with an existing migration file, so projects
+that prune old migrations keep the table in sync automatically just by
+regenerating the schema with `bin/rails db:schema:dump`.
+
+By default, versions are ordered by their reversed strings to help avoid merge
+conflicts, but this can be customized:
+
+```ruby
+# Linear order.
+config.active_record.dump_schema_migrations_sort_by = :itself
+
+# Hash-based ordering.
+require "digest/md5"
+
+config.active_record.dump_schema_migrations_sort_by = ->(version) {
+  Digest::MD5.hexdigest(version)
+}
+```
+
+The value has to be a proc (or respond to `to_proc`) which is called with a
+string as argument.
+
+Please note that the order of the versions does not matter for Active Record,
+the `schema_migrations` table acts as a set.
+
 Changing Existing Migrations
 ----------------------------
 
@@ -1623,7 +1664,7 @@ key constraints][] in the database.
 In practice, foreign key constraints and unique indexes are generally considered
 safer when enforced at the database level. Although Active Record does not
 provide direct support for working with these database-level features, you can
-still use the execute method to run arbitrary SQL commands.
+still use the `execute` method to run arbitrary SQL commands.
 
 It's worth emphasizing that while the Active Record pattern emphasizes keeping
 intelligence within models, neglecting to implement foreign keys and unique
@@ -1907,7 +1948,7 @@ Rails.application.configure do
 end
 ```
 
-All migrations methods will be sent to your custom strategy in production.
+All migration methods will be sent to your custom strategy in production.
 
 ### Configuring Per-Adapter Migration Strategies
 
@@ -1937,7 +1978,7 @@ You can configure a `migration_strategy` on each adapter class:
 # config/initializers/migration_strategies.rb
 if Rails.env.production?
   ActiveSupport.on_load(:active_record_trilogyadapter) do
-    ActiveRecord::ConnectionAdapters::Trilogy.migration_strategy =
+    ActiveRecord::ConnectionAdapters::TrilogyAdapter.migration_strategy =
       MySQLMigrationStrategy
   end
 

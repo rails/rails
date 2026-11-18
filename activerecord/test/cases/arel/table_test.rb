@@ -187,5 +187,9 @@ module Arel
         Table.new
       end
     end
+
+    test "is ractor shareable" do
+      assert_ractor_shareable Table.new(name: :users)
+    end
   end
 end

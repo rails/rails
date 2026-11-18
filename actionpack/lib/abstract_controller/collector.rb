@@ -1,7 +1,5 @@
 # frozen_string_literal: true
 
-# :markup: markdown
-
 require "action_dispatch/http/mime_type"
 
 module AbstractController
@@ -19,8 +17,12 @@ module AbstractController
       generate_method_for_mime(mime)
     end
 
-    Mime::Type.register_callback do |mime|
-      generate_method_for_mime(mime) unless instance_methods.include?(mime.to_sym)
+    Mime::Type.on_change do |mime, registered|
+      if registered
+        generate_method_for_mime(mime) unless instance_methods.include?(mime.to_sym)
+      elsif instance_methods.include?(mime.to_sym)
+        remove_method(mime.to_sym)
+      end
     end
 
   private

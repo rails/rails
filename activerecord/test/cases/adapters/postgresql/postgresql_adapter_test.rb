@@ -251,6 +251,19 @@ module ActiveRecord
         connection&.disconnect!
       end
 
+      def test_configure_connection_error_verbosity
+        db_config = ActiveRecord::Base.configurations.configs_for(env_name: "arunit", name: "primary")
+        connection = ActiveRecord::ConnectionAdapters::PostgreSQLAdapter.new(
+          db_config.configuration_hash.merge(error_verbosity: PG::PQERRORS_TERSE)
+        )
+        connection.connect!
+
+        previous_verbosity = connection.raw_connection.set_error_verbosity(PG::PQERRORS_DEFAULT)
+        assert_equal PG::PQERRORS_TERSE, previous_verbosity
+      ensure
+        connection&.disconnect!
+      end
+
       def test_configure_connection_variables_are_set
         db_config = ActiveRecord::Base.configurations.configs_for(env_name: "arunit", name: "primary")
         connection = ActiveRecord::ConnectionAdapters::PostgreSQLAdapter.new(
@@ -1261,7 +1274,7 @@ module ActiveRecord
         @connection.execute "DROP DOMAIN IF EXISTS postgresql_domain_nested"
         @connection.execute "DROP DOMAIN IF EXISTS postgresql_domain_base"
         reset_pool
-      end
+      end if ActiveRecord::Base.lease_connection.database_version >= 11_00_00
 
       def test_load_additional_types_cascades_dependency_lookups_after_initial_bulk_load
         reset_pool
@@ -1282,7 +1295,7 @@ module ActiveRecord
         connection&.execute "DROP DOMAIN IF EXISTS postgresql_domain_nested_after_bulk"
         connection&.execute "DROP DOMAIN IF EXISTS postgresql_domain_base_after_bulk"
         reset_pool
-      end
+      end if ActiveRecord::Base.lease_connection.database_version >= 11_00_00
 
       def test_only_warn_on_first_encounter_of_unrecognized_oid
         reset_pool
@@ -1342,6 +1355,12 @@ module ActiveRecord
       ensure
         @connection.execute("DROP SCHEMA IF EXISTS customschema CASCADE")
         @connection.execute("DROP EXTENSION IF EXISTS hstore")
+      end
+
+      def test_extensions_omits_schema_fixed_by_the_control_file
+        # plpgsql is installed in every database and its control file fixes the schema to pg_catalog
+        assert_includes @connection.extensions, "plpgsql"
+        assert_not_includes @connection.extensions, "pg_catalog.plpgsql"
       end
 
       def test_extensions_includes_non_current_schema_name
@@ -1462,6 +1481,28 @@ module ActiveRecord
           assert_nothing_raised do
             @connection.exec_query("SELECT 1")
           end
+        end
+      end
+
+      def test_query_intent_defers_warnings_until_result_is_observed
+        warning_sql = "do $$ BEGIN RAISE WARNING 'PostgreSQL SQL warning'; END; $$"
+        warnings = []
+        warning_action = ->(warning) { warnings << [warning.message, warning.sql] }
+        intent = ActiveRecord::ConnectionAdapters::QueryIntent.new(
+          adapter: @connection,
+          raw_sql: warning_sql,
+          name: "WARNING"
+        )
+
+        with_db_warnings_action(warning_action) do
+          intent.execute!
+          assert_empty warnings
+
+          intent.cast_result
+          assert_equal [["PostgreSQL SQL warning", warning_sql]], warnings
+
+          intent.cast_result
+          assert_equal [["PostgreSQL SQL warning", warning_sql]], warnings
         end
       end
 
@@ -1681,6 +1722,24 @@ module ActiveRecord
         assert_not_equal stored_column.hash, virtual_column.hash
       end
 
+      def test_null_byte_in_bind_raises_null_byte_error
+        with_example_table do
+          error = assert_raises ActiveRecord::NullByteError do
+            @connection.exec_query("INSERT INTO ex (data) VALUES ($1)", "SQL", [ActiveRecord::Relation::QueryAttribute.new("data", "a\0b", ActiveRecord::Type::String.new)])
+          end
+          assert_kind_of ActiveRecord::StatementInvalid, error
+        end
+      end
+
+      def test_null_byte_in_inline_quoting_raises_null_byte_error
+        with_example_table do
+          error = assert_raises ActiveRecord::NullByteError do
+            @connection.execute("INSERT INTO ex (data) VALUES (#{@connection.quote("a\0b")})")
+          end
+          assert_kind_of ActiveRecord::StatementInvalid, error
+        end
+      end
+
       private
         def with_postgresql_apdater_decode_dates
           PostgreSQLAdapter.decode_dates = true
@@ -1705,7 +1764,9 @@ module ActiveRecord
 
         def connection_without_insert_returning(&block)
           db_config = ActiveRecord::Base.configurations.configs_for(env_name: "arunit", name: "primary")
-          with_postgresql_adapter(db_config.configuration_hash.merge(insert_returning: false), &block)
+          assert_deprecated(ActiveRecord.deprecator) do
+            with_postgresql_adapter(db_config.configuration_hash.merge(insert_returning: false), &block)
+          end
         end
 
         def oid_lookup_query?(query)

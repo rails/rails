@@ -35,7 +35,7 @@ require "active_support/core_ext/module/attr_internal"
 require "active_support/core_ext/string/inflections"
 require "active_support/lazy_load_hooks"
 
-# :include: ../README.rdoc
+# :include: ../README.md
 module ActionMailer
   extend ::ActiveSupport::Autoload
 
@@ -60,15 +60,15 @@ module ActionMailer
 
   class << self
     # Enqueue many emails at once to be delivered through Active Job.
-    # When the individual job runs, it will send the email using +deliver_now+.
+    # When the individual job runs, it will send the email using `deliver_now`.
     def deliver_all_later(*deliveries, **options)
       _deliver_all_later("deliver_now", *deliveries, **options)
     end
 
     # Enqueue many emails at once to be delivered through Active Job.
-    # When the individual job runs, it will send the email using +deliver_now!+.
-    # That means that the message will be sent bypassing checking +perform_deliveries+
-    # and +raise_delivery_errors+, so use with caution.
+    # When the individual job runs, it will send the email using `deliver_now!`.
+    # That means that the message will be sent bypassing checking `perform_deliveries`
+    # and `raise_delivery_errors`, so use with caution.
     def deliver_all_later!(*deliveries, **options)
       _deliver_all_later("deliver_now!", *deliveries, **options)
     end
@@ -88,6 +88,10 @@ module ActionMailer
       def _deliver_all_later(delivery_method, *deliveries, **options)
         deliveries = deliveries.first if deliveries.first.is_a?(Array)
 
+        if deliveries.any?(&:processed?)
+          raise MessageDelivery::ALREADY_PROCESSED_MESSAGE
+        end
+
         jobs = deliveries.map do |delivery|
           mailer_class = delivery.mailer_class
           delivery_job = mailer_class.delivery_job
@@ -105,7 +109,16 @@ end
 autoload :Mime, "action_dispatch/http/mime_type"
 
 ActiveSupport.on_load(:action_view) do
-  ActionView::Base.default_formats ||= Mime.symbols
   ActionView::Template.mime_types_implementation = Mime
   ActionView::LookupContext::DetailsKey.clear
+
+  unless ActionView::Base.default_formats
+    ActionView::Base.default_formats = previous_symbols = Mime.symbols
+    # TODO: remove in Rails 9, when late Mime::Type registration raises
+    Mime::Type.on_change do
+      if !previous_symbols.equal?(Mime.symbols) && ActionView::Base.default_formats.equal?(previous_symbols)
+        ActionView::Base.default_formats = previous_symbols = Mime.symbols
+      end
+    end
+  end
 end

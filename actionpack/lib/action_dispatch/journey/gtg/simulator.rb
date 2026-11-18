@@ -1,18 +1,8 @@
 # frozen_string_literal: true
 
-# :markup: markdown
-
 module ActionDispatch
   module Journey # :nodoc:
     module GTG # :nodoc:
-      class MatchData # :nodoc:
-        attr_reader :memos
-
-        def initialize(memos)
-          @memos = memos
-        end
-      end
-
       class Simulator # :nodoc:
         STATIC_TOKENS = Array.new(64)
         STATIC_TOKENS[".".ord] = "."
@@ -56,8 +46,8 @@ module ActionDispatch
           while i < states_count
             if state[i + 1].nil?
               s = state[i]
-              if tt.accepting?(s)
-                acceptance_states.concat(tt.memo(s))
+              if memos = tt.memo(s)
+                acceptance_states.concat(memos)
               end
             end
             i += 2

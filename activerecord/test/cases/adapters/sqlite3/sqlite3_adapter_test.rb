@@ -4,11 +4,19 @@ require "cases/helper"
 require "models/owner"
 require "tempfile"
 require "support/ddl_helper"
+require "support/schema_dumping_helper"
 
 module ActiveRecord
   module ConnectionAdapters
     class SQLite3AdapterTest < ActiveRecord::SQLite3TestCase
+      skip_under_ractor_proxy :test_autoincrement_primary_key_is_dumped_as_the_default,
+        :test_copy_table_with_existing_records_have_custom_primary_key,
+        :test_copy_table_with_composite_primary_keys, :test_custom_primary_key_in_create_table,
+        :test_custom_primary_key_in_change_table, :test_add_column_with_custom_primary_key,
+        :test_remove_column_preserves_index_options, :test_auto_increment_preserved_on_table_changes
+
       include DdlHelper
+      include SchemaDumpingHelper
 
       self.use_transactional_tests = false
 
@@ -515,12 +523,24 @@ module ActiveRecord
           name = "foo"
 
           tables_query = ["SELECT name FROM pragma_table_list WHERE schema <> 'temp' AND name NOT IN ('sqlite_sequence', 'sqlite_schema') AND type IN ('table','view')", "SCHEMA", []]
-          pragma_query = ["PRAGMA table_xinfo(\"ex\")", "SCHEMA", []]
-          schema_query = ["SELECT sql FROM (SELECT * FROM sqlite_master UNION ALL SELECT * FROM sqlite_temp_master) WHERE type = 'table' AND name = 'ex'", "SCHEMA", []]
+          structure_query = [<<~SQL.squish, "SCHEMA", []]
+            WITH master AS (
+              SELECT name, type, sql FROM sqlite_master
+              UNION ALL
+              SELECT name, type, sql FROM sqlite_temp_master
+            )
+            SELECT m.name AS table_name, CASE WHEN m.type = 'table' THEN m.sql END AS create_table_sql,
+                   t."name", t."type", t."notnull", t."dflt_value", t."pk", t."hidden"
+            FROM master m
+            JOIN pragma_table_xinfo(m.name) t
+            WHERE m.type IN ('table', 'view')
+              AND m.name IN ('ex')
+            ORDER BY m.name, t.cid
+          SQL
           modified_insert_query = [(sql + ' RETURNING "id"'), name, []]
 
           # First insert after with_example_table has reset the schema cache
-          assert_logged [tables_query, pragma_query, schema_query, modified_insert_query] do
+          assert_logged [tables_query, structure_query, modified_insert_query] do
             @conn.insert(sql, name)
           end
 
@@ -535,7 +555,9 @@ module ActiveRecord
         with_example_table do
           sql = "INSERT INTO ex (number) VALUES (10)"
           idval = "vuvuzela"
-          id = @conn.insert(sql, nil, nil, idval)
+          id = assert_deprecated(ActiveRecord.deprecator) do
+            @conn.insert(sql, nil, nil, idval)
+          end
           assert_equal idval, id
         end
       end
@@ -577,7 +599,7 @@ module ActiveRecord
       def test_select_rows
         with_example_table do
           2.times do |i|
-            @conn.create "INSERT INTO ex (number) VALUES (#{i})"
+            @conn.insert "INSERT INTO ex (number) VALUES (#{i})"
           end
           rows = @conn.select_rows "select number, id from ex"
           assert_equal [[0, 1], [1, 2]], rows
@@ -599,7 +621,7 @@ module ActiveRecord
           count_sql = "select count(*) from ex"
 
           @conn.begin_db_transaction
-          @conn.create "INSERT INTO ex (number) VALUES (10)"
+          @conn.insert "INSERT INTO ex (number) VALUES (10)"
 
           assert_equal 1, @conn.select_rows(count_sql).first.first
           @conn.rollback_db_transaction
@@ -652,7 +674,7 @@ module ActiveRecord
           column = @conn.columns("ex").find { |x|
             x.name == "number"
           }
-          assert_equal 10, column.default
+          assert_equal "10", column.default
         end
       end
 
@@ -671,9 +693,38 @@ module ActiveRecord
         end
       end
 
+      def test_autoincrement_primary_key_is_dumped_as_the_default
+        connection = ActiveRecord::Base.lease_connection
+        connection.create_table :autoincrement_pks, force: true
+        connection.drop_table :integer_pks, if_exists: true
+        connection.execute("CREATE TABLE integer_pks (id integer PRIMARY KEY NOT NULL)")
+
+        output = dump_table_schema("autoincrement_pks", "integer_pks")
+
+        assert_match %r{create_table "autoincrement_pks", force: :cascade}, output
+        assert_match %r{create_table "integer_pks", id: :integer, default: nil, force: :cascade}, output
+      ensure
+        connection.drop_table :autoincrement_pks, if_exists: true
+        connection.drop_table :integer_pks, if_exists: true
+      end
+
       def test_indexes_logs
         with_example_table do
-          assert_logged [["PRAGMA index_list(\"ex\")", "SCHEMA", []]] do
+          index_list_query = [<<~SQL.squish, "SCHEMA", []]
+            WITH master AS (
+              SELECT name, type, sql FROM sqlite_master
+              UNION ALL
+              SELECT name, type, sql FROM sqlite_temp_master
+            )
+            SELECT m.name AS table_name, i.name, i."unique"
+            FROM master m
+            JOIN pragma_index_list(m.name) i
+            WHERE m.type = 'table'
+              AND m.name IN ('ex')
+              AND i.name NOT GLOB 'sqlite_*'
+          SQL
+
+          assert_logged [index_list_query] do
             @conn.indexes("ex")
           end
         end
@@ -729,12 +780,34 @@ module ActiveRecord
         end
       end
 
+      def test_partial_index_with_multiline_where
+        with_example_table do
+          predicate = <<~SQL
+            number > 0 AND
+              'two  spaces' = 'two  spaces'
+          SQL
+          @conn.add_index "ex", :id, name: "fun", where: predicate
+
+          index = @conn.indexes("ex").find { |idx| idx.name == "fun" }
+          assert_equal ["id"], index.columns
+          assert_equal predicate.chomp, index.where
+        end
+      end
+
       if ActiveRecord::Base.lease_connection.supports_expression_index?
         def test_expression_index
           with_example_table do
             @conn.add_index "ex", "max(id, number)", name: "expression"
             index = @conn.indexes("ex").find { |idx| idx.name == "expression" }
             assert_equal "max(id, number)", index.columns
+          end
+        end
+
+        def test_expression_index_with_trailing_newline
+          with_example_table do
+            @conn.execute "CREATE INDEX expression ON ex (number % 10)\n"
+            index = @conn.indexes("ex").find { |idx| idx.name == "expression" }
+            assert_equal "number % 10", index.columns
           end
         end
 
@@ -752,6 +825,37 @@ module ActiveRecord
             index = @conn.indexes("ex").find { |idx| idx.name == "expression" }
             assert_equal "id % 10, max(id, number)", index.columns
             assert_equal "id > 1000", index.where
+          end
+        end
+
+        def test_multiline_expression_index_with_where
+          with_example_table do
+            @conn.execute <<~SQL
+              CREATE INDEX expression
+              ON ex (id % 10,
+                max(id, number))
+              WHERE number > 0
+            SQL
+
+            index = @conn.indexes("ex").find { |idx| idx.name == "expression" }
+            assert_equal "id % 10,\n  max(id, number)", index.columns
+            assert_equal "number > 0", index.where
+          end
+        end
+
+        def test_schema_dump_with_multiline_expression_index
+          with_example_table do
+            @conn.execute <<~SQL
+              CREATE INDEX expression
+              ON ex (number % 10)
+            SQL
+
+            stream = StringIO.new
+            @conn.create_schema_dumper({}).dump(stream)
+
+            assert_match(/create_table "ex"/, stream.string)
+            assert_includes stream.string, 't.index "number % 10", name: "expression"'
+            assert_no_match(/Could not dump table "ex"/, stream.string)
           end
         end
 
@@ -964,6 +1068,32 @@ module ActiveRecord
               end
               assert_equal @conn.pool, error.connection_pool
             end
+          end
+        end
+      end
+
+      def test_closed_database_errors_are_translated_to_connection_not_established
+        @conn.connect!
+
+        # A pre-flight close is healed by ensure_connection_ready, so the
+        # translation only fires when the connection dies mid-flight. sqlite3
+        # 2.x raises "cannot use a closed database" from most methods --
+        # including total_changes, the first thing perform_query touches.
+        error = assert_raises ActiveRecord::ConnectionNotEstablished do
+          @conn.send(:with_raw_connection) do |raw_connection|
+            raw_connection.close
+            raw_connection.total_changes
+          end
+        end
+        assert_equal @conn.pool, error.connection_pool
+
+        # prepare raises its own message, "prepare called on a closed
+        # database".
+        @conn.reconnect!
+        assert_raises ActiveRecord::ConnectionNotEstablished do
+          @conn.send(:with_raw_connection) do |raw_connection|
+            raw_connection.close
+            raw_connection.prepare("SELECT 1")
           end
         end
       end
@@ -1361,6 +1491,94 @@ module ActiveRecord
         assert_equal 1, book_count, "Books were CASCADE deleted when authors table was renamed!"
       ensure
         conn.disconnect! if conn
+      end
+
+      def test_rename_column_used_in_partial_index
+        @conn.create_table :books do |t|
+          t.integer :pages
+          t.index :pages, where: "pages > 10"
+        end
+
+        @conn.rename_column :books, :pages, :page_count
+
+        index = @conn.indexes(:books).first
+        assert_equal ["page_count"], index.columns
+        assert_equal '"page_count" > 10', index.where
+      end
+
+      def test_rename_column_used_in_expression_index
+        @conn.create_table :books do |t|
+          t.string :title
+          t.index "lower(title)", name: "index_books_on_lower_title"
+        end
+
+        @conn.rename_column :books, :title, :name
+
+        assert_equal 'lower("name")', @conn.indexes(:books).first.columns
+      end
+
+      def test_rename_column_used_in_check_constraint
+        @conn.create_table :books do |t|
+          t.integer :pages
+          t.check_constraint "pages > 0", name: "pages_positive"
+        end
+
+        @conn.rename_column :books, :pages, :page_count
+
+        assert_equal ['"page_count" > 0'], @conn.check_constraints(:books).map(&:expression)
+      end
+
+      def test_rename_column_used_in_virtual_column
+        @conn.create_table :books do |t|
+          t.string :title
+          t.virtual :title_upcase, type: :string, as: "upper(title)", stored: true
+        end
+
+        @conn.rename_column :books, :title, :name
+        @conn.execute("INSERT INTO books (name) VALUES ('hhgttg')")
+
+        assert_equal "HHGTTG", @conn.select_value("SELECT title_upcase FROM books")
+      end
+
+      def test_rename_column_keeps_triggers
+        @conn.create_table :books do |t|
+          t.string :title
+          t.integer :edits, default: 0
+        end
+        @conn.execute(<<~SQL)
+          CREATE TRIGGER books_count_edits AFTER UPDATE OF title ON books
+          BEGIN UPDATE books SET edits = edits + 1 WHERE id = NEW.id; END
+        SQL
+
+        @conn.rename_column :books, :title, :name
+
+        assert_equal ["books_count_edits"], @conn.select_values("SELECT name FROM sqlite_master WHERE type = 'trigger'")
+      end
+
+      def test_rename_column_referenced_by_foreign_key
+        @conn.create_table :authors do |t|
+          t.string :code, index: { unique: true }
+        end
+        @conn.create_table :books do |t|
+          t.string :author_code
+        end
+        @conn.add_foreign_key :books, :authors, column: :author_code, primary_key: :code
+
+        @conn.rename_column :authors, :code, :slug
+        @conn.execute("INSERT INTO authors (slug) VALUES ('douglas')")
+        @conn.execute("INSERT INTO books (author_code) VALUES ('douglas')")
+
+        assert_equal "slug", @conn.foreign_keys(:books).first.primary_key
+      end
+
+      def test_rename_primary_key_column
+        @conn.create_table :books, id: false do |t|
+          t.string :code, primary_key: true
+        end
+
+        @conn.rename_column :books, :code, :isbn
+
+        assert_equal "isbn", @conn.primary_key(:books)
       end
 
       private

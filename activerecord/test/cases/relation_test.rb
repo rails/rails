@@ -44,9 +44,11 @@ module ActiveRecord
 
     def test_multi_values_deduplication_with_merge
       expected = {
-        unscope:   [ :where ],
-        extending: [ Module.new ],
-        with:      [ foo: Post.all ],
+        order:         [ Arel.sql("id") ],
+        default_order: [ Arel.sql("id") ],
+        unscope:       [ :where ],
+        extending:     [ Module.new ],
+        with:          [ foo: Post.all ],
       }
       expected.default = [ Object.new ]
 
@@ -223,7 +225,7 @@ module ActiveRecord
 
       relation = Relation.new(klass)
       relation.merge!(where: ["foo = ?", "bar"])
-      assert_equal Relation::WhereClause.new([Arel.sql("(foo = ?)", "bar")]), relation.where_clause
+      assert_equal Relation::WhereClause.new([Arel.sql("foo = ?", "bar")]), relation.where_clause
     end
 
     def test_merging_readonly_false
@@ -424,6 +426,7 @@ module ActiveRecord
       end
 
       def deserialize(value)
+        return unless value
         raise value unless value == "type cast for database"
         "type cast from database"
       end

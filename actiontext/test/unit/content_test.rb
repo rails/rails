@@ -3,6 +3,8 @@
 require "test_helper"
 
 class ActionText::ContentTest < ActiveSupport::TestCase
+  include Rails::Dom::Testing::Assertions::DomAssertions
+
   test "equality" do
     html = "<div>test</div>"
     content = content_from_html(html)
@@ -181,7 +183,7 @@ class ActionText::ContentTest < ActiveSupport::TestCase
     html = '<action-text-attachment content="<img src=\&quot;.\&quot; onerror=alert>"></action-text-attachment>'
     trix_html = '<figure data-trix-attachment="{&quot;content&quot;:&quot;<img src=\\&quot;\\\\%22.\\\\%22\\&quot;>&quot;}"></figure>'
     content_to_trix_html = assert_deprecated(ActionText.deprecator) { content_from_html(html).to_trix_html }
-    assert_equal trix_html, content_to_trix_html.strip
+    assert_dom_equal trix_html, content_to_trix_html.strip
   end
 
   test "removes content attribute if it's value is empty" do

@@ -31,6 +31,23 @@ class ParametersAccessorsTest < ActiveSupport::TestCase
     assert_same @params, @params.each_value { |_| _ }
   end
 
+  test "each_key returns self" do
+    assert_same @params, @params.each_key { |_| _ }
+  end
+
+  test "each_key yields each key" do
+    keys = []
+    @params.each_key { |key| keys << key }
+    assert_equal @params.keys, keys
+  end
+
+  test "each_key return value is rejected by mass assignment" do
+    model = Class.new { include ActiveModel::API; attr_accessor :person }.new
+    assert_raises(ActiveModel::ForbiddenAttributesError) do
+      model.assign_attributes(@params.each_key { |_| _ })
+    end
+  end
+
   test "[] retains permitted status" do
     @params.permit!
     assert_predicate @params[:person], :permitted?

@@ -369,6 +369,43 @@ class InflectorTest < ActiveSupport::TestCase
     end
   end
 
+  def test_parameterize_with_separators_special_to_tr
+    assert_equal "Donald^E^Knuth", ActiveSupport::Inflector.parameterize("Donald E. Knuth", separator: "^", preserve_case: true)
+    assert_equal "donald\\e\\knuth", ActiveSupport::Inflector.parameterize("Donald E. Knuth", separator: "\\")
+    assert_equal "donald]e]knuth", ActiveSupport::Inflector.parameterize("Donald E. Knuth", separator: "]")
+    assert_equal "a-b-c", ActiveSupport::Inflector.parameterize("a - b -- c", separator: "-")
+    assert_equal "a+b_c", ActiveSupport::Inflector.parameterize("a !b_c?", separator: "+")
+  end
+
+  def test_parameterize_with_a_transliteration_rule_returning_non_ascii_chars
+    I18n.backend.store_translations(:xx, i18n: { transliterate: { rule: ->(string) { string } } })
+
+    assert_equal "a-b", ActiveSupport::Inflector.parameterize("a 日本 b", locale: :xx)
+    assert_equal "", ActiveSupport::Inflector.parameterize("Привет мир", locale: :xx)
+  ensure
+    I18n.backend.reload!
+  end
+
+  def test_parameterize_replaces_unwanted_chars_like_a_regexp_on_random_strings
+    I18n.backend.store_translations(:xx, i18n: { transliterate: { rule: ->(string) { string } } })
+    random = Random.new(42)
+    chars = ["a", "Z", "9", "-", "_", " ", ".", "^", "\\", "]", "\n", "é", "日"]
+
+    3000.times do
+      string = Array.new(random.rand(10)) { chars.sample(random: random) }.join
+      separator = ["-", "_", "+", "^", "\\", ""].sample(random: random)
+      locale = [:en, :xx].sample(random: random)
+
+      expected = ActiveSupport::Inflector.transliterate(string, locale: locale).gsub(/[^a-z0-9\-_]+/i, separator)
+      expected = expected.squeeze(separator).delete_prefix(separator).delete_suffix(separator) unless separator.empty?
+
+      assert_equal expected.downcase, ActiveSupport::Inflector.parameterize(string, separator: separator, locale: locale),
+        "#{string.inspect} with separator #{separator.inspect} and locale #{locale}"
+    end
+  ensure
+    I18n.backend.reload!
+  end
+
   def test_parameterize_with_multi_character_separator
     StringToParameterized.each do |some_string, parameterized_string|
       assert_equal(parameterized_string.gsub("-", "__sep__"), ActiveSupport::Inflector.parameterize(some_string, separator: "__sep__"))
@@ -464,6 +501,29 @@ class InflectorTest < ActiveSupport::TestCase
   def test_safe_constantize
     run_safe_constantize_tests_on do |string|
       ActiveSupport::Inflector.safe_constantize(string)
+    end
+  end
+
+  def test_safe_constantize_treats_load_error_constant_name_as_literal
+    mismatches = {
+      "Example.Channel" => "ExampleXChannel",
+      "Example.Channel::Nested" => "ExampleXChannel",
+    }
+
+    mismatches.each do |requested_name, reported_name|
+      error = LoadError.new("Unable to autoload constant #{reported_name}")
+
+      ActiveSupport::Inflector.stub(:constantize, ->(_) { raise error }) do
+        assert_raises(LoadError) do
+          ActiveSupport::Inflector.safe_constantize(requested_name)
+        end
+      end
+    end
+
+    matching_error = LoadError.new("Unable to autoload constant Example.Channel")
+
+    ActiveSupport::Inflector.stub(:constantize, ->(_) { raise matching_error }) do
+      assert_nil ActiveSupport::Inflector.safe_constantize("Example.Channel::Nested")
     end
   end
 
@@ -681,6 +741,19 @@ class InflectorTest < ActiveSupport::TestCase
       inflect.clear(:acronyms)
       assert_equal({}, inflect.acronyms)
     end
+  end
+
+  def test_string_rules_match_literally
+    ActiveSupport::Inflector.inflections do |inflect|
+      inflect.plural("o.x", "o.xen")
+      inflect.singular("o.xen", "o.x")
+    end
+
+    assert_equal "o.xen", ActiveSupport::Inflector.pluralize("o.x")
+    assert_equal "o.x", ActiveSupport::Inflector.singularize("o.xen")
+    assert_equal "oxen", ActiveSupport::Inflector.pluralize("ox")
+    assert_equal "ox", ActiveSupport::Inflector.singularize("oxen")
+    assert_equal "o-xes", ActiveSupport::Inflector.pluralize("o-x")
   end
 
   def test_output_is_not_frozen_even_if_input_is_frozen

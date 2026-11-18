@@ -1,7 +1,5 @@
 # frozen_string_literal: true
 
-require "active_support/log_subscriber"
-
 module ActiveJob
   class LogSubscriber < ActiveSupport::EventReporter::LogSubscriber # :nodoc:
     class_attribute :backtrace_cleaner, default: ActiveSupport::BacktraceCleaner.new

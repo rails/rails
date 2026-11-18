@@ -150,5 +150,40 @@ module ApplicationTests
         nodes.first.text,
       )
     end
+
+    test "error page highlights the template line of a syntax error" do
+      app_file "config/routes.rb", <<-RUBY
+        Rails.application.routes.draw do
+          root to: 'pages#show'
+        end
+      RUBY
+
+      app_file "app/controllers/pages_controller.rb", <<-RUBY
+        class PagesController < ApplicationController
+          layout false
+
+          def show
+          end
+        end
+      RUBY
+
+      app_file "app/views/pages/show.html.erb", <<~ERB
+        <div id="posts">
+          <%# @posts.each do |post| %>
+            <p>A post</p>
+          <% end %>
+        </div>
+      ERB
+
+      app("development")
+
+      get("/", {}, { "HTTPS" => "on" })
+
+      assert_equal 500, last_response.status
+      document = Nokogiri::HTML5.parse(last_response.body)
+
+      assert_equal("<% end %>", document.at_css("div.source:not(.hidden) pre .line.active").text.strip)
+      assert_includes(document.at_css("div.source:not(.hidden) .info").text, "#4")
+    end
   end
 end

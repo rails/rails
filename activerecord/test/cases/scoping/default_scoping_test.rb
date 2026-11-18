@@ -56,6 +56,21 @@ class DefaultScopingTest < ActiveRecord::TestCase
     assert_nil DeveloperCalledJamis.unscoped.create!.name
   end
 
+  def test_default_scope_is_unscoped_on_update
+    jamis = developers(:jamis)
+
+    assert_raises(ActiveRecord::RecordNotFound) do
+      DeveloperCalledDavid.update(jamis.id, name: "Not Jamis")
+    end
+    assert_raises(ActiveRecord::RecordNotFound) do
+      DeveloperCalledDavid.update!(jamis.id, name: "Not Jamis")
+    end
+    assert_equal "Jamis", jamis.reload.name
+
+    DeveloperCalledDavid.unscoped.update(jamis.id, name: "Not Jamis")
+    assert_equal "Not Jamis", jamis.reload.name
+  end
+
   def test_default_scope_with_conditions_string
     assert_equal Developer.where(name: "David").map(&:id).sort, DeveloperCalledDavid.all.map(&:id).sort
     assert_nil DeveloperCalledDavid.create!.name
@@ -99,6 +114,62 @@ class DefaultScopingTest < ActiveRecord::TestCase
 
     assert_no_match(/mentor_id/, update_sql)
     assert_match(/firm_id/, update_sql)
+  end
+
+  def test_all_without_all_queries_is_not_deprecated
+    assert_not_deprecated(ActiveRecord.deprecator) do
+      DeveloperWithDefaultMentorScopeAllQueries.all
+    end
+  end
+
+  def test_all_with_explicit_nil_all_queries_is_deprecated
+    klass = DeveloperWithIncludedMentorDefaultScopeNotAllQueriesAndDefaultScopeFirmWithAllQueries
+
+    wheres = assert_deprecated(/The `all_queries` keyword argument to `ActiveRecord::Base\.all` is deprecated/, ActiveRecord.deprecator) do
+      klass.all(all_queries: nil).where_values_hash
+    end
+
+    assert_includes wheres, "mentor_id"
+    assert_includes wheres, "firm_id"
+  end
+
+  def test_all_with_false_all_queries_is_deprecated
+    klass = DeveloperWithIncludedMentorDefaultScopeNotAllQueriesAndDefaultScopeFirmWithAllQueries
+
+    wheres = assert_deprecated(/The `all_queries` keyword argument to `ActiveRecord::Base\.all` is deprecated/, ActiveRecord.deprecator) do
+      klass.all(all_queries: false).where_values_hash
+    end
+
+    assert_not_includes wheres, "mentor_id"
+    assert_not_includes wheres, "firm_id"
+  end
+
+  def test_all_with_all_queries_ignores_non_global_current_scope
+    klass = DeveloperWithIncludedMentorDefaultScopeNotAllQueriesAndDefaultScopeFirmWithAllQueries
+
+    wheres = assert_deprecated(/The `all_queries` keyword argument to `ActiveRecord::Base\.all` is deprecated/, ActiveRecord.deprecator) do
+      klass.where(salary: 80_000).scoping do
+        klass.all(all_queries: true).where_values_hash
+      end
+    end
+
+    assert_not_includes wheres, "mentor_id"
+    assert_includes wheres, "firm_id"
+    assert_not_includes wheres, "salary"
+  end
+
+  def test_all_with_all_queries_includes_global_current_scope
+    klass = DeveloperWithIncludedMentorDefaultScopeNotAllQueriesAndDefaultScopeFirmWithAllQueries
+
+    wheres = assert_deprecated(/The `all_queries` keyword argument to `ActiveRecord::Base\.all` is deprecated/, ActiveRecord.deprecator) do
+      klass.unscoped.where(salary: 80_000).scoping(all_queries: true) do
+        klass.all(all_queries: true).where_values_hash
+      end
+    end
+
+    assert_not_includes wheres, "mentor_id"
+    assert_includes wheres, "firm_id"
+    assert_includes wheres, "salary"
   end
 
   def test_default_scope_runs_on_create
@@ -188,6 +259,20 @@ class DefaultScopingTest < ActiveRecord::TestCase
     update_sql = capture_sql { dev.update_columns(name: "Not Nikita") }.first
 
     assert_no_match(/AND$/, update_sql)
+  end
+
+  def test_default_scope_doesnt_run_on_increment
+    dev = DeveloperwithDefaultMentorScopeNot.create!(name: "Eileen")
+    update_sql = capture_sql { dev.increment!(:salary) }.first
+
+    assert_no_match(/mentor_id/, update_sql)
+  end
+
+  def test_default_scope_with_all_queries_runs_on_increment
+    dev = DeveloperWithDefaultMentorScopeAllQueries.create!(name: "Eileen")
+    update_sql = capture_sql { dev.increment!(:salary) }.first
+
+    assert_match(/mentor_id/, update_sql)
   end
 
   def test_default_scope_doesnt_run_on_destroy
@@ -295,7 +380,7 @@ class DefaultScopingTest < ActiveRecord::TestCase
   def test_unscope_overrides_default_scope
     expected = Developer.all.collect { |dev| [dev.name, dev.id] }
     received = DeveloperCalledJamis.unscope(:where).collect { |dev| [dev.name, dev.id] }
-    assert_equal expected, received
+    assert_equal_unordered expected, received
   end
 
   def test_unscope_after_reordering_and_combining
@@ -736,8 +821,8 @@ class DefaultScopingTest < ActiveRecord::TestCase
   end
 
   def test_default_scopes_are_ractor_shareable
-    ActiveSupport::Ractors.with(unshareable_proc_action: :raise) do
-      model = Class.new(ActiveRecord::Base) do
+    model = ActiveSupport::Ractors.with(unshareable_proc_action: :raise) do
+      Class.new(ActiveRecord::Base) do
         def self.name = "ractor_safe_posts"
         self.table_name = "posts"
 
@@ -747,13 +832,51 @@ class DefaultScopingTest < ActiveRecord::TestCase
           where(type: "ractor_safe")
         end
       end
-
-      select_sql = capture_sql { model.all.to_a }.first
-
-      assert_match(/type/, select_sql)
-      assert_ractor_shareable model.default_scopes
     end
+
+    select_sql = capture_sql { model.all.to_a }.first
+
+    assert_match(/type/, select_sql)
+    assert_ractor_shareable model.default_scopes
   end
+
+  def test_scope_attributes_with_a_private_default_scope_override
+    model = model_with_private_default_scope
+
+    assert_includes model.all.to_sql, "alpha"
+    assert model.scope_attributes?
+    assert_equal "alpha", model.new.title
+  end
+
+  def test_find_reevaluates_a_private_default_scope_override
+    model = model_with_private_default_scope
+    alpha = model.unscoped.create!(title: "alpha", body: "")
+    beta = model.unscoped.create!(title: "beta", body: "")
+
+    assert_equal alpha, model.find(alpha.id)
+
+    model.scoped_title = "beta"
+
+    assert_equal beta, model.find(beta.id)
+    assert_raises(ActiveRecord::RecordNotFound) { model.find(alpha.id) }
+    assert_nil model.find_by(id: alpha.id)
+  end
+
+  private
+    def model_with_private_default_scope
+      Class.new(ActiveRecord::Base) do
+        def self.name = "post_with_private_default_scope"
+        self.table_name = "posts"
+
+        singleton_class.attr_accessor :scoped_title
+        self.scoped_title = "alpha"
+
+        def self.default_scope
+          where(title: scoped_title)
+        end
+        private_class_method :default_scope
+      end
+    end
 end
 
 class DefaultScopingWithThreadTest < ActiveRecord::TestCase

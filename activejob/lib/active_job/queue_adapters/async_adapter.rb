@@ -7,7 +7,8 @@ require "concurrent/utility/processor_counter"
 
 module ActiveJob
   module QueueAdapters
-    # = Active Job Async adapter
+    # Active Job Async adapter
+    # ========================
     #
     # The Async adapter runs jobs with an in-process thread pool.
     #
@@ -15,33 +16,37 @@ module ActiveJob
     # it doesn't need an external infrastructure, but it's a poor fit for
     # production since it drops pending jobs on restart.
     #
-    # To use this adapter, set queue adapter to +:async+:
+    # To use this adapter, set queue adapter to `:async`:
     #
-    #   config.active_job.queue_adapter = :async
+    # ```
+    # config.active_job.queue_adapter = :async
+    # ```
     #
     # To configure the adapter's thread pool, instantiate the adapter and
     # pass your own config:
     #
-    #   config.active_job.queue_adapter = ActiveJob::QueueAdapters::AsyncAdapter.new \
-    #     min_threads: 1,
-    #     max_threads: 2 * Concurrent.processor_count,
-    #     idletime: 600.seconds
+    # ```
+    # config.active_job.queue_adapter = ActiveJob::QueueAdapters::AsyncAdapter.new \
+    #   min_threads: 1,
+    #   max_threads: 2 * Concurrent.processor_count,
+    #   idletime: 600.seconds
+    # ```
     #
-    # The adapter uses a {Concurrent Ruby}[https://github.com/ruby-concurrency/concurrent-ruby] thread pool to schedule and execute
+    # The adapter uses a [Concurrent Ruby](https://github.com/ruby-concurrency/concurrent-ruby) thread pool to schedule and execute
     # jobs. Since jobs share a single thread pool, long-running jobs will block
     # short-lived jobs. Fine for dev/test; bad for production.
     class AsyncAdapter < AbstractAdapter
-      # See {Concurrent::ThreadPoolExecutor}[https://ruby-concurrency.github.io/concurrent-ruby/master/Concurrent/ThreadPoolExecutor.html] for executor options.
+      # See [Concurrent::ThreadPoolExecutor](https://ruby-concurrency.github.io/concurrent-ruby/master/Concurrent/ThreadPoolExecutor.html) for executor options.
       def initialize(**executor_options)
         @scheduler = Scheduler.new(**executor_options)
       end
 
       def enqueue(job) # :nodoc:
-        @scheduler.enqueue JobWrapper.new(job), queue_name: job.queue_name
+        @scheduler.enqueue JobWrapper.new(job)
       end
 
       def enqueue_at(job, timestamp) # :nodoc:
-        @scheduler.enqueue_at JobWrapper.new(job), timestamp, queue_name: job.queue_name
+        @scheduler.enqueue_at JobWrapper.new(job), timestamp
       end
 
       # Gracefully stop processing jobs. Finishes in-progress work and handles
@@ -93,16 +98,16 @@ module ActiveJob
           )
         end
 
-        def enqueue(job, queue_name:)
+        def enqueue(job)
           executor.post(job, &:perform)
         end
 
-        def enqueue_at(job, timestamp, queue_name:)
+        def enqueue_at(job, timestamp)
           delay = timestamp - Time.current.to_f
           if !immediate && delay > 0
             Concurrent::ScheduledTask.execute(delay, args: [job], executor: executor, &:perform)
           else
-            enqueue(job, queue_name: queue_name)
+            enqueue(job)
           end
         end
 

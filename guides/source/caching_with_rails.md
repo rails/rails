@@ -102,7 +102,7 @@ view.
 called with a single argument, it fetches and returns the cached value for the
 given key. If a block is passed, the block is executed only on a cache miss. The
 block's return value is written to the cache under the given cache key and
-returned. In case of cache hit, the cached value is returned directly without
+returned. In case of a cache hit, the cached value is returned directly without
 executing the block.
 
 For example:
@@ -201,7 +201,7 @@ Rails.cache.fetch("super_admin_users", expires_in: 12.hours) do
 end
 ```
 
-In the example above, the instance of the `User`, representing `superusers`,
+In the example above, the instance of the `User`, representing `super_admins`,
 could change, and the attributes on it could differ, or the record could be
 deleted. In development, this also works unreliably with cache stores that
 reload code when you make changes.
@@ -556,6 +556,13 @@ When both `last_modified` and `etag` are set, the behavior depends on
 `config.action_dispatch.strict_freshness`. If it is `true`, only the `etag` is
 considered, as specified by RFC 7232 section 6. If it is `false`, both headers
 are checked and the response is considered fresh only if they both match.
+
+Conditional requests apply to the HTTP QUERY method
+([RFC 10008](https://www.rfc-editor.org/rfc/rfc10008)) exactly as they do to
+GET: `fresh_when` and `stale?` in a QUERY action answer a matching
+`If-None-Match` with `304 Not Modified`. Note that the middleware-level
+`Rack::ConditionalGet` only handles GET and HEAD, so QUERY freshness is served
+at the controller level by these helpers.
 
 #### Strong vs. Weak ETags
 

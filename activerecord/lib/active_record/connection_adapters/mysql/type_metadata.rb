@@ -15,6 +15,15 @@ module ActiveRecord
           @extra = extra
         end
 
+        def as_schema_json
+          { "type_metadata" => __getobj__, "extra" => extra.presence }
+        end
+
+        def init_from_schema_json(coder, references)
+          __setobj__(references[coder["type_metadata"]])
+          @extra = coder["extra"] || ""
+        end
+
         def ==(other)
           other.is_a?(TypeMetadata) &&
             __getobj__ == other.__getobj__ &&

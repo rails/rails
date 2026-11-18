@@ -229,6 +229,20 @@ if ActiveRecord::Base.lease_connection.supports_unique_constraints?
           end
         end
 
+        def test_unique_constraints_are_combined_in_bulk_change_table
+          @connection.add_unique_constraint :sections, [:position], name: :unique_section_position
+
+          assert_queries_count(1) do
+            @connection.change_table(:sections, bulk: true) do |t|
+              t.integer :other_position, null: false
+              t.unique_constraint [:other_position], name: :unique_section_other_position
+              t.remove_unique_constraint name: :unique_section_position
+            end
+          end
+
+          assert_equal ["unique_section_other_position"], @connection.unique_constraints("sections").map(&:name)
+        end
+
         def test_renamed_unique_constraint
           @connection.add_unique_constraint :sections, [:position]
           @connection.rename_column :sections, :position, :new_position

@@ -16,7 +16,7 @@ module ActiveRecord
             queries_count = payload[:queries_count] || 0
             cached_queries_count = payload[:cached_queries_count] || 0
             messages << ("ActiveRecord: %.1fms (%d %s, %d cached)" % [db_runtime.to_f, queries_count,
-                                                                      "query".pluralize(queries_count), cached_queries_count])
+                                                                      queries_count == 1 ? "query" : "queries", cached_queries_count])
           end
 
           messages

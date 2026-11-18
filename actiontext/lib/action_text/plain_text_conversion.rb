@@ -1,7 +1,5 @@
 # frozen_string_literal: true
 
-# :markup: markdown
-
 module ActionText
   module PlainTextConversion
     extend self
@@ -14,8 +12,9 @@ module ActionText
 
     private
       def plain_text_for_node(node, child_values)
-        if respond_to?(plain_text_method_for_node(node), true)
-          send(plain_text_method_for_node(node), node, child_values)
+        method = plain_text_method_for_node(node)
+        if respond_to?(method, true)
+          send(method, node, child_values)
         else
           plain_text_for_child_values(child_values)
         end
@@ -41,7 +40,7 @@ module ActionText
         "#{remove_trailing_newlines(plain_text_for_child_values(child_values))}\n\n"
       end
 
-      %i[ h1 p ].each do |element|
+      %i[ h1 h2 h3 h4 h5 h6 p ].each do |element|
         alias_method :"plain_text_for_#{element}_node", :plain_text_for_block
       end
 

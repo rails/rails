@@ -8,15 +8,17 @@ module AbstractController
       class W
         include ActionDispatch::Routing::RouteSet.new.tap { |r|
           r.draw {
-            ActionDispatch.deprecator.silence {
-              get ":controller(/:action(/:id(.:format)))"
-            }
+            get "/c(/:id(.:format))",       controller: "c",    action: "index"
+            get "/c/a(/:id(.:format))",     controller: "c",    action: "a"
+            get "/foo(/:id(.:format))",     controller: "foo",  action: "index"
+            get "/foo/bar(/:id(.:format))", controller: "foo",  action: "bar"
+            get "/cont/act(/:id(.:format))", controller: "cont", action: "act"
           }
         }.url_helpers
       end
 
       def teardown
-        W.default_url_options.clear
+        W.default_url_options = {}
       end
 
       def test_nested_optional
@@ -28,7 +30,8 @@ module AbstractController
                                              action: :index
             }
           }.url_helpers
-          default_url_options[:host] = "example.com"
+
+          self.default_url_options = { host: "example.com" }
         }
 
         path = klass.new.fun_path(controller: :articles,
@@ -39,15 +42,15 @@ module AbstractController
       end
 
       def add_host!(app = W)
-        app.default_url_options[:host] = "www.basecamphq.com"
+        app.default_url_options = app.default_url_options.merge(host: "www.basecamphq.com")
       end
 
       def add_port!
-        W.default_url_options[:port] = 3000
+        W.default_url_options = W.default_url_options.merge(port: 3000)
       end
 
       def add_numeric_host!
-        W.default_url_options[:host] = "127.0.0.1"
+        W.default_url_options = W.default_url_options.merge(host: "127.0.0.1")
       end
 
       def test_exception_is_thrown_without_host
@@ -131,14 +134,14 @@ module AbstractController
       end
 
       def test_subdomain_may_be_removed_with_blank_string
-        W.default_url_options[:host] = "api.basecamphq.com"
+        W.default_url_options = { host: "api.basecamphq.com" }
         assert_equal("http://basecamphq.com/c/a/i",
           W.new.url_for(subdomain: "", controller: "c", action: "a", id: "i")
         )
       end
 
       def test_multiple_subdomains_may_be_removed
-        W.default_url_options[:host] = "mobile.www.api.basecamphq.com"
+        W.default_url_options = { host: "mobile.www.api.basecamphq.com" }
         assert_equal("http://basecamphq.com/c/a/i",
           W.new.url_for(subdomain: false, controller: "c", action: "a", id: "i")
         )
@@ -204,15 +207,56 @@ module AbstractController
 
       def test_protocol_with_and_without_separators
         add_host!
-        assert_equal("https://www.basecamphq.com/c/a/i",
-          W.new.url_for(controller: "c", action: "a", id: "i", protocol: "https")
-        )
-        assert_equal("https://www.basecamphq.com/c/a/i",
-          W.new.url_for(controller: "c", action: "a", id: "i", protocol: "https:")
-        )
-        assert_equal("https://www.basecamphq.com/c/a/i",
-          W.new.url_for(controller: "c", action: "a", id: "i", protocol: "https://")
-        )
+        %w[http https].each do |protocol|
+          [protocol, "#{protocol}:", "#{protocol}://"].each do |value|
+            assert_equal("#{protocol}://www.basecamphq.com/c/a/i",
+              W.new.url_for(controller: "c", action: "a", id: "i", protocol: value)
+            )
+          end
+        end
+      end
+
+      def test_invalid_host_encoding_is_rejected_before_protocol
+        error = assert_raises(ArgumentError) do
+          W.new.url_for(controller: "c", action: "a", host: "\xFF", protocol: true)
+        end
+
+        assert_match(/invalid byte sequence in UTF-8/, error.message)
+      end
+
+      def test_host_string_subclasses_use_their_matcher
+        host = Class.new(String) do
+          def match(pattern)
+            "https://www.basecamphq.com:8443".match(pattern)
+          end
+        end.new("original.example.com")
+
+        assert_equal "https://www.basecamphq.com:8443/c/a/i",
+          W.new.url_for(controller: "c", action: "a", id: "i", host: host)
+      end
+
+      def test_host_and_protocol_string_proxies
+        proxy = Class.new(BasicObject) do
+          def initialize(value)
+            @value = value
+          end
+
+          def nil?
+            false
+          end
+
+          def to_str
+            @value
+          end
+
+          def match(pattern)
+            @value.match(pattern)
+          end
+        end
+
+        assert_equal "https://www.basecamphq.com/c/a/i",
+          W.new.url_for(controller: "c", action: "a", id: "i",
+            host: proxy.new("www.basecamphq.com"), protocol: proxy.new("https"))
       end
 
       def test_without_protocol
@@ -299,7 +343,7 @@ module AbstractController
         w = Class.new {
           config = ActionDispatch::Routing::RouteSet::Config.new "/subdir"
           r = ActionDispatch::Routing::RouteSet.new(config)
-          r.draw { ActionDispatch.deprecator.silence { get ":controller(/:action(/:id(.:format)))" } }
+          r.draw { get "/c/a(/:id(.:format))", controller: "c", action: "a" }
           include r.url_helpers
         }
         add_host!(w)
@@ -406,10 +450,7 @@ module AbstractController
         with_routing do |set|
           set.draw do
             get "home/sweet/home/:user", to: "home#index", as: :home
-
-            ActionDispatch.deprecator.silence do
-              get ":controller/:action/:id"
-            end
+            get "brave/new/:id", to: "brave#new"
           end
 
           # We need to create a new class in order to install the new named route.
@@ -501,7 +542,13 @@ module AbstractController
       end
 
       def test_path_generation_for_symbol_parameter_keys
-        assert_generates("/image", controller: :image)
+        with_routing do |set|
+          set.draw do
+            get "/image", to: "image#index"
+          end
+
+          assert_generates("/image", controller: :image)
+        end
       end
 
       def test_named_routes_with_nil_keys
@@ -513,7 +560,7 @@ module AbstractController
 
           # We need to create a new class in order to install the new named route.
           kls = Class.new { include set.url_helpers }
-          kls.default_url_options[:host] = "www.basecamphq.com"
+          kls.default_url_options = { host: "www.basecamphq.com" }
 
           controller = kls.new
           params = { action: :index, controller: :posts, format: :xml }
@@ -529,8 +576,8 @@ module AbstractController
 
         first_host, second_host = "firsthost.com", "secondhost.com"
 
-        first_class.default_url_options[:host] = first_host
-        second_class.default_url_options[:host] = second_host
+        first_class.default_url_options = { host: first_host }
+        second_class.default_url_options = { host: second_host }
 
         assert_equal first_host, first_class.default_url_options[:host]
         assert_equal second_host, second_class.default_url_options[:host]
@@ -542,11 +589,10 @@ module AbstractController
       end
 
       def test_with_hash_with_indifferent_access
-        W.default_url_options[:controller] = "d"
-        W.default_url_options[:only_path]  = false
+        W.default_url_options = { controller: "d", only_path: false }
         assert_equal("/c", W.new.url_for(ActiveSupport::HashWithIndifferentAccess.new("controller" => "c", "only_path" => true)))
 
-        W.default_url_options[:action] = "b"
+        W.default_url_options = W.default_url_options.merge(action: "b")
         assert_equal("/c/a", W.new.url_for(ActiveSupport::HashWithIndifferentAccess.new("controller" => "c", "action" => "a", "only_path" => true)))
       end
 
@@ -567,7 +613,7 @@ module AbstractController
           end
 
           kls = Class.new { include set.url_helpers }
-          kls.default_url_options[:host] = "www.basecamphq.com"
+          kls.default_url_options = { host: "www.basecamphq.com" }
 
           controller = kls.new
           assert_equal("http://www.basecamphq.com/admin/posts/new?param=value",
@@ -585,7 +631,7 @@ module AbstractController
           end
 
           kls = Class.new { include set.url_helpers }
-          kls.default_url_options[:host] = "www.basecamphq.com"
+          kls.default_url_options = { host: "www.basecamphq.com" }
 
           original_components = [:new, :admin, :post, { param: "value" }]
           components = original_components.dup
@@ -611,7 +657,7 @@ module AbstractController
           end
 
           kls = Class.new { include set.url_helpers }
-          kls.default_url_options[:host] = "www.basecamphq.com"
+          kls.default_url_options = { host: "www.basecamphq.com" }
 
           assert_equal "http://www.basecamphq.com/test", kls.new.url_for(controller: "index", param1: "1")
         end

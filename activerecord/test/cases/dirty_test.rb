@@ -968,7 +968,7 @@ class DirtyTest < ActiveRecord::TestCase
     end
   end
 
-  if current_adapter?(:PostgreSQLAdapter) && supports_identity_columns?
+  if current_adapter?(:PostgreSQLAdapter)
     test "partial insert off with changed composite identity primary key attribute" do
       klass = Class.new(ActiveRecord::Base) do
         self.table_name = "cpk_postgresql_identity_table"
@@ -997,7 +997,7 @@ class DirtyTest < ActiveRecord::TestCase
     record_with_defaults.update!(random_number: 140)
 
     assert_equal [1050, 1400], record_with_defaults.previous_changes[:virtual_stored_number]
-  end if current_adapter?(:PostgreSQLAdapter)
+  end if current_adapter?(:PostgreSQLAdapter) && supports_virtual_columns?
 
   private
     def with_partial_writes(klass, on = true)

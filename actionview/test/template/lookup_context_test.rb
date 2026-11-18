@@ -2,6 +2,7 @@
 
 require "abstract_unit"
 require "abstract_controller/rendering"
+require "active_support/testing/ractors_assertions"
 
 class LookupContextTest < ActiveSupport::TestCase
   def setup
@@ -73,6 +74,20 @@ class LookupContextTest < ActiveSupport::TestCase
     assert_equal 'Invalid formats: :invalid, "also bad"', ex.message
   end
 
+  test "prepending formats validates them even when the format already leads" do
+    lookup_context = ActionView::LookupContext.new([], formats: [])
+    ex = assert_raises ArgumentError do
+      ActionView::TemplateRenderer.new(lookup_context).send(:prepend_formats, [nil])
+    end
+    assert_equal "Invalid formats: nil", ex.message
+
+    lookup_context = ActionView::LookupContext.new([], formats: [:html, :invalid])
+    ex = assert_raises ArgumentError do
+      ActionView::TemplateRenderer.new(lookup_context).send(:prepend_formats, :html)
+    end
+    assert_equal "Invalid formats: :invalid", ex.message
+  end
+
   test "provides getters and setters for locale" do
     @lookup_context.locale = :pt
     assert_equal :pt, @lookup_context.locale
@@ -94,6 +109,11 @@ class LookupContextTest < ActiveSupport::TestCase
     end
 
     assert_equal :pt, I18n.locale
+  end
+
+  test "find_template returns the template, or raises when there is none" do
+    assert_equal "Hello world!", @lookup_context.find_template("hello_world", %w(test)).source
+    assert_raise(ActionView::MissingTemplate) { @lookup_context.find_template("missing", %w(test)) }
   end
 
   test "find templates using the given view paths and configured details" do
@@ -202,15 +222,59 @@ end
 if RUBY_VERSION >= "4.0"
   class LookupContextRactorTest < ActiveSupport::TestCase
     include ActiveSupport::Testing::Isolation
+    include ActiveSupport::Testing::RactorsAssertions
+
+    test "view_context_class's compiled method container is readable from a non-main Ractor" do
+      klass = ActionView::LookupContext.view_context_class
+
+      singleton_container, instance_container = on_ractor(klass) do |k|
+        [k.compiled_method_container, k.allocate.compiled_method_container]
+      end
+
+      assert_same klass, singleton_container
+      assert_same klass, instance_container
+    end
 
     test "view_context_class is Ractor-shareable" do
-      @original_experimental_warning = Warning[:experimental]
-      Warning[:experimental] = false
       ActionView::LookupContext.view_context_class # needs to be eager-loaded to be ractor-shareable
       assert_same ActionView::LookupContext.view_context_class,
-        Ractor.new { ActionView::LookupContext.view_context_class }.value
-    ensure
-      Warning[:experimental] = @original_experimental_warning
+        on_ractor { ActionView::LookupContext.view_context_class }
+    end
+
+    if RUBY_VERSION >= "4.0"
+      test "builds lookup contexts and interns their details keys inside a non-main Ractor" do
+        Mime.eager_load!
+
+        same_key, worker_key_id, defaulted_variants = on_ractor do
+          details = { locale: [:en], formats: [:html], variants: [], handlers: [:erb] }
+          a = ActionView::LookupContext.new([], details)
+          b = ActionView::LookupContext.new([], details.dup)
+          interned_same = a.details_key.equal?(b.details_key)
+          key_id = a.details_key.object_id
+          # check default_ methods can be called (defaulted_variants in this case)
+          a.variants = nil
+          [interned_same, key_id, a.variants]
+        end
+
+        assert same_key
+        assert_equal [], defaulted_variants
+
+        details = { locale: [:en], formats: [:html], variants: [], handlers: [:erb] }
+        main_key_id = ActionView::LookupContext.new([], details).details_key.object_id
+        assert_not_equal main_key_id, worker_key_id
+      end
+    end
+
+    test "interns details keys and builds digest caches inside a non-main Ractor" do
+      interned, digest_cache = on_ractor do
+        details = { locale: [:en], formats: nil, variants: [], handlers: [:erb] }
+        key = ActionView::LookupContext::DetailsKey.details_cache_key(details)
+        cache = ActionView::LookupContext::DetailsKey.digest_cache(details)
+        [key.class.name, cache.class.name]
+      end
+
+      assert_equal "ActionView::TemplateDetails::Requested", interned
+      assert_equal "Concurrent::Map", digest_cache
     end
   end
 end

@@ -1,3 +1,106 @@
+*   Fix numericality `:odd` and `:even` options raising for non-finite values.
+
+    Infinity, NaN, and numeric strings that overflow to infinity, such as
+    `"1e400"`, now add the `:odd` or `:even` error instead of raising
+    `FloatDomainError`.
+
+    Fixes #59852.
+
+    *Andy Wang*
+
+*   Fix `:integer` attributes silently truncating 64-bit integer strings.
+
+    Strings cast by `ActiveModel::Type::Integer` are cut to `limit * 4` bytes.
+    Types without a limit, such as Active Model attributes, used the default
+    limit of 4, so a 19-digit value like `"9223372036854775807"` was silently
+    truncated to 16 digits. Types without a limit now use a 32-byte window,
+    which fits any 64-bit value. Types with an explicit limit are unchanged.
+
+    Fixes #59636.
+
+    *Talaat Magdy*
+
+*   Fix subclasses missing `alias_attribute` aliases added to their parent class later.
+
+    A subclass that held its own copy of the aliases, because it had defined
+    an alias of its own or, in Active Record, because its attribute methods
+    were generated under an abstract class, did not see aliases added to its
+    parent afterwards. `attribute_alias?` returned `false`, and Active Record
+    queries such as `where` used the alias as a column name.
+
+    *Kengo Johira*
+
+*   Fix numericality validator on a decimal attribute with implicit scale.
+
+    A value is now validated as it is actually held by the attribute.
+    Previously a database-backed `decimal` column without an explicit scale
+    (which stores integers) was validated as if no rounding happened:
+
+    ```ruby
+    # t.decimal :unscaled_bank_balance, precision: 10
+
+    class NumericData < ActiveRecord::Base
+      validates_numericality_of :unscaled_bank_balance, equal_to: 10_000_000.0
+    end
+
+    subject = NumericData.new(unscaled_bank_balance: 10_000_000.121)
+    subject.unscaled_bank_balance # => 10000000
+    subject.valid?                # => false (now true)
+    ```
+
+    *Ryuta Kamizono*
+
+*   Check `ActiveModel::Attributes` attribute methods without building the
+    attributes hash.
+
+    `respond_to?` for a method that is not defined no longer calls `attributes`.
+    A key that an `attributes` override adds, without an attribute or a method,
+    no longer makes the model respond to it. Active Record already works this way.
+
+    *Bruno Costanzo*
+
+*   Treat `:except_on` as a callback option in `ActiveModel::Error`.
+
+    Errors from validations using `:except_on` now match `errors.added?` queries
+    without that option, and no longer include it in `errors.details`.
+
+    *Andrii Furmanets*
+
+*   Implement `ActiveModel::Type::Binary::Data#as_json`
+
+    Delegates JSON conversion to the underlying binary data value (instead of
+    falling back to `Object#as_json` and exposing ivar name).
+
+    *Tiago Cardoso*
+
+*   Fix `normalizes` to run before the underlying type validates an assigned
+    value.
+
+    When `normalizes` was combined with another type that rejects invalid
+    input (such as an Active Record `enum`), the underlying type's
+    `assert_valid_value` ran against the raw, un-normalized value and raised
+    before normalization had a chance to run. The normalization is now applied
+    first, so a value like `"  Pending  "` is normalized to `"pending"` and
+    accepted by the enum.
+
+    *Gabriel Quaresma*
+
+*   Fix `LengthValidator` raising `NoMethodError` when a `:minimum` (or `:is`)
+    constraint is given as a proc and the validated value is `nil`.
+
+    The proc was resolved only when the value was present, so for a `nil` value
+    it leaked unresolved into the error message and was invoked with the message
+    options hash instead of the record. It is now resolved before the error is
+    built, producing the expected `"is too short"` message.
+
+    ```ruby
+    validates_length_of :title, minimum: ->(record) { record.min_length }
+    # title = nil now yields "is too short (minimum is N characters)"
+    # instead of raising NoMethodError
+    ```
+
+    *Ben Younes*
+
 *   Fix `normalizes` re-applying normalizations on every validation of an
     unpersisted record, and speed up validation of normalized attributes.
 

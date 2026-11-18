@@ -185,7 +185,7 @@ spec.homepage    = "http://example.com"
 spec.summary     = "Enhance your API endpoints"
 spec.description = "Adds common API functionality like request throttling, response caching, and automatic API documentation."
 
-...
+# ...
 
 spec.metadata["source_code_uri"] = "http://example.com"
 spec.metadata["changelog_uri"] = "http://example.com"
@@ -431,7 +431,7 @@ module ApiBoost
 end
 ```
 
-NOTE: The use of `write_attribute` above to write to the field in model is just
+NOTE: The use of `write_attribute` above to write to the field in the model is just
 one example of how a plugin can interact with the model, and will not always be
 the right method to use. For example, you might prefer using `send`, which calls
 the setter method

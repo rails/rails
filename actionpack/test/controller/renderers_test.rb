@@ -3,8 +3,11 @@
 require "abstract_unit"
 require "controller/fake_models"
 require "active_support/logger"
+require "active_support/testing/ractors_assertions"
 
 class RenderersTest < ActionController::TestCase
+  include ActiveSupport::Testing::RactorsAssertions
+
   class XmlRenderable
     def to_xml(options)
       options[:root] ||= "i-am-xml"
@@ -47,6 +50,10 @@ class RenderersTest < ActionController::TestCase
       render simon: "foo"
     end
 
+    def render_json_and_xml
+      render json: JsonRenderable.new, xml: XmlRenderable.new
+    end
+
     def respond_to_mime
       respond_to do |type|
         type.json do
@@ -63,6 +70,13 @@ class RenderersTest < ActionController::TestCase
         type.any(:js, :xml) { render body: "Either JS or XML" }
       end
     end
+  end
+
+  class LocalRenderersController < TestController
+    use_renderers :xml
+  end
+
+  class InheritedRenderersController < LocalRenderersController
   end
 
   tests TestController
@@ -84,6 +98,30 @@ class RenderersTest < ActionController::TestCase
     assert_equal "Simon says: foo", @response.body
   ensure
     ActionController.remove_renderer :simon
+  end
+
+  def test_renderer_added_and_removed_between_renders
+    ActionController.add_renderer(:simon) { |says, _| self.response_body = "Simon says: #{says}" }
+    get :render_simon_says
+    assert_equal "Simon says: foo", @response.body
+
+    ActionController.remove_renderer(:simon)
+    assert_raise(ActionView::MissingTemplate) { get :render_simon_says }
+  ensure
+    ActionController.remove_renderer(:simon)
+  end
+
+  def test_first_matching_renderer_wins_without_local_renderers
+    get :render_json_and_xml
+    assert_equal({ a: :b }.to_json, @response.body)
+  end
+
+  def test_local_renderers_come_first_also_when_inherited
+    [LocalRenderersController, InheritedRenderersController].each do |controller|
+      @controller = controller.new
+      get :render_json_and_xml
+      assert_equal "<i-am-xml/>", @response.body
+    end
   end
 
   def test_raises_missing_template_no_renderer
@@ -116,5 +154,25 @@ class RenderersTest < ActionController::TestCase
     get :respond_to_mime, format: "svg"
     assert_equal Mime[:svg], @response.media_type
     assert_equal "<svg><circle cx=\"50\" cy=\"50\" r=\"40\"/></svg>", @response.body
+  end
+
+  test "accessing the RENDERERS constant is deprecated" do
+    ActionController::Renderers.add(:foo) { }
+
+    assert_deprecated(/ActionController::Renderers::RENDERERS is deprecated/, ActionController.deprecator) do
+      assert_includes(ActionController::Renderers::RENDERERS, :foo)
+    end
+  ensure
+    ActionController::Renderers.remove(:foo)
+  end
+
+  test "set of renderers if frozen" do
+    assert_ractor_shareable(ActionController::Renderers.all)
+
+    ActionController.add_renderer(:rtf) { }
+    assert_ractor_shareable(ActionController::Renderers.all)
+
+    ActionController.remove_renderer(:rtf)
+    assert_ractor_shareable(ActionController::Renderers.all)
   end
 end

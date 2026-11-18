@@ -2090,6 +2090,16 @@ class PerformedJobsTest < ActiveJob::TestCase
 
       assert_equal 2, queue_adapter.performed_jobs.count
     end
+
+    test "retrying a job doesn't change the job data of its earlier executions" do
+      job = RetryJob.new("DefaultsError", 3)
+      job.enqueue
+      3.times { perform_enqueued_jobs }
+
+      assert_equal({}, job.exception_executions)
+      assert_equal [{}, { "[DefaultsError]" => 1 }, { "[DefaultsError]" => 2 }],
+        queue_adapter.performed_jobs.map { |job_data| job_data["exception_executions"] }
+    end
   end
 end
 

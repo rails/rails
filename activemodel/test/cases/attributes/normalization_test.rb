@@ -1,8 +1,11 @@
 # frozen_string_literal: true
 
 require "cases/helper"
+require "active_support/testing/ractors_assertions"
 
 class NormalizedAttributeTest < ActiveModel::TestCase
+  include ActiveSupport::Testing::RactorsAssertions
+
   class Aircraft
     include ActiveModel::API
     include ActiveModel::Attributes
@@ -114,5 +117,9 @@ class NormalizedAttributeTest < ActiveModel::TestCase
 
     aircraft.name.replace("0")
     assert_equal "0", aircraft.name
+  end
+
+  test ".normalized_attributes is ractor safe" do
+    assert_ractor_shareable NormalizedAircraft.normalized_attributes
   end
 end

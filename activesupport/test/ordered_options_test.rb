@@ -382,4 +382,14 @@ class OrderedOptionsTest < ActiveSupport::TestCase
     assert_not object.overridden?(:one)
     assert_not object.overridden?(:three)
   end
+
+  def test_new_child_over_a_frozen_parent
+    parent = ActiveSupport::InheritableOptions.new(one: "first value")
+    parent.freeze
+    child = ActiveSupport::InheritableOptions.new(parent)
+    child.two = "second value"
+
+    assert_equal "first value", child.one
+    assert_equal "second value", child.two
+  end
 end

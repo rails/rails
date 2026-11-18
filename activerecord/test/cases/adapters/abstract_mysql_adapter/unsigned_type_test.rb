@@ -30,7 +30,7 @@ class UnsignedTypeTest < ActiveRecord::AbstractMysqlTestCase
     assert_equal expected, UnsignedType.find_by(unsigned_integer: 4294967295)
   end
 
-  test "minus value is out of range" do
+  test "minus value is out of range on create" do
     assert_raise(ActiveModel::RangeError) do
       UnsignedType.create(unsigned_integer: -10)
     end
@@ -42,6 +42,21 @@ class UnsignedTypeTest < ActiveRecord::AbstractMysqlTestCase
     end
     assert_raise(ActiveRecord::RangeError) do
       UnsignedType.create(unsigned_decimal: -10.0)
+    end
+  end
+
+  test "minus value is out of range on update" do
+    assert_raise(ActiveModel::RangeError) do
+      UnsignedType.create!.update(unsigned_integer: -10)
+    end
+    assert_raise(ActiveModel::RangeError) do
+      UnsignedType.create!.update(unsigned_bigint: -10)
+    end
+    assert_raise(ActiveRecord::RangeError) do
+      UnsignedType.create!.update(unsigned_float: -10.0)
+    end
+    assert_raise(ActiveRecord::RangeError) do
+      UnsignedType.create!.update(unsigned_decimal: -10.0)
     end
   end
 

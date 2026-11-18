@@ -1,7 +1,8 @@
 # frozen_string_literal: true
 
 module ActiveSupport
-  # = Active Support \Deprecation
+  # Active Support \Deprecation
+  # ===========================
   #
   # \Deprecation specifies the API used by \Rails to deprecate methods, instance variables, objects, and constants. It's
   # also available for gems or applications.
@@ -9,27 +10,33 @@ module ActiveSupport
   # For a gem, use Deprecation.new to create a Deprecation object and store it in your module or class (in order for
   # users to be able to configure it).
   #
-  #   module MyLibrary
-  #     def self.deprecator
-  #       @deprecator ||= ActiveSupport::Deprecation.new("2.0", "MyLibrary")
-  #     end
+  # ```
+  # module MyLibrary
+  #   def self.deprecator
+  #     @deprecator ||= ActiveSupport::Deprecation.new("2.0", "MyLibrary")
   #   end
+  # end
+  # ```
   #
   # For a Railtie or Engine, you may also want to add it to the application's deprecators, so that the application's
   # configuration can be applied to it.
   #
-  #   module MyLibrary
-  #     class Railtie < Rails::Railtie
-  #       initializer "my_library.deprecator" do |app|
-  #         app.deprecators[:my_library] = MyLibrary.deprecator
-  #       end
+  # ```
+  # module MyLibrary
+  #   class Railtie < Rails::Railtie
+  #     initializer "my_library.deprecator" do |app|
+  #       app.deprecators[:my_library] = MyLibrary.deprecator
   #     end
   #   end
+  # end
+  # ```
   #
-  # With the above initializer, configuration settings like the following will affect +MyLibrary.deprecator+:
+  # With the above initializer, configuration settings like the following will affect `MyLibrary.deprecator`:
   #
-  #   # in config/environments/test.rb
-  #   config.active_support.deprecation = :raise
+  # ```
+  # # in config/environments/test.rb
+  # config.active_support.deprecation = :raise
+  # ```
   class Deprecation
     # active_support.rb sets an autoload for ActiveSupport::Deprecation.
     #
@@ -47,7 +54,7 @@ module ActiveSupport
     require "active_support/deprecation/proxy_wrappers"
     require "active_support/deprecation/deprecators"
     require "active_support/core_ext/module/deprecation"
-    require "concurrent/atomic/thread_local_var"
+    require "active_support/isolated_execution_state"
 
     include Behavior
     include Reporting
@@ -67,15 +74,24 @@ module ActiveSupport
     # It accepts two parameters on initialization. The first is a version of library
     # and the second is a library name.
     #
-    #   ActiveSupport::Deprecation.new('2.0', 'MyLibrary')
-    def initialize(deprecation_horizon = "8.3", gem_name = "Rails")
+    # ```
+    # ActiveSupport::Deprecation.new('2.0', 'MyLibrary')
+    # ```
+    def initialize(deprecation_horizon = "9.0", gem_name = "Rails")
       self.gem_name = gem_name
       self.deprecation_horizon = deprecation_horizon
       # By default, warnings are not silenced and debugging is off.
       self.silenced = false
       self.debug = false
-      @silence_counter = Concurrent::ThreadLocalVar.new(0)
-      @explicitly_allowed_warnings = Concurrent::ThreadLocalVar.new(nil)
+      @silence_counter_key = :"active_support_deprecation_silence_counter_#{object_id}"
+      @explicitly_allowed_warnings_key = :"active_support_deprecation_explicitly_allowed_warnings_#{object_id}"
+    end
+
+    def freeze # :nodoc:
+      behavior
+      disallowed_behavior
+      disallowed_warnings
+      super
     end
   end
 end

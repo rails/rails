@@ -23,9 +23,14 @@ class ActiveRecord::Encryption::MessageSerializerTest < ActiveRecord::Encryption
   end
 
   test "won't load classes from JSON" do
-    class_loading_payload = JSON.dump({ p: ::Base64.strict_encode64("Some payload"), json_class: "MessageSerializerTest::SomeClassThatWillNeverExist" })
+    data = { p: ::Base64.strict_encode64("Some payload"), json_class: "MessageSerializerTest::SomeClassThatWillNeverExist" }
+    class_loading_payload = JSON.dump(data)
 
-    assert_raises(ArgumentError) { JSON.load(class_loading_payload) }
+    if JSON::VERSION < "3"
+      assert_raises(ArgumentError) { JSON.load(class_loading_payload) }
+    else
+      assert_equal(data.stringify_keys, JSON.load(class_loading_payload))
+    end
     assert_nothing_raised { @serializer.load(class_loading_payload) }
   end
 

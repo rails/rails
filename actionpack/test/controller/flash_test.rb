@@ -251,6 +251,14 @@ class FlashTest < ActionController::TestCase
 
   def test_flash_types_are_ractor_safe
     assert_ractor_shareable TestController._flash_types
+
+    assert_nothing_raised do
+      on_ractor do
+        c = TestController.new
+        c.set_request! ActionDispatch::Request.new({})
+        c.send(:alert)
+      end
+    end
   end
 end
 
@@ -418,11 +426,7 @@ class FlashIntegrationTest < ActionDispatch::IntegrationTest
 
     def with_test_route_set
       with_routing do |set|
-        set.draw do
-          ActionDispatch.deprecator.silence do
-            get ":action", to: FlashIntegrationTest::TestController
-          end
-        end
+        draw_root_action_routes(set, FlashIntegrationTest::TestController)
 
         yield
       end

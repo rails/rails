@@ -24,7 +24,6 @@ module Rails
 
     class Runner
       TEST_FOLDERS = [:models, :helpers, :channels, :controllers, :mailers, :integration, :jobs, :mailboxes].freeze
-      PATH_ARGUMENT_PATTERN = %r"^(?!/.+/$)[.\w]*[/\\]"
       mattr_reader :filters, default: []
       mattr_reader :load_test_files, default: false
 
@@ -85,7 +84,7 @@ module Rails
         end
 
         def compose_filter(runnable, filter)
-          filter = normalize_declarative_test_filter(filter)
+          filter = normalize_declarative_test_filter(runnable, filter)
 
           if filters.any? { |_, lines| lines.any? }
             CompositeFilter.new(runnable, filter, filters)
@@ -125,9 +124,6 @@ module Rails
             arg.start_with?("/") && arg.end_with?("/")
           end
 
-          def path_argument?(arg)
-            PATH_ARGUMENT_PATTERN.match?(arg)
-          end
 
           def list_tests(patterns)
             tests = Rake::FileList[patterns.any? ? patterns : default_test_glob]
@@ -136,13 +132,13 @@ module Rails
             tests
           end
 
-          def normalize_declarative_test_filter(filter)
+          def normalize_declarative_test_filter(runnable, filter)
             if filter.is_a?(String)
               if regexp_filter?(filter)
                 # Minitest::Spec::DSL#it does not replace whitespace in method
                 # names, so match unmodified method names as well.
                 filter = filter.gsub(/\s+/, "_").delete_suffix("/") + "|" + filter.delete_prefix("/")
-              elsif !filter.start_with?("test_")
+              elsif !filter.start_with?("test_", "#{runnable.name}#test_")
                 filter = "test_#{filter.gsub(/\s+/, "_")}"
               end
             end

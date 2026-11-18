@@ -1,7 +1,5 @@
 # frozen_string_literal: true
 
-# :markup: markdown
-
 require "rails"
 require "action_controller"
 require "action_dispatch/railtie"
@@ -164,6 +162,15 @@ module ActionController
     initializer "action_controller.structured_event_subscriber" do |app|
       ActiveSupport.on_load(:action_controller) do
         ActionController::StructuredEventSubscriber._rescue_from_event_backtrace = app.config.action_controller.rescue_from_event_backtrace
+      end
+    end
+
+    initializer "action_controller.ractorize" do
+      ActiveSupport.on_load(:before_ractorize) do
+        [AbstractController::Base, *AbstractController::Base.descendants].each do |controller|
+          Ractor.make_shareable(controller.config)
+          Ractor.make_shareable(controller._wrapper_options) if controller.include?(ActionController::ParamsWrapper)
+        end
       end
     end
   end

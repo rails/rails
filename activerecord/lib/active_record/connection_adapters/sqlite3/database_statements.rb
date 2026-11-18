@@ -15,8 +15,9 @@ module ActiveRecord
           !READ_QUERY.match?(sql.b)
         end
 
-        def explain(arel, binds = [], _options = [])
-          sql    = "EXPLAIN QUERY PLAN " + to_sql(arel, binds)
+        def explain(arel_or_sql, binds = [], _options = [])
+          sql, _ = to_sql_and_binds(arel_or_sql, binds)
+          sql = "EXPLAIN QUERY PLAN " + sql
           result = query_rows(sql, "EXPLAIN")
           SQLite3::ExplainPrettyPrinter.new.pp(result)
         end
@@ -38,7 +39,15 @@ module ActiveRecord
         end
 
         def exec_rollback_db_transaction # :nodoc:
+          return if connected? && !@raw_connection.transaction_active?
+
           query_command("ROLLBACK TRANSACTION", "TRANSACTION", allow_retry: true, materialize_transactions: false)
+        end
+
+        def exec_rollback_to_savepoint(name = current_savepoint_name) # :nodoc:
+          return if connected? && !@raw_connection.transaction_active?
+
+          super
         end
 
         # https://stackoverflow.com/questions/17574784
@@ -137,7 +146,8 @@ module ActiveRecord
                     0
                   end
 
-                  ActiveRecord::Result.new(stmt.columns, rows, stmt.types.map { |t| type_map.lookup(t) }, affected_rows: affected_rows)
+                  result_type_map = type_map
+                  ActiveRecord::Result.new(stmt.columns, rows, stmt.types.map { |t| result_type_map.lookup(t) }, affected_rows: affected_rows)
                 end
               ensure
                 stmt.close unless intent.prepare
@@ -162,10 +172,6 @@ module ActiveRecord
 
           def build_truncate_statement(table_name)
             "DELETE FROM #{quote_table_name(table_name)}"
-          end
-
-          def returning_column_values(result)
-            result.rows.first
           end
       end
     end

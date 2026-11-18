@@ -7,12 +7,12 @@ module ActiveRecord
       @arel_table = arel_table
     end
 
-    def primary_key
-      klass&.primary_key
+    def model
+      klass
     end
 
-    def type(column_name)
-      arel_table.type_for_attribute(column_name)
+    def primary_key
+      klass&.primary_key
     end
 
     def has_column?(column_name)

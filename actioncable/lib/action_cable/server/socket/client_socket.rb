@@ -44,7 +44,7 @@ module ActionCable
 
           @ready_state = CONNECTING
 
-          # The driver calls +env+, +url+, and +write+
+          # The driver calls `env`, `url`, and `write`
           @driver = ::WebSocket::Driver.rack(self, protocols: protocols)
 
           @driver.on(:open)    { |e| open }

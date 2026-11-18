@@ -15,6 +15,14 @@ module Arel
         assert_kind_of Arel::Nodes::SqlLiteral, sql
       end
 
+      test "star is one shared, frozen, retryable literal" do
+        assert_same Arel.star, Arel.star
+        assert_predicate Arel.star, :frozen?
+        assert_predicate Arel.star, :retryable
+        assert_like %{ COUNT(*) AS c }, compile(Arel.star.count.as("c"))
+        assert_like %{ * }, compile(Arel.star)
+      end
+
       test "count makes a count node" do
         node = SqlLiteral.new("*").count
         assert_like %{ COUNT(*) }, compile(node)

@@ -65,14 +65,6 @@ module Rails
       end
 
       private
-        def conditional_executor(enabled, **args, &block)
-          if enabled
-            Rails.application.executor.wrap(**args, &block)
-          else
-            yield
-          end
-        end
-
         def looks_like_a_file_path?(code_or_file)
           code_or_file.ends_with?(".rb")
         end

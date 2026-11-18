@@ -46,7 +46,7 @@ module ActiveSupport
           @worker_pids[worker_id] = worker_pid
         end
 
-        def stop_worker(worker_id, worker_pid)
+        def stop_worker(worker_id)
           @active_workers.delete(worker_id)
           @worker_pids.delete(worker_id)
         end

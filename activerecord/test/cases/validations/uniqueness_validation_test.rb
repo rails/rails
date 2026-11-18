@@ -117,6 +117,23 @@ class UniquenessValidationTest < ActiveRecord::TestCase
     assert_predicate t3, :valid?
   end
 
+  def test_validate_uniqueness_uses_only_all_query_default_scopes
+    topic_class = Class.new(ActiveRecord::Base) do
+      self.table_name = "topics"
+      self.inheritance_column = :_type_disabled
+
+      default_scope -> { where(approved: true) }
+      default_scope -> { where(parent_id: 1) }, all_queries: true
+
+      validates_uniqueness_of :title
+    end
+
+    Topic.create!(title: "Scoped uniqueness", parent_id: 1, approved: false)
+    topic = topic_class.new(title: "Scoped uniqueness", parent_id: 1, approved: false)
+
+    assert_not_predicate topic, :valid?
+  end
+
   def test_validate_uniqueness_with_alias_attribute
     Topic.alias_attribute :new_title, :title
     Topic.validates_uniqueness_of(:new_title)
@@ -232,6 +249,33 @@ class UniquenessValidationTest < ActiveRecord::TestCase
 
       e2 = p.essays.create(name: "Essay")
       assert_predicate e2, :valid?, "Saving e2"
+    end
+  end
+
+  def test_validate_uniqueness_of_polymorphic_association
+    repair_validations(Essay) do
+      Essay.validates_uniqueness_of(:writer, scope: :writer_type)
+
+      writer = Author.create!(name: "Sergey")
+      Essay.create!(writer: writer)
+
+      duplicate = Essay.new(writer: writer)
+      assert_not_predicate duplicate, :valid?
+      assert_equal ["has already been taken"], duplicate.errors[:writer]
+
+      assert_predicate Essay.new(writer: Author.create!(name: "Dmitry")), :valid?
+    end
+  end
+
+  def test_validate_uniqueness_of_unset_polymorphic_association
+    repair_validations(Essay) do
+      Essay.validates_uniqueness_of(:writer)
+
+      Essay.create!(name: "Unattributed")
+
+      duplicate = Essay.new(name: "Also unattributed")
+      assert_not_predicate duplicate, :valid?
+      assert_equal ["has already been taken"], duplicate.errors[:writer]
     end
   end
 
@@ -653,7 +697,7 @@ class UniquenessValidationWithIndexTest < ActiveRecord::TestCase
   self.use_transactional_tests = false
 
   def setup
-    @connection = Topic.lease_connection
+    @connection = main_ractor_connection(Topic.lease_connection)
     @connection.schema_cache.clear!
     Topic.delete_all
     Event.delete_all

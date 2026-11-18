@@ -305,8 +305,8 @@ class ComparisonValidationTest < ActiveModel::TestCase
 
   def test_validates_comparison_of_no_options
     error = assert_raises(ArgumentError) do
-        Topic.validates_comparison_of(:approved)
-      end
+      Topic.validates_comparison_of(:approved)
+    end
     assert_equal "Expected one of :greater_than, :greater_than_or_equal_to, :equal_to," \
                  " :less_than, :less_than_or_equal_to, or :other_than option to be supplied.", error.message
   end

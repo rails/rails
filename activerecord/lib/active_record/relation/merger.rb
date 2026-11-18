@@ -45,25 +45,34 @@ module ActiveRecord
 
       def initialize(relation, other)
         @relation = relation
-        @values   = other.values
+        @values   = other.values_for_merge
         @other    = other
       end
 
       NORMAL_VALUES = (Relation::VALUE_METHODS - Relation::CLAUSE_METHODS -
                       [
                         :select, :includes, :preload, :joins, :left_outer_joins,
-                        :order, :reverse_order, :lock, :create_with, :reordering
+                        :order, :reverse_order, :lock, :create_with, :reordering, :with, :with_recursive
                       ]).freeze
+      NORMAL_VALUE_BANG_METHODS = NORMAL_VALUES.index_with { |name| :"#{name}!" }.freeze
 
       def merge
-        NORMAL_VALUES.each do |name|
-          value = values[name]
+        # Merging a relation's values into themselves is a no-op, and `unscope!`
+        # would delete them while they are read.
+        return relation if values.equal?(relation.values_for_merge)
+
+        NORMAL_VALUE_BANG_METHODS.each do |name, bang_method|
+          value = if name == :unscope
+            other.table_name_qualified_unscope_values
+          else
+            values[name]
+          end
           # The unless clause is here mostly for performance reasons (since the `send` call might be moderately
           # expensive), most of the time the value is going to be `nil` or `.blank?`, the only catch is that
           # `false.blank?` returns `true`, so there needs to be an extra check so that explicit `false` values
           # don't fall through the cracks.
           unless value.nil? || (value.blank? && false != value)
-            relation.public_send(:"#{name}!", *value)
+            relation.public_send(bang_method, *value)
           end
         end
 
@@ -120,16 +129,8 @@ module ActiveRecord
           if other.model == relation.model
             relation.joins_values |= other.joins_values
           else
-            associations, others = other.joins_values.partition do |join|
-              case join
-              when Hash, Symbol, Array; true
-              end
-            end
-
-            join_dependency = other.construct_join_dependency(
-              associations, Arel::Nodes::InnerJoin
-            )
-            relation.joins!(join_dependency, *others)
+            join_values, cte_join_nodes = foreign_join_values(other.joins_values, Arel::Nodes::InnerJoin)
+            relation._joins!(join_values.concat(cte_join_nodes))
           end
         end
 
@@ -139,33 +140,45 @@ module ActiveRecord
           if other.model == relation.model
             relation.left_outer_joins_values |= other.left_outer_joins_values
           else
-            associations, others = other.left_outer_joins_values.partition do |join|
-              case join
-              when Hash, Symbol, Array; true
-              end
-            end
-
-            join_dependency = other.construct_join_dependency(
-              associations, Arel::Nodes::OuterJoin
-            )
-            relation.left_outer_joins!(join_dependency, *others)
+            join_values, cte_join_nodes = foreign_join_values(other.left_outer_joins_values, Arel::Nodes::OuterJoin)
+            relation._left_outer_joins!(join_values)
+            # `left_outer_joins_values` only accept association joins, so the
+            # joins to CTEs go along with the inner joins, which come after the
+            # joins to the tables they refer to.
+            relation._joins!(cte_join_nodes) unless cte_join_nodes.empty?
           end
+        end
+
+        # The association names and CTE names in the join values of a relation
+        # of another model are relative to that model, so they are resolved by
+        # that relation: the association names into a join dependency rooted at
+        # that model, and the CTE names into join nodes to its table.
+        def foreign_join_values(join_values, join_type)
+          values = other.send(:classify_join_values, join_values)
+          join_dependency = other.construct_join_dependency(values.association_names, join_type)
+          cte_join_nodes = values.cte_names.map do |cte_name|
+            other.send(:build_with_join_node, cte_name, join_type)
+          end
+
+          [[join_dependency, *values.join_dependencies, *values.nodes], cte_join_nodes]
         end
 
         def merge_multi_values
           if other.reordering_value
             # override any order specified in the original relation
-            relation.reorder!(*other.order_values)
+            relation._reorder!(other.order_values.dup)
           elsif other.order_values.any?
             # merge in order_values from relation
-            relation.order!(*other.order_values)
+            relation._order!(other.order_values)
           end
 
-          relation.extending!(*other.extensions)
+          relation.with_values |= other.with_values unless other.with_values.empty?
+          relation.extending!(*other.extensions) unless other.extensions.empty?
         end
 
         def merge_single_values
           relation.lock_value ||= other.lock_value if other.lock_value
+          relation.with_recursive_value = true if other.with_recursive_value
 
           unless other.create_with_value.blank?
             relation.create_with_value = (relation.create_with_value || {}).merge(other.create_with_value)

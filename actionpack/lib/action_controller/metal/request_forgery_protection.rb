@@ -1,7 +1,5 @@
 # frozen_string_literal: true
 
-# :markup: markdown
-
 require "rack/session/abstract/id"
 require "action_controller/metal/exceptions"
 require "active_support/security_utils"
@@ -79,69 +77,50 @@ module ActionController # :nodoc:
     included do
       # Sets the token parameter name for RequestForgery. Calling
       # `protect_from_forgery` sets it to `:authenticity_token` by default.
-      singleton_class.delegate :request_forgery_protection_token, :request_forgery_protection_token=, to: :config
-      delegate :request_forgery_protection_token, :request_forgery_protection_token=, to: :config
       self.request_forgery_protection_token ||= :authenticity_token
 
       # Holds the class which implements the request forgery protection.
-      singleton_class.delegate :forgery_protection_strategy, :forgery_protection_strategy=, to: :config
-      delegate :forgery_protection_strategy, :forgery_protection_strategy=, to: :config
       self.forgery_protection_strategy = nil
 
       # Controls whether request forgery protection is turned on or not. Turned off by
       # default only in test mode.
-      singleton_class.delegate :allow_forgery_protection, :allow_forgery_protection=, to: :config
-      delegate :allow_forgery_protection, :allow_forgery_protection=, to: :config
       self.allow_forgery_protection = true if allow_forgery_protection.nil?
 
       # Controls whether a CSRF failure logs a warning. On by default.
-      singleton_class.delegate :log_warning_on_csrf_failure, :log_warning_on_csrf_failure=, to: :config
-      delegate :log_warning_on_csrf_failure, :log_warning_on_csrf_failure=, to: :config
       self.log_warning_on_csrf_failure = true
 
       # Controls whether the Origin header is checked in addition to the CSRF token.
-      singleton_class.delegate :forgery_protection_origin_check, :forgery_protection_origin_check=, to: :config
-      delegate :forgery_protection_origin_check, :forgery_protection_origin_check=, to: :config
       self.forgery_protection_origin_check = false
 
       # Controls whether form-action/method specific CSRF tokens are used.
-      singleton_class.delegate :per_form_csrf_tokens, :per_form_csrf_tokens=, to: :config
-      delegate :per_form_csrf_tokens, :per_form_csrf_tokens=, to: :config
       self.per_form_csrf_tokens = false
 
       # The strategy to use for storing and retrieving CSRF tokens.
-      singleton_class.delegate :csrf_token_storage_strategy, :csrf_token_storage_strategy=, to: :config
-      delegate :csrf_token_storage_strategy, :csrf_token_storage_strategy=, to: :config
       self.csrf_token_storage_strategy = SessionStore.new
 
       # The strategy to use for verifying requests. Options are:
       # * :header_only - Use Sec-Fetch-Site header only (default, modern browsers)
       # * :header_or_legacy_token - Combined approach: Sec-Fetch-Site with fallback to token
-      singleton_class.delegate :forgery_protection_verification_strategy, :forgery_protection_verification_strategy=, to: :config
-      delegate :forgery_protection_verification_strategy, :forgery_protection_verification_strategy=, to: :config
       self.forgery_protection_verification_strategy = :header_or_legacy_token
 
       # Origins allowed for cross-site requests, such as OAuth/SSO callbacks,
       # third-party embeds, and legitimate remote form submission.
       # Example: %w[ https://accounts.google.com ]
-      singleton_class.delegate :forgery_protection_trusted_origins, :forgery_protection_trusted_origins=, to: :config
-      delegate :forgery_protection_trusted_origins, :forgery_protection_trusted_origins=, to: :config
       self.forgery_protection_trusted_origins = []
 
       # Controls the default strategy used when calling protect_from_forgery without arguments.
       # Defaults to :null_session for backwards compatibility, but will change to :exception
       # in a future version of Rails.
-      singleton_class.delegate :default_protect_from_forgery_with, :default_protect_from_forgery_with=, to: :config
-      delegate :default_protect_from_forgery_with, :default_protect_from_forgery_with=, to: :config
       self.default_protect_from_forgery_with = :null_session
 
       helper_method :form_authenticity_token
       helper_method :protect_against_forgery?
+      helper_method :embed_authenticity_token?
     end
 
     module ClassMethods
-      # Turn on request forgery protection. Bear in mind that GET and HEAD requests
-      # are not checked.
+      # Turn on request forgery protection. Bear in mind that GET, HEAD, and QUERY
+      # requests are not checked.
       #
       #     class ApplicationController < ActionController::Base
       #       protect_from_forgery
@@ -168,7 +147,7 @@ module ActionController # :nodoc:
       #     be added at the position of the protect_from_forgery call in your
       #     application. This means any callbacks added before are run first. This is
       #     useful when you want your forgery protection to depend on other callbacks,
-      #     like authentication methods (Oauth vs Cookie auth).
+      #     like authentication methods (OAuth vs Cookie auth).
       #
       #     If you need to add verification to the beginning of the callback chain,
       #     use `prepend: true`.
@@ -200,7 +179,7 @@ module ActionController # :nodoc:
       #       end
       #
       #       def handle_unverified_request
-      #         # Custom behavior for unverfied request
+      #         # Custom behavior for unverified request
       #       end
       #     end
       #
@@ -247,7 +226,9 @@ module ActionController # :nodoc:
       #         approach does not require authenticity tokens but only works with
       #         browsers that support the Fetch Metadata Request Headers. Requests
       #         without a valid `Sec-Fetch-Site` header will be rejected. This is
-      #         the default.
+      #         the default. Forms and `csrf_meta_tags` don't render a token under
+      #         this strategy; a form that posts to a controller still checking
+      #         tokens can ask for one with `authenticity_token: true`.
       #
       #     *   `:header_or_legacy_token` - A hybrid approach that first checks the
       #         `Sec-Fetch-Site` header. If the header indicates same-site or
@@ -362,6 +343,20 @@ module ActionController # :nodoc:
           end
         end
     end
+
+    AbstractController::Config.generate_accessors(
+      self,
+      :request_forgery_protection_token,
+      :forgery_protection_strategy,
+      :allow_forgery_protection,
+      :log_warning_on_csrf_failure,
+      :forgery_protection_origin_check,
+      :per_form_csrf_tokens,
+      :csrf_token_storage_strategy,
+      :forgery_protection_verification_strategy,
+      :forgery_protection_trusted_origins,
+      :default_protect_from_forgery_with,
+    )
 
     module ProtectionMethods
       class NullSession
@@ -541,12 +536,6 @@ module ActionController # :nodoc:
         protection_strategy.handle_unverified_request
       end
 
-      def cross_origin_request?
-        !valid_request_origin? ||
-          sec_fetch_site_value == "cross-site" ||
-          using_header_only_for_forgery_protection?
-      end
-
       def unverified_request_warning_message
         if !valid_request_origin?
           "HTTP Origin header (#{request.origin}) didn't match request.base_url (#{request.base_url})"
@@ -579,35 +568,37 @@ module ActionController # :nodoc:
       # Appends Sec-Fetch-Site to the Vary header. This ensures proper cache behavior since
       # the response may vary based on this header.
       def append_sec_fetch_site_to_vary_header # :doc:
-        vary_header = response.headers["Vary"].to_s.split(",").map(&:strip).reject(&:blank?)
-        unless vary_header.include?("Sec-Fetch-Site")
-          response.headers["Vary"] = (vary_header + ["Sec-Fetch-Site"]).join(", ")
+        vary = response.headers["Vary"]
+
+        if vary.nil? || vary.empty?
+          response.headers["Vary"] = "Sec-Fetch-Site"
+        else
+          vary_header = vary.split(",").map(&:strip).reject(&:blank?)
+          unless vary_header.include?("Sec-Fetch-Site")
+            response.headers["Vary"] = (vary_header + ["Sec-Fetch-Site"]).join(", ")
+          end
         end
       end
 
-      # GET requests are checked for cross-origin JavaScript after rendering.
+      # GET and QUERY requests are checked for cross-origin JavaScript after
+      # rendering.
       def mark_for_same_origin_verification! # :doc:
-        @_marked_for_same_origin_verification = request.get?
+        @_marked_for_same_origin_verification = request.get? || verified_query_request?
       end
 
       # If the `verify_request_for_forgery_protection` before_action ran,
       # verify that JavaScript responses are only served to same-origin
-      # GET requests.
+      # GET and QUERY requests.
       def marked_for_same_origin_verification? # :doc:
         @_marked_for_same_origin_verification ||= false
       end
 
       # Check for cross-origin JavaScript responses.
       def non_xhr_javascript_response? # :doc:
-        %r(\A(?:text|application)/javascript).match?(media_type) && !request.xhr?
+        %r(\A(?:text|application)/javascript).match?(content_type) && !request.xhr?
       end
 
       AUTHENTICITY_TOKEN_LENGTH = 32
-
-      # Safe values for Sec-Fetch-Site header that indicate the request
-      # originated from the same site.
-      SAFE_FETCH_SITES = %w[ same-origin same-site ].freeze
-      private_constant :SAFE_FETCH_SITES
 
       # Returns true or false if a request is verified. The verification method
       # depends on the configured `forgery_protection_verification_strategy`:
@@ -615,11 +606,26 @@ module ActionController # :nodoc:
       # *   `:header_only` - Uses Sec-Fetch-Site header only (default)
       # *   `:header_or_legacy_token` - Uses Sec-Fetch-Site header with fallback to token
       #
-      # For all strategies, GET and HEAD requests are allowed without verification.
+      # For all strategies, GET, HEAD, and QUERY requests are allowed without
+      # verification. HTML forms cannot issue QUERY requests, and cross-origin
+      # QUERY requests always require a CORS preflight, so they cannot be forged
+      # through a victim's browser. A request tunneled through a form POST with
+      # `_method=query` does not share that protection, so it is verified like
+      # any other POST.
       #
       def verified_request? # :doc:
-        request.get? || request.head? || !protect_against_forgery? ||
+        request.get? || request.head? || verified_query_request? || !protect_against_forgery? ||
           (valid_request_origin? && verified_request_for_forgery_protection?)
+      end
+
+      # QUERY requests are exempt from forgery protection like GET and HEAD,
+      # but only when the request actually arrived with the QUERY method. A
+      # request tunneled through POST with a `_method=query` override (as newer
+      # Rack::MethodOverride versions support) was submitted as an ordinary
+      # form POST, which the exemption's rationale — HTML forms cannot emit
+      # QUERY, and cross-origin QUERY is always preflighted — does not cover.
+      def verified_query_request? # :doc:
+        request.query? && request.method == "QUERY"
       end
 
       def verified_request_for_forgery_protection?
@@ -714,7 +720,8 @@ module ActionController # :nodoc:
       # Creates a masked version of the authenticity token that varies on each
       # request. The masking is used to mitigate SSL attacks like BREACH.
       def masked_authenticity_token(form_options: {})
-        action, method = form_options.values_at(:action, :method)
+        action = form_options[:action]
+        method = form_options[:method]
 
         raw_token = if per_form_csrf_tokens && action && method
           action_path = normalize_action_path(action)
@@ -799,11 +806,18 @@ module ActionController # :nodoc:
           request.env[CSRF_TOKEN] = csrf_token_storage_strategy.fetch(request) || generate_csrf_token
         end
 
-        decode_csrf_token(csrf_token)
+        # Decoded once per token rather than once per read: a page asks for
+        # the real token once per form it renders.
+        if @_real_csrf_token_source == csrf_token
+          @_real_csrf_token
+        else
+          @_real_csrf_token_source = csrf_token
+          @_real_csrf_token = decode_csrf_token(csrf_token)
+        end
       end
 
       def per_form_csrf_token(session, action_path, method) # :doc:
-        csrf_token_hmac(session, [action_path, method.downcase].join("#"))
+        csrf_token_hmac(session, "#{action_path}##{method.downcase}")
       end
 
       GLOBAL_CSRF_TOKEN_IDENTIFIER = "!real_csrf_token"
@@ -814,11 +828,18 @@ module ActionController # :nodoc:
       end
 
       def csrf_token_hmac(session, identifier) # :doc:
-        OpenSSL::HMAC.digest(
-          OpenSSL::Digest::SHA256.new,
-          real_csrf_token(session),
-          identifier
-        )
+        key = real_csrf_token(session)
+
+        # Keyed once per real token, then copied for each identifier: setting
+        # up the key costs more than the digest, and a page computes one HMAC
+        # per form it renders.
+        keyed_with, hmac = @_csrf_token_hmac
+        unless keyed_with.equal?(key)
+          hmac = OpenSSL::HMAC.new(key, "SHA256")
+          @_csrf_token_hmac = [key, hmac]
+        end
+
+        hmac.dup.update(identifier).digest
       end
 
       def xor_byte_strings(s1, s2) # :doc:
@@ -840,6 +861,14 @@ module ActionController # :nodoc:
       # Checks if the controller allows forgery protection.
       def protect_against_forgery? # :doc:
         allow_forgery_protection && (!session.respond_to?(:enabled?) || session.enabled?)
+      end
+
+      # Checks if the forms and `csrf_meta_tags` this controller renders carry an
+      # authenticity token. Under the `:header_only` verification strategy no
+      # request is checked against a token, so none is rendered unless a form asks
+      # for one with `authenticity_token: true`.
+      def embed_authenticity_token? # :doc:
+        protect_against_forgery? && !using_header_only_for_forgery_protection?
       end
 
       NULL_ORIGIN_MESSAGE = <<~MSG
@@ -864,7 +893,15 @@ module ActionController # :nodoc:
         end
       end
 
+      # An absolute path made only of RFC 3986 path characters, and not a
+      # network-path reference ("//host/path"). The URI parser hands such a
+      # path back untouched, so it is not worth parsing.
+      PLAIN_ABSOLUTE_PATH = %r{\A/(?!/)(?:[A-Za-z0-9\-._~!$&'()*+,;=:@/]|%[0-9A-Fa-f]{2})*\z}
+      private_constant :PLAIN_ABSOLUTE_PATH
+
       def normalize_action_path(action_path)
+        return action_path.chomp("/") if action_path.match?(PLAIN_ABSOLUTE_PATH)
+
         uri = URI.parse(action_path)
 
         if uri.relative? && (action_path.blank? || !action_path.start_with?("/"))

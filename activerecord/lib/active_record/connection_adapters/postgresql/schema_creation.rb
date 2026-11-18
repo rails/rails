@@ -5,19 +5,11 @@ module ActiveRecord
     module PostgreSQL
       class SchemaCreation < SchemaCreation # :nodoc:
         private
-          delegate :quoted_include_columns_for_index, to: :@conn
-          delegate :database_version, to: :@conn
-
-          def visit_AlterTable(o)
-            sql = super
-            sql << o.constraint_validations.map { |fk| visit_ValidateConstraint fk }.join(" ")
-            sql << o.exclusion_constraint_adds.map { |con| visit_AddExclusionConstraint con }.join(" ")
-            sql << o.unique_constraint_adds.map { |con| visit_AddUniqueConstraint con }.join(" ")
-          end
+          delegate :database_version, :supports_index_include?, :supports_nulls_not_distinct?, to: :@conn, private: true
 
           def visit_AddForeignKey(o)
             super.dup.tap do |sql|
-              sql << " NOT VALID" unless o.validate?
+              sql << " NOT VALID" unless o.foreign_key.validate?
             end
           end
 
@@ -32,8 +24,8 @@ module ActiveRecord
             super.dup.tap { |sql| sql << " NOT VALID" unless o.validate? }
           end
 
-          def visit_ValidateConstraint(name)
-            "VALIDATE CONSTRAINT #{quote_column_name(name)}"
+          def visit_ValidateConstraint(o)
+            "VALIDATE CONSTRAINT #{quote_column_name(o.name)}"
           end
 
           def visit_ExclusionConstraintDefinition(o)
@@ -70,11 +62,11 @@ module ActiveRecord
           end
 
           def visit_AddExclusionConstraint(o)
-            "ADD #{accept(o)}"
+            "ADD #{accept(o.exclusion_constraint)}"
           end
 
           def visit_AddUniqueConstraint(o)
-            "ADD #{accept(o)}"
+            "ADD #{accept(o.unique_constraint)}"
           end
 
           def visit_ChangeColumnDefinition(o)
@@ -122,6 +114,18 @@ module ActiveRecord
             end
           end
 
+          def add_table_constraints!(statements, o)
+            super
+            statements.concat(o.exclusion_constraints.map { |exc| accept exc })
+            statements.concat(o.unique_constraints.map { |uc| accept uc })
+          end
+
+          def add_index_options!(sql, index)
+            sql << "INCLUDE (#{quoted_include_columns(index.include)})" if supports_index_include? && index.include
+            sql << "NULLS NOT DISTINCT" if supports_nulls_not_distinct? && index.nulls_not_distinct
+            super
+          end
+
           def add_column_options!(sql, options)
             if options[:collation]
               sql << " COLLATE \"#{options[:collation]}\""
@@ -144,7 +148,7 @@ module ActiveRecord
           end
 
           def quoted_include_columns(o)
-            String === o ? o : quoted_include_columns_for_index(o)
+            String === o ? o : Array(o).map { |c| quote_column_name(c) }.join(", ")
           end
 
           # Returns any SQL string to go between CREATE and TABLE. May be nil.

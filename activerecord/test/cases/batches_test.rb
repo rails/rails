@@ -9,6 +9,11 @@ require "models/cpk"
 class EachTest < ActiveRecord::TestCase
   fixtures :posts, :subscribers, :developers, :cpk_orders
 
+  skip_under_ractor_proxy :"test_.find_each_with_multiple_column_ordering_and_using_composite_primary_key",
+    :"test_.in_batches_should_start_from_the_start_option_when_using_composite_primary_key_with_multiple_column_ordering",
+    :"test_.in_batches_should_end_at_the_finish_option_when_using_composite_primary_key_with_multiple_column_ordering",
+    :"test_.in_batches_with_scope_and_multiple_column_ordering_and_using_composite_primary_key"
+
   def setup
     @posts = Post.order("id asc")
     @total = Post.count
@@ -215,6 +220,22 @@ class EachTest < ActiveRecord::TestCase
     end
   end
 
+  def test_find_in_batches_should_error_on_default_order
+    assert_raise(ArgumentError) do
+      Post.default_order(:title).find_in_batches(error_on_ignore: true) { }
+    end
+  end
+
+  def test_find_in_batches_should_not_error_on_blank_order
+    assert_nothing_raised do
+      Post.order("").find_in_batches(error_on_ignore: true) { }
+    end
+
+    assert_nothing_raised do
+      Post.reorder(nil).find_in_batches(error_on_ignore: true) { }
+    end
+  end
+
   def test_find_in_batches_should_not_error_if_config_overridden
     # Set the config option which will be overridden
     prev = ActiveRecord.error_on_ignored_order
@@ -324,6 +345,23 @@ class EachTest < ActiveRecord::TestCase
     assert_raise(ArgumentError, match: "Scoped order is ignored") do
       PostWithDefaultScope.in_batches(error_on_ignore: true).delete_all
     end
+  end
+
+  def test_in_batches_logs_error_on_ignored_order
+    previous_logger = ActiveRecord::Base.logger
+    ActiveRecord::Base.logger = ActiveSupport::Logger.new(nil)
+
+    previous_backtrace_cleaner = ActiveRecord::LogSubscriber.backtrace_cleaner
+    backtrace_cleaner = ActiveSupport::BacktraceCleaner.new
+    backtrace_cleaner.add_silencer { |line| !line.include?(__FILE__) }
+    ActiveRecord::LogSubscriber.backtrace_cleaner = backtrace_cleaner
+
+    assert_called_with(ActiveRecord::Base.logger, :warn, [/Scoped order is ignored.+\(.+batches_test\.rb/]) do
+      Post.order("title").find_each { |post| post }
+    end
+  ensure
+    ActiveRecord::Base.logger = previous_logger
+    ActiveRecord::LogSubscriber.backtrace_cleaner = previous_backtrace_cleaner
   end
 
   def test_in_batches_has_attribute_readers
@@ -569,7 +607,7 @@ class EachTest < ActiveRecord::TestCase
   end
 
   def test_in_batches_when_loaded_iterates_using_custom_column
-    c = Post.lease_connection
+    c = main_ractor_connection(Post.lease_connection)
     c.add_index(:posts, :title, unique: true)
     ActiveRecord::Base.schema_cache.clear!
 
@@ -663,6 +701,13 @@ class EachTest < ActiveRecord::TestCase
     assert_queries_match(/#{quoted_posts_id} > .+ AND #{quoted_posts_id} <= .+/i) do
       relations.each { |relation| assert_kind_of Post, relation.first }
     end
+  end
+
+  def test_in_batches_with_ranges_drops_ignored_default_order
+    relations = Post.default_order(:title).in_batches(of: 2, use_ranges: true).to_a
+
+    assert_not_empty relations
+    relations.each { |relation| assert_no_match(/ORDER BY/i, relation.to_sql) }
   end
 
   def test_in_batches_no_subqueries_for_whole_tables_batching
@@ -854,7 +899,7 @@ class EachTest < ActiveRecord::TestCase
       Post.in_batches(cursor: :id) { }
     end
 
-    c = Post.lease_connection
+    c = main_ractor_connection(Post.lease_connection)
     c.add_index(:posts, :title)
     ActiveRecord::Base.schema_cache.clear!
 
@@ -887,7 +932,7 @@ class EachTest < ActiveRecord::TestCase
   end
 
   def test_in_batches_iterating_using_custom_columns
-    c = Post.lease_connection
+    c = main_ractor_connection(Post.lease_connection)
     c.add_index(:posts, :title, unique: true)
     ActiveRecord::Base.schema_cache.clear!
 

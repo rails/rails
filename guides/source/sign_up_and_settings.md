@@ -263,46 +263,143 @@ end
 This will block any form submissions that happen more than 10 times within 3
 minutes.
 
-Editing Passwords
------------------
+Editing User Profiles
+---------------------
 
 Now that users can login, let's create all the usual places that users would
 expect to update their profile, password, email address, and other settings.
 
+Let's start with a page so users can edit their profile, like updating their
+first and last name.
+
 ### Using Namespaces
 
-The Rails authentication generator already created a controller at
-`app/controllers/passwords_controller.rb` for password resets. This means we
-need to use a different controller for editing passwords of authenticated users.
+Since we'll be adding several pages for managing an account, we can group them
+together using a feature called **namespaces**. A namespace organizes routes,
+controllers, and views into folders and helps prevent conflicts between
+controllers that share the same name.
 
-To prevent conflicts, we can use a feature called **namespaces**. A namespace
-organizes routes, controllers, and views into folders and helps prevent
-conflicts like our two passwords controllers.
+That last part will come in handy shortly. The Rails authentication generator
+already created a controller at `app/controllers/passwords_controller.rb` for
+password resets, so editing the password of an authenticated user will need a
+different controller with the same name.
 
 We'll create a namespace called "Settings" to separate out the user and store
 settings from the rest of our application.
 
-In `config/routes.rb` we can add the Settings namespace along with a resource
-for editing passwords:
+### Profile Routes & Controller
+
+In `config/routes.rb`, add the Settings namespace containing a profile resource
+with the `show` and `update` actions. We can also add a root to the namespace to
+handle any visits to `/settings` and redirect them to profile settings.
 
 ```ruby
 namespace :settings do
-  resource :password, only: [ :show, :update ]
+  resource :profile, only: [ :show, :update ]
+
+  root to: redirect("/settings/profile")
 end
 ```
 
-This will generate a route for `/settings/password` for editing the current
-user's password which is separate from the password resets routes at
-`/password`.
-
-### Adding the Namespaced Passwords Controller & View
+This will generate a route for `/settings/profile` for editing the current
+user's profile.
 
 Namespaces also move controllers into a matching module in Ruby. This controller
 will be in a `settings` folder to match the namespace.
 
-Let's create the folder and controller at
-`app/controllers/settings/passwords_controller.rb` and start with the `show`
-action.
+Let's create the folder and controller for editing profiles at
+`app/controllers/settings/profiles_controller.rb`.
+
+```ruby
+class Settings::ProfilesController < ApplicationController
+  def show
+  end
+
+  def update
+    if Current.user.update(profile_params)
+      redirect_to settings_profile_path, status: :see_other, notice: "Your profile was updated successfully."
+    else
+      render :show, status: :unprocessable_entity
+    end
+  end
+
+  private
+    def profile_params
+      params.expect(user: [ :first_name, :last_name ])
+    end
+end
+```
+
+This only allows updating the user's profile details like first and last name.
+
+Views also move to a `settings` folder so let's create the folder and view at
+`app/views/settings/profiles/show.html.erb` to show the edit profile form.
+
+```erb
+<h1>Profile</h1>
+
+<%= form_with model: Current.user, url: settings_profile_path do |form| %>
+  <% if form.object.errors.any? %>
+    <div>Error: <%= form.object.errors.full_messages.first %></div>
+  <% end %>
+
+  <div>
+    <%= form.label :first_name %>
+    <%= form.text_field :first_name, required: true, autocomplete: "given-name" %>
+  </div>
+
+  <div>
+    <%= form.label :last_name %>
+    <%= form.text_field :last_name, required: true, autocomplete: "family-name" %>
+  </div>
+
+  <div>
+    <%= form.submit "Update profile" %>
+  </div>
+<% end %>
+```
+
+We've set the `url:` argument to ensure the form submits to our namespaced route
+and is processed by the `Settings::ProfilesController`.
+
+Passing `model: Current.user` also tells `form_with` to submit a `PATCH` request
+to process the form with the `update` action.
+
+TIP: `Current.user` comes from
+[CurrentAttributes](https://api.rubyonrails.org/classes/ActiveSupport/CurrentAttributes.html)
+which is a per-request attribute which resets automatically before and after
+each request. The Rails authentication generator uses this to keep track of the
+logged in User.
+
+You can now visit http://localhost:3000/settings/profile to update your name.
+
+Editing Passwords
+-----------------
+
+Next, let's add a page to the Settings namespace so users can change their
+password.
+
+### Adding the Namespaced Passwords Controller & View
+
+In `config/routes.rb`, add a password resource to the Settings namespace:
+
+```ruby#2
+namespace :settings do
+  resource :password, only: [ :show, :update ]
+  resource :profile, only: [ :show, :update ]
+
+  root to: redirect("/settings/profile")
+end
+```
+
+This will generate a route for `/settings/password` for editing the current
+user's password, which is separate from the password reset routes at
+`/password`.
+
+The namespace also keeps the new controller from conflicting with the
+`PasswordsController` the generator created for password resets. Let's create
+it at `app/controllers/settings/passwords_controller.rb` and start with the
+`show` action.
 
 ```ruby
 class Settings::PasswordsController < ApplicationController
@@ -311,8 +408,8 @@ class Settings::PasswordsController < ApplicationController
 end
 ```
 
-Views also move to a `settings` folder so let's create the folder and view at
-`app/views/settings/passwords/show.html.erb` for this action.
+Then create the view at `app/views/settings/passwords/show.html.erb` for this
+action.
 
 ```erb
 <h1>Password</h1>
@@ -343,17 +440,8 @@ Views also move to a `settings` folder so let's create the folder and view at
 <% end %>
 ```
 
-We've set the `url:` argument to ensure the form submits to our namespaced route
-and is processed by the `Settings::PasswordsController`.
-
-Passing `model: Current.user` also tells `form_with` to submit a `PATCH` request
-to process the form with the `update` action.
-
-TIP: `Current.user` comes from
-[CurrentAttributes](https://api.rubyonrails.org/classes/ActiveSupport/CurrentAttributes.html)
-which is a per-request attribute which resets automatically before and after
-each request. The Rails authentication generator uses this to keep track of the
-logged in User.
+As with the profile form, the `url:` argument ensures the form submits to our
+namespaced route and is processed by the `Settings::PasswordsController`.
 
 ### Safely Updating Passwords
 
@@ -379,6 +467,9 @@ class Settings::PasswordsController < ApplicationController
 end
 ```
 
+After a successful update, the `update` action redirects to the profile settings
+page we created in the previous section.
+
 For security, we need to ensure that the user is the only one who can update
 their password. The `has_secure_password` method in our `User` model provides
 this attribute. If `password_challenge` is present, it will validate the
@@ -389,18 +480,6 @@ A malicious user could try deleting the `password_challenge` field in the
 browser to bypass this validation. To prevent this and ensure the validation
 always runs, we use `.with_defaults(password_challenge: "")` to set a default
 value even if the `password_challenge` parameter is missing.
-
-Now let's add the route to redirect the user once the password is updated.
-
-```ruby#3
-namespace :settings do
-  resource :password, only: [ :show, :update ]
-  resource :profile, only: [ :show ]
-end
-```
-
-You can now visit http://localhost:3000/settings/password to update your
-password.
 
 ### Renaming The Password Challenge Attribute
 
@@ -426,81 +505,8 @@ en:
 To learn more, check out the
 [I18n Guide](https://guides.rubyonrails.org/i18n.html#translations-for-active-record-models)
 
-Editing User Profiles
----------------------
-
-Next, let's add a page so users can edit their profile, like updating their
-first and last name.
-
-### Profile Routes & Controller
-
-In `config/routes.rb`, add an `update` action on the profile resource under the settings namespace. We
-can also add a root to the namespace to handle any visits to `/settings` and
-redirect them to profile settings.
-
-```ruby#3,5
-namespace :settings do
-  resource :password, only: [ :show, :update ]
-  resource :profile, only: [ :show, :update ]
-
-  root to: redirect("/settings/profile")
-end
-```
-
-Let's create our controller for editing profiles at
-`app/controllers/settings/profiles_controller.rb`.
-
-```ruby
-class Settings::ProfilesController < ApplicationController
-  def show
-  end
-
-  def update
-    if Current.user.update(profile_params)
-      redirect_to settings_profile_path, status: :see_other, notice: "Your profile was updated successfully."
-    else
-      render :show, status: :unprocessable_entity
-    end
-  end
-
-  private
-    def profile_params
-      params.expect(user: [ :first_name, :last_name ])
-    end
-end
-```
-
-This is very similar to the passwords controller but only allows updating the
-user's profile details like first and last name.
-
-Then create `app/views/settings/profiles/show.html.erb` to show the edit profile
-form.
-
-```erb
-<h1>Profile</h1>
-
-<%= form_with model: Current.user, url: settings_profile_path do |form| %>
-  <% if form.object.errors.any? %>
-    <div>Error: <%= form.object.errors.full_messages.first %></div>
-  <% end %>
-
-  <div>
-    <%= form.label :first_name %>
-    <%= form.text_field :first_name, required: true, autocomplete: "given-name" %>
-  </div>
-
-  <div>
-    <%= form.label :last_name %>
-    <%= form.text_field :last_name, required: true, autocomplete: "family-name" %>
-  </div>
-
-  <div>
-    <%= form.submit "Update profile" %>
-  </div>
-<% end %>
-```
-
-You can now visit http://localhost:3000/settings/profile to update your name.
+You can now visit http://localhost:3000/settings/password to update your
+password.
 
 ### Updating Navigation
 
@@ -538,10 +544,10 @@ You'll now see a Settings link in the navbar when authenticated.
 
 While we're here, let's add a new layout for Settings so we can organize them in
 a sidebar. To do this, we're going to use a
-[Nested Layout](layouts_and_rendering.html#using-nested-layouts).
+[Nested Layout](action_view_overview.html#nested-layouts).
 
-A nested layout allows you add HTML (like a sidebar) while still rendering the
-application layout. This means we don't have to duplicate our head tags or
+A nested layout allows you to add HTML (like a sidebar) while still rendering
+the application layout. This means we don't have to duplicate our head tags or
 navigation in our Settings layout.
 
 Let's create `app/views/layouts/settings.html.erb` and add the following:
@@ -656,18 +662,22 @@ class Settings::BaseController < ApplicationController
 end
 ```
 
-Then update `app/controllers/settings/passwords_controller.rb` to inherit from
+Then update `app/controllers/settings/profiles_controller.rb` to inherit from
 this controller.
 
 ```ruby
-class Settings::PasswordsController < Settings::BaseController
+class Settings::ProfilesController < Settings::BaseController
+  # ...
+end
 ```
 
-And update `app/controllers/settings/profiles_controller.rb` to inherit from it
+And update `app/controllers/settings/passwords_controller.rb` to inherit from it
 too.
 
 ```ruby
-class Settings::ProfilesController < Settings::BaseController
+class Settings::PasswordsController < Settings::BaseController
+  # ...
+end
 ```
 
 Deleting Accounts
@@ -716,7 +726,7 @@ following:
 <%= button_to "Delete my account", settings_user_path, method: :delete, data: { turbo_confirm: "Are you sure? This cannot be undone." } %>
 ```
 
-And finally, we'll add a link to Account in the setting layout's sidebar.
+And finally, we'll add a link to Account in the settings layout's sidebar.
 
 ```erb#7
 <%= content_for :content do %>
@@ -815,7 +825,7 @@ And finally, we'll create our view at `app/views/settings/emails/show.html.erb`:
 ```
 
 To keep things secure, we need to ask for the new email address and validate
-user's current password to ensure only the owner of the account can change the
+the user's current password to ensure only the owner of the account can change the
 email.
 
 In our controller, we will validate the current password and save the new email
@@ -1530,7 +1540,7 @@ Update `app/views/store/products/show.html.erb` with the following:
 
 This updates the `show` action so that:
 
-- Links now use to the `store` namespace.
+- Links now use the `store` namespace.
 - A "View in Storefront" link is added to make it easier for admins to see how a
   product looks to the public.
 - The inventory partial is removed since that's only useful on the public
@@ -1667,7 +1677,7 @@ test "successful sign up" do
 end
 ```
 
-For this test, we need submit params with a POST request to test the `create`
+For this test, we need to submit params with a POST request to test the `create`
 action.
 
 Let's also test with invalid data to ensure the controller returns an error.
@@ -1765,7 +1775,7 @@ two:
   last_name: Two
 ```
 
-This tests submits successful params, confirms the email is saved to the
+This test submits successful params, confirms the email is saved to the
 database, the user was redirected and the confirmation email was queued for
 delivery.
 
@@ -1785,7 +1795,7 @@ Finished in 0.954590s, 2.0951 runs/s, 6.2854 assertions/s.
 ```
 
 We also need to test the `Email::ConfirmationsController` to ensure confirmation
-tokens are validated the email update process completes successfully.
+tokens are validated and the email update process completes successfully.
 
 Let's add another controller test at
 `test/controllers/email/confirmations_controller_test.rb` with the following:
@@ -1819,8 +1829,8 @@ end
 The first test simulates a user confirming their email change with an invalid
 token. We assert the error message was set and the email address did not change.
 
-The second test uses valid token and asserts the success notice was set and the
-email address was updated in the database.
+The second test uses a valid token and asserts the success notice was set and
+the email address was updated in the database.
 
 We need to fix one more test related to email confirmations and that is the
 automatically generated tests for `UserMailer`. Let's update that to match our
@@ -1888,7 +1898,7 @@ class SettingsTest < ActionDispatch::IntegrationTest
     sign_in_as users(:one)
     get settings_profile_path
     assert_dom "h4", "Account Settings"
-    assert_not_dom "a", "Store Settings"
+    assert_not_dom "h4", "Store Settings"
   end
 
   test "admin settings nav" do
@@ -1927,7 +1937,7 @@ test "regular user cannot access /store/users" do
 end
 ```
 
-These tests use a regular user to access the admin only areas and ensures they
+These tests use a regular user to access the admin only areas and ensure they
 are redirected away with a flash message.
 
 Let's complete these tests by ensuring that admin users _can_ access these
@@ -1982,7 +1992,7 @@ Great! Now, let's deploy this to production.
 Deploying To Production
 -----------------------
 
-Since we previously setup Kamal in the
+Since we previously set up Kamal in the
 [Getting Started Guide](getting_started.html#deploying-to-production), we just
 need to push our code changes to our Git repository and run:
 

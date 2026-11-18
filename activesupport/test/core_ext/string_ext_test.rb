@@ -213,6 +213,18 @@ class StringInflectionsTest < ActiveSupport::TestCase
     end
   end
 
+  def test_string_parameterized_nil_separator
+    StringToParameterizeWithNoSeparator.each do |normal, slugged|
+      assert_equal(slugged, normal.parameterize(separator: nil))
+    end
+  end
+
+  def test_string_parameterized_nil_separator_preserve_case
+    StringToParameterizePreserveCaseWithNoSeparator.each do |normal, slugged|
+      assert_equal(slugged, normal.parameterize(separator: nil, preserve_case: true))
+    end
+  end
+
   def test_string_parameterized_underscore
     StringToParameterizeWithUnderscore.each do |normal, slugged|
       assert_equal(slugged, normal.parameterize(separator: "_"))
@@ -442,6 +454,11 @@ class StringInflectionsTest < ActiveSupport::TestCase
 
   def test_truncate_should_not_be_html_safe
     assert_not_predicate "Hello World!".truncate(12), :html_safe?
+  end
+
+  def test_truncate_of_html_safe_string_should_not_be_html_safe
+    assert_not_predicate "Hello World!".html_safe.truncate(8), :html_safe?
+    assert_not_predicate "<b>Hello</b> World!".html_safe.truncate(8), :html_safe?
   end
 
   def test_remove

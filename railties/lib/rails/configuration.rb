@@ -13,35 +13,49 @@ module Rails
     # over the default middleware stack, so you can add, swap, or remove any
     # middleware in \Rails.
     #
-    # You can add your own middlewares by using the +config.middleware.use+ method:
+    # You can add your own middlewares by using the `config.middleware.use` method:
     #
-    #     config.middleware.use Magical::Unicorns
+    # ```
+    # config.middleware.use Magical::Unicorns
+    # ```
     #
-    # This will put the +Magical::Unicorns+ middleware on the end of the stack.
-    # You can use +insert_before+ if you wish to add a middleware before another:
+    # This will put the `Magical::Unicorns` middleware on the end of the stack.
+    # You can use `insert_before` if you wish to add a middleware before another:
     #
-    #     config.middleware.insert_before Rack::Head, Magical::Unicorns
+    # ```
+    # config.middleware.insert_before Rack::Head, Magical::Unicorns
+    # ```
     #
-    # There's also +insert_after+ which will insert a middleware after another:
+    # There's also `insert_after` which will insert a middleware after another:
     #
-    #     config.middleware.insert_after Rack::Head, Magical::Unicorns
+    # ```
+    # config.middleware.insert_after Rack::Head, Magical::Unicorns
+    # ```
     #
     # Middlewares can also be completely swapped out and replaced with others:
     #
-    #     config.middleware.swap ActionDispatch::Flash, Magical::Unicorns
+    # ```
+    # config.middleware.swap ActionDispatch::Flash, Magical::Unicorns
+    # ```
     #
     # Middlewares can be moved from one place to another:
     #
-    #     config.middleware.move_before ActionDispatch::Flash, Magical::Unicorns
+    # ```
+    # config.middleware.move_before ActionDispatch::Flash, Magical::Unicorns
+    # ```
     #
-    # This will move the +Magical::Unicorns+ middleware before the
-    # +ActionDispatch::Flash+. You can also move it after:
+    # This will move the `Magical::Unicorns` middleware before the
+    # `ActionDispatch::Flash`. You can also move it after:
     #
-    #     config.middleware.move_after ActionDispatch::Flash, Magical::Unicorns
+    # ```
+    # config.middleware.move_after ActionDispatch::Flash, Magical::Unicorns
+    # ```
     #
     # And finally they can also be removed from the stack completely:
     #
-    #     config.middleware.delete ActionDispatch::Flash
+    # ```
+    # config.middleware.delete ActionDispatch::Flash
+    # ```
     #
     class MiddlewareStackProxy
       def initialize(operations = [], delete_operations = [])
@@ -116,9 +130,25 @@ module Rails
         @after_generate_callbacks = []
       end
 
+      def freeze
+        return self if frozen?
+
+        @aliases.default_proc = nil
+        @options.default_proc = nil
+        @aliases.freeze
+        @options.freeze
+        @fallbacks.freeze
+        @templates.freeze
+        @hidden_namespaces.freeze
+        @after_generate_callbacks.freeze
+        super
+      end
+
       def initialize_copy(source)
         @aliases = @aliases.deep_dup
+        @aliases.default_proc = proc { |h, k| h[k] = {} }
         @options = @options.deep_dup
+        @options.default_proc = proc { |h, k| h[k] = {} }
         @fallbacks = @fallbacks.deep_dup
         @templates = @templates.dup
       end

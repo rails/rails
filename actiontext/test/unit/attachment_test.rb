@@ -3,10 +3,32 @@
 require "test_helper"
 
 class ActionText::AttachmentTest < ActiveSupport::TestCase
+  include Rails::Dom::Testing::Assertions::DomAssertions
+
   test "from_attachable" do
     attachment = ActionText::Attachment.from_attachable(attachable, caption: "Captioned")
     assert_equal attachable, attachment.attachable
     assert_equal "Captioned", attachment.caption
+  end
+
+  test "from_attachable with alt" do
+    attachment = ActionText::Attachment.from_attachable(attachable, alt: "A racecar on a track")
+    assert_equal "A racecar on a track", attachment.alt
+  end
+
+  test "alt is nil when unset" do
+    assert_nil ActionText::Attachment.from_attachable(attachable).alt
+  end
+
+  test "alt and caption are independent" do
+    attachment = ActionText::Attachment.from_attachable(attachable, alt: "A racecar on a track", caption: "Vroom vroom")
+    assert_equal "A racecar on a track", attachment.alt
+    assert_equal "Vroom vroom", attachment.caption
+  end
+
+  test "alt survives being rebuilt with full attributes" do
+    attachment = attachment_from_html(%Q(<action-text-attachment sgid="#{attachable.attachable_sgid}" alt="A racecar on a track"></action-text-attachment>))
+    assert_equal "A racecar on a track", attachment.with_full_attributes.alt
   end
 
   test "proxies missing methods to attachable" do
@@ -86,7 +108,7 @@ class ActionText::AttachmentTest < ActiveSupport::TestCase
     attachment = ActionText::Content.new("<action-text-attachment content-type=\"text/html\" content=\"<img src=. onerror='alert(location)' />\"></action-text-attachment>")
     attachment_to_trix_html = assert_deprecated(ActionText.deprecator) { attachment.to_trix_html }
 
-    assert_equal "<figure data-trix-attachment=\"{&quot;contentType&quot;:&quot;text/html&quot;,&quot;content&quot;:&quot;<img src=\\&quot;.\\&quot;>&quot;}\"></figure>", attachment_to_trix_html
+    assert_dom_equal "<figure data-trix-attachment=\"{&quot;contentType&quot;:&quot;text/html&quot;,&quot;content&quot;:&quot;<img src=\\&quot;.\\&quot;>&quot;}\"></figure>", attachment_to_trix_html
   end
 
   test "defaults trix partial to model partial" do

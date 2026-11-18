@@ -300,6 +300,40 @@ class TimestampTest < ActiveRecord::TestCase
     assert_equal @previously_updated_at, @developer.updated_at
   end
 
+  def test_updating_a_changed_record_reads_the_current_time_once
+    time = Time.now.utc.change(usec: 0)
+
+    assert_called(Developer, :current_time_from_proper_timezone, returns: time) do
+      @developer.update!(name: "Jack Bauer")
+    end
+
+    assert_equal time, @developer.updated_at
+  end
+
+  def test_updating_a_changed_record_writes_the_same_time_to_every_update_timestamp
+    @developer.update!(name: "Jack Bauer")
+
+    assert_equal @developer.updated_at, @developer.updated_on
+  end
+
+  def test_updating_a_record_whose_before_update_callback_restores_the_timestamp_updates_it
+    klass = Class.new(ActiveRecord::Base) do
+      self.table_name = "developers"
+
+      include Developer::TimestampAliases
+
+      before_update { self.updated_at = updated_at_in_database }
+    end
+
+    developer = klass.find(@developer.id)
+
+    travel(1.second) do
+      developer.update!(name: "Jack Bauer")
+    end
+
+    assert_not_equal @previously_updated_at, developer.reload.updated_at
+  end
+
   def test_saving_a_record_with_a_belongs_to_that_specifies_touching_the_parent_should_update_the_parent_updated_at
     pet   = Pet.first
     owner = pet.owner
@@ -635,6 +669,8 @@ class TimestampTest < ActiveRecord::TestCase
 end
 
 class TimestampsWithoutTransactionTest < ActiveRecord::TestCase
+  skip_under_ractor_proxy :test_index_is_created_for_both_timestamps
+
   include DdlHelper
   self.use_transactional_tests = false
 

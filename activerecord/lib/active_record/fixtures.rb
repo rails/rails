@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+# :markup: rdoc
+
 require "erb"
 require "yaml"
 require "active_support/dependencies"
@@ -493,7 +495,7 @@ module ActiveRecord
   #     title: "Alice's Adventures in Wonderland"
   #
   # However, in order to support composite primary key relationships,
-  # you must use the `composite_identify` method:
+  # you must use the +composite_identify+ method:
   #
   #   # app/models/book_orders.rb
   #   class BookOrder < ApplicationRecord
@@ -845,7 +847,7 @@ module ActiveRecord
 
     def find
       raise FixtureClassNotFound, "No class attached to find." unless model_class
-      object = model_class.unscoped do
+      object = model_class.all_queries_scope.scoping do
         pk_clauses = fixture.slice(*Array(model_class.primary_key))
         model_class.find_by!(pk_clauses)
       end

@@ -297,6 +297,31 @@ class MemCacheStoreTest < ActiveSupport::TestCase
     end
   end
 
+  def test_no_multiple_compress_on_write_multi
+    cache = lookup_store(compress: true)
+    val = random_string(100.kilobytes)
+    compressed = Zlib::Deflate.deflate(val)
+
+    assert_called(
+      Zlib,
+      :deflate,
+      "Memcached writes should not perform duplicate compression.",
+      times: 1,
+      returns: compressed
+    ) do
+      cache.write_multi("foo" => val)
+    end
+  end
+
+  def test_write_multi_extends_expiry_for_race_condition_ttl
+    skip "Dalli's set_multi is not available" unless Dalli::Client.method_defined?(:set_multi)
+    cache = lookup_store(namespace: nil)
+
+    assert_called_with client(cache), :set_multi, [Hash, 1 + 5.minutes, Hash] do
+      cache.write_multi({ "foo" => "bar" }, expires_in: 1, race_condition_ttl: 1)
+    end
+  end
+
   def test_unless_exist_expires_when_configured
     cache = lookup_store(namespace: nil)
 

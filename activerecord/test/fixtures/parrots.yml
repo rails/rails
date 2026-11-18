@@ -28,6 +28,11 @@ polly:
   treasures: sapphire, ruby
   <<: *DEAD_PARROT
 
+"back\\&ref":
+  name: $LABEL
+  parrot_sti_class: LiveParrot
+  breed: african
+
 DEFAULTS: &DEFAULTS
   treasures: sapphire, ruby
   parrot_sti_class: LiveParrot

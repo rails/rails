@@ -1,7 +1,5 @@
 # frozen_string_literal: true
 
-# :markup: markdown
-
 require "action_dispatch/http/response"
 require "delegate"
 require "active_support/json"
@@ -86,6 +84,7 @@ module ActionController
   #     end
   #
   # Common keys you might want to exclude:
+  #
   # - `:active_record_connected_to_stack` - Database connection routing and roles
   # - `:active_record_prohibit_shard_swapping` - Shard swapping restrictions
   #
@@ -105,7 +104,7 @@ module ActionController
         if (request.get_header("SERVER_PROTOCOL") || request.get_header("HTTP_VERSION")) == "HTTP/1.0"
           super
         else
-          Live::Response.new.tap do |res|
+          Live::Response.create.tap do |res|
             res.request = request
           end
         end
@@ -222,7 +221,11 @@ module ActionController
           @response.delete_header "Content-Length"
         end
 
-        super
+        begin
+          super
+        rescue ClosedQueueError
+          raise IOError, "closed stream" if connected?
+        end
 
         unless connected?
           @buf.clear
@@ -242,14 +245,14 @@ module ActionController
         write string.end_with?("\n") ? string : "#{string}\n"
       end
 
-      # Write a 'close' event to the buffer; the producer/writing thread uses this to
-      # notify us that it's finished supplying content.
+      # Close the buffer; the producer/writing thread uses this to notify us that
+      # it's finished supplying content.
       #
       # See also #abort.
       def close
         synchronize do
           super
-          @buf.push nil
+          @buf.close
           @cv.broadcast
         end
       end
@@ -261,7 +264,9 @@ module ActionController
       def abort
         synchronize do
           @aborted = true
+          @buf.close
           @buf.clear
+          @cv.broadcast
         end
       end
 

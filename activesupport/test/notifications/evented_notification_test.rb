@@ -100,12 +100,12 @@ module ActiveSupport
         notifier.subscribe nil, listener
 
         error = assert_raises InstrumentationSubscriberError do
-          notifier.start  "hello", 1, {}
+          notifier.start "hello", 1, {}
         end
         assert_instance_of BadListenerException, error.cause
 
         error = assert_raises InstrumentationSubscriberError do
-          notifier.start  "world", 1, {}
+          notifier.start "world", 1, {}
         end
         assert_instance_of BadListenerException, error.cause
 
@@ -134,13 +134,13 @@ module ActiveSupport
         notifier.start  "hello", 1, {}
         notifier.start  "world", 1, {}
         error = assert_raises InstrumentationSubscriberError do
-          notifier.finish  "world", 1, {}
+          notifier.finish "world", 1, {}
         end
         assert_equal 5, error.exceptions.count
         assert_instance_of BadListenerException, error.cause
 
         error = assert_raises InstrumentationSubscriberError do
-          notifier.finish  "hello", 1, {}
+          notifier.finish "hello", 1, {}
         end
         assert_equal 5, error.exceptions.count
         assert_instance_of BadListenerException, error.cause

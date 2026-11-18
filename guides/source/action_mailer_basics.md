@@ -216,7 +216,7 @@ successfully saved.
 NOTE: We use [`deliver_later`][] to enqueue the email to be sent later. This
 way, the controller action will continue without waiting for the email sending
 code to run. The `deliver_later` method is backed by [Active
-Job](active_job_basics.html#action-mailer).
+Job](active_job_basics.html#example-sending-email).
 
 ```ruby
 class UsersController < ApplicationController
@@ -430,7 +430,7 @@ same action. For example, if you have a `UserMailer` with
 with both the HTML and text versions included as separate parts.
 
 The [Mail](https://github.com/mikel/mail) gem has helper methods for making a
-`multipart/alternate` email for `text/plain` and `text/html` [MIME
+`multipart/alternative` email for `text/plain` and `text/html` [MIME
 types](https://developer.mozilla.org/en-US/docs/Web/HTTP/Basics_of_HTTP/MIME_types)
 and you can manually create any other type of MIME email.
 
@@ -1114,7 +1114,7 @@ about custom Rails environments.
 ### Observing Emails
 
 Observers give you access to the email message _after_ it has been sent. An
-observer class must implement the `:delivered_email(message)` method, which will
+observer class must implement the `delivered_email(message)` method, which will
 be called after the email is sent.
 
 ```ruby

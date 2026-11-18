@@ -18,7 +18,10 @@ require "models/friendship"
 require "models/subscriber"
 require "models/subscription"
 require "models/book"
+require "models/scoped_counter_cache_topic"
+require "models/scoped_counter_cache_child"
 require "models/cpk"
+require "models/post"
 require "active_support/core_ext/enumerable"
 require "active_support/testing/ractors_assertions"
 
@@ -39,6 +42,25 @@ class CounterCacheTest < ActiveRecord::TestCase
 
   setup do
     @topic = Topic.find(1)
+  end
+
+  test "update counters uses only all-query default scopes" do
+    assert_difference -> { @topic.reload.replies_count } do
+      ScopedCounterCacheTopic.update_counters(@topic.id, replies_count: 1)
+    end
+  end
+
+  test "reset counters uses only all-query default scopes" do
+    @topic.update_columns(replies_count: 0)
+    ScopedCounterCacheTopic.reset_counters(@topic.id, :replies)
+
+    assert_equal 1, @topic.reload.replies_count
+  end
+
+  test "belongs_to counter cache uses only all-query default scopes" do
+    assert_difference -> { @topic.reload.replies_count } do
+      ScopedCounterCacheChild.create!(title: "Counter cache child", parent_id: @topic.id, approved: true)
+    end
   end
 
   test "increment counter" do
@@ -203,6 +225,40 @@ class CounterCacheTest < ActiveRecord::TestCase
     end
   end
 
+  test "belongs_to counter cache is maintained on create/update/destroy for cpk model" do
+    order1 = Cpk::Order.create!(id: [9999, 10001], status: "open")
+    order2 = Cpk::Order.create!(id: [9999, 10002], status: "open")
+
+    book = nil
+    assert_difference -> { order1.reload.books_count }, 1 do
+      book = Cpk::Book.create!(id: [9999, 10001], title: "Book", order: order1)
+    end
+
+    assert_difference(
+      { -> { order1.reload.books_count } => -1,
+        -> { order2.reload.books_count } => 1 }
+    ) do
+      book.update!(order: order2)
+    end
+
+    assert_difference -> { order2.reload.books_count }, -1 do
+      book.destroy!
+    end
+  end
+
+  test "belongs_to counter cache is maintained when composite foreign key is manually set" do
+    author = Cpk::Author.create!(name: "author")
+    book = Cpk::Book.create!(id: [author.id, 9999], title: "Book")
+    assert_nil book.shop_id
+    assert_nil book.order_id
+
+    order = Cpk::Order.create!(id: [1, 200], status: "open")
+
+    assert_difference -> { order.reload.books_count }, 1 do
+      book.update!(order: order)
+    end
+  end
+
   test "reset counters for cpk model with string ids" do
     order = cpk_orders(:cpk_book_order_1)
     assert order.books_count > 0, "Must have books"
@@ -331,6 +387,89 @@ class CounterCacheTest < ActiveRecord::TestCase
     assert_difference -> { michael.reload.cars_count }, -1 do
       car.destroy
     end
+  end
+
+  test "polymorphic counter cache is decremented through an aliased foreign type" do
+    model = Class.new(ActiveRecord::Base) do
+      self.table_name = "comments"
+
+      def self.name; "AliasedTypeComment"; end
+
+      alias_attribute :target_kind, :author_type
+      belongs_to :target,
+        polymorphic: true,
+        foreign_key: :author_id,
+        foreign_type: :target_kind,
+        counter_cache: :legacy_comments_count,
+        optional: true
+    end
+    target = Post.create!(title: "Aliased type", body: "Aliased type")
+    target.update_column(:legacy_comments_count, 1)
+    model.create!(post_id: target.id, body: "Aliased type comment").update_columns(
+      author_id: target.id,
+      author_type: Post.polymorphic_name
+    )
+    comment = model.find_by!(body: "Aliased type comment")
+
+    comment.author_id = nil
+    comment.save!
+
+    assert_equal 0, target.reload.legacy_comments_count
+  end
+
+  test "counter cache of the previous target is decremented through a foreign key alias remapped by a subclass" do
+    model = Class.new(ActiveRecord::Base) do
+      self.table_name = "comments"
+      self.inheritance_column = nil
+
+      def self.name; "AliasedKeyComment"; end
+
+      alias_attribute :post_key, :post_id
+      belongs_to :keyed_post,
+        class_name: "Post",
+        foreign_key: :post_key,
+        counter_cache: :legacy_comments_count,
+        optional: true
+    end
+    remapped_model = Class.new(model) do
+      def self.name; "RemappedKeyComment"; end
+
+      alias_attribute :post_key, :author_id
+    end
+    decoy = Post.create!(title: "Decoy", body: "Decoy")
+    original = Post.create!(title: "Original", body: "Original")
+    replacement = Post.create!(title: "Replacement", body: "Replacement")
+    comment = remapped_model.create!(post_id: decoy.id, keyed_post: original, body: "Counted comment")
+    assert_equal 1, original.reload.legacy_comments_count
+
+    comment.update!(keyed_post: replacement)
+
+    assert_equal 0, original.reload.legacy_comments_count
+    assert_equal 1, replacement.reload.legacy_comments_count
+    assert_equal 0, decoy.reload.legacy_comments_count
+  end
+
+  test "counter cache is not decremented through a partial composite foreign key" do
+    model = Class.new(ActiveRecord::Base) do
+      self.table_name = "sponsors"
+
+      def self.name; "CompositeCounterSponsor"; end
+
+      belongs_to :post,
+        foreign_key: [:club_id, :sponsorable_id],
+        primary_key: [:author_id, :id],
+        counter_cache: :legacy_comments_count,
+        optional: true
+    end
+    unrelated = Post.create!(author_id: nil, title: "Unrelated", body: "Unrelated")
+    post = Post.create!(author_id: 9_000_001, title: "Composite counter", body: "Composite counter")
+    reference = model.create!(club_id: nil, sponsorable_id: unrelated.id)
+    unrelated.update_column(:legacy_comments_count, 1)
+
+    reference.update!(club_id: post.author_id, sponsorable_id: post.id)
+
+    assert_equal 1, unrelated.reload.legacy_comments_count
+    assert_equal 1, post.reload.legacy_comments_count
   end
 
   test "update counters doesn't touch timestamps by default" do
@@ -475,6 +614,17 @@ class CounterCacheTest < ActiveRecord::TestCase
   test "counter_cache_column?" do
     assert Person.counter_cache_column?("cars_count")
     assert_not Car.counter_cache_column?("cars_count")
+  end
+
+  test "partial inserts false preserves explicitly assigned counter cache value" do
+    original_partial_inserts = ActiveRecord::Base.partial_inserts
+    ActiveRecord::Base.partial_inserts = false
+
+    category = Category.create!(name: "Explicit counter", categorizations_count: 5)
+
+    assert_equal 5, category.reload.categorizations_count
+  ensure
+    ActiveRecord::Base.partial_inserts = original_partial_inserts
   end
 
   test "inactive counter cache" do

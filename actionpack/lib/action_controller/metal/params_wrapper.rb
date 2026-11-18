@@ -1,7 +1,5 @@
 # frozen_string_literal: true
 
-# :markup: markdown
-
 require "active_support/core_ext/hash/slice"
 require "active_support/core_ext/hash/except"
 require "active_support/core_ext/module/anonymous"
@@ -154,6 +152,17 @@ module ActionController
         end
       end
 
+      def freeze
+        return self if frozen?
+
+        if format.any?
+          name
+          include
+        end
+        @mutex = nil
+        super
+      end
+
       private
         # Determine the wrapper model from the controller's name. By convention, this
         # could be done by trying to find the defined model that has the same singular
@@ -186,10 +195,6 @@ module ActionController
     end
 
     module ClassMethods
-      def _set_wrapper_options(options)
-        self._wrapper_options = Options.from_hash(options)
-      end
-
       # Sets the name of the wrapper key, or the model which `ParamsWrapper` would use
       # to determine the attribute names from.
       #

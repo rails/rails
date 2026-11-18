@@ -1,7 +1,8 @@
 # frozen_string_literal: true
 
 module ActiveRecord
-  # = Active Record Touch Later
+  # Active Record Touch Later
+  # =========================
   module TouchLater # :nodoc:
     def before_committed!
       touch_deferred_attributes if has_defer_touch_attrs? && persisted?
@@ -13,8 +14,7 @@ module ActiveRecord
 
       @_defer_touch_attrs ||= timestamp_attributes_for_update_in_model
       @_defer_touch_attrs |= names.map! do |name|
-        name = name.to_s
-        self.class.attribute_aliases[name] || name
+        resolve_alias(name.to_s)
       end unless names.empty?
 
       @_touch_time = current_time_from_proper_timezone
@@ -27,7 +27,7 @@ module ActiveRecord
       self.class.reflect_on_all_associations.each do |r|
         if touch = r.options[:touch]
           if r.macro == :belongs_to
-            ActiveRecord::Associations::Builder::BelongsTo.touch_record(self, changes_to_save, r.foreign_key, r.name, touch)
+            ActiveRecord::Associations::Builder::BelongsTo.touch_record(self, :attribute_change_to_be_saved, r.name, touch)
           elsif r.macro == :has_one
             ActiveRecord::Associations::Builder::HasOne.touch_record(self, r.name, touch)
           end

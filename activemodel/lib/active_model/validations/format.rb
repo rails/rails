@@ -52,6 +52,7 @@ module ActiveModel
     end
 
     module HelperMethods
+      # :markup: rdoc
       # Validates whether the value of the specified attribute is of the correct
       # form, going by the regular expression provided. You can require that the
       # attribute matches the regular expression:

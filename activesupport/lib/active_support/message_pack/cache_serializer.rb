@@ -10,8 +10,9 @@ module ActiveSupport
 
       def load(dumped)
         super
-      rescue ActiveSupport::MessagePack::MissingClassError
-        # Treat missing class as cache miss => return nil
+      rescue ActiveSupport::MessagePack::MissingClassError => error
+        # Treat missing class as cache miss
+        raise ActiveSupport::Cache::DeserializationError, error.message
       end
 
       private

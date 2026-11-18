@@ -47,10 +47,10 @@ requests,
 so any unhandled errors raised in your app will automatically be reported to
 your error-reporting service via their subscribers.
 
-Rails automatically injects 2 keys into context of a report:
+Rails automatically injects 2 keys into the context of a report:
 
-* `:controller` - which value is an instance of controller for request based reports
-* `:job` - which value is an instance of job for Active Job based reports
+* `:controller` - whose value is an instance of controller for request based reports
+* `:job` - whose value is an instance of job for Active Job based reports
 
 NOTE: For HTTP requests, errors present in `ActionDispatch::ExceptionWrapper.rescue_responses`
 are not reported as they do not result in server errors (500) and generally aren't bugs that need to be addressed.
@@ -118,7 +118,7 @@ across environments as needed.
 
 ### Using the Error Reporter
 
-Rails error reporter has four methods that allow you to report methods in
+Rails error reporter has four methods that allow you to report errors in
 different ways:
 
 * `Rails.error.handle`

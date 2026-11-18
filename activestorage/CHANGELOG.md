@@ -9,6 +9,278 @@
 
     *Matthias Link*
 
+*   Preserve committed proxy responses when a storage error interrupts a
+    streamed download.
+
+    [GHSA-4v2w-w6g6-f8f8]
+
+    *Jeremy Daer*
+
+*   Derive `ActiveStorage::Filename#base` and `#extension` from the sanitized
+    filename.
+
+    This prevents null bytes and invalid byte sequences in stored filename
+    metadata from raising when a blob is opened or represented. Existing blob
+    records are handled without a data migration.
+
+    [GHSA-p2pm-g2h6-7j5j]
+
+    *Jeremy Daer*
+
+*   Ship an ImageMagick security policy and apply it to every ImageMagick
+    process MiniMagick spawns.
+
+    ImageMagick chooses a coder from the content of the file it is given, and
+    some coders act on files named inside the image rather than on the image
+    itself. Active Storage constrained none of them, so an uploaded file could
+    reach any coder the host's policy allowed, through the ImageMagick analyzer
+    at attach time, with no variant or `analyze` call in the application.
+
+    Active Storage now ships a `policy.xml` in
+    `ActiveStorage::ImageMagick::POLICY_DIRECTORY` and prepends that directory
+    to `MAGICK_CONFIGURE_PATH` through `MiniMagick.cli_env`. ImageMagick applies
+    every policy file on its search path, so the shipped policy adds to the
+    host's policy rather than replacing it. A `MAGICK_CONFIGURE_PATH` set in the
+    environment or in `MiniMagick.cli_env`, including by an initializer or
+    dotenv, is kept after the shipped directory.
+
+    The shipped policy denies the coders that script ImageMagick (`MSL`), read
+    or delete files other than the image (`TEXT`, `EPHEMERAL`), fetch remote
+    references (`URL`, `HTTP`, `HTTPS`, `FTP`), display to a screen (`SHOW`,
+    `WIN`, `PLT`), or hand the file to Ghostscript (the `PS`, `EPS`, `EPT` and
+    `PDF` coders, every alias of them, and the `gs` delegate), or reach a file
+    directly (`FILE`, `MPC`, `XPS`, `PCL`), and it refuses `@filename`
+    indirection. The policy applies to every ImageMagick command MiniMagick
+    runs, not only Active Storage's.
+
+    These applications must act:
+
+    *   One whose variant processor is `:mini_magick` has to use mini_magick 5.1
+        or later, which applying the policy requires. With an older mini_magick,
+        it raises at boot.
+    *   One that renders PostScript or PDF through ImageMagick has to re-allow
+        the `gs` delegate and the coders it uses in the host's `policy.xml`. A
+        host policy that allows a coder overrides the shipped deny.
+    *   One that replaces `MiniMagick.cli_env` after it boots, clears the
+        environment with `MiniMagick.cli_prefix`, or installs its own
+        `MiniMagick::Shell` never receives the shipped policy and has to carry
+        its rules in ImageMagick's system policy. So does one that uses
+        GraphicsMagick, which does not read ImageMagick policies.
+
+    Every other application needs no change. See "ImageMagick Security Policy"
+    in the Active Storage guide.
+
+    [GHSA-f3w6-w445-fwh9]
+
+    *Mike Dalessio*
+
+*   Enforce the declared content length on Google Cloud Storage direct uploads.
+
+    The signed URL now requires an `x-goog-content-length-range` header matching the blob's
+    `byte_size`, so Cloud Storage rejects a body of any other size.
+
+    Browsers send the new header, so a bucket's CORS configuration must list
+    `x-goog-content-length-range` in `responseHeader`, or direct uploads from the browser fail.
+
+    [GHSA-hfr4-8rjc-97m2]
+
+    *Mike Dalessio*
+
+*   Sign GCS direct uploads with V2 when `cache_control` is set.
+
+    V4 signatures did not bind the Content-Type or Content-MD5 headers, so the uploader could
+    choose the stored Content-Type. Direct-upload URLs with `cache_control` are no longer limited
+    to 7 days, and the client sends `Cache-Control` unsigned.
+
+    [GHSA-3w93-6hmw-whh4]
+
+    *Mike Dalessio*
+
+*   Stop an uploaded filename choosing the extension of the tempfile Active
+    Storage hands to an external tool.
+
+    `ActiveStorage::Blob#open` named its tempfile after the uploaded filename,
+    extension and all. Tools that select a decoder from the extension alone,
+    such as FFmpeg's AviSynth demuxer on `.avs`, therefore took their
+    instructions from the uploader. The extension is now kept only when it
+    denotes the blob's recorded media type, and dropped otherwise.
+
+    [GHSA-v924-7rp8-4mxh]
+
+    *Mike Dalessio*
+
+*   Restrict the formats ffmpeg and ffprobe will open when previewing and
+    analyzing video and audio.
+
+    Active Storage now passes `-format_whitelist` before the input at every
+    ffmpeg and ffprobe call site, limiting demuxer selection to common audio and
+    video container formats. Configure the list with
+    `config.active_storage.ffmpeg_allowed_formats`, or set it to `nil` to let
+    ffmpeg choose any demuxer it was built with.
+
+    Files in other formats, such as MXF, DV, AC3, WavPack, AU, W64, and raw
+    H.264 or MPEG-1/2 video streams, now fail to preview with
+    `ActiveStorage::PreviewError`, and their analysis stores no media metadata
+    and logs a warning. Add their demuxers to the list to keep them.
+
+    ```ruby
+    config.active_storage.ffmpeg_allowed_formats += %w[ mxf ]
+    ```
+
+    [GHSA-3f4q-8x5m-76v8]
+
+    *Mike Dalessio*
+
+*   Detect axis-swapping orientations in the Vips image analyzer from libvips' normalized
+    `orientation` field instead of parsing the `exif-ifd0-Orientation` label.
+
+    This is the same field `autorot` reads when generating variants, so the reported width and
+    height now match the variant output by construction. It also covers formats that store the
+    orientation outside an EXIF block, such as TIFF, which the label parsing missed.
+
+    *Greg Pavlik*
+
+*   Forward other options from `has_one_attached` and `has_many_attached` to the attachment association.
+
+    ```ruby
+    class User < ApplicationRecord
+      has_one_attached :avatar, deprecated: true
+    end
+    ```
+
+    *Jean-Samuel Aubry-Guzzi*
+
+*   Introduce `config.active_storage.s3_public_uploads_via_acl` to stop setting the `public-read` ACL on S3 uploads for services configured with `public: true`.
+
+    Bucket owner enforced is now both the default and the recommended S3 object ownership setting,
+    and rejects any request that specifies an ACL. Uploading through a `public: true` service to
+    such a bucket previously failed outright because Active Storage always attached a `public-read` ACL,
+    with no way to opt out.
+
+    Setting this to `false` skips the ACL; grant public read access through a bucket policy instead.
+    Buckets that still use ACLs can restore the previous behavior for a given service by setting the
+    `acl` option explicitly in its `upload` configuration.
+
+    The default remains `true`, matching existing behavior. New applications generated with
+    `config.load_defaults 8.2` get `false`.
+
+    *Florent Beaurain*
+
+*   Introduce `config.active_storage.draw_direct_upload_route` to disable the direct upload route without affecting the other Active Storage routes.
+
+    When disabled, Action Text's `rich_textarea` omits `data-direct-upload-url` unless one is passed explicitly, and a Trix editor without that attribute hides its attach button and ignores dropped or pasted files.
+
+    *Niklas Häusele*
+
+*   Boot when libvips is missing.
+
+    An application with the ruby-vips gem installed but no libvips could not start. Active Storage
+    now treats any `LoadError` from requiring ruby-vips as ruby-vips being unavailable, and stops
+    loading `image_processing/vips` once it is. The application boots and logs a warning that
+    generating variants needs libvips.
+
+    Fixes #58723.
+
+    *Mike Dalessio*, *Vandenbogaerde Nicolas*
+
+*   Boot with an unsupported libvips or ruby-vips unless the variant processor uses it.
+
+    An installed libvips or ruby-vips too old to block the unfuzzed loaders raised during application
+    boot for every variant processor. Active Storage now raises only when the `:vips` processor loads
+    or the Vips analyzer reads an image, so `:mini_magick` applications boot again.
+
+    Fixes #58394.
+
+    *Mike Dalessio*
+
+*   Marcel 2 for content type detection
+
+    Broader and more precise MIME type detection, security hardening, and uses canonical types
+    instead of aliases (`text/x-yaml` → `application/yaml`).
+
+    *Jeremy Daer*
+
+*   Allow ffmpeg and ffprobe input arguments to be configured.
+
+    Two new configuration parameters are introduced.
+    `config.active_storage.video_preview_input_arguments` is passed to ffmpeg before `-i`, and
+    `config.active_storage.ffprobe_arguments` is passed to ffprobe before the file path. Both
+    default to `""`.
+
+    ffmpeg's flags are position dependent, and these parameters carry the ones that apply to the
+    input, such as `-codec_whitelist`, `-f`, and `-protocol_whitelist`. For example, an
+    application that accepts only H.264 video with AAC audio:
+
+    ```ruby
+    config.active_storage.video_preview_input_arguments = "-codec_whitelist h264,aac"
+    config.active_storage.ffprobe_arguments = "-codec_whitelist h264,aac"
+    ```
+
+    `ffprobe_arguments` applies to both `ActiveStorage::Analyzer::VideoAnalyzer` and
+    `ActiveStorage::Analyzer::AudioAnalyzer`.
+
+    *Mike Dalessio*
+
+*   Allow `config.active_storage.variant_processor` to be set to a transformer class.
+
+    `config.active_storage.variant_processor` now accepts a class, in addition to `:vips`,
+    `:mini_magick`, and `:disabled`. The class must implement the interface defined by
+    `ActiveStorage::Transformers::Transformer`. Active Storage then uses it for variant processing.
+
+    ```ruby
+    config.active_storage.variant_processor = CustomTransformer
+    ```
+
+    Note that the built-in image analyzers accept a blob only when `variant_processor` is `:vips` or
+    `:mini_magick`, so setting this configuration to a custom class requires adding a custom
+    analyzer to `config.active_storage.analyzers` as well.
+
+    An unrecognized value now raises `ArgumentError` while booting, instead of failing later with
+    `NoMethodError` when a variant is generated.
+
+    *Mike Dalessio*
+
+*   Disable libvips's unfuzzed image loaders and savers.
+
+    libvips flags some of its loaders and savers as "unfuzzed" or "untrusted", meaning they are only
+    safe for trusted content. Active Storage will call `Vips.block_untrusted(true)` to disable them
+    while booting. An application that needs a specific loader or saver may re-enable it in an
+    initializer.
+
+    This is a breaking change for applications that process image types with an unfuzzed loader or
+    saver. Variant transformation of BMP, ICO, and PSD attachments will raise `Vips::Error`, and
+    analysis of these and other types such as SVG, JPEG XL, JPEG 2000, and Netpbm will no longer
+    record `width` and `height`. Requesting an unfuzzed output format, typically FITS, JXL, or
+    anything delegated to ImageMagick, will also raise `Vips::Error`. Attaching, storing, and
+    downloading are unchanged.
+
+    An application seeing `Vips::Error` raised during image transformation may wish to remove the
+    affected content types from `config.active_storage.variable_content_types` in an initializer.
+    Active Storage will then treat those attachments as not variable and will not generate variants
+    for them. This most often matters to an application that transforms images during a request
+    rather than in a background job, where the failure surfaces as an error response instead of a
+    failed job.
+
+    ```ruby
+    Rails.application.config.active_storage.variable_content_types -=
+      %w[ image/bmp image/vnd.microsoft.icon image/vnd.adobe.photoshop ]
+    ```
+
+    Applications using the `:mini_magick` variant processor will see no change in how their
+    attachments are processed, but the loaders and savers will be disabled process-wide whenever
+    ruby-vips is installed, and the version requirements below will still apply. Such an application
+    may remove ruby-vips from its Gemfile to avoid both.
+
+    The minimum supported version of libvips is now 8.13, and the minimum supported version of
+    ruby-vips is now 2.2.1. These are the earliest versions that are capable of disabling untrusted
+    operations. When ruby-vips is installed and either minimum is not met, Active Storage will raise
+    a `RuntimeError` while booting rather than run in an unsecurable environment.
+
+    [GHSA-xr9x-r78c-5hrm]
+    [CVE-2026-66066]
+
+    *Mike Dalessio*
+
 *   Fix `MirrorService#mirror` losing blob metadata when copying to mirrors.
 
     Mirrored copies on S3, Azure, and GCS were served as `application/octet-stream`

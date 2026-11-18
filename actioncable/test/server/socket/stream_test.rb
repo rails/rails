@@ -45,7 +45,7 @@ class ActionCable::Server::Socket::StreamTest < ActionCable::TestCase
   [ EOFError, Errno::ECONNRESET ].each do |closed_exception|
     test "closes socket on #{closed_exception}" do
       run_in_eventmachine do
-        rack_hijack_io = File.open(File::NULL, "w")
+        rack_hijack_io, client_io = Socket.pair(Socket::AF_UNIX, Socket::SOCK_STREAM, 0)
         connection = open_connection(rack_hijack_io)
 
         # Internal hax = :(
@@ -56,6 +56,9 @@ class ActionCable::Server::Socket::StreamTest < ActionCable::TestCase
           end
         end
         assert_equal [], connection.errors
+      ensure
+        rack_hijack_io&.close
+        client_io&.close
       end
     end
   end
@@ -64,7 +67,8 @@ class ActionCable::Server::Socket::StreamTest < ActionCable::TestCase
     def open_connection(io)
       env = Rack::MockRequest.env_for "/test",
         "HTTP_CONNECTION" => "upgrade", "HTTP_UPGRADE" => "websocket",
-        "HTTP_HOST" => "localhost", "HTTP_ORIGIN" => "http://rubyonrails.com"
+        "HTTP_HOST" => "localhost", "HTTP_ORIGIN" => "http://rubyonrails.com",
+        "HTTP_SEC_WEBSOCKET_VERSION" => "13", "HTTP_SEC_WEBSOCKET_KEY" => "dGhlIHNhbXBsZSBub25jZQ=="
       env["rack.hijack"] = -> { env["rack.hijack_io"] = io }
 
       TestSocket.new(@server, env).tap do |socket|

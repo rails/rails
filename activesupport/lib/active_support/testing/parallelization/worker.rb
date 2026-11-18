@@ -31,7 +31,7 @@ module ActiveSupport
             set_process_title("(stopping)")
 
             run_cleanup
-            @queue.stop_worker(@id, Process.pid)
+            @queue.stop_worker(@id)
           end
         end
 

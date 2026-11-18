@@ -22,7 +22,7 @@ module ActiveRecord
           msg = +"#{build_explain_clause(c, options)} #{sql}"
           unless binds.empty?
             msg << " "
-            msg << binds.map { |attr| render_bind(c, attr) }.inspect
+            msg << binds.map.with_index { |attr, i| render_bind(c, attr, i) }.inspect
           end
           msg << "\n"
           msg << c.explain(sql, binds, options)
@@ -37,19 +37,17 @@ module ActiveRecord
     end
 
     private
-      def render_bind(connection, attr)
+      def render_bind(connection, attr, i)
         if ActiveModel::Attribute === attr
           value = if attr.type.binary? && attr.value
             "<#{attr.value_for_database.to_s.bytesize} bytes of binary data>"
           else
             connection.type_cast(attr.value_for_database)
           end
+          [attr.name, value]
         else
-          value = connection.type_cast(attr)
-          attr  = nil
+          ["$#{i + 1}", connection.type_cast(attr)]
         end
-
-        [attr&.name, value]
       end
 
       def build_explain_clause(connection, options = [])

@@ -215,31 +215,40 @@ module ActiveRecord
         }, "pool should be removed from reaper registry after discard!"
       end
 
-      def test_discard_pool_kills_reaper_thread_when_no_pools_remain
-        pool_config = duplicated_pool_config(reaping_frequency: "100")
-        pool = ConnectionPool.new(pool_config)
+      if Process.respond_to?(:fork)
+        def test_discard_pool_kills_reaper_thread_when_no_pools_remain
+          pool_config = duplicated_pool_config(reaping_frequency: "100")
 
-        thread = ConnectionPool::Reaper.instance_variable_get(:@threads)[100.0]
-        assert thread&.alive?, "reaper thread should be alive before discard!"
+          pid = fork do
+            ConnectionPool::Reaper.instance_variable_get(:@pools).clear
+            pool1 = ConnectionPool.new(pool_config)
+            pool2 = ConnectionPool.new(pool_config)
+            thread = ConnectionPool::Reaper.instance_variable_get(:@thread)
 
-        pool.discard!
+            pool1.discard!
+            exit!(1) unless thread&.alive?
 
-        assert_not thread.alive?, "reaper thread should be dead after discard!"
+            pool2.discard!
+            exit!(thread.alive? ? 2 : 0)
+          end
+
+          _, status = Process.wait2(pid)
+          assert_equal 0, status.exitstatus, "reaper thread should stay alive until the last pool is discarded"
+        end
       end
 
-      def test_discard_pool_does_not_kill_thread_when_other_pools_remain
-        pool_config = duplicated_pool_config(reaping_frequency: "100")
-        pool1 = ConnectionPool.new(pool_config)
-        pool2 = ConnectionPool.new(pool_config)
+      def test_pools_with_different_frequencies_share_one_reaper_thread
+        pools = []
+        slow_config = duplicated_pool_config(reaping_frequency: "100")
+        fast_config = duplicated_pool_config(reaping_frequency: "50")
+        threads_before = Thread.list
 
-        thread = ConnectionPool::Reaper.instance_variable_get(:@threads)[100.0]
-        assert thread&.alive?, "reaper thread should be alive"
+        pools << ConnectionPool.new(slow_config)
+        pools << ConnectionPool.new(fast_config)
 
-        pool1.discard!
-
-        assert thread.alive?, "reaper thread should stay alive while pool2 is registered"
+        assert_empty Thread.list - threads_before
       ensure
-        pool2.discard!
+        pools.each(&:discard!)
       end
 
       private

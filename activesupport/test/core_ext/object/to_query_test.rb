@@ -60,6 +60,16 @@ class ToQueryTest < ActiveSupport::TestCase
     assert_query_equal "a%5B%5D=1&a%5B%5D=2", a: [1, [], 2]
   end
 
+  def test_nested_values_with_an_empty_query_are_skipped
+    assert_query_equal "a%5B%5D=1&a%5B%5D=2", a: [1, [[]], { b: {} }, 2]
+    assert_query_equal "c=1", a: [[]], b: { d: [{}] }, c: 1
+  end
+
+  def test_nil_false_and_blank_values_in_arrays_are_kept
+    assert_equal "a%5B%5D&a%5B%5D=false&a%5B%5D=&b=1",
+      { a: [nil, false, "", [[]]], b: 1 }.to_query
+  end
+
   def test_nested_empty_hash
     assert_equal "",
       {}.to_query

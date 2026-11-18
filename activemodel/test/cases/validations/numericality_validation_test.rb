@@ -26,6 +26,10 @@ class NumericalityValidationTest < ActiveModel::TestCase
   BIGDECIMAL = BIGDECIMAL_STRINGS.collect { |bd| BigDecimal(bd) }
   JUNK = ["not a number", "42 not a number", "0xdeadbeef", "-0xdeadbeef", "+0xdeadbeef", "0xinvalidhex", "0Xdeadbeef", "00-1", "--3", "+-3", "+3-1", "-+019.0", "12.12.13.12", "123\nnot a number"].freeze
   INFINITY = [1.0 / 0.0].freeze
+  NON_FINITE = [
+    Float::INFINITY, -Float::INFINITY, Float::NAN,
+    BigDecimal("Infinity"), BigDecimal("-Infinity"), BigDecimal("NaN"),
+  ].freeze
 
   def test_default_validates_numericality_of
     Topic.validates_numericality_of :approved
@@ -209,11 +213,23 @@ class NumericalityValidationTest < ActiveModel::TestCase
     assert_valid_values([-1, 1])
   end
 
+  def test_validates_numericality_with_odd_rejects_non_finite_values
+    Topic.validates_numericality_of :approved, odd: true
+
+    assert_invalid_values(NON_FINITE, "must be odd")
+  end
+
   def test_validates_numericality_with_even
     Topic.validates_numericality_of :approved, even: true
 
     assert_invalid_values([-1, 1], "must be even")
     assert_valid_values([-2, 2])
+  end
+
+  def test_validates_numericality_with_even_rejects_non_finite_values
+    Topic.validates_numericality_of :approved, even: true
+
+    assert_invalid_values(NON_FINITE, "must be even")
   end
 
   def test_validates_numericality_with_greater_than_less_than_and_even
@@ -374,6 +390,39 @@ class NumericalityValidationTest < ActiveModel::TestCase
 
     assert_invalid_values([Float("65.5"), BigDecimal("65.7")], "must be equal to 65.6")
     assert_valid_values([Float("65.6"), BigDecimal("65.6")])
+  end
+
+  def test_validates_numericality_of_float_is_guaranteed_up_to_fifteen_digits
+    Topic.validates_numericality_of :approved, equal_to: BigDecimal("1.23456789012346")
+
+    assert_valid_values([1.2345678901234567, "1.2345678901234567"])
+    assert_invalid_values([1.2345678901234467, "1.2345678901234467"], "must be equal to 1.23456789012346")
+  end
+
+  def test_validates_numericality_of_decimal_attribute_with_precision_and_scale
+    klass = Class.new do
+      include ActiveModel::Model
+      include ActiveModel::Attributes
+
+      attribute :price, :decimal, precision: 4, scale: 2
+      validates_numericality_of :price, less_than_or_equal_to: 99.99
+
+      def self.name
+        "DecimalModel"
+      end
+    end
+
+    ["99.994", 99.994, BigDecimal("99.994"), Rational(99_994, 1000)].each do |raw_value|
+      subject = klass.new(price: raw_value)
+      assert_equal BigDecimal("99.99"), subject.price
+      assert_predicate subject, :valid?
+    end
+
+    ["99.999", 99.999, BigDecimal("99.999"), Rational(99_999, 1000)].each do |raw_value|
+      subject = klass.new(price: raw_value)
+      assert_equal BigDecimal("100.00"), subject.price
+      assert_not_predicate subject, :valid?
+    end
   end
 
   private

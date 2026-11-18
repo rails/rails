@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require "active_support"
+require "active_support/testing/ractors_assertions"
 require "minitest/autorun"
 require "arel"
 
@@ -23,6 +24,7 @@ end
 module Arel
   class Test < ActiveSupport::TestCase
     include Assertions
+    include ActiveSupport::Testing::RactorsAssertions
 
     setup do
       @arel_engine = Arel::Table.engine

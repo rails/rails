@@ -1,10 +1,8 @@
 # frozen_string_literal: true
 
-# :markup: markdown
-
 require "singleton"
-require "active_support/deprecation"
 require "action_dispatch/deprecator"
+require "active_support/core_ext/string/filters"
 
 module Mime
   class Mimes
@@ -16,6 +14,19 @@ module Mime
       @mimes = []
       @symbols = []
       @symbols_set = Set.new
+    end
+
+    def initialize_copy(_other)
+      @mimes = @mimes.dup
+      @symbols = @symbols.dup
+      @symbols_set = @symbols_set.dup
+    end
+
+    def freeze
+      @mimes.freeze
+      @symbols.freeze
+      @symbols_set.freeze
+      super
     end
 
     def each(&block)
@@ -89,6 +100,34 @@ module Mime
       return type if type.is_a?(Type)
       @lookup_by_extension.fetch(type.to_s, &block)
     end
+
+    def eager_load! # :nodoc:
+      @registry.freeze
+      @lookup_by_string.freeze
+      @lookup_by_extension.freeze
+      nil
+    end
+
+    def update # :nodoc:
+      if @registry.frozen?
+        ActionDispatch.deprecator.warn(<<~DEPRECATION.squish)
+          Registering or unregistering a MIME type after the application has been initialized is deprecated.
+          Register custom MIME types from an initializer instead (e.g. config/initializers/mime_types.rb).
+          This will raise a FrozenError in Rails 9.0.
+        DEPRECATION
+        registry, string_lookup, extension_lookup = @registry.dup, @lookup_by_string.dup, @lookup_by_extension.dup
+        yield registry, string_lookup, extension_lookup
+        @registry = registry.freeze
+        @lookup_by_string = string_lookup.freeze
+        @lookup_by_extension = extension_lookup.freeze
+
+        SET.target = @registry
+        LOOKUP.target = @lookup_by_string
+        EXTENSION_LOOKUP.target = @lookup_by_extension
+      else
+        yield @registry, @lookup_by_string, @lookup_by_extension
+      end
+    end
   end
 
   # Encapsulates the notion of a MIME type. Can be used at render time, for
@@ -108,7 +147,7 @@ module Mime
   class Type
     attr_reader :symbol
 
-    @register_callbacks = []
+    @on_change_callbacks = []
 
     # A simple helper class used in parsing the accept header.
     class AcceptItem # :nodoc:
@@ -184,13 +223,19 @@ module Mime
       PARAMETER_SEPARATOR_REGEXP = /;\s*q="?/
       ACCEPT_HEADER_REGEXP = /[^,\s"](?:[^,"]|"[^"]*")*/
 
-      def register_callback(&block)
-        @register_callbacks << block
+      def on_change(&block) # :nodoc:
+        @on_change_callbacks << block
       end
+
+      def register_callback(&block)
+        on_change { |mime, registered| block.call(mime) if registered }
+      end
+      ActionDispatch.deprecator.deprecate_methods(self, :register_callback)
 
       def lookup(string)
         lookup = Mime.lookup_by_string
         return lookup[string] if lookup.key?(string)
+        return WILDCARD if string == "*/*"
 
         # fallback to the media-type without parameters if it was not found
         string = string.split(";", 2)[0]&.rstrip
@@ -198,7 +243,7 @@ module Mime
       end
 
       def lookup_by_extension(extension)
-        Mime.lookup_by_extension[extension.to_s]
+        Mime.lookup_by_extension[extension.is_a?(Symbol) ? extension.name : extension.to_s]
       end
 
       # Registers an alias that's not used on MIME type lookup, but can be referenced
@@ -211,12 +256,14 @@ module Mime
       def register(string, symbol, mime_type_synonyms = [], extension_synonyms = [], skip_lookup = false)
         new_mime = Type.new(string, symbol, mime_type_synonyms)
 
-        Mime.registry << new_mime
-        ([string] + mime_type_synonyms).each { |str| Mime.lookup_by_string[str] = new_mime } unless skip_lookup
-        ([symbol] + extension_synonyms).each { |ext| Mime.lookup_by_extension[ext.to_s] = new_mime }
+        Mime.update do |registry, string_lookup, extension_lookup|
+          registry << new_mime
+          ([string] + mime_type_synonyms).each { |str| string_lookup[-str] = new_mime } unless skip_lookup
+          ([symbol] + extension_synonyms).each { |ext| extension_lookup[-ext.to_s] = new_mime }
+        end
 
-        @register_callbacks.each do |callback|
-          callback.call(new_mime)
+        @on_change_callbacks.each do |callback|
+          callback.call(new_mime, true)
         end
         new_mime
       end
@@ -269,9 +316,15 @@ module Mime
       def unregister(symbol)
         symbol = symbol.downcase
         if mime = Mime[symbol]
-          Mime.registry.delete_if { |v| v.eql?(mime) }
-          Mime.lookup_by_string.delete_if { |_, v| v.eql?(mime) }
-          Mime.lookup_by_extension.delete_if { |_, v| v.eql?(mime) }
+          Mime.update do |registry, string_lookup, extension_lookup|
+            registry.delete_if { |v| v.eql?(mime) }
+            string_lookup.delete_if { |_, v| v.eql?(mime) }
+            extension_lookup.delete_if { |_, v| v.eql?(mime) }
+          end
+
+          @on_change_callbacks.each do |callback|
+            callback.call(mime, false)
+          end
         end
       end
     end
@@ -285,14 +338,26 @@ module Mime
 
     class InvalidMimeType < StandardError; end
 
-    def initialize(string, symbol = nil, synonyms = [])
+    def initialize(string, symbol = nil, synonyms = nil)
       unless MIME_REGEXP.match?(string)
         raise InvalidMimeType, "#{string.inspect} is not a valid MIME type"
       end
-      @symbol, @synonyms = symbol, synonyms
-      @string = string
+      @symbol = symbol
+      @synonyms = if synonyms&.any?
+        synonyms.map { |synonym| synonym.dup.freeze }.freeze
+      else
+        [].freeze
+      end
+      @string = string.dup.freeze
       @hash = [@string, @synonyms, @symbol].hash
+      freeze
     end
+
+    # Returned when looking up `*/*`, the Accept header of most non-browser
+    # clients, instead of building an equal instance on each request. Unlike
+    # Mime::ALL, it's a plain unregistered type.
+    WILDCARD = new("*/*")
+    private_constant :WILDCARD
 
     def to_s
       @string
@@ -320,9 +385,18 @@ module Mime
 
     def ==(mime_type)
       return false unless mime_type
-      (@synonyms + [ self ]).any? do |synonym|
-        synonym.to_s == mime_type.to_s || synonym.to_sym == mime_type.to_sym
+      if mime_type.is_a?(Symbol)
+        # `format == :json` is the common call. Compare the symbol directly, and
+        # use `Symbol#name` so that the string comparison doesn't allocate.
+        return true if @symbol == mime_type
+        mime_string = mime_type.name
+      else
+        mime_string = mime_type.to_s
       end
+      return true if @string == mime_string || @synonyms.include?(mime_string)
+
+      mime_symbol = mime_type.to_sym
+      @symbol == mime_symbol || @synonyms.any? { |synonym| synonym.to_sym == mime_symbol }
     end
 
     def eql?(other)

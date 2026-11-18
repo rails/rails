@@ -1,25 +1,30 @@
 # frozen_string_literal: true
 
+require "active_record/connection_adapters/postgresql/compatibility_behavior"
+
 module ActiveRecord
   module ConnectionAdapters
     module PostgreSQL
       module SchemaStatements
-        # Drops the database specified on the +name+ attribute
-        # and creates it again using the provided +options+.
+        # Drops the database specified on the `name` attribute
+        # and creates it again using the provided `options`.
         def recreate_database(name, options = {}) # :nodoc:
           drop_database(name)
           create_database(name, options)
         end
 
-        # Create a new PostgreSQL database. Options include <tt>:owner</tt>, <tt>:template</tt>,
-        # <tt>:encoding</tt> (defaults to utf8), <tt>:locale_provider</tt>, <tt>:locale</tt>,
-        # <tt>:collation</tt>, <tt>:ctype</tt>, <tt>:tablespace</tt>, and
-        # <tt>:connection_limit</tt> (note that MySQL uses <tt>:charset</tt> while PostgreSQL
-        # uses <tt>:encoding</tt>).
+        # Create a new PostgreSQL database. Options include `:owner`, `:template`,
+        # `:encoding` (defaults to utf8), `:locale_provider`, `:locale`,
+        # `:collation`, `:ctype`, `:tablespace`, and
+        # `:connection_limit` (note that MySQL uses `:charset` while PostgreSQL
+        # uses `:encoding`).
         #
         # Example:
-        #   create_database config[:database], config
-        #   create_database 'foo_development', encoding: 'unicode'
+        #
+        # ```
+        # create_database config[:database], config
+        # create_database 'foo_development', encoding: 'unicode'
+        # ```
         def create_database(name, options = {})
           options = { encoding: "utf8" }.merge!(options.symbolize_keys)
 
@@ -54,9 +59,12 @@ module ActiveRecord
         # Drops a PostgreSQL database.
         #
         # Example:
-        #   drop_database 'matt_development'
         #
-        # Note, for PostgreSQL versions >= 13 the SQL statement will include <tt>WITH (FORCE)</tt> to
+        # ```
+        # drop_database 'matt_development'
+        # ```
+        #
+        # Note, for PostgreSQL versions >= 13 the SQL statement will include `WITH (FORCE)` to
         # disconnect clients before dropping the database. This allows you to drop/reset the
         # database without stopping the \Rails server etc. See:
         # https://www.postgresql.org/docs/current/sql-dropdatabase.html
@@ -96,96 +104,8 @@ module ActiveRecord
 
         # Returns an array of indexes for the given table.
         def indexes(table_name) # :nodoc:
-          scope = quoted_scope(table_name)
-
-          result = query_rows(<<~SQL)
-            SELECT distinct i.relname, d.indisunique, d.indkey, pg_get_indexdef(d.indexrelid),
-                            pg_catalog.obj_description(i.oid, 'pg_class') AS comment, d.indisvalid,
-                            ARRAY(
-                              SELECT pg_get_indexdef(d.indexrelid, k + 1, true)
-                              FROM generate_subscripts(d.indkey, 1) AS k
-                              ORDER BY k
-                            ) AS columns
-            FROM pg_class t
-            INNER JOIN pg_index d ON t.oid = d.indrelid
-            INNER JOIN pg_class i ON d.indexrelid = i.oid
-            LEFT JOIN pg_namespace n ON n.oid = t.relnamespace
-            WHERE i.relkind IN ('i', 'I')
-              AND d.indisprimary = 'f'
-              AND t.relname = #{scope[:name]}
-              AND n.nspname = #{scope[:schema]}
-            ORDER BY i.relname
-          SQL
-
-          result.map do |row|
-            index_name = row[0]
-            unique = row[1]
-            indkey = row[2].split(" ").map(&:to_i)
-            inddef = row[3]
-            comment = row[4]
-            valid = row[5]
-            columns = decode_string_array(row[6]).map { |c| Utils.unquote_identifier(c.strip.gsub('""', '"')) }
-
-            using, expressions, include, nulls_not_distinct, where = inddef.scan(/ USING (\w+?) \((.+?)\)(?: INCLUDE \((.+?)\))?( NULLS NOT DISTINCT)?(?: WHERE (.+))?\z/m).flatten
-
-            orders = {}
-            opclasses = {}
-            include_columns = include ? include.split(",").map { |c| Utils.unquote_identifier(c.strip.gsub('""', '"')) } : []
-
-            if indkey.include?(0)
-              columns = expressions
-            else
-              # prevent INCLUDE columns from being matched
-              columns.reject! { |c| include_columns.include?(c) }
-
-              # add info on sort order (only desc order is explicitly specified, asc is the default)
-              # and non-default opclasses
-              expressions.scan(/(?<column>\w+)"?\s?(?<opclass>(?:\w+\.)?\w+_ops(_\w+)?)?\s?(?<desc>DESC)?\s?(?<nulls>NULLS (?:FIRST|LAST))?/).each do |column, opclass, desc, nulls|
-                opclasses[column] = opclass.split(".").last.to_sym if opclass
-
-                if nulls
-                  orders[column] = [desc, nulls].compact.join(" ")
-                else
-                  orders[column] = :desc if desc
-                end
-              end
-            end
-
-            IndexDefinition.new(
-              table_name,
-              index_name,
-              unique,
-              columns,
-              orders: orders,
-              opclasses: opclasses,
-              where: where,
-              using: using.to_sym,
-              include: include_columns.presence,
-              nulls_not_distinct: nulls_not_distinct.present?,
-              comment: comment.presence,
-              valid: valid
-            )
-          end
-        end
-
-        def table_options(table_name) # :nodoc:
-          options = {}
-
-          comment = table_comment(table_name)
-
-          options[:comment] = comment if comment
-
-          inherited_table_names = inherited_table_names(table_name).presence
-
-          options[:options] = "INHERITS (#{inherited_table_names.join(", ")})" if inherited_table_names
-
-          if !options[:options] && supports_native_partitioning?
-            partition_definition = table_partition_definition(table_name)
-
-            options[:options] = "PARTITION BY #{partition_definition}" if partition_definition
-          end
-
-          options
+          result = fetch_indexes(Array(table_name).map(&:to_s))
+          table_name.is_a?(Array) ? result : result[table_name.to_s]
         end
 
         # Returns a comment stored in database for given table
@@ -201,36 +121,6 @@ module ActiveRecord
                 AND n.nspname = #{scope[:schema]}
             SQL
           end
-        end
-
-        # Returns the partition definition of a given table
-        def table_partition_definition(table_name) # :nodoc:
-          scope = quoted_scope(table_name, type: "BASE TABLE")
-
-          query_value(<<~SQL)
-            SELECT pg_catalog.pg_get_partkeydef(c.oid)
-            FROM pg_catalog.pg_class c
-              LEFT JOIN pg_namespace n ON n.oid = c.relnamespace
-            WHERE c.relname = #{scope[:name]}
-              AND c.relkind IN (#{scope[:type]})
-              AND n.nspname = #{scope[:schema]}
-          SQL
-        end
-
-        # Returns the inherited table name of a given table
-        def inherited_table_names(table_name) # :nodoc:
-          scope = quoted_scope(table_name, type: "BASE TABLE")
-
-          query_values(<<~SQL)
-            SELECT parent.relname
-            FROM pg_catalog.pg_inherits i
-              JOIN pg_catalog.pg_class child ON i.inhrelid = child.oid
-              JOIN pg_catalog.pg_class parent ON i.inhparent = parent.oid
-              LEFT JOIN pg_namespace n ON n.oid = child.relnamespace
-            WHERE child.relname = #{scope[:name]}
-              AND child.relkind IN (#{scope[:type]})
-              AND n.nspname = #{scope[:schema]}
-          SQL
         end
 
         # Returns the current database name.
@@ -264,6 +154,36 @@ module ActiveRecord
         # Returns the current database ctype.
         def ctype
           query_value("SELECT datctype FROM pg_database WHERE datname = current_database()")
+        end
+
+        # Returns the names of the tables, enum types and schemas that are
+        # member objects of extensions, as +[kind, name]+ pairs with kind
+        # "table", "enum" or "schema". Table and enum names are
+        # schema-qualified.
+        def extension_member_objects # :nodoc:
+          query_all(<<~SQL).cast_values
+            SELECT 'schema', n.nspname::text
+              FROM pg_depend d
+              JOIN pg_namespace n ON d.classid = 'pg_namespace'::regclass AND d.objid = n.oid
+             WHERE d.refclassid = 'pg_extension'::regclass
+               AND d.deptype = 'e'
+            UNION ALL
+            SELECT 'table', n.nspname || '.' || c.relname
+              FROM pg_depend d
+              JOIN pg_class c ON d.classid = 'pg_class'::regclass AND d.objid = c.oid
+              JOIN pg_namespace n ON c.relnamespace = n.oid
+             WHERE d.refclassid = 'pg_extension'::regclass
+               AND d.deptype = 'e'
+               AND c.relkind IN ('r', 'p')
+            UNION ALL
+            SELECT 'enum', n.nspname || '.' || t.typname
+              FROM pg_depend d
+              JOIN pg_type t ON d.classid = 'pg_type'::regclass AND d.objid = t.oid
+              JOIN pg_namespace n ON t.typnamespace = n.oid
+             WHERE d.refclassid = 'pg_extension'::regclass
+               AND d.deptype = 'e'
+               AND t.typtype = 'e'
+          SQL
         end
 
         # Returns an array of schema names.
@@ -350,6 +270,10 @@ module ActiveRecord
           query_value("SELECT pg_get_serial_sequence(#{quote(table)}, #{quote(column)})")
         end
 
+        def next_sequence_value(sequence_name) # :nodoc:
+          query_value("SELECT nextval(#{quote(sequence_name)})", "SQL")
+        end
+
         # Sets the sequence of a table's primary key to the specified value.
         def set_pk_sequence!(table, value) # :nodoc:
           pk, sequence = pk_and_sequence_for(table)
@@ -403,7 +327,6 @@ module ActiveRecord
               primary_key_column_and_sequences = @adapter.exec_query(sql, "SCHEMA")
 
               primary_key_column_and_sequences.rows.each do |table, column, namespace, sequence|
-                table = Utils.extract_schema_qualified_name(table).to_s
                 @tables[table].column = column
                 @tables[table].sequence = PostgreSQL::Name.new(namespace, sequence) if sequence
               end
@@ -420,7 +343,6 @@ module ActiveRecord
               uuid_column_and_sequences = @adapter.exec_query(sql, "SCHEMA")
 
               uuid_column_and_sequences.rows.each do |table, column, namespace, sequence|
-                table = Utils.extract_schema_qualified_name(table).to_s
                 @tables[table].column = column
                 @tables[table].sequence = PostgreSQL::Name.new(namespace, sequence) if sequence
               end
@@ -460,10 +382,10 @@ module ActiveRecord
             end
 
             def primary_key_column_and_sequence_sql(tables)
-              tables = tables.map { |table| "#{@adapter.quote(@adapter.quote_table_name(table))}::regclass" }
               <<~SQL
-              SELECT dep.refobjid::regclass::text, attr.attname, nsp.nspname, seq.relname
-              FROM pg_class      seq,
+              SELECT tables.name, attr.attname, nsp.nspname, seq.relname
+              FROM (VALUES #{tables_values_sql(tables)}) AS tables (name, oid),
+                  pg_class      seq,
                   pg_attribute  attr,
                   pg_depend     dep,
                   pg_constraint cons,
@@ -477,14 +399,13 @@ module ActiveRecord
                 AND seq.relnamespace  = nsp.oid
                 AND cons.contype      = 'p'
                 AND dep.classid       = 'pg_class'::regclass
-                AND dep.refobjid      IN (#{tables.join(", ")})
+                AND dep.refobjid      = tables.oid
               SQL
             end
 
             def uuid_column_and_sequence_sql(tables)
-              tables = tables.map { |table| "#{@adapter.quote(@adapter.quote_table_name(table))}::regclass" }
               <<~SQL
-              SELECT t.oid::regclass::text, attr.attname, nsp.nspname,
+              SELECT tables.name, attr.attname, nsp.nspname,
                 CASE
                   WHEN pg_get_expr(def.adbin, def.adrelid) !~* 'nextval' THEN NULL
                   WHEN split_part(pg_get_expr(def.adbin, def.adrelid), '''', 2) ~ '.' THEN
@@ -492,15 +413,22 @@ module ActiveRecord
                            strpos(split_part(pg_get_expr(def.adbin, def.adrelid), '''', 2), '.')+1)
                   ELSE split_part(pg_get_expr(def.adbin, def.adrelid), '''', 2)
                 END
-              FROM pg_class       t
+              FROM (VALUES #{tables_values_sql(tables)}) AS tables (name, oid)
+              JOIN pg_class       t    ON (t.oid = tables.oid)
               JOIN pg_attribute   attr ON (t.oid = attrelid)
               JOIN pg_attrdef     def  ON (adrelid = attrelid AND adnum = attnum)
               JOIN pg_constraint  cons ON (conrelid = adrelid AND adnum = conkey[1])
               JOIN pg_namespace   nsp  ON (t.relnamespace = nsp.oid)
-              WHERE t.oid IN (#{tables.join(", ")})
-                AND cons.contype = 'p'
+              WHERE cons.contype = 'p'
                 AND pg_get_expr(def.adbin, def.adrelid) ~* 'nextval|uuid_generate|gen_random_uuid'
               SQL
+            end
+
+            # Return the given name as the key; regclass::text omits the schema of a table on the search_path.
+            def tables_values_sql(tables)
+              tables.map do |table|
+                "(#{@adapter.quote(table)}, #{@adapter.quote(@adapter.quote_table_name(table))}::regclass)"
+              end.join(", ")
             end
 
             def select_max_column_value_sql(table, column)
@@ -584,16 +512,8 @@ module ActiveRecord
         end
 
         def primary_keys(table_name) # :nodoc:
-          query_values(<<~SQL)
-            SELECT a.attname
-            FROM pg_index i
-            JOIN pg_attribute a
-              ON a.attrelid = i.indrelid
-              AND a.attnum = ANY(i.indkey)
-            WHERE i.indrelid = #{quote(quote_table_name(table_name))}::regclass
-              AND i.indisprimary
-            ORDER BY array_position(i.indkey, a.attnum)
-          SQL
+          result = fetch_primary_keys(Array(table_name).map(&:to_s))
+          table_name.is_a?(Array) ? result : result[table_name.to_s]
         end
 
         # Renames a table.
@@ -601,7 +521,10 @@ module ActiveRecord
         # matches the Active Record default.
         #
         # Example:
-        #   rename_table('octopuses', 'octopi')
+        #
+        # ```
+        # rename_table('octopuses', 'octopi')
+        # ```
         def rename_table(table_name, new_name, **options)
           validate_table_length!(new_name) unless options[:_uses_legacy_table_name]
           clear_cache!
@@ -631,38 +554,20 @@ module ActiveRecord
         def add_column(table_name, column_name, type, **options) # :nodoc:
           clear_cache!
           super
-          change_column_comment(table_name, column_name, options[:comment]) if options.key?(:comment)
         end
 
         def change_column(table_name, column_name, type, **options) # :nodoc:
           clear_cache!
-          sqls, procs = Array(change_column_for_alter(table_name, column_name, type, **options)).partition { |v| v.is_a?(String) }
-          execute "ALTER TABLE #{quote_table_name(table_name)} #{sqls.join(", ")}"
-          procs.each(&:call)
-        end
-
-        # Builds a ChangeColumnDefinition object.
-        #
-        # This definition object contains information about the column change that would occur
-        # if the same arguments were passed to #change_column. See #change_column for information about
-        # passing a +table_name+, +column_name+, +type+ and other options that can be passed.
-        def build_change_column_definition(table_name, column_name, type, **options) # :nodoc:
-          td = create_table_definition(table_name)
-          cd = td.new_column_definition(column_name, type, **options)
-          ChangeColumnDefinition.new(cd, column_name)
+          at = build_alter_table_definition(table_name)
+          at.change_column(column_name, type, **options)
+          execute_alter_table(at)
         end
 
         # Changes the default value of a table column.
         def change_column_default(table_name, column_name, default_or_changes) # :nodoc:
-          execute "ALTER TABLE #{quote_table_name(table_name)} #{change_column_default_for_alter(table_name, column_name, default_or_changes)}"
-        end
-
-        def build_change_column_default_definition(table_name, column_name, default_or_changes) # :nodoc:
-          column = column_for(table_name, column_name)
-          return unless column
-
-          default = extract_new_default_value(default_or_changes)
-          ChangeColumnDefaultDefinition.new(column, default)
+          at = build_alter_table_definition(table_name)
+          at.change_column_default(column_name, default_or_changes)
+          execute_alter_table(at)
         end
 
         def change_column_null(table_name, column_name, null, default = nil) # :nodoc:
@@ -676,13 +581,13 @@ module ActiveRecord
           execute "ALTER TABLE #{quote_table_name(table_name)} ALTER COLUMN #{quote_column_name(column_name)} #{null ? 'DROP' : 'SET'} NOT NULL"
         end
 
-        # Adds comment for given table column or drops it if +comment+ is a +nil+
+        # Adds comment for given table column or drops it if `comment` is a `nil`
         def change_column_comment(table_name, column_name, comment_or_changes) # :nodoc:
           clear_cache!
           execute change_column_comment_sql(table_name, column_name, comment_or_changes)
         end
 
-        # Adds comment for given table or drops it if +comment+ is a +nil+
+        # Adds comment for given table or drops it if `comment` is a `nil`
         def change_table_comment(table_name, comment_or_changes) # :nodoc:
           clear_cache!
           execute change_table_comment_sql(table_name, comment_or_changes)
@@ -691,7 +596,9 @@ module ActiveRecord
         # Renames a column in a table.
         def rename_column(table_name, column_name, new_column_name) # :nodoc:
           clear_cache!
-          execute("ALTER TABLE #{quote_table_name(table_name)} #{rename_column_sql(table_name, column_name, new_column_name)}")
+          at = build_alter_table_definition(table_name)
+          at.rename_column(column_name, new_column_name)
+          execute_alter_table(at)
           rename_column_indexes(table_name, column_name, new_column_name)
         end
 
@@ -755,59 +662,8 @@ module ActiveRecord
         end
 
         def foreign_keys(table_name)
-          scope = quoted_scope(table_name)
-          conenforced_column = supports_enforced_foreign_keys? ? ", c.conenforced AS enforced" : ""
-          fk_info = query_all(<<~SQL)
-            SELECT t2.oid::regclass::text AS to_table, c.conname AS name, c.confupdtype AS on_update, c.confdeltype AS on_delete, c.convalidated AS valid, c.condeferrable AS deferrable, c.condeferred AS deferred, c.conrelid, c.confrelid#{conenforced_column},
-              (
-                SELECT array_agg(a.attname ORDER BY idx)
-                FROM (
-                  SELECT idx, c.conkey[idx] AS conkey_elem
-                  FROM generate_subscripts(c.conkey, 1) AS idx
-                ) indexed_conkeys
-                JOIN pg_attribute a ON a.attrelid = t1.oid
-                AND a.attnum = indexed_conkeys.conkey_elem
-              ) AS conkey_names,
-              (
-                SELECT array_agg(a.attname ORDER BY idx)
-                FROM (
-                  SELECT idx, c.confkey[idx] AS confkey_elem
-                  FROM generate_subscripts(c.confkey, 1) AS idx
-                ) indexed_confkeys
-                JOIN pg_attribute a ON a.attrelid = t2.oid
-                AND a.attnum = indexed_confkeys.confkey_elem
-              ) AS confkey_names
-            FROM pg_constraint c
-            JOIN pg_class t1 ON c.conrelid = t1.oid
-            JOIN pg_class t2 ON c.confrelid = t2.oid
-            JOIN pg_namespace n ON c.connamespace = n.oid
-            WHERE c.contype = 'f'
-              AND t1.relname = #{scope[:name]}
-              AND n.nspname = #{scope[:schema]}
-            ORDER BY c.conname
-          SQL
-
-          fk_info.map do |row|
-            to_table = Utils.extract_schema_qualified_name(row["to_table"]).to_s
-
-            column = decode_string_array(row["conkey_names"])
-            primary_key = decode_string_array(row["confkey_names"])
-
-            options = {
-              column: column.size == 1 ? column.first : column,
-              name: row["name"],
-              primary_key: primary_key.size == 1 ? primary_key.first : primary_key
-            }
-
-            options[:on_delete] = extract_foreign_key_action(row["on_delete"])
-            options[:on_update] = extract_foreign_key_action(row["on_update"])
-            options[:deferrable] = extract_constraint_deferrable(row["deferrable"], row["deferred"])
-
-            options[:validate] = row["valid"]
-            options[:enforced] = row["enforced"] if supports_enforced_foreign_keys?
-
-            ForeignKeyDefinition.new(table_name, to_table, options)
-          end
+          result = fetch_foreign_keys(Array(table_name).map(&:to_s))
+          table_name.is_a?(Array) ? result : result[table_name.to_s]
         end
 
         def foreign_tables
@@ -819,127 +675,58 @@ module ActiveRecord
         end
 
         def check_constraints(table_name) # :nodoc:
-          scope = quoted_scope(table_name)
-
-          check_info = query_all(<<-SQL)
-            SELECT conname, pg_get_constraintdef(c.oid, true) AS constraintdef, c.convalidated AS valid
-            FROM pg_constraint c
-            JOIN pg_class t ON c.conrelid = t.oid
-            JOIN pg_namespace n ON n.oid = c.connamespace
-            WHERE c.contype = 'c'
-              AND t.relname = #{scope[:name]}
-              AND n.nspname = #{scope[:schema]}
-          SQL
-
-          check_info.map do |row|
-            options = {
-              name: row["conname"],
-              validate: row["valid"]
-            }
-            expression = row["constraintdef"][/CHECK \((.+)\)/m, 1]
-
-            CheckConstraintDefinition.new(table_name, expression, options)
-          end
+          result = fetch_check_constraints(Array(table_name).map(&:to_s))
+          table_name.is_a?(Array) ? result : result[table_name.to_s]
         end
 
-        # Returns an array of exclusion constraints for the given table.
+        # Returns an array of exclusion constraints for the given table, or a Hash of
+        # them keyed by table name when given an Array of tables.
         # The exclusion constraints are represented as ExclusionConstraintDefinition objects.
         def exclusion_constraints(table_name)
-          scope = quoted_scope(table_name)
-
-          exclusion_info = query_all(<<-SQL)
-            SELECT conname, pg_get_constraintdef(c.oid) AS constraintdef, c.condeferrable, c.condeferred
-            FROM pg_constraint c
-            JOIN pg_class t ON c.conrelid = t.oid
-            JOIN pg_namespace n ON n.oid = c.connamespace
-            WHERE c.contype = 'x'
-              AND t.relname = #{scope[:name]}
-              AND n.nspname = #{scope[:schema]}
-          SQL
-
-          exclusion_info.map do |row|
-            method_and_elements, predicate = row["constraintdef"].split(" WHERE ")
-            method_and_elements_parts = method_and_elements.match(/EXCLUDE(?: USING (?<using>\S+))? \((?<expression>.+)\)/)
-            predicate.remove!(/ DEFERRABLE(?: INITIALLY (?:IMMEDIATE|DEFERRED))?/) if predicate
-            predicate = predicate.from(2).to(-3) if predicate # strip 2 opening and closing parentheses
-
-            deferrable = extract_constraint_deferrable(row["condeferrable"], row["condeferred"])
-
-            options = {
-              name: row["conname"],
-              using: method_and_elements_parts["using"].to_sym,
-              where: predicate,
-              deferrable: deferrable
-            }
-
-            ExclusionConstraintDefinition.new(table_name, method_and_elements_parts["expression"], options)
-          end
+          result = fetch_exclusion_constraints(Array(table_name).map(&:to_s))
+          table_name.is_a?(Array) ? result : result[table_name.to_s]
         end
 
-        # Returns an array of unique constraints for the given table.
+        # Returns an array of unique constraints for the given table, or a Hash of them
+        # keyed by table name when given an Array of tables.
         # The unique constraints are represented as UniqueConstraintDefinition objects.
         def unique_constraints(table_name)
-          scope = quoted_scope(table_name)
-
-          unique_info = query_all(<<~SQL)
-            SELECT c.conname, c.conrelid, c.condeferrable, c.condeferred, pg_get_constraintdef(c.oid) AS constraintdef,
-            (
-              SELECT array_agg(a.attname ORDER BY idx)
-              FROM (
-                SELECT idx, c.conkey[idx] AS conkey_elem
-                FROM generate_subscripts(c.conkey, 1) AS idx
-              ) indexed_conkeys
-              JOIN pg_attribute a ON a.attrelid = t.oid
-              AND a.attnum = indexed_conkeys.conkey_elem
-            ) AS conkey_names
-            FROM pg_constraint c
-            JOIN pg_class t ON c.conrelid = t.oid
-            JOIN pg_namespace n ON n.oid = c.connamespace
-            WHERE c.contype = 'u'
-              AND t.relname = #{scope[:name]}
-              AND n.nspname = #{scope[:schema]}
-          SQL
-
-          unique_info.map do |row|
-            columns = decode_string_array(row["conkey_names"])
-
-            nulls_not_distinct = row["constraintdef"].start_with?("UNIQUE NULLS NOT DISTINCT")
-            deferrable = extract_constraint_deferrable(row["condeferrable"], row["condeferred"])
-
-            options = {
-              name: row["conname"],
-              nulls_not_distinct: nulls_not_distinct,
-              deferrable: deferrable
-            }
-
-            UniqueConstraintDefinition.new(table_name, columns, options)
-          end
+          result = fetch_unique_constraints(Array(table_name).map(&:to_s))
+          table_name.is_a?(Array) ? result : result[table_name.to_s]
         end
 
-        # Adds a new exclusion constraint to the table. +expression+ is a String
+        # Adds a new exclusion constraint to the table. `expression` is a String
         # representation of a list of exclusion elements and operators.
         #
-        #   add_exclusion_constraint :products, "price WITH =, availability_range WITH &&", using: :gist, name: "price_check"
+        # ```
+        # add_exclusion_constraint :products, "price WITH =, availability_range WITH &&", using: :gist, name: "price_check"
+        # ```
         #
         # generates:
         #
-        #   ALTER TABLE "products" ADD CONSTRAINT price_check EXCLUDE USING gist (price WITH =, availability_range WITH &&)
+        # ```
+        # ALTER TABLE "products" ADD CONSTRAINT price_check EXCLUDE USING gist (price WITH =, availability_range WITH &&)
+        # ```
         #
-        # The +options+ hash can include the following keys:
-        # [<tt>:name</tt>]
-        #   The constraint name. Defaults to <tt>excl_rails_<identifier></tt>.
-        # [<tt>:deferrable</tt>]
-        #   Specify whether or not the exclusion constraint should be deferrable. Valid values are +false+ or +:immediate+ or +:deferred+ to specify the default behavior. Defaults to +false+.
-        # [<tt>:using</tt>]
-        #   Specify which index method to use when creating this exclusion constraint (e.g. +:btree+, +:gist+ etc).
-        # [<tt>:where</tt>]
-        #   Specify an exclusion constraint on a subset of the table (internally PostgreSQL creates a partial index for this).
+        # The `options` hash can include the following keys:
+        #
+        # `:name`
+        # :   The constraint name. Defaults to `excl_rails_<identifier>`.
+        #
+        # `:deferrable`
+        # :   Specify whether or not the exclusion constraint should be deferrable. Valid values are `false` or `:immediate` or `:deferred` to specify the default behavior. Defaults to `false`.
+        #
+        # `:using`
+        # :   Specify which index method to use when creating this exclusion constraint (e.g. `:btree`, `:gist` etc).
+        #
+        # `:where`
+        # :   Specify an exclusion constraint on a subset of the table (internally PostgreSQL creates a partial index for this).
         def add_exclusion_constraint(table_name, expression, **options)
           options = exclusion_constraint_options(table_name, expression, options)
-          at = create_alter_table(table_name)
-          at.add_exclusion_constraint(expression, options)
+          at = build_alter_table_definition(table_name)
+          at.add_exclusion_constraint(expression, **options)
 
-          execute schema_creation.accept(at)
+          execute_alter_table(at)
         end
 
         def exclusion_constraint_options(table_name, expression, options) # :nodoc:
@@ -952,20 +739,25 @@ module ActiveRecord
 
         # Removes the given exclusion constraint from the table.
         #
-        #   remove_exclusion_constraint :products, name: "price_check"
+        # ```
+        # remove_exclusion_constraint :products, name: "price_check"
+        # ```
         #
-        # The +expression+ parameter will be ignored if present. It can be helpful
-        # to provide this in a migration's +change+ method so it can be reverted.
-        # In that case, +expression+ will be used by #add_exclusion_constraint.
+        # The `expression` parameter will be ignored if present. It can be helpful
+        # to provide this in a migration's `change` method so it can be reverted.
+        # In that case, `expression` will be used by #add_exclusion_constraint.
         def remove_exclusion_constraint(table_name, expression = nil, **options)
-          excl_name_to_delete = exclusion_constraint_for!(table_name, expression: expression, **options).name
+          at = build_alter_table_definition(table_name)
+          at.remove_exclusion_constraint(expression, **options)
 
-          remove_constraint(table_name, excl_name_to_delete)
+          execute_alter_table(at)
         end
 
         # Checks to see if an exclusion constraint exists on a table for a given exclusion constraint definition.
         #
-        #   exclusion_constraint_exists?(:invoices, name: "invoices_date_overlap")
+        # ```
+        # exclusion_constraint_exists?(:invoices, name: "invoices_date_overlap")
+        # ```
         #
         def exclusion_constraint_exists?(table_name, **options)
           if !options.key?(:name) && !options.key?(:expression)
@@ -976,32 +768,42 @@ module ActiveRecord
 
         # Adds a new unique constraint to the table.
         #
-        #   add_unique_constraint :sections, [:position], deferrable: :deferred, name: "unique_position", nulls_not_distinct: true
+        # ```
+        # add_unique_constraint :sections, [:position], deferrable: :deferred, name: "unique_position", nulls_not_distinct: true
+        # ```
         #
         # generates:
         #
-        #   ALTER TABLE "sections" ADD CONSTRAINT unique_position UNIQUE (position) DEFERRABLE INITIALLY DEFERRED
+        # ```
+        # ALTER TABLE "sections" ADD CONSTRAINT unique_position UNIQUE (position) DEFERRABLE INITIALLY DEFERRED
+        # ```
         #
         # If you want to change an existing unique index to deferrable, you can use :using_index to create deferrable unique constraints.
         #
-        #   add_unique_constraint :sections, deferrable: :deferred, name: "unique_position", using_index: "index_sections_on_position"
+        # ```
+        # add_unique_constraint :sections, deferrable: :deferred, name: "unique_position", using_index: "index_sections_on_position"
+        # ```
         #
-        # The +options+ hash can include the following keys:
-        # [<tt>:name</tt>]
-        #   The constraint name. Defaults to <tt>uniq_rails_<identifier></tt>.
-        # [<tt>:deferrable</tt>]
-        #   Specify whether or not the unique constraint should be deferrable. Valid values are +false+ or +:immediate+ or +:deferred+ to specify the default behavior. Defaults to +false+.
-        # [<tt>:using_index</tt>]
-        #   To specify an existing unique index name. Defaults to +nil+.
-        # [<tt>:nulls_not_distinct</tt>]
-        #   Create a unique constraint where NULLs are treated equally.
-        #   Note: only supported by PostgreSQL version 15.0.0 and greater.
+        # The `options` hash can include the following keys:
+        #
+        # `:name`
+        # :   The constraint name. Defaults to `uniq_rails_<identifier>`.
+        #
+        # `:deferrable`
+        # :   Specify whether or not the unique constraint should be deferrable. Valid values are `false` or `:immediate` or `:deferred` to specify the default behavior. Defaults to `false`.
+        #
+        # `:using_index`
+        # :   To specify an existing unique index name. Defaults to `nil`.
+        #
+        # `:nulls_not_distinct`
+        # :   Create a unique constraint where NULLs are treated equally.
+        # Note: only supported by PostgreSQL version 15.0.0 and greater.
         def add_unique_constraint(table_name, column_name = nil, **options)
           options = unique_constraint_options(table_name, column_name, options)
-          at = create_alter_table(table_name)
-          at.add_unique_constraint(column_name, options)
+          at = build_alter_table_definition(table_name)
+          at.add_unique_constraint(column_name, **options)
 
-          execute schema_creation.accept(at)
+          execute_alter_table(at)
         end
 
         def unique_constraint_options(table_name, column_name, options) # :nodoc:
@@ -1018,20 +820,25 @@ module ActiveRecord
 
         # Removes the given unique constraint from the table.
         #
-        #   remove_unique_constraint :sections, name: "unique_position"
+        # ```
+        # remove_unique_constraint :sections, name: "unique_position"
+        # ```
         #
-        # The +column_name+ parameter will be ignored if present. It can be helpful
-        # to provide this in a migration's +change+ method so it can be reverted.
-        # In that case, +column_name+ will be used by #add_unique_constraint.
+        # The `column_name` parameter will be ignored if present. It can be helpful
+        # to provide this in a migration's `change` method so it can be reverted.
+        # In that case, `column_name` will be used by #add_unique_constraint.
         def remove_unique_constraint(table_name, column_name = nil, **options)
-          unique_name_to_delete = unique_constraint_for!(table_name, column: column_name, **options).name
+          at = build_alter_table_definition(table_name)
+          at.remove_unique_constraint(column_name, **options)
 
-          remove_constraint(table_name, unique_name_to_delete)
+          execute_alter_table(at)
         end
 
         # Checks to see if a unique constraint exists on a table for a given unique constraint definition.
         #
-        #   unique_constraint_exists?(:sections, name: "unique_position")
+        # ```
+        # unique_constraint_exists?(:sections, name: "unique_position")
+        # ```
         #
         def unique_constraint_exists?(table_name, **options)
           if !options.key?(:name) && !options.key?(:column)
@@ -1095,37 +902,49 @@ module ActiveRecord
           PostgreSQL::Table.new(table_name, base)
         end
 
+        def compatibility_behavior_for(migration_class) # :nodoc:
+          PostgreSQL::CompatibilityBehavior.for(migration_class)
+        end
+
         def create_schema_dumper(options) # :nodoc:
           PostgreSQL::SchemaDumper.create(self, options)
         end
 
         # Validates the given constraint.
         #
-        # Validates the constraint named +constraint_name+ on +accounts+.
+        # Validates the constraint named `constraint_name` on `accounts`.
         #
-        #   validate_constraint :accounts, :constraint_name
+        # ```
+        # validate_constraint :accounts, :constraint_name
+        # ```
         def validate_constraint(table_name, constraint_name)
-          at = create_alter_table table_name
+          at = build_alter_table_definition table_name
           at.validate_constraint constraint_name
 
-          execute schema_creation.accept(at)
+          execute_alter_table(at)
         end
 
         # Validates the given foreign key.
         #
-        # Validates the foreign key on +accounts.branch_id+.
+        # Validates the foreign key on `accounts.branch_id`.
         #
-        #   validate_foreign_key :accounts, :branches
+        # ```
+        # validate_foreign_key :accounts, :branches
+        # ```
         #
-        # Validates the foreign key on +accounts.owner_id+.
+        # Validates the foreign key on `accounts.owner_id`.
         #
-        #   validate_foreign_key :accounts, column: :owner_id
+        # ```
+        # validate_foreign_key :accounts, column: :owner_id
+        # ```
         #
-        # Validates the foreign key named +special_fk_name+ on the +accounts+ table.
+        # Validates the foreign key named `special_fk_name` on the `accounts` table.
         #
-        #   validate_foreign_key :accounts, name: :special_fk_name
+        # ```
+        # validate_foreign_key :accounts, name: :special_fk_name
+        # ```
         #
-        # The +options+ hash accepts the same keys as SchemaStatements#add_foreign_key.
+        # The `options` hash accepts the same keys as SchemaStatements#add_foreign_key.
         def validate_foreign_key(from_table, to_table = nil, **options)
           fk_name_to_validate = foreign_key_for!(from_table, to_table: to_table, **options).name
 
@@ -1134,29 +953,37 @@ module ActiveRecord
 
         # Changes an existing foreign key constraint on a table.
         #
-        # The +enforced+ option toggles whether PostgreSQL checks referential integrity
+        # The `enforced` option toggles whether PostgreSQL checks referential integrity
         # during DML. Requires PostgreSQL 18.4+.
         #
-        # Like +validate_foreign_key+, this is a runtime helper rather than a migration
+        # Like `validate_foreign_key`, this is a runtime helper rather than a migration
         # command: it is not registered as reversible, so use it from application code
-        # or explicit +up+/+down+ methods. Accepted options are +:enforced+ plus
-        # identifying keys (+:column+, +:name+, +:to_table+).
+        # or explicit `up`/`down` methods. Accepted options are `:enforced` plus
+        # identifying keys (`:column`, `:name`, `:to_table`).
         #
-        # Changes the foreign key on +accounts.branch_id+ to NOT ENFORCED.
+        # Changes the foreign key on `accounts.branch_id` to NOT ENFORCED.
         #
-        #   change_foreign_key :accounts, :branches, enforced: false
+        # ```
+        # change_foreign_key :accounts, :branches, enforced: false
+        # ```
         #
-        # Changes the foreign key on +accounts.branch_id+ back to ENFORCED.
+        # Changes the foreign key on `accounts.branch_id` back to ENFORCED.
         #
-        #   change_foreign_key :accounts, :branches, enforced: true
+        # ```
+        # change_foreign_key :accounts, :branches, enforced: true
+        # ```
         #
-        # Changes the foreign key on +accounts.owner_id+.
+        # Changes the foreign key on `accounts.owner_id`.
         #
-        #   change_foreign_key :accounts, column: :owner_id, enforced: false
+        # ```
+        # change_foreign_key :accounts, column: :owner_id, enforced: false
+        # ```
         #
-        # Changes the foreign key named +special_fk_name+ on the +accounts+ table.
+        # Changes the foreign key named `special_fk_name` on the `accounts` table.
         #
-        #   change_foreign_key :accounts, name: :special_fk_name, enforced: false
+        # ```
+        # change_foreign_key :accounts, name: :special_fk_name, enforced: false
+        # ```
         #
         def change_foreign_key(from_table, to_table = nil, **options)
           unless supports_enforced_foreign_keys?
@@ -1175,9 +1002,11 @@ module ActiveRecord
 
         # Validates the given check constraint.
         #
-        #   validate_check_constraint :products, name: "price_check"
+        # ```
+        # validate_check_constraint :products, name: "price_check"
+        # ```
         #
-        # The +options+ hash accepts the same keys as {add_check_constraint}[rdoc-ref:ConnectionAdapters::SchemaStatements#add_check_constraint].
+        # The `options` hash accepts the same keys as [add_check_constraint](rdoc-ref:ConnectionAdapters::SchemaStatements#add_check_constraint).
         def validate_check_constraint(table_name, **options)
           chk_name_to_validate = check_constraint_for!(table_name, **options).name
 
@@ -1196,13 +1025,8 @@ module ActiveRecord
           super
         end
 
-        def quoted_include_columns_for_index(column_names) # :nodoc:
-          return quote_column_name(column_names) if column_names.is_a?(Symbol)
-
-          quoted_columns = column_names.each_with_object({}) do |name, result|
-            result[name.to_sym] = quote_column_name(name).dup
-          end
-          add_options_for_index_columns(quoted_columns).values.join(", ")
+        def create_index_definition(table_name, name, unique, columns, **options) # :nodoc:
+          PostgreSQL::IndexDefinition.new(table_name, name, unique, columns, **options)
         end
 
         def schema_creation  # :nodoc:
@@ -1210,6 +1034,348 @@ module ActiveRecord
         end
 
         private
+          # An unqualified name resolves to the first schema on the search path that
+          # has it, the way ::regclass would for a single table. The readers join
+          # what they read against this, so a name is read from the one table it
+          # names rather than from every schema on the path that also has it.
+          def resolved_tables(schema, tables)
+            <<~SQL.chomp
+              WITH tables AS (
+                SELECT DISTINCT ON (c.relname) c.oid, c.relname, c.relkind
+                FROM pg_class c
+                JOIN pg_namespace n ON n.oid = c.relnamespace
+                WHERE n.nspname = #{schema}
+                  AND c.relname IN (#{quoted_table_names(tables)})
+                ORDER BY c.relname, array_position(current_schemas(false), n.nspname)
+              )
+            SQL
+          end
+
+          def fetch_indexes(tables)
+            fetch_by_schema(tables) do |schema, group|
+              key_count = supports_index_include? ? "d.indnkeyatts" : "d.indnatts"
+              nulls_not_distinct = supports_nulls_not_distinct? ? "d.indnullsnotdistinct" : "false"
+
+              # Each part of the index is read from the catalogs rather than parsed out
+              # of pg_get_indexdef, whose expressions and predicate can contain anything.
+              #
+              # t.relname comes last so #build_indexes can keep reading columns by position.
+              rows = query_rows(<<~SQL)
+                #{resolved_tables(schema, group)}
+                SELECT distinct i.relname, d.indisunique, d.indoption, pg_get_indexdef(d.indexrelid),
+                                pg_catalog.obj_description(i.oid, 'pg_class') AS comment, d.indisvalid,
+                                #{key_count}, #{nulls_not_distinct}, am.amname,
+                                pg_get_expr(d.indpred, d.indrelid), i.reloptions IS NOT NULL,
+                                c.columns, c.definitions, c.collated, t.relname
+                FROM tables t
+                INNER JOIN pg_index d ON t.oid = d.indrelid
+                INNER JOIN pg_class i ON d.indexrelid = i.oid
+                INNER JOIN pg_am am ON i.relam = am.oid
+                CROSS JOIN LATERAL (
+                  SELECT array_agg(a.attname ORDER BY k) AS columns,
+                         array_agg(pg_get_indexdef(d.indexrelid, k, false) ORDER BY k) AS definitions,
+                         array_agg(d.indcollation[k - 1] <> 0 AND d.indcollation[k - 1] IS DISTINCT FROM a.attcollation ORDER BY k) AS collated
+                  FROM generate_series(1, d.indnatts) AS k
+                  LEFT JOIN pg_attribute a ON a.attrelid = d.indrelid AND a.attnum = d.indkey[k - 1] AND d.indkey[k - 1] <> 0
+                ) c
+                WHERE i.relkind IN ('i', 'I')
+                  AND d.indisprimary = 'f'
+                ORDER BY i.relname
+              SQL
+              by_name = rows.group_by(&:last)
+
+              group.index_with { |table| build_indexes(table, rows_for(by_name, table)) }
+            end
+          end
+
+          def fetch_table_options(tables)
+            fetch_by_schema(tables) do |schema, group|
+              # A table comes back once per parent it inherits from, and once if it
+              # inherits from nothing. A name that resolves to something other than
+              # a table has no table options to read.
+              by_name = query_all(<<~SQL).group_by { |row| row["table_name"] }
+                #{resolved_tables(schema, group)}
+                SELECT t.relname AS table_name,
+                       pg_catalog.obj_description(t.oid, 'pg_class') AS comment,
+                       pg_catalog.pg_get_partkeydef(t.oid) AS partition_key,
+                       i.inhparent::regclass::text AS parent
+                FROM tables t
+                LEFT JOIN pg_inherits i ON i.inhrelid = t.oid
+                WHERE t.relkind IN ('r', 'p')
+                ORDER BY t.relname, i.inhseqno
+              SQL
+
+              group.index_with { |table| build_table_options(rows_for(by_name, table)) }
+            end
+          end
+
+          def build_table_options(rows)
+            options = {}
+            first = rows.first
+            return options unless first
+
+            options[:comment] = first["comment"] if first["comment"]
+
+            parents = rows.filter_map { |row| row["parent"] }
+
+            if parents.any?
+              options[:options] = "INHERITS (#{parents.join(", ")})"
+            elsif first["partition_key"]
+              options[:options] = "PARTITION BY #{first["partition_key"]}"
+            end
+
+            options
+          end
+
+          def fetch_primary_keys(tables)
+            fetch_by_schema(tables) do |schema, group|
+              by_name = query_all(<<~SQL).group_by { |row| row["table_name"] }
+                #{resolved_tables(schema, group)}
+                SELECT t.relname AS table_name, a.attname AS column_name
+                FROM pg_constraint c
+                JOIN tables t ON c.conrelid = t.oid
+                JOIN pg_attribute a
+                  ON a.attrelid = c.conrelid
+                  AND a.attnum = ANY(c.conkey)
+                WHERE c.contype = 'p'
+                ORDER BY t.relname, array_position(c.conkey, a.attnum)
+              SQL
+
+              group.index_with { |table| rows_for(by_name, table).map { |row| row["column_name"] } }
+            end
+          end
+
+          def build_indexes(table_name, result)
+            result.map do |row|
+              index_name = row[0]
+              unique = row[1]
+              indoption = row[2].split(" ").map(&:to_i)
+              inddef = row[3]
+              comment = row[4]
+              valid = row[5]
+              key_count = row[6].to_i
+              nulls_not_distinct = row[7]
+              using = row[8]
+              where = row[9]
+              storage_parameters = row[10]
+              key_columns = decode_string_array(row[11])
+              include_columns = key_columns.slice!(key_count..)
+              include_definitions = decode_string_array(row[12]).drop(key_count)
+              collated = decode_string_array(row[13])
+              key_definition = index_key_definition(inddef, using, where, storage_parameters, nulls_not_distinct, include_definitions)
+
+              orders = {}
+              opclasses = {}
+
+              # An expression, or a collation the index options cannot express,
+              # keeps the SQL of the key list.
+              if key_columns.all? && collated.none?("t")
+                columns = key_columns
+                columns.each_with_index do |column, i|
+                  desc = indoption[i] & 1 != 0
+                  nulls_first = indoption[i] & 2 != 0
+
+                  if desc
+                    orders[column] = nulls_first ? :desc : "DESC NULLS LAST"
+                  elsif nulls_first
+                    orders[column] = "NULLS FIRST"
+                  end
+                end
+
+                # add info on non-default opclasses
+                key_definition.scan(/(?<column>\w+)"?\s?(?<opclass>(?:\w+\.)?\w+_ops(_\w+)?)?\s?(?<desc>DESC)?\s?(?<nulls>NULLS (?:FIRST|LAST))?/).each do |column, opclass|
+                  opclasses[column] = opclass.split(".").last.to_sym if opclass
+                end
+              else
+                columns = key_definition
+              end
+
+              PostgreSQL::IndexDefinition.new(
+                table_name,
+                index_name,
+                unique,
+                columns,
+                orders: orders,
+                opclasses: opclasses,
+                where: where,
+                using: using.to_sym,
+                include: include_columns.presence,
+                nulls_not_distinct: nulls_not_distinct,
+                comment: comment.presence,
+                valid: valid
+              )
+            end
+          end
+
+          # Cuts the key list out of a pg_get_indexdef result by removing the
+          # clauses that follow it, which are known exactly from the catalogs:
+          #
+          #   CREATE INDEX ... USING am (<key list>) [INCLUDE (...)]
+          #     [NULLS NOT DISTINCT] [WITH (...)] [WHERE ...]
+          def index_key_definition(inddef, using, where, storage_parameters, nulls_not_distinct, include_definitions)
+            inddef = inddef.delete_suffix(" WHERE #{where}") if where
+            inddef = inddef[0, inddef.rindex(" WITH (")] if storage_parameters
+            inddef = inddef.delete_suffix(" NULLS NOT DISTINCT") if nulls_not_distinct
+            inddef = inddef.delete_suffix(" INCLUDE (#{include_definitions.join(", ")})") if include_definitions.any?
+
+            head = " USING #{using} ("
+            inddef[(inddef.index(head) + head.size)...-1]
+          end
+
+          def fetch_foreign_keys(tables)
+            fetch_by_schema(tables) do |schema, group|
+              conenforced_column = supports_enforced_foreign_keys? ? ", c.conenforced AS enforced" : ""
+
+              rows = query_all(<<~SQL)
+                #{resolved_tables(schema, group)}
+                SELECT t.relname AS from_table, c.confrelid::regclass::text AS to_table, c.conname AS name, c.confupdtype AS on_update, c.confdeltype AS on_delete, c.convalidated AS valid, c.condeferrable AS deferrable, c.condeferred AS deferred, c.conrelid, c.confrelid#{conenforced_column},
+                  (
+                    SELECT array_agg(a.attname ORDER BY idx)
+                    FROM unnest(c.conkey) WITH ORDINALITY AS k(attnum, idx)
+                    JOIN pg_attribute a ON a.attrelid = c.conrelid
+                    AND a.attnum = k.attnum
+                  ) AS conkey_names,
+                  (
+                    SELECT array_agg(a.attname ORDER BY idx)
+                    FROM unnest(c.confkey) WITH ORDINALITY AS k(attnum, idx)
+                    JOIN pg_attribute a ON a.attrelid = c.confrelid
+                    AND a.attnum = k.attnum
+                  ) AS confkey_names
+                FROM pg_constraint c
+                JOIN tables t ON c.conrelid = t.oid
+                WHERE c.contype = 'f'
+                ORDER BY c.conname
+              SQL
+              by_name = rows.group_by { |row| row["from_table"] }
+
+              group.index_with { |table| build_foreign_keys(table, rows_for(by_name, table)) }
+            end
+          end
+
+          def build_foreign_keys(table_name, fk_info)
+            fk_info.map do |row|
+              to_table = Utils.extract_schema_qualified_name(row["to_table"]).to_s
+
+              column = decode_string_array(row["conkey_names"])
+              primary_key = decode_string_array(row["confkey_names"])
+
+              options = {
+                column: column.size == 1 ? column.first : column,
+                name: row["name"],
+                primary_key: primary_key.size == 1 ? primary_key.first : primary_key
+              }
+
+              options[:on_delete] = extract_foreign_key_action(row["on_delete"])
+              options[:on_update] = extract_foreign_key_action(row["on_update"])
+              options[:deferrable] = extract_constraint_deferrable(row["deferrable"], row["deferred"])
+
+              options[:validate] = row["valid"]
+              options[:enforced] = row["enforced"] if supports_enforced_foreign_keys?
+
+              ForeignKeyDefinition.new(table_name, to_table, options)
+            end
+          end
+
+          def fetch_check_constraints(tables)
+            fetch_by_schema(tables) do |schema, group|
+              rows = query_all(<<~SQL)
+                #{resolved_tables(schema, group)}
+                SELECT t.relname AS table_name, conname, pg_get_constraintdef(c.oid, true) AS constraintdef, c.convalidated AS valid
+                FROM pg_constraint c
+                JOIN tables t ON c.conrelid = t.oid
+                WHERE c.contype = 'c'
+              SQL
+              by_name = rows.group_by { |row| row["table_name"] }
+
+              group.index_with { |table| build_check_constraints(table, rows_for(by_name, table)) }
+            end
+          end
+
+          def build_check_constraints(table_name, check_info)
+            check_info.map do |row|
+              options = {
+                name: row["conname"],
+                validate: row["valid"]
+              }
+              expression = row["constraintdef"][/CHECK \((.+)\)/m, 1]
+
+              CheckConstraintDefinition.new(table_name, expression, options)
+            end
+          end
+
+          def fetch_exclusion_constraints(tables)
+            fetch_by_schema(tables) do |schema, group|
+              rows = query_all(<<~SQL)
+                #{resolved_tables(schema, group)}
+                SELECT t.relname AS table_name, conname, pg_get_constraintdef(c.oid) AS constraintdef, c.condeferrable, c.condeferred
+                FROM pg_constraint c
+                JOIN tables t ON c.conrelid = t.oid
+                WHERE c.contype = 'x'
+              SQL
+              by_name = rows.group_by { |row| row["table_name"] }
+
+              group.index_with { |table| build_exclusion_constraints(table, rows_for(by_name, table)) }
+            end
+          end
+
+          def build_exclusion_constraints(table_name, exclusion_info)
+            exclusion_info.map do |row|
+              method_and_elements, predicate = row["constraintdef"].split(" WHERE ")
+              method_and_elements_parts = method_and_elements.match(/EXCLUDE(?: USING (?<using>\S+))? \((?<expression>.+)\)/m)
+              predicate.remove!(/ DEFERRABLE(?: INITIALLY (?:IMMEDIATE|DEFERRED))?/) if predicate
+              predicate = predicate.from(2).to(-3) if predicate # strip 2 opening and closing parentheses
+
+              deferrable = extract_constraint_deferrable(row["condeferrable"], row["condeferred"])
+
+              options = {
+                name: row["conname"],
+                using: method_and_elements_parts["using"].to_sym,
+                where: predicate,
+                deferrable: deferrable
+              }
+
+              ExclusionConstraintDefinition.new(table_name, method_and_elements_parts["expression"], options)
+            end
+          end
+
+          def fetch_unique_constraints(tables)
+            fetch_by_schema(tables) do |schema, group|
+              rows = query_all(<<~SQL)
+                #{resolved_tables(schema, group)}
+                SELECT t.relname AS table_name, c.conname, c.conrelid, c.condeferrable, c.condeferred, pg_get_constraintdef(c.oid) AS constraintdef,
+                (
+                  SELECT array_agg(a.attname ORDER BY idx)
+                  FROM unnest(c.conkey) WITH ORDINALITY AS k(attnum, idx)
+                  JOIN pg_attribute a ON a.attrelid = t.oid
+                  AND a.attnum = k.attnum
+                ) AS conkey_names
+                FROM pg_constraint c
+                JOIN tables t ON c.conrelid = t.oid
+                WHERE c.contype = 'u'
+              SQL
+              by_name = rows.group_by { |row| row["table_name"] }
+
+              group.index_with { |table| build_unique_constraints(table, rows_for(by_name, table)) }
+            end
+          end
+
+          def build_unique_constraints(table_name, unique_info)
+            unique_info.map do |row|
+              columns = decode_string_array(row["conkey_names"])
+
+              nulls_not_distinct = row["constraintdef"].start_with?("UNIQUE NULLS NOT DISTINCT")
+              deferrable = extract_constraint_deferrable(row["condeferrable"], row["condeferred"])
+
+              options = {
+                name: row["conname"],
+                nulls_not_distinct: nulls_not_distinct,
+                deferrable: deferrable
+              }
+
+              UniqueConstraintDefinition.new(table_name, columns, options)
+            end
+          end
+
           def create_table_definition(name, **options)
             PostgreSQL::TableDefinition.new(self, name, **options)
           end
@@ -1218,7 +1384,8 @@ module ActiveRecord
             PostgreSQL::AlterTable.new create_table_definition(name)
           end
 
-          def new_column_from_field(table_name, field, _definitions)
+          #: (String, Array[untyped], Array[Array[untyped]], Integer) -> ActiveRecord::ConnectionAdapters::PostgreSQL::Column
+          def new_column_from_field(table_name, field, _definitions, slot)
             column_name, type, default, notnull, oid, fmod, collation, comment, identity, attgenerated = field
             type_metadata = fetch_type_metadata(column_name, type, oid.to_i, fmod.to_i)
             default_value = extract_value_from_default(default)
@@ -1244,7 +1411,8 @@ module ActiveRecord
               comment: comment.presence,
               serial: serial,
               identity: identity.presence,
-              generated: attgenerated
+              generated: attgenerated,
+              slot: slot
             )
           end
 
@@ -1299,24 +1467,12 @@ module ActiveRecord
             table_name.singularize
           end
 
-          def add_column_for_alter(table_name, column_name, type, **options)
-            return super unless options.key?(:comment)
-            [super, Proc.new { change_column_comment(table_name, column_name, options[:comment]) }]
-          end
-
-          def change_column_for_alter(table_name, column_name, type, **options)
-            change_col_def = build_change_column_definition(table_name, column_name, type, **options)
-            sqls = [schema_creation.accept(change_col_def)]
-            sqls << Proc.new { change_column_comment(table_name, column_name, options[:comment]) } if options.key?(:comment)
-            sqls
-          end
-
-          def change_column_null_for_alter(table_name, column_name, null, default = nil)
-            if default.nil?
-              "ALTER COLUMN #{quote_column_name(column_name)} #{null ? 'DROP' : 'SET'} NOT NULL"
-            else
-              Proc.new { change_column_null(table_name, column_name, null, default) }
-            end
+          def index_definition_options(options)
+            super.merge!(
+              opclasses: options[:opclass] || {},
+              include: options[:include],
+              nulls_not_distinct: options[:nulls_not_distinct],
+            )
           end
 
           def add_index_opclass(quoted_columns, **options)
@@ -1376,6 +1532,16 @@ module ActiveRecord
               raise(ArgumentError, "Table '#{table_name}' has no unique constraint for #{column || options}")
           end
 
+          # Every table on the search path as [regclass::text, relname]. regclass::text
+          # schema-qualifies a name unless it resolves unqualified on the search path.
+          def search_path_tables
+            query_rows(<<~SQL, "SCHEMA")
+              SELECT c.oid::regclass::text, c.relname
+              FROM pg_class c JOIN pg_namespace n ON n.oid = c.relnamespace
+              WHERE n.nspname = ANY (current_schemas(false)) AND c.relkind IN ('r','p')
+            SQL
+          end
+
           def data_source_sql(name = nil, type: nil)
             scope = quoted_scope(name, type: type)
             scope[:type] ||= "'r','v','m','p','f'" # (r)elation/table, (v)iew, (m)aterialized view, (p)artitioned table, (f)oreign table
@@ -1403,6 +1569,10 @@ module ActiveRecord
             scope[:name] = quote(name) if name
             scope[:type] = type if type
             scope
+          end
+
+          def bare_table_name(table)
+            extract_schema_qualified_name(table).last
           end
 
           def extract_schema_qualified_name(string)

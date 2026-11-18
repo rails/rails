@@ -374,6 +374,10 @@ class FinderTest < ActiveRecord::TestCase
     assert_equal true, Topic.order(Arel.sql("invalid sql here")).exists?
   end
 
+  def test_exists_with_default_order
+    assert_equal true, Topic.default_order(Arel.sql("invalid sql here")).exists?
+  end
+
   def test_exists_with_large_number
     assert_equal true, Topic.where(id: [1, 9223372036854775808]).exists?
     assert_equal true, Topic.where(id: 1..9223372036854775808).exists?
@@ -771,6 +775,32 @@ class FinderTest < ActiveRecord::TestCase
     assert_equal(topics(:second).title, topics.first.title)
   end
 
+  if ActiveRecord::Base.lease_connection.prepared_statements
+    def test_find_by_sql_with_positional_placeholder_binds_the_value
+      payload = capture_query_payload("Topic Load") do
+        Topic.find_by_sql ["SELECT * FROM topics WHERE author_name = ?", "Mary"]
+      end
+      assert_equal ["Mary"], payload[:binds]
+      assert_no_match(/'Mary'/, payload[:sql])
+    end
+
+    def test_find_by_sql_with_named_placeholder_binds_the_value
+      payload = capture_query_payload("Topic Load") do
+        Topic.find_by_sql ["SELECT * FROM topics WHERE author_name = :name", { name: "Mary" }]
+      end
+      assert_equal ["Mary"], payload[:binds]
+      assert_no_match(/'Mary'/, payload[:sql])
+    end
+
+    def test_count_by_sql_with_positional_placeholder_binds_the_value
+      payload = capture_query_payload("Topic Count") do
+        Topic.count_by_sql ["SELECT COUNT(*) FROM topics WHERE author_name = ?", "Mary"]
+      end
+      assert_equal ["Mary"], payload[:binds]
+      assert_no_match(/'Mary'/, payload[:sql])
+    end
+  end
+
   def test_find_by_sql_with_sti_on_joined_table
     accounts = Account.find_by_sql("SELECT * FROM accounts INNER JOIN companies ON companies.id = accounts.firm_id")
     assert_equal [Account], accounts.collect(&:class).uniq
@@ -1151,7 +1181,7 @@ class FinderTest < ActiveRecord::TestCase
     end
   end
 
-  def first_with_at_least_query_constraints
+  def test_first_with_at_least_query_constraints
     ordered_edge = Class.new(Edge) do
       query_constraints "source_id"
     end
@@ -1518,6 +1548,33 @@ class FinderTest < ActiveRecord::TestCase
     assert_kind_of Money, balance
     found_customer = Customer.where(balance: balance).first
     assert_equal customers(:david), found_customer
+  end
+
+  def test_hash_condition_find_with_aggregate_having_one_mapping_within_range
+    balance = customers(:david).balance
+    start_balance = Money.new(balance.amount - 1)
+    end_balance = Money.new(balance.amount + 1)
+
+    found_customer = Customer.where(balance: start_balance..end_balance).first
+    assert_equal customers(:david), found_customer
+  end
+
+  def test_hash_condition_find_with_aggregate_having_one_mapping_within_exclusive_range
+    found_customer = Customer.where(balance: Money.new(49)..Money.new(50)).first
+    assert_equal customers(:david), found_customer
+
+    found_customer = Customer.where(balance: Money.new(49)...Money.new(50)).first
+    assert_nil found_customer
+  end
+
+  def test_hash_condition_find_with_aggregate_having_one_mapping_within_beginless_range
+    found_customers = Customer.where(balance: ..Money.new(1)).order(:id)
+    assert_equal [customers(:barney), customers(:mary)], found_customers
+  end
+
+  def test_hash_condition_find_with_aggregate_having_one_mapping_within_endless_range
+    found_customers = Customer.where(balance: Money.new(50)..).order(:id)
+    assert_equal [customers(:david), customers(:zaphod)], found_customers
   end
 
   def test_hash_condition_find_with_aggregate_having_three_mappings_array
@@ -2112,6 +2169,19 @@ class FinderTest < ActiveRecord::TestCase
     assert_equal books.map(&:id), Cpk::Book.find(string_ids).map(&:id)
   end
 
+  test "find with multiple sets of composite primary keys and select" do
+    books = [cpk_books(:cpk_great_author_first_book), cpk_books(:cpk_great_author_second_book)]
+    ids = books.map(&:id)
+
+    # Exercises find_some_ordered
+    found_books = Cpk::Book.select(:title).find(ids)
+    assert_equal books, found_books
+
+    # Exercises find_some (with explicit order)
+    found_books = Cpk::Book.select(:title).order(author_id: :asc, id: :asc).find(ids)
+    assert_equal books, found_books
+  end
+
   test "#find_by with composite primary key" do
     book = cpk_books(:cpk_book_with_generated_pk)
     assert_equal cpk_reviews(:first_book_review), Cpk::Review.find_by(book: book)
@@ -2135,5 +2205,16 @@ class FinderTest < ActiveRecord::TestCase
           "MercedesCar"
         end
       end)
+    end
+
+    def capture_query_payload(name)
+      payload = nil
+      subscription = ActiveSupport::Notifications.subscribe("sql.active_record") do |*, event_payload|
+        payload = event_payload if event_payload[:name] == name
+      end
+      yield
+      payload
+    ensure
+      ActiveSupport::Notifications.unsubscribe(subscription) if subscription
     end
 end

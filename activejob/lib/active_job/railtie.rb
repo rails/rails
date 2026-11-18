@@ -5,7 +5,8 @@ require "global_id/railtie"
 require "active_job"
 
 module ActiveJob
-  # = Active Job Railtie
+  # Active Job Railtie
+  # ==================
   class Railtie < Rails::Railtie # :nodoc:
     config.active_job = ActiveSupport::OrderedOptions.new
     config.active_job.custom_serializers = []
@@ -88,8 +89,9 @@ module ActiveJob
 
     initializer "active_job.set_reloader_hook" do |app|
       ActiveSupport.on_load(:active_job) do
+        reloader = app.reloader
         ActiveJob::Callbacks.singleton_class.set_callback(:execute, :around, prepend: true) do |_, inner|
-          app.reloader.wrap do
+          reloader.wrap do
             inner.call
           end
         end
@@ -115,6 +117,15 @@ module ActiveJob
     initializer "active_job.backtrace_cleaner" do
       ActiveSupport.on_load(:active_job) do
         LogSubscriber.backtrace_cleaner = ::Rails.backtrace_cleaner
+      end
+    end
+
+    initializer "active_job.ractorize" do
+      ActiveSupport.on_load(:before_ractorize) do
+        [ActiveJob::Base, *ActiveJob::Base.descendants].each do |job|
+          Ractor.make_shareable(job.queue_adapter)
+        end
+        ActiveJob::Serializers.make_shareable!
       end
     end
   end

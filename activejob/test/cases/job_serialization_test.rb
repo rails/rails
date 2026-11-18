@@ -41,7 +41,7 @@ class JobSerializationTest < ActiveSupport::TestCase
     end
   end
 
-  test "keeps scheduled_at around after deserialization if data doesnt include it" do
+  test "keeps scheduled_at around after deserialization if data doesn't include it" do
     freeze_time
 
     current_time = Time.now
@@ -53,6 +53,16 @@ class JobSerializationTest < ActiveSupport::TestCase
     job.deserialize(serialized_job)
 
     assert_equal current_time, job.scheduled_at
+  end
+
+  test "serialize does not convert the given scheduled_at to UTC" do
+    scheduled_at = Time.new(2026, 11, 4, 10, 0, 0, "-03:00")
+
+    payload = HelloJob.new.set(wait_until: scheduled_at).serialize
+
+    assert_equal "2026-11-04T13:00:00.000000000Z", payload["scheduled_at"]
+    assert_not_predicate scheduled_at, :utc?
+    assert_equal(-3 * 3600, scheduled_at.utc_offset)
   end
 
   test "deserializes enqueued_at when ActiveSupport.parse_json_times is true" do

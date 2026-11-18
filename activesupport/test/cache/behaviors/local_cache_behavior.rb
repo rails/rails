@@ -85,6 +85,25 @@ module LocalCacheBehavior
     end
   end
 
+  def test_local_cache_of_write_multi
+    key = SecureRandom.uuid
+    value = SecureRandom.alphanumeric
+    @cache.with_local_cache do
+      @cache.write(key, SecureRandom.alphanumeric)
+      @cache.write_multi(key => value)
+      assert_equal value, @cache.read(key)
+    end
+  end
+
+  def test_local_cache_of_delete_multi
+    key = SecureRandom.uuid
+    @cache.with_local_cache do
+      @cache.write(key, SecureRandom.alphanumeric)
+      @cache.delete_multi([key])
+      assert_nil @cache.read(key)
+    end
+  end
+
   def test_local_cache_of_read_returns_a_copy_of_the_entry
     key = SecureRandom.alphanumeric.to_sym
     value = SecureRandom.alphanumeric
@@ -277,6 +296,41 @@ module LocalCacheBehavior
     end
   end
 
+  def test_local_cache_of_fetch_multi_preserves_order
+    first_key = SecureRandom.uuid
+    cached_key = SecureRandom.uuid
+    last_key = SecureRandom.uuid
+
+    @cache.with_local_cache do
+      # Seed the local cache so that only the middle key is a local hit.
+      @cache.increment(cached_key)
+
+      results = @cache.fetch_multi(first_key, cached_key, last_key) { |key| "yielded-#{key}" }
+
+      assert_equal [first_key, cached_key, last_key], results.keys
+      assert_not_equal "yielded-#{cached_key}", results[cached_key]
+    end
+  end
+
+  def test_local_cache_of_read_multi_preserves_order
+    first_key = SecureRandom.uuid
+    cached_key = SecureRandom.uuid
+    last_key = SecureRandom.uuid
+
+    @peek.write(first_key, "1", raw: true)
+    @peek.write(last_key, "3", raw: true)
+
+    @cache.with_local_cache do
+      # Seed the local cache so that only the middle key is a local hit.
+      @cache.write(cached_key, "2", raw: true)
+
+      results = @cache.read_multi(first_key, cached_key, last_key, raw: true)
+
+      assert_equal [first_key, cached_key, last_key], results.keys
+      assert_equal ["1", "2", "3"], results.values
+    end
+  end
+
   def test_local_cache_of_read_multi
     key = SecureRandom.uuid
     value = SecureRandom.alphanumeric
@@ -397,7 +451,7 @@ module LocalCacheBehavior
     keys = Array.new(5) { SecureRandom.uuid }
     values = keys.index_with(true)
     @cache.with_local_cache do
-      assert @cache.write_multi(values)
+      @cache.write_multi(values)
       assert_equal values, @cache.read_multi(*keys)
     end
   end

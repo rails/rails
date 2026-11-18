@@ -239,7 +239,7 @@ module ActiveRecord
 
   # This error is raised when trying to eager load a polymorphic association using a JOIN.
   # Eager loading polymorphic associations is only possible with
-  # {ActiveRecord::Relation#preload}[rdoc-ref:QueryMethods#preload].
+  # [ActiveRecord::Relation#preload](rdoc-ref:QueryMethods#preload).
   class EagerLoadPolymorphicError < ActiveRecordError
     def initialize(reflection = nil)
       if reflection

@@ -86,42 +86,42 @@ end
 module PolymorphicFullClassNamesSharedTest
   def setup
     @old_store_full_class_name = ActiveRecord::Base.store_full_class_name
-    ActiveRecord::Base.store_full_class_name = store_full_class_name
+    set_store_full_class_name(store_full_class_name)
 
     post = Namespaced::Post.create(title: "Great stuff", body: "This is not", author_id: 1)
     @tagging = post.create_tagging!
   end
 
   def teardown
-    ActiveRecord::Base.store_full_class_name = @old_store_full_class_name
+    set_store_full_class_name(@old_store_full_class_name)
   end
 
   def test_class_names
-    ActiveRecord::Base.store_full_class_name = !store_full_class_name
+    set_store_full_class_name(!store_full_class_name)
     post = Namespaced::Post.find_by_title("Great stuff")
     assert_nil post.tagging
 
-    ActiveRecord::Base.store_full_class_name = store_full_class_name
+    set_store_full_class_name(store_full_class_name)
     post = Namespaced::Post.find_by_title("Great stuff")
     assert_equal @tagging, post.tagging
   end
 
   def test_class_names_with_includes
-    ActiveRecord::Base.store_full_class_name = !store_full_class_name
+    set_store_full_class_name(!store_full_class_name)
     post = Namespaced::Post.includes(:tagging).find_by_title("Great stuff")
     assert_nil post.tagging
 
-    ActiveRecord::Base.store_full_class_name = store_full_class_name
+    set_store_full_class_name(store_full_class_name)
     post = Namespaced::Post.includes(:tagging).find_by_title("Great stuff")
     assert_equal @tagging, post.tagging
   end
 
   def test_class_names_with_eager_load
-    ActiveRecord::Base.store_full_class_name = !store_full_class_name
+    set_store_full_class_name(!store_full_class_name)
     post = Namespaced::Post.eager_load(:tagging).find_by_title("Great stuff")
     assert_nil post.tagging
 
-    ActiveRecord::Base.store_full_class_name = store_full_class_name
+    set_store_full_class_name(store_full_class_name)
     post = Namespaced::Post.eager_load(:tagging).find_by_title("Great stuff")
     assert_equal @tagging, post.tagging
   end
@@ -129,12 +129,19 @@ module PolymorphicFullClassNamesSharedTest
   def test_class_names_with_find_by
     post = Namespaced::Post.find_by_title("Great stuff")
 
-    ActiveRecord::Base.store_full_class_name = !store_full_class_name
+    set_store_full_class_name(!store_full_class_name)
     assert_nil Tagging.find_by(taggable: post)
 
-    ActiveRecord::Base.store_full_class_name = store_full_class_name
+    set_store_full_class_name(store_full_class_name)
     assert_equal @tagging, Tagging.find_by(taggable: post)
   end
+
+  private
+    def set_store_full_class_name(value)
+      ActiveRecord::Base.store_full_class_name = value
+      Namespaced::Post.reflect_on_association(:tagging).clear_association_scope_cache
+      Tagging.reflect_on_association(:taggable).clear_association_scope_cache(Namespaced::Post)
+    end
 end
 
 class PolymorphicFullClassNamesTest < ActiveRecord::TestCase

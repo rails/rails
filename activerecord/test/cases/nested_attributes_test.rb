@@ -317,6 +317,13 @@ class TestNestedAttributesOnAHasOneAssociation < ActiveRecord::TestCase
     assert_equal "Couldn't find Ship with ID=1234567890 for Pirate with ID=#{@pirate.id}", exception.message
   end
 
+  def test_should_inspect_the_id_in_the_RecordNotFound_message
+    exception = assert_raise ActiveRecord::RecordNotFound do
+      @pirate.ship_attributes = { id: "\e[31mHello World!\e[0m" }
+    end
+    assert_equal "Couldn't find Ship with ID=\"\\e[31mHello World!\\e[0m\" for Pirate with ID=#{@pirate.id}", exception.message
+  end
+
   def test_should_take_a_hash_with_string_keys_and_update_the_associated_model
     @pirate.reload.ship_attributes = { "id" => @ship.id, "name" => "Davy Jones Gold Dagger" }
 

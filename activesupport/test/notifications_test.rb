@@ -2,6 +2,7 @@
 
 require_relative "abstract_unit"
 require "active_support/core_ext/module/delegation"
+require "active_support/testing/ractors_assertions"
 
 module Notifications
   class TestCase < ActiveSupport::TestCase
@@ -556,5 +557,162 @@ module Notifications
       def random_id
         @random_id ||= SecureRandom.hex(10)
       end
+  end
+
+  class NotificationSubscriptionTest < TestCase
+    include ActiveSupport::Testing::RactorsAssertions
+
+    def setup
+      super
+
+      ActiveSupport::Notifications.unsubscribe(@subscription)
+      ActiveSupport::Notifications.unsubscribe(@named_subscription)
+      @old_proc_action = ActiveSupport::Ractors.unshareable_proc_action
+      ActiveSupport::Ractors.unshareable_proc_action = :raise
+    end
+
+    def teardown
+      ActiveSupport::Ractors.unshareable_proc_action = @old_proc_action
+
+      super
+    end
+
+    test "instrumenting an event with no subscribers inside a Ractor" do
+      ActiveSupport::Notifications.subscribe("subscribed.event") { }
+
+      value = on_ractor do
+        ActiveSupport::Notifications.instrument("unsubscribed.event") { :ran }
+      end
+
+      assert_equal :ran, value
+    end
+
+    test "record and set subscriptions" do
+      ActiveSupport::Notifications.subscribe("active_record.sql") { |event| event.payload[:called] = true }
+
+      value = on_ractor do
+        payload = {}
+        ActiveSupport::Notifications.instrument("active_record.sql", payload)
+        payload
+      end
+
+      assert_equal({ called: true }, value)
+    end
+
+    test "record and set subscriptions when using a regexp" do
+      ActiveSupport::Notifications.subscribe("active_record.sql") { }
+      ActiveSupport::Notifications.subscribe(/.*/) { |event| event.payload[:called] = true }
+
+      value = on_ractor do
+        payload = {}
+        ActiveSupport::Notifications.instrument("active_record.sql", payload)
+        payload
+      end
+
+      assert_equal({ called: true }, value)
+    end
+
+    if RUBY_VERSION >= "4.0"
+      test "creating a subscription that's not ractor shareable raises an error" do
+        outer = []
+
+        assert_raises(Ractor::IsolationError) do
+          ActiveSupport::Notifications.subscribe("active_record.sql") { outer }
+        end
+      end
+    end
+  end
+
+  class CustomNotifierTest < ActiveSupport::TestCase
+    class MinimalNotifier
+      attr_reader :published
+
+      def initialize
+        @published = []
+      end
+
+      def listening?(name); true; end
+      def subscribe(pattern = nil, callable = nil, monotonic: false, prepend: false, &block); end
+      def start(name, id, payload); end
+      def finish(name, id, payload, listener_state = nil); @published << name; end
+    end
+
+    def setup
+      @old_notifier = ActiveSupport::Notifications.notifier
+    end
+
+    def teardown
+      ActiveSupport::Notifications.notifier = @old_notifier
+    end
+
+    test "assigning a notifier that does not implement the snapshot protocol does not raise" do
+      notifier = MinimalNotifier.new
+      assert_nothing_raised do
+        ActiveSupport::Notifications.notifier = notifier
+      end
+      assert_same notifier, ActiveSupport::Notifications.notifier
+    end
+
+    test "instrumenting through a notifier without the snapshot protocol works" do
+      notifier = MinimalNotifier.new
+      ActiveSupport::Notifications.notifier = notifier
+
+      ActiveSupport::Notifications.instrument("custom.event") { }
+
+      assert_equal ["custom.event"], notifier.published
+    end
+
+    test "subscribe on a notifier without the snapshot protocol does not raise" do
+      ActiveSupport::Notifications.notifier = MinimalNotifier.new
+      assert_nothing_raised do
+        ActiveSupport::Notifications.subscribe("custom.event") { }
+      end
+    end
+  end
+  class SilencedSubscribersTest < TestCase
+    class SilenceableSubscriber
+      attr_accessor :silenced
+      attr_reader :events
+
+      def initialize
+        @silenced = true
+        @events = []
+      end
+
+      def call(event)
+        @events << event
+      end
+
+      def silenced?(name)
+        @silenced
+      end
+    end
+
+    def test_silenced_subscribers_are_skipped_without_affecting_the_others
+      silenceable = SilenceableSubscriber.new
+      @notifier.subscribe("silence.me", silenceable)
+
+      ActiveSupport::Notifications.instrument("silence.me")
+      assert_empty silenceable.events
+      assert_equal 1, @events.count { |event| event.name == "silence.me" }
+
+      silenceable.silenced = false
+      ActiveSupport::Notifications.instrument("silence.me")
+      assert_equal ["silence.me"], silenceable.events.map(&:name)
+      assert_equal 2, @events.count { |event| event.name == "silence.me" }
+    end
+
+    def test_nobody_is_listening_when_every_subscriber_is_silenced
+      notifier = ActiveSupport::Notifications::Fanout.new
+      silenceable = SilenceableSubscriber.new
+      notifier.subscribe("silence.me", silenceable)
+
+      assert_not notifier.listening?("silence.me")
+      assert_empty notifier.listeners_for("silence.me")
+
+      silenceable.silenced = false
+      assert notifier.listening?("silence.me")
+      assert_equal 1, notifier.listeners_for("silence.me").size
+    end
   end
 end

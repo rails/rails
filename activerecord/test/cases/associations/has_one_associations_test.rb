@@ -34,6 +34,16 @@ class HasOneStaleTypeOwner < ActiveRecord::Base
   has_one :stale_type_child, class_name: "HasOneStaleTypeChild", as: :poly_human_without_inverse
 end
 
+class HasOneContainedKeyChild < ActiveRecord::Base
+  self.table_name = "faces"
+  self.primary_key = [:poly_human_without_inverse_id, :human_id]
+end
+
+class HasOneContainedKeyOwner < ActiveRecord::Base
+  self.table_name = "humans"
+  has_one :contained_key_child, class_name: "HasOneContainedKeyChild", as: :poly_human_without_inverse
+end
+
 class HasOneAssociationsTest < ActiveRecord::TestCase
   self.use_transactional_tests = false unless supports_savepoints?
   fixtures :accounts, :companies, :developers, :projects, :developers_projects,
@@ -164,6 +174,23 @@ class HasOneAssociationsTest < ActiveRecord::TestCase
     assert_nil child.poly_human_without_inverse_type
   end
 
+  def test_clearing_polymorphic_has_one_nullifies_id_contained_in_composite_pk
+    owner = HasOneContainedKeyOwner.create!
+    child = HasOneContainedKeyChild.create!(
+      human_id: 1,
+      poly_human_without_inverse_id: owner.id,
+      poly_human_without_inverse_type: "HasOneContainedKeyOwner"
+    )
+
+    assert_equal child, owner.contained_key_child
+
+    owner.contained_key_child = nil
+
+    child = HasOneContainedKeyChild.find_by!(id: child.read_attribute(:id))
+    assert_nil child.poly_human_without_inverse_id
+    assert_nil child.poly_human_without_inverse_type
+  end
+
   def test_nullification_on_destroyed_association
     developer = Developer.create!(name: "Someone")
     ship = Ship.create!(name: "Planet Caravan", developer: developer)
@@ -181,6 +208,17 @@ class HasOneAssociationsTest < ActiveRecord::TestCase
 
     assert_nil book.order_id
     assert_nil book.shop_id
+  end
+
+  def test_nullification_on_cpk_association_with_pk_column
+    chapter = Cpk::Chapter.create!(id: [1, 2])
+    other_chapter = Cpk::Chapter.create!(id: [1, 4])
+    book = Cpk::NullifiedBook.create!(id: [1, 3], chapter: chapter)
+
+    book.chapter = other_chapter
+
+    assert_nil chapter.book_id
+    assert_equal 1, chapter.author_id
   end
 
   def test_has_one_for_new_record_owner_with_composite_primary_key_present
@@ -301,6 +339,26 @@ class HasOneAssociationsTest < ActiveRecord::TestCase
 
     assert_not_empty firm.errors
     assert_equal "Cannot delete record because a dependent firm account exists", firm.errors[:base].first
+    assert RestrictedWithErrorFirm.exists?(name: "restrict")
+    assert_predicate firm.account, :present?
+  ensure
+    I18n.backend.reload!
+  end
+
+  def test_restrict_with_error_exposes_association_name_without_downcasing
+    I18n.backend = I18n::Backend::Simple.new
+    I18n.backend.store_translations "de",
+      activerecord: {
+        attributes: { restricted_with_error_firm: { account: "Konto" } },
+        errors: { messages: { restrict_dependent_destroy: { has_one: "Datensatz kann nicht gelöscht werden, da ein abhängiges %{association_name} existiert" } } }
+      }
+    firm = RestrictedWithErrorFirm.create!(name: "restrict")
+    firm.create_account(credit_limit: 10)
+
+    I18n.with_locale(:de) do
+      firm.destroy
+      assert_equal "Datensatz kann nicht gelöscht werden, da ein abhängiges Konto existiert", firm.errors[:base].first
+    end
     assert RestrictedWithErrorFirm.exists?(name: "restrict")
     assert_predicate firm.account, :present?
   ensure
@@ -757,6 +815,40 @@ class HasOneAssociationsTest < ActiveRecord::TestCase
     assert_equal "new name", pirate.ship.reload.name
   end
 
+  def test_saving_the_owner_does_not_update_a_target_loaded_without_its_foreign_key
+    pirate = Pirate.create!(catchphrase: "Arr")
+    ship = Ship.create!(name: "Partial", pirate: pirate)
+    pirate = Pirate.find(pirate.id)
+    pirate.association(:ship).target = Ship.select(:id, :name).find(ship.id)
+    pirate.catchphrase = "Changed"
+
+    assert_no_queries_match(/UPDATE.*ships/i) { pirate.save! }
+  end
+
+  def test_saving_the_owner_does_not_update_a_polymorphic_target_loaded_without_its_type
+    owner = HasOneStaleTypeOwner.create!(name: "Partial")
+    child = HasOneStaleTypeChild.create!(poly_human_without_inverse_id: owner.id, poly_human_without_inverse_type: HasOneStaleTypeOwner.polymorphic_name)
+    owner = HasOneStaleTypeOwner.find(owner.id)
+    owner.association(:stale_type_child).target = HasOneStaleTypeChild.select(:id, :poly_human_without_inverse_id).find(child.id)
+    owner.name = "Changed"
+
+    assert_no_queries_match(/UPDATE.*faces/i) { owner.save! }
+  end
+
+  def test_saving_the_owner_restores_a_polymorphic_type_assigned_to_a_target_loaded_without_it
+    owner = HasOneStaleTypeOwner.create!(name: "Partial")
+    child = HasOneStaleTypeChild.create!(poly_human_without_inverse_id: owner.id, poly_human_without_inverse_type: "Other")
+    owner = HasOneStaleTypeOwner.find(owner.id)
+    partial_child = HasOneStaleTypeChild.select(:id, :poly_human_without_inverse_id).find(child.id)
+    owner.association(:stale_type_child).target = partial_child
+    partial_child.poly_human_without_inverse_type = "Other"
+    owner.name = "Changed"
+    owner.save!
+
+    assert_equal HasOneStaleTypeOwner.polymorphic_name, partial_child.poly_human_without_inverse_type
+    assert_equal HasOneStaleTypeOwner.polymorphic_name, child.reload.poly_human_without_inverse_type
+  end
+
   def test_has_one_autosave_with_primary_key_manually_set
     post = Post.create(id: 1234, title: "Some title", body: "Some content")
     author = Author.new(id: 33, name: "Hank Moody")
@@ -972,6 +1064,15 @@ class HasOneAssociationsTest < ActiveRecord::TestCase
     assert_no_difference ["DestroyableAuthor.count", "UndestroyableBook.count"] do
       assert_not author.destroy
     end
+  end
+
+  def test_association_scope_cannot_unscope_foreign_key
+    Bulb.create!(name: "other", car: Car.create!)
+    car = Car.create!
+    bulb = Bulb.create!(name: "other", car: car)
+
+    assert_equal bulb, car.any_bulb
+    assert_equal bulb, Car.preload(:any_bulb).find(car.id).any_bulb
   end
 
   class SpecialCar < ActiveRecord::Base

@@ -2,6 +2,7 @@
 
 require "time"
 require "active_support/json"
+require "active_support/core_ext/time/calculations"
 require_relative "serializer_with_fallback"
 
 module ActiveSupport

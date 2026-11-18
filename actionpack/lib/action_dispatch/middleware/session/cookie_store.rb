@@ -1,7 +1,5 @@
 # frozen_string_literal: true
 
-# :markup: markdown
-
 require "active_support/core_ext/hash/keys"
 require "action_dispatch/middleware/session/abstract_store"
 require "rack/session/cookie"
@@ -59,11 +57,8 @@ module ActionDispatch
         end
       end
 
-      DEFAULT_SAME_SITE = ActiveSupport::Ractors.shareable_proc { |request| request.cookies_same_site_protection } # :nodoc:
-
       def initialize(app, options = {})
         options[:cookie_only] = true
-        options[:same_site] = DEFAULT_SAME_SITE if !options.key?(:same_site)
         super
       end
 

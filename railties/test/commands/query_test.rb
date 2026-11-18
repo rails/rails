@@ -90,6 +90,16 @@ class Rails::Command::QueryTest < ActiveSupport::TestCase
     assert_not_equal page1["rows"], page2["rows"]
   end
 
+  test "respects a limit set on the relation" do
+    rails "runner", '3.times { |i| Post.create!(title: "Post #{i}") }'
+
+    data = query_json("Post.limit(1)")
+
+    assert_equal 1, data.dig("meta", "row_count")
+    assert_not data.dig("meta", "has_more")
+    assert_match(/\bLIMIT 1\b/, data.dig("meta", "sql"))
+  end
+
   test "does not double-eval on connection failure" do
     app_file "app/models/counter.rb", <<-RUBY
       class Counter
@@ -242,6 +252,14 @@ class Rails::Command::QueryTest < ActiveSupport::TestCase
     assert_equal 3, data.dig("meta", "row_count")
   end
 
+  test "detects an explicit LIMIT that follows a leading SQL comment" do
+    rails "runner", '3.times { |i| Post.create!(title: "Post #{i}") }'
+
+    data = query_json("--sql", "-- a leading comment\nSELECT * FROM posts ORDER BY id LIMIT 2")
+
+    assert_equal 2, data["rows"].length
+  end
+
   test "explain shows query plan" do
     data = query_json("explain", "Post.where(status: 0)")
 
@@ -268,6 +286,26 @@ class Rails::Command::QueryTest < ActiveSupport::TestCase
     assert_match(/does not exist/, output)
   end
 
+  test "instruments the expression it runs" do
+    record_instrumented_expressions
+
+    query_json("Post.count")
+    query_json("schema", "posts")
+    query_json("models")
+
+    assert_equal [ "Post.count", "schema posts", "models" ], instrumented_expressions
+  end
+
+  test "instruments an expression read from stdin" do
+    record_instrumented_expressions
+
+    query_stdin("Post.where(status: :draft).count", "-")
+    query_stdin("Post.count")
+    query_stdin("Post.where(status: :draft)", "explain", "-")
+
+    assert_equal [ "Post.where(status: :draft).count", "Post.count", "explain Post.where(status: :draft)" ], instrumented_expressions
+  end
+
   test "shows help with no arguments" do
     output = run_query_command("-h")
 
@@ -286,5 +324,27 @@ class Rails::Command::QueryTest < ActiveSupport::TestCase
 
     def query_error(*args)
       run_query_command(*args)
+    end
+
+    def query_stdin(input, *args)
+      Dir.chdir(app_path) do
+        IO.popen([ "bin/rails", "query", *args ], "r+") do |io|
+          io.write(input)
+          io.close_write
+          JSON.parse(io.read)
+        end
+      end
+    end
+
+    def record_instrumented_expressions
+      app_file "config/initializers/record_queries.rb", <<-RUBY
+        ActiveSupport::Notifications.subscribe("query.rails") do |event|
+          File.open(Rails.root.join("tmp/instrumented"), "a") { |f| f.puts JSON.generate(event.payload[:expression]) }
+        end
+      RUBY
+    end
+
+    def instrumented_expressions
+      File.readlines(File.join(app_path, "tmp/instrumented")).map { |line| JSON.parse(line) }
     end
 end

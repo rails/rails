@@ -5,7 +5,8 @@ require "active_support/core_ext/string/inflections"
 module ActiveSupport
   module Cache
     module Strategy
-      # = Local \Cache \Strategy
+      # Local \Cache \Strategy
+      # ======================
       #
       # Caches that implement LocalCache will be backed by an in-memory cache for the
       # duration of a block. Repeated calls to the cache for the same key will hit the
@@ -28,7 +29,8 @@ module ActiveSupport
           end
         end
 
-        # = Local \Cache \Store
+        # Local \Cache \Store
+        # ===================
         #
         # Simple memory backed cache. This cache is not thread safe and is intended only
         # for serving as a temporary memory cache for a single thread.
@@ -61,6 +63,11 @@ module ActiveSupport
           def fetch_entry(key) # :nodoc:
             @data.fetch(key) { @data[key] = yield }
           end
+        end
+
+        def initialize(...)
+          super
+          @local_cache_key = :"local_cache_#{object_id}"
         end
 
         # Use a local cache for the duration of block.
@@ -127,35 +134,18 @@ module ActiveSupport
           options = names.extract_options!
           options = merged_options(options)
 
-          keys_to_names = names.index_by { |name| normalize_key(name, options) }
-
-          local_entries = local_cache.read_multi_entries(keys_to_names.keys)
-          results = local_entries.each_with_object({}) do |(key, value), result|
-            # If we recorded a miss in the local cache, `#fetch_multi` will forward
-            # that key to the real store, and the entry will be replaced
-            # local_cache.delete_entry(key)
-            next if value.nil?
-
-            entry = deserialize_entry(value, **options)
-
-            normalized_key = keys_to_names[key]
-            if entry.nil?
-              result[normalized_key] = nil
-            elsif entry.expired? || entry.mismatched?(normalize_version(normalized_key, options))
-              local_cache.delete_entry(key)
-            else
-              result[normalized_key] = entry.value
-            end
-          end
+          results = read_multi_entries_from_local_cache(names, options)
 
           if results.size < names.size
             results.merge!(super(*(names - results.keys), options, &block))
           end
 
-          results
+          results.slice(*names)
         end
 
         private
+          attr_reader :local_cache_key
+
           def read_serialized_entry(key, raw: false, **options)
             if cache = local_cache
               if options[:delete]
@@ -176,15 +166,15 @@ module ActiveSupport
             end
           end
 
-          def read_multi_entries(names, **options)
-            return super unless local_cache
-
+          def read_multi_entries_from_local_cache(names, options)
             keys_to_names = names.index_by { |name| normalize_key(name, options) }
 
             local_entries = local_cache.read_multi_entries(keys_to_names.keys)
 
-            results = local_entries.each_with_object({}) do |(key, value), result|
-              next if value.nil? # recorded cache miss
+            local_entries.each_with_object({}) do |(key, value), result|
+              # If we recorded a miss in the local cache, the caller will forward
+              # that key to the real store, and the entry will be replaced
+              next if value.nil?
 
               entry = deserialize_entry(value, **options)
 
@@ -197,12 +187,18 @@ module ActiveSupport
                 result[normalized_key] = entry.value
               end
             end
+          end
+
+          def read_multi_entries(names, **options)
+            return super unless local_cache
+
+            results = read_multi_entries_from_local_cache(names, options)
 
             if results.size < names.size
               results.merge!(super(names - results.keys, **options))
             end
 
-            results
+            results.slice(*names)
           end
 
           def write_serialized_entry(key, payload, **)
@@ -214,8 +210,24 @@ module ActiveSupport
             return_value
           end
 
+          # Batch writes may bypass +write_serialized_entry+.
+          def write_multi_entries(entries, **)
+            if cache = local_cache
+              entries.each_key { |key| cache.delete_entry(key) }
+            end
+            super
+          end
+
           def delete_entry(key, **)
             local_cache.delete_entry(key) if local_cache
+            super
+          end
+
+          # Batch deletes may bypass +delete_entry+.
+          def delete_multi_entries(entries, **)
+            if cache = local_cache
+              entries.each { |key| cache.delete_entry(key) }
+            end
             super
           end
 
@@ -227,10 +239,6 @@ module ActiveSupport
             else
               cache.delete_entry(name)
             end
-          end
-
-          def local_cache_key
-            @local_cache_key ||= "#{self.class.name.underscore}_local_cache_#{object_id}".gsub(/[\/-]/, "_").to_sym
           end
 
           def use_temporary_local_cache(temporary_cache)

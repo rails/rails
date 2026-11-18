@@ -1,9 +1,6 @@
 # frozen_string_literal: true
 
-# :markup: markdown
-
 require "pathname"
-require "json"
 require "rails/generators/js_package_manager"
 
 module ActionText

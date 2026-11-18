@@ -97,7 +97,7 @@ $ bin/rails db:migrate
 
 Then, if you visit `/session/new` in your browser (you will see this route has
 been added in `routes.rb`), you'll see a form that accepts an email and a
-password with "sign in" button. This form routes to the `SessionsController`
+password with a "sign in" button. This form routes to the `SessionsController`
 which was added by the generator. If you provide an email/password for a user
 that exists in the database, you will be able to successfully authenticate with
 those credentials and log in to the application.
@@ -327,7 +327,63 @@ In test and development applications get a `secret_key_base` derived from the ap
 secret_key_base: 492f...
 ```
 
-WARNING: If your application's secrets may have been exposed, strongly consider changing them. Note that changing `secret_key_base` will expire currently active sessions and require all users to log in again. In addition to session data: encrypted cookies, signed cookies, and Active Storage files may also be affected.
+WARNING: If your application's secrets may have been exposed, strongly consider changing them. Note that changing
+`secret_key_base` without rotating the old value will expire currently active sessions and require all users to log in
+again. In addition to session data: encrypted cookies, signed cookies, and Active Storage files may also be affected.
+
+### Rotating the `secret_key_base`
+
+You can rotate your application's `secret_key_base` without immediately
+invalidating messages generated with the old secret. First, replace
+`secret_key_base` with a new random value and make the old value available
+separately, for example as `old_secret_key_base` in your credentials. Then add
+the old value as a fallback before any message verifiers are created:
+
+```ruby
+# config/application.rb
+config.before_initialize do |app|
+  app.message_verifiers.rotate(
+    secret_key_base: app.credentials.old_secret_key_base
+  )
+end
+```
+
+New messages are generated using the new `secret_key_base`, while application
+message verifiers can still verify messages generated with the old one. This
+includes framework features backed by `Rails.application.message_verifiers`,
+such as signed IDs and Active Storage.
+
+Cookies use a separate rotation configuration. To preserve existing signed and
+encrypted cookies, derive their old secrets from the old `secret_key_base` and
+register them in an initializer:
+
+```ruby
+# config/initializers/cookie_rotator.rb
+Rails.application.config.after_initialize do |app|
+  old_secret_key_base = app.credentials.old_secret_key_base
+  old_key_generator = app.key_generator(old_secret_key_base)
+  action_dispatch = app.config.action_dispatch
+
+  old_signed_secret = old_key_generator.generate_key(
+    action_dispatch.signed_cookie_salt
+  )
+  old_encrypted_secret = old_key_generator.generate_key(
+    action_dispatch.authenticated_encrypted_cookie_salt,
+    ActiveSupport::MessageEncryptor.key_len(action_dispatch.encrypted_cookie_cipher)
+  )
+
+  action_dispatch.cookies_rotations.tap do |cookies|
+    cookies.rotate :signed, old_signed_secret
+    cookies.rotate :encrypted, old_encrypted_secret
+  end
+end
+```
+
+After enough time has passed for old messages and cookies to expire or be
+rewritten, remove the rotations and delete `old_secret_key_base`.
+
+WARNING: Do not retain an exposed secret as a fallback: if the old value may be compromised, replace
+it immediately and allow existing messages and cookies to become invalid.
 
 ### Rotating Encrypted and Signed Cookies Configurations
 
@@ -464,7 +520,7 @@ NOTE: _First, as is required by the W3C, use GET and POST appropriately. Secondl
 
 #### Use GET and POST Appropriately
 
-The HTTP protocol basically provides two main types of requests - GET and POST (DELETE, PUT, and PATCH should be used like POST). The World Wide Web Consortium (W3C) provides a checklist for choosing HTTP GET or POST:
+The HTTP protocol basically provides two main types of requests - GET and POST (DELETE, PUT, and PATCH should be used like POST, while QUERY — a safe, read-only method that carries its query in the request body — should be used like GET). The World Wide Web Consortium (W3C) provides a checklist for choosing HTTP GET or POST:
 
 **Use GET if:**
 
@@ -477,6 +533,8 @@ The HTTP protocol basically provides two main types of requests - GET and POST (
 * The user is _held accountable for the results_ of the interaction.
 
 If your web application is RESTful, you might be used to additional HTTP verbs, such as PATCH, PUT, or DELETE. Some legacy web browsers, however, do not support them - only GET and POST. Rails uses a hidden `_method` field to handle these cases.
+
+The HTTP QUERY method ([RFC 10008](https://www.rfc-editor.org/rfc/rfc10008.html)) is safe and idempotent like GET, but conveys the query in the request body. Like GET and HEAD, QUERY requests are not checked for the security token: HTML forms cannot issue QUERY requests, and cross-origin QUERY requests from scripts always require a CORS preflight. This exemption applies only to requests that actually arrive with the QUERY method: a request tunneled through a form POST with `_method=query` is verified like any other POST, since an ordinary form submission enjoys none of those structural protections. As with GET, never change state in response to a QUERY request.
 
 _POST requests can be sent automatically, too_. In this example, the link www.harmless.com is shown as the destination in the browser's status bar. But it has actually dynamically created a new form that sends a POST request.
 
@@ -514,7 +572,7 @@ security token doesn't match what was expected, an exception will be thrown.
 
 When submitting forms with [Turbo](https://turbo.hotwired.dev/) the security
 token is required as well. Turbo looks for the token in the `csrf` meta tags of
-your application layout and adds it to request in the `X-CSRF-Token` request
+your application layout and adds it to the request in the `X-CSRF-Token` request
 header. These meta tags are created with the [`csrf_meta_tags`][] helper
 method:
 
@@ -628,6 +686,29 @@ WARNING: _Source code in uploaded files may be executed when placed in specific 
 The popular Apache web server has an option called DocumentRoot. This is the home directory of the website, everything in this directory tree will be served by the web server. If there are files with a certain file name extension, the code in it will be executed when requested (might require some options to be set). Examples for this are PHP and CGI files. Now think of a situation where an attacker uploads a file "file.cgi" with code in it, which will be executed when someone downloads the file.
 
 _If your Apache DocumentRoot points to Rails' /public directory, do not put file uploads in it_, store files at least one level upwards.
+
+### Media Processing of File Uploads
+
+WARNING: _ffmpeg and ffprobe decode untrusted media in memory-unsafe code. Restrict the codecs and formats they will accept._
+
+Active Storage shells out to ffmpeg to generate video previews, and to ffprobe to extract video and audio metadata. Neither tool is shipped by Rails, and a stock ffmpeg build registers several hundred decoders and demuxers where an application needs a handful. Attachments are analyzed on upload by default, so ffprobe reads attacker-supplied bytes without any further interaction.
+
+By default, Active Storage limits the demuxers both tools may use to common audio and video container formats. Narrow the list further with `config.active_storage.ffmpeg_allowed_formats`:
+
+```ruby
+config.active_storage.ffmpeg_allowed_formats = %w[ mov ]
+```
+
+Narrow the attack surface further by naming the codecs these tools may decode. An application that accepts only H.264 video with AAC audio would configure:
+
+```ruby
+config.active_storage.video_preview_input_arguments = "-codec_whitelist h264,aac"
+config.active_storage.ffprobe_arguments = "-codec_whitelist h264,aac"
+```
+
+Alongside `-codec_whitelist`, `-f` forces a single demuxer and `-protocol_whitelist` restricts the protocols an input may reference.
+
+Every codec present in a stored file must appear in the list, audio codecs included. ffprobe exits with an error on a file that uses any other codec, and analysis of that file then raises `JSON::ParserError`. Codec names vary between ffmpeg builds, so check the list against `ffmpeg -decoders` for the build you deploy.
 
 ### File Downloads
 
@@ -881,7 +962,7 @@ SELECT * FROM projects WHERE (name = '') UNION
   SELECT id,login AS name,password AS description,1,1,1 FROM users --'
 ```
 
-The result won't be a list of projects (because there is no project with an empty name), but a list of usernames and their password. So hopefully you [securely hashed the passwords](#user-management) in the database! The only problem for the attacker is, that the number of columns has to be the same in both queries. That's why the second query includes a list of ones (1), which will be always the value 1, in order to match the number of columns in the first query.
+The result won't be a list of projects (because there is no project with an empty name), but a list of usernames and their passwords. So hopefully you [securely hashed the passwords](#user-management) in the database! The only problem for the attacker is, that the number of columns has to be the same in both queries. That's why the second query includes a list of ones (1), which will be always the value 1, in order to match the number of columns in the first query.
 
 Also, the second query renames some columns with the AS statement so that the
 Web application displays the values from the user table.
@@ -926,7 +1007,7 @@ INFO: _The most widespread, and one of the most devastating security vulnerabili
 
 An entry point is a vulnerable URL and its parameters where an attacker can start an attack.
 
-The most common entry points are message posts, user comments, and guest books, but project titles, document names, and search result pages have also been vulnerable - just about everywhere where the user can input data. But the input does not necessarily have to come from input boxes on websites, it can be in any URL parameter - obvious, hidden or internal. Remember that the user may intercept any traffic. Applications or client-site proxies make it easy to change requests. There are also other attack vectors like banner advertisements.
+The most common entry points are message posts, user comments, and guest books, but project titles, document names, and search result pages have also been vulnerable - just about everywhere where the user can input data. But the input does not necessarily have to come from input boxes on websites, it can be in any URL parameter - obvious, hidden or internal. Remember that the user may intercept any traffic. Applications or client-side proxies make it easy to change requests. There are also other attack vectors like banner advertisements.
 
 XSS attacks work like this: An attacker injects some code, the web application saves it and displays it on a page, later presented to a victim. Most XSS examples simply display an alert box, but it is more powerful than that. XSS can steal the cookie, hijack the session, redirect the victim to a fake website, display advertisements for the benefit of the attacker, change elements on the website to get confidential information or install malicious software through security holes in the web browser.
 
@@ -1208,7 +1289,7 @@ Rails.application.config.hosts << "product.com"
 
 Rails.application.config.host_authorization = {
   # Exclude requests for the /healthcheck/ path from host checking
-  exclude: ->(request) { request.path.include?("healthcheck") },
+  exclude: ->(request) { request.path.start_with?("/healthcheck") },
   # Add custom Rack application for the response
   response_app: -> env do
     [400, { "Content-Type" => "text/plain" }, ["Bad Request"]]
@@ -1640,6 +1721,17 @@ The common admin interface works like this: it's located at www.example.com/admi
 * Does the admin really have to access the interface from everywhere in the world? Think about _limiting the login to a bunch of source IP addresses_. Examine request.remote_ip to find out about the user's IP address. This is not bullet-proof, but a great barrier. Remember that there might be a proxy in use, though.
 
 * _Put the admin interface to a special subdomain_ such as admin.application.com and make it a separate application with its own user management. This makes stealing an admin cookie from the usual domain, www.application.com, impossible. This is because of the same origin policy in your browser: An injected (XSS) script on www.application.com may not read the cookie for admin.application.com and vice-versa.
+
+Ruby Runtime Security
+---------------------
+
+The security of a Rails application relies on the security of the underlying Ruby interpreter and runtime. Please ensure your application is using an up-to-date version of Ruby with all security patches applied to the interpreter as well as the [default and bundled gems](https://guides.rubygems.org/default-gems-and-bundled-gems/).
+
+### GMP Support (CRuby)
+
+Production applications should be run on a Ruby built with [GMP](https://gmplib.org/), the GNU Multiple Precision Arithmetic Library. GMP mitigates a class of denial-of-service attack vectors related to large numerical inputs.
+
+Ruby links GMP only when the GMP development headers are present at build time, so a Ruby compiled from source may lack it. The official `ruby` Docker images, which the `Dockerfile` that Rails generates is based on, include it. To check a Ruby, run `ruby -e 'p Integer::GMP_VERSION'`, which raises `NameError` when Ruby was built without GMP.
 
 Environmental Security
 ----------------------

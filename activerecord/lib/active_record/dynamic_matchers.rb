@@ -4,7 +4,7 @@ module ActiveRecord
   module DynamicMatchers # :nodoc:
     private
       def respond_to_missing?(name, _)
-        if self == Base
+        if self == Base || !name.start_with?("find_by_")
           super
         else
           super || begin

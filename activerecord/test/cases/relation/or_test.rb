@@ -13,7 +13,7 @@ module ActiveRecord
 
     def test_or_with_relation
       expected = Post.where("id = 1 or id = 2").to_a
-      assert_equal expected, Post.where("id = 1").or(Post.where("id = 2")).to_a
+      assert_equal_unordered expected, Post.where("id = 1").or(Post.where("id = 2")).to_a
     end
 
     def test_or_identity
@@ -38,6 +38,13 @@ module ActiveRecord
 
     def test_or_with_bind_params
       assert_equal Post.find([1, 2]).sort_by(&:id), Post.where(id: 1).or(Post.where(id: 2)).sort_by(&:id)
+    end
+
+    def test_or_keeps_matches_differing_only_in_escape
+      title = Post.arel_table[:title]
+      relation = Post.where(title.matches("Welcome%", "!")).or(Post.where(title.matches("Welcome%")))
+
+      assert_match(/LIKE .+ ESCAPE .+ OR .+LIKE/, relation.to_sql)
     end
 
     def test_or_with_null_both
@@ -112,7 +119,7 @@ module ActiveRecord
 
     def test_or_with_named_scope
       expected = Post.where("id = 1 or body LIKE '\%a\%'").to_a
-      assert_equal expected, Post.where("id = 1").or(Post.containing_the_letter_a)
+      assert_equal_unordered expected, Post.where("id = 1").or(Post.containing_the_letter_a)
     end
 
     def test_or_inside_named_scope
@@ -130,7 +137,7 @@ module ActiveRecord
       p = Post.where("id = 1")
       p.load
       assert_equal true, p.loaded?
-      assert_equal expected, p.or(Post.where("id = 2")).to_a
+      assert_equal_unordered expected, p.or(Post.where("id = 2")).to_a
     end
 
     def test_or_with_non_relation_object_raises_error

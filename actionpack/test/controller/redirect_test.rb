@@ -223,15 +223,17 @@ class RedirectController < ActionController::Base
   end
 
   def rescue_errors(e) raise e end
-
-  private
-    def dashboard_url(id, message)
-      url_for action: "dashboard", params: { "id" => id, "message" => message }
-    end
 end
 
 class RedirectTest < ActionController::TestCase
   tests RedirectController
+
+  def setup
+    super
+    # Targets of `redirect_to action: ...` that are not themselves actions.
+    draw_routes_for RedirectController, :hello_world, :other_host
+    draw_routes_for ModuleTest::ModuleRedirectController, :hello_world, :other_host
+  end
 
   def test_simple_redirect
     get :simple_redirect
@@ -447,10 +449,6 @@ class RedirectTest < ActionController::TestCase
     with_routing do |set|
       set.draw do
         resources :workshops
-
-        ActionDispatch.deprecator.silence do
-          get ":controller/:action"
-        end
       end
 
       get :redirect_to_existing_record
@@ -469,10 +467,6 @@ class RedirectTest < ActionController::TestCase
         namespace :internal do
           resources :workshops
         end
-
-        ActionDispatch.deprecator.silence do
-          get ":controller/:action"
-        end
       end
 
       get :redirect_to_polymorphic
@@ -486,10 +480,6 @@ class RedirectTest < ActionController::TestCase
       set.draw do
         namespace :internal do
           resources :workshops
-        end
-
-        ActionDispatch.deprecator.silence do
-          get ":controller/:action"
         end
       end
 
@@ -535,9 +525,7 @@ class RedirectTest < ActionController::TestCase
   def test_redirect_to_with_block_and_accepted_options
     with_routing do |set|
       set.draw do
-        ActionDispatch.deprecator.silence do
-          get ":controller/:action"
-        end
+        get "redirect/hello_world", to: "redirect#hello_world"
       end
 
       get :redirect_to_with_block_and_options
@@ -1012,6 +1000,12 @@ module ModuleTest
 
   class ModuleRedirectTest < ActionController::TestCase
     tests ModuleRedirectController
+
+    def setup
+      super
+      draw_routes_for ModuleRedirectController, :hello_world, :other_host
+      draw_routes_for ::RedirectController, :hello_world, :other_host
+    end
 
     def test_simple_redirect
       get :simple_redirect

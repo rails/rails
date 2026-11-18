@@ -17,8 +17,23 @@ module ActiveRecord
           end
         end
 
-        attribute.in(value.arel)
+        query = value.arel
+        if attribute.is_a?(ComparisonAttribute)
+          query = query.clone
+          query.projections = query.projections.map { |projection| comparison_projection(attribute, projection) }
+        end
+
+        attribute.in(query)
       end
+
+      private
+        def comparison_projection(attribute, projection)
+          if projection.is_a?(Arel::Nodes::As)
+            Arel::Nodes::As.new(attribute.comparison_expression(projection.left), projection.right)
+          else
+            attribute.comparison_expression(projection)
+          end
+        end
     end
   end
 end

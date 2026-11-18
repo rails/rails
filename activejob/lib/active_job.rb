@@ -29,7 +29,6 @@ require "active_job/version"
 require "active_job/deprecator"
 require "global_id"
 
-# :markup: markdown
 # :include: ../README.md
 module ActiveJob
   extend ActiveSupport::Autoload
@@ -73,6 +72,7 @@ module ActiveJob
         else
           adapter_jobs.each do |job|
             job.successfully_enqueued = false
+            job.enqueue_error = nil
             if job.scheduled_at
               queue_adapter.enqueue_at(job, job.scheduled_at.to_f)
             else

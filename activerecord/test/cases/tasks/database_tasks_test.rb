@@ -81,6 +81,8 @@ module ActiveRecord
   }.freeze
 
   class DatabaseTasksCheckProtectedEnvironmentsTest < ActiveRecord::TestCase
+    skip_under_ractor_proxy
+
     if current_adapter?(:SQLite3Adapter) && !in_memory_db?
       self.use_transactional_tests = false
 
@@ -179,6 +181,8 @@ module ActiveRecord
   end
 
   class DatabaseTasksCheckProtectedEnvironmentsMultiDatabaseTest < ActiveRecord::TestCase
+    skip_under_ractor_proxy
+
     if current_adapter?(:SQLite3Adapter) && !in_memory_db?
       self.use_transactional_tests = false
 
@@ -231,11 +235,11 @@ module ActiveRecord
             env => {
               primary: {
                 adapter: "sqlite3",
-                database: "test/fixtures/fixture_database.sqlite3",
+                database: ARTest.test_configuration_hashes["arunit"]["database"],
               },
               secondary: {
                 adapter: "sqlite3",
-                database: "test/fixtures/fixture_database_2.sqlite3",
+                database: ARTest.test_configuration_hashes["arunit2"]["database"],
               }
             }
           }
@@ -257,7 +261,7 @@ module ActiveRecord
   class DatabaseTasksRegisterTask < ActiveRecord::TestCase
     setup do
       @tasks_was = ActiveRecord::Tasks::DatabaseTasks.instance_variable_get(:@tasks).dup
-      @adapters_was = ActiveRecord::ConnectionAdapters.instance_variable_get(:@adapters).dup
+      @adapters_was = ActiveRecord::ConnectionAdapters.instance_variable_get(:@adapters).dup.freeze
     end
 
     teardown do
@@ -439,6 +443,29 @@ module ActiveRecord
       end
     ensure
       ActiveRecord::Base.clear_cache!
+    end
+
+    def test_dump_schema_passes_the_given_format_to_check_schema_dump
+      db_config = ActiveRecord::DatabaseConfigurations::HashConfig.new("arunit", "primary",
+        adapter: "sqlite3",
+        database: "my-db",
+        schema_format: :sql,
+      )
+
+      format = :ruby
+      assert_not_equal format, db_config.schema_format # precondition
+
+      dumped = false
+
+      ActiveRecord::Tasks::DatabaseTasks.stub(:db_dir, "db") do
+        db_config.stub(:schema_dump, ->(sf = db_config.schema_format) { "schema.rb" if sf == format }) do
+          ActiveRecord::Tasks::DatabaseTasks.stub(:with_temporary_pool, ->(*) { dumped = true }) do
+            ActiveRecord::Tasks::DatabaseTasks.dump_schema(db_config, format)
+          end
+        end
+      end
+
+      assert dumped
     end
 
     def test_dump_all_only_dumps_same_schema_once
@@ -1076,6 +1103,9 @@ module ActiveRecord
   end
 
   class DatabaseTasksMigrateTest < DatabaseTasksMigrationTestCase
+    skip_under_ractor_proxy :test_migrate_set_and_unset_empty_values_for_verbose_and_version_env_vars,
+      :test_migrate_set_and_unset_nonsense_values_for_verbose_and_version_env_vars
+
     if current_adapter?(:SQLite3Adapter) && !in_memory_db?
       def test_migrate_set_and_unset_empty_values_for_verbose_and_version_env_vars
         verbose, version = ENV["VERBOSE"], ENV["VERSION"]
@@ -1178,6 +1208,8 @@ module ActiveRecord
   end
 
   class DatabaseTasksMigrateStatusTest < DatabaseTasksMigrationTestCase
+    skip_under_ractor_proxy
+
     if current_adapter?(:SQLite3Adapter) && !in_memory_db?
       def setup
         @schema_migration = ActiveRecord::Base.connection_pool.schema_migration
@@ -1315,6 +1347,8 @@ module ActiveRecord
   end
 
   class DatabaseTasksTruncateAllTest < ActiveRecord::TestCase
+    skip_under_ractor_proxy
+
     unless in_memory_db?
       self.use_transactional_tests = false
 

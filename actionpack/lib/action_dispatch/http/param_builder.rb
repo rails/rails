@@ -2,7 +2,7 @@
 
 module ActionDispatch
   class ParamBuilder
-    # --
+    #--
     # This implementation is based on Rack::QueryParser,
     # Copyright (C) 2007-2021 Leah Neukirchen <http://leahneukirchen.org/infopage.html>
 
@@ -16,7 +16,7 @@ module ActionDispatch
       @param_depth_limit = param_depth_limit
     end
 
-    cattr_accessor :default
+    singleton_class.attr_accessor :default
     self.default = make_default(100).freeze
 
     class << self
@@ -40,6 +40,8 @@ module ActionDispatch
     end
 
     def from_query_string(qs, separator: nil, encoding_template: nil)
+      return make_params if qs.nil? || qs.empty?
+
       from_pairs QueryParser.each_pair(qs, separator), encoding_template: encoding_template
     end
 
@@ -162,10 +164,6 @@ module ActionDispatch
 
       def make_params
         ActiveSupport::HashWithIndifferentAccess.new
-      end
-
-      def new_depth_limit(param_depth_limit)
-        self.class.new @params_class, param_depth_limit
       end
 
       def params_hash_type?(obj)

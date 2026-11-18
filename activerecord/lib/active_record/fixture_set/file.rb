@@ -8,7 +8,7 @@ module ActiveRecord
       include Enumerable
 
       ##
-      # Open a fixture file named +file+.  When called with a block, the block
+      # Open a fixture file named `file`.  When called with a block, the block
       # is called with the filehandle and the filehandle is automatically closed
       # when the block finishes.
       def self.open(file)
@@ -53,7 +53,7 @@ module ActiveRecord
             data = ActiveSupport::ConfigurationFile.parse(@file, freeze: true, context:
               ActiveRecord::FixtureSet::RenderContext.create_subclass.new.get_binding)
             data ? validate(data).to_a : []
-          rescue RuntimeError => error
+          rescue ActiveSupport::ConfigurationFile::FormatError => error
             raise Fixture::FormatError, error.message
           end
         end

@@ -16,9 +16,9 @@ module ARTest
       I18n.enforce_available_locales = false
 
       ActiveRecord::Base.automatically_invert_plural_associations = true
-      ActiveRecord.raise_on_assign_to_attr_readonly = true
       ActiveRecord.belongs_to_required_validates_foreign_key = false
       ActiveRecord.raise_on_missing_required_finder_order_columns = true
+      ActiveRecord.association_scope_keeps_owner_conditions = true
     end
   end
 end

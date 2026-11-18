@@ -52,6 +52,18 @@ class ActiveSupport::TestCase
       ActiveStorage::Blob.create_before_direct_upload! key: key, filename: filename, byte_size: byte_size, checksum: checksum, content_type: content_type, record: record
     end
 
+    def create_playlist_blob(referencing:, filename:, content_type:)
+      playlist = <<~M3U8
+        #EXTM3U
+        #EXT-X-TARGETDURATION:10
+        #EXTINF:10,
+        file://#{file_fixture(referencing).realpath}
+        #EXT-X-ENDLIST
+      M3U8
+
+      create_blob(data: playlist, filename: filename, content_type: content_type, identify: false)
+    end
+
     def build_blob_after_unfurling(key: nil, data: "Hello world!", filename: "hello.txt", content_type: "text/plain", identify: true, record: nil)
       ActiveStorage::Blob.build_after_unfurling key: key, io: StringIO.new(data), filename: filename, content_type: content_type, identify: identify, record: record
     end
@@ -86,6 +98,33 @@ class ActiveSupport::TestCase
       yield
     ensure
       ActiveStorage::Blob.service = previous_service
+    end
+
+    # libvips names its ImageMagick loader after the major version it was built
+    # against, and Vips.block does nothing for a name it cannot find, so pass both.
+    VIPS_MAGICK_LOADERS = %w( VipsForeignLoadMagick VipsForeignLoadMagick7 ).freeze
+    VIPS_SVG_LOADERS = %w( VipsForeignLoadSvg ).freeze
+
+    # libvips can set an operation's blocked state but not read it, so probe once here, before any
+    # test has had the chance to change it, by opening a file that only an unfuzzed loader reads.
+    VIPS_LOADERS_DISABLED_AT_BOOT =
+      if defined?(::Vips)
+        begin
+          ::Vips::Image.new_from_file(File.expand_path("fixtures/files/colors.bmp", __dir__))
+          false
+        rescue ::Vips::Error
+          true
+        end
+      else
+        true
+      end
+
+    def with_vips_loaders_enabled(*class_names)
+      class_names.each { |class_name| Vips.block(class_name, false) }
+
+      yield
+    ensure
+      class_names.each { |class_name| Vips.block(class_name, VIPS_LOADERS_DISABLED_AT_BOOT) }
     end
 
     def with_strict_loading_by_default(&block)

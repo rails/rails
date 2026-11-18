@@ -1,7 +1,5 @@
 # frozen_string_literal: true
 
-# :markup: markdown
-
 require "active_support"
 require "active_support/test_case"
 require "active_support/core_ext/hash/indifferent_access"
@@ -34,6 +32,7 @@ module ActionCable
     # ## Basic example
     #
     # Functional tests are written as follows:
+    #
     # 1.  First, one uses the `subscribe` method to simulate subscription creation.
     # 2.  Then, one asserts whether the current state is as expected. "State" can be
     #     anything: transmitted messages, subscribed streams, etc.

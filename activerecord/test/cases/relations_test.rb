@@ -173,16 +173,16 @@ class RelationTest < ActiveRecord::TestCase
 
   def test_finding_with_subquery
     relation = Topic.where(approved: true)
-    assert_equal relation.to_a, Topic.select("*").from(relation).to_a
-    assert_equal relation.to_a, Topic.select("subquery.*").from(relation).to_a
-    assert_equal relation.to_a, Topic.select("a.*").from(relation, :a).to_a
+    assert_equal_unordered relation.to_a, Topic.select("*").from(relation).to_a
+    assert_equal_unordered relation.to_a, Topic.select("subquery.*").from(relation).to_a
+    assert_equal_unordered relation.to_a, Topic.select("a.*").from(relation, :a).to_a
   end
 
   def test_finding_with_subquery_with_binds
     relation = Post.first.comments
-    assert_equal relation.to_a, Comment.select("*").from(relation).to_a
-    assert_equal relation.to_a, Comment.select("subquery.*").from(relation).to_a
-    assert_equal relation.to_a, Comment.select("a.*").from(relation, :a).to_a
+    assert_equal_unordered relation.to_a, Comment.select("*").from(relation).to_a
+    assert_equal_unordered relation.to_a, Comment.select("subquery.*").from(relation).to_a
+    assert_equal_unordered relation.to_a, Comment.select("a.*").from(relation, :a).to_a
   end
 
   def test_finding_with_subquery_without_select_does_not_change_the_select
@@ -255,9 +255,9 @@ class RelationTest < ActiveRecord::TestCase
 
   def test_finding_with_subquery_with_eager_loading_in_from
     relation = Comment.includes(:post).where("posts.type": "Post").order(:id)
-    assert_equal relation.to_a, Comment.select("*").from(relation).to_a
-    assert_equal relation.to_a, Comment.select("subquery.*").from(relation).to_a
-    assert_equal relation.to_a, Comment.select("a.*").from(relation, :a).to_a
+    assert_equal_unordered relation.to_a, Comment.select("*").from(relation).to_a
+    assert_equal_unordered relation.to_a, Comment.select("subquery.*").from(relation).to_a
+    assert_equal_unordered relation.to_a, Comment.select("a.*").from(relation, :a).to_a
   end
 
   unless current_adapter?(:SQLite3Adapter)
@@ -267,8 +267,8 @@ class RelationTest < ActiveRecord::TestCase
       union = Arel::Nodes::Union.new(arel1, arel2)
       expected = [comments(:greetings), comments(:more_greetings)]
 
-      assert_equal expected, Comment.select("subquery.*").from(union).to_a
-      assert_equal expected, Comment.select("a.*").from(union, :a).to_a
+      assert_equal_unordered expected, Comment.select("subquery.*").from(union).to_a
+      assert_equal_unordered expected, Comment.select("a.*").from(union, :a).to_a
     end
   end
 
@@ -488,6 +488,15 @@ class RelationTest < ActiveRecord::TestCase
   def test_default_order_deduplication
     topics = Topic.default_order("id desc", "id desc")
     assert_equal ["id desc"], topics.default_order_values
+  end
+
+  def test_order_with_table_name_does_not_modify_receiver
+    topics = Topic.all.load
+
+    assert_equal ["replies"], topics.order(:"replies.id").references_values
+    assert_equal ["replies"], topics.reorder("replies.id" => :desc).references_values
+    assert_equal ["replies"], topics.default_order(replies: { id: :desc }).references_values
+    assert_empty topics.references_values
   end
 
   def test_finding_with_reorder_by_aliased_attributes
@@ -892,6 +901,12 @@ class RelationTest < ActiveRecord::TestCase
     assert_equal 1, Author.where(id: [decorator.new(author)]).to_a.length
   end
 
+  def test_where_id_with_list_of_delegated_ar_objects
+    decorator = Class.new(SimpleDelegator)
+    authors = Author.first(2)
+    assert_equal authors, Author.where(id: authors.map { |author| decorator.new(author) }).order(:id).to_a
+  end
+
   def test_where_relation_with_delegated_ar_object
     decorator = Class.new(SimpleDelegator)
     author = Post.last.author
@@ -1272,6 +1287,33 @@ class RelationTest < ActiveRecord::TestCase
     assert_not_predicate posts_with_limit_one, :loaded?
   end
 
+  def test_many_with_group
+    posts = Post.joins(:comments).group(:id)
+
+    assert_queries_count(1) do
+      assert_predicate posts, :many?
+    end
+    assert_not_predicate posts, :loaded?
+
+    assert_not_predicate posts.where(id: 1), :many?
+    assert_not_predicate posts.where(id: -1), :many?
+  end
+
+  def test_many_with_aggregate_select_and_group
+    posts = Post.select("posts.*, COUNT(comments.id) AS comments_count").joins(:comments).group(:id)
+
+    assert_predicate posts, :many?
+    assert_not_predicate posts.where(id: 1), :many?
+  end
+
+  def test_many_with_multiple_select_values
+    posts = Post.select("posts.*, 1 AS one")
+
+    assert_predicate posts, :many?
+    assert_predicate posts.limit(5), :many?
+    assert_not_predicate posts.where(id: 1), :many?
+  end
+
   def test_none?
     posts = Post.all
     assert_queries_count(1) do
@@ -1308,6 +1350,33 @@ class RelationTest < ActiveRecord::TestCase
     end
 
     assert_predicate posts, :loaded?
+  end
+
+  def test_one_with_group
+    posts = Post.joins(:comments).group(:id)
+
+    assert_queries_count(1) do
+      assert_not_predicate posts, :one?
+    end
+    assert_not_predicate posts, :loaded?
+
+    assert_operator Post.find(1).comments.count, :>, 1
+    assert_predicate posts.where(id: 1), :one?
+    assert_not_predicate posts.where(id: -1), :one?
+  end
+
+  def test_one_with_aggregate_select_and_group
+    posts = Post.select("posts.*, COUNT(comments.id) AS comments_count").joins(:comments).group(:id)
+
+    assert_not_predicate posts, :one?
+    assert_predicate posts.where(id: 1), :one?
+  end
+
+  def test_one_with_multiple_select_values
+    posts = Post.select("posts.*, 1 AS one")
+
+    assert_not_predicate posts, :one?
+    assert_predicate posts.where(id: 1), :one?
   end
 
   def test_one_with_destroy
@@ -2067,6 +2136,37 @@ class RelationTest < ActiveRecord::TestCase
     assert_match(/ORDER BY title DESC/, relation.to_sql)
   end
 
+  def test_unscope_default_order
+    relation = Post.default_order("title ASC").unscope(:default_order)
+    assert_empty relation.default_order_values
+    assert_no_match(/ORDER BY/, relation.to_sql)
+
+    relation_with_both = Post.order("id DESC").default_order("title ASC").unscope(:default_order)
+    assert_empty relation_with_both.default_order_values
+    assert_equal ["id DESC"], relation_with_both.order_values
+    assert_match(/ORDER BY id DESC/, relation_with_both.to_sql)
+  end
+
+  def test_unscope_order_preserves_default_order
+    relation = Post.order("id DESC").default_order("title ASC").unscope(:order)
+    assert_empty relation.order_values
+    assert_equal ["title ASC"], relation.default_order_values
+    assert_match(/ORDER BY title ASC/, relation.to_sql)
+  end
+
+  def test_unscope_order_and_default_order
+    relation = Post.order("id DESC").default_order("title ASC").unscope(:order, :default_order)
+    assert_empty relation.order_values
+    assert_empty relation.default_order_values
+    assert_no_match(/ORDER BY/, relation.to_sql)
+  end
+
+  def test_merge_with_unscope_default_order
+    merged = Post.default_order("title ASC").merge(Post.unscope(:default_order))
+    assert_empty merged.default_order_values
+    assert_no_match(/ORDER BY/, merged.to_sql)
+  end
+
   def test_reorder_with_first
     post = nil
 
@@ -2175,6 +2275,19 @@ class RelationTest < ActiveRecord::TestCase
     assert_raises(ArgumentError) { Post.all.find_by! }
   end
 
+  test "where! takes bind values" do
+    assert_equal [1], Post.all.where!("id = ?", 1).pluck(:id)
+    assert_equal [1, 2], Post.all.where!("id = ? OR id = ?", 1, 2).order(:id).pluck(:id)
+    assert_equal [1, 2], Post.all.where!("id IN (?)", [1, 2]).order(:id).pluck(:id)
+    assert_equal [1], Post.all.where!("id = :id", id: 1).pluck(:id)
+  end
+
+  test "having! takes bind values" do
+    assert_equal [1], Post.group(:id).having!("id = ?", 1).pluck(:id)
+    assert_equal [1, 2], Post.group(:id).having!("id IN (?)", [1, 2]).order(:id).pluck(:id)
+    assert_equal [1], Post.group(:id).having!("id = :id", id: 1).pluck(:id)
+  end
+
   test "loaded relations cannot be mutated by multi value methods" do
     relation = Post.all
     relation.to_a
@@ -2220,13 +2333,13 @@ class RelationTest < ActiveRecord::TestCase
   end
 
   test "relations show the records in #inspect" do
-    relation = Post.limit(2)
-    assert_equal "#<ActiveRecord::Relation [#{Post.limit(2).map(&:inspect).join(', ')}]>", relation.inspect
+    relation = Post.order(:id).limit(2)
+    assert_equal "#<ActiveRecord::Relation [#{Post.order(:id).limit(2).map(&:inspect).join(', ')}]>", relation.inspect
   end
 
   test "relations limit the records in #inspect at 10" do
-    relation = Post.limit(11)
-    assert_equal "#<ActiveRecord::Relation [#{Post.limit(10).map(&:inspect).join(', ')}, ...]>", relation.inspect
+    relation = Post.order(:id).limit(11)
+    assert_equal "#<ActiveRecord::Relation [#{Post.order(:id).limit(10).map(&:inspect).join(', ')}, ...]>", relation.inspect
   end
 
   test "relations don't load all records in #inspect" do
@@ -2369,10 +2482,75 @@ class RelationTest < ActiveRecord::TestCase
     assert_equal [posts(:authorless)], p0
     assert_equal [posts(:thinking)], p1
 
-    comments = Comment.merge(p0).unscope(where: :author_id).where(post: p1)
+    comments = Comment.merge(p0).unscope(where: { posts: :author_id }).where(post: p1)
 
     assert_not_equal p0.first.comments, comments
     assert_equal p1.first.comments, comments
+  end
+
+  def test_unscope_merge_does_not_unscope_joined_table_column
+    expected = Post.joins(:comments).where(comments: { body: "test" })
+    relation = Post.joins(:comments).where(body: "post", comments: { body: "test" }).merge(Post.unscope(where: :body))
+
+    assert_equal expected.where_clause, relation.where_clause
+    assert_equal expected.to_sql, relation.to_sql
+  end
+
+  def test_unscope_merge_array_containing_hash
+    expected = Post.joins(:comments)
+    relation = Post.joins(:comments).where(body: "post", comments: { body: "test" }).merge(Post.unscope(where: [:body, { comments: :body }]))
+
+    assert_equal expected.where_clause, relation.where_clause
+    assert_equal expected.to_sql, relation.to_sql
+  end
+
+  def test_unscope_merge_array_containing_arel_attribute
+    expected = Post.joins(:comments)
+    relation = Post.joins(:comments).where(body: "post", comments: { body: "test" }).merge(Post.unscope(where: [:body, Comment.arel_table[:body]]))
+
+    assert_equal expected.where_clause, relation.where_clause
+    assert_equal expected.to_sql, relation.to_sql
+  end
+
+  def test_unscope_unqualified_column_removing_conditions_on_other_tables_is_deprecated
+    relation = Post.joins(:comments).where(body: "post", comments: { body: "test" })
+
+    unscoped = assert_deprecated(/also removes conditions on other tables \(comments\.body\)/, ActiveRecord.deprecator) do
+      relation.unscope(where: :body)
+    end
+
+    assert_predicate unscoped.where_clause, :empty?
+  end
+
+  def test_unscope_unqualified_column_only_on_own_table_is_not_deprecated
+    relation = Post.joins(:comments).where(body: "post", comments: { post_id: 1 })
+
+    unscoped = assert_not_deprecated(ActiveRecord.deprecator) do
+      relation.unscope(where: :body)
+    end
+
+    assert_equal Post.joins(:comments).where(comments: { post_id: 1 }).where_clause, unscoped.where_clause
+  end
+
+  def test_unscope_qualified_column_on_other_table_is_not_deprecated
+    relation = Post.joins(:comments).where(body: "post", comments: { body: "test" })
+    expected = Post.joins(:comments).where(body: "post").where_clause
+
+    assert_not_deprecated(ActiveRecord.deprecator) do
+      assert_equal expected, relation.unscope(where: "comments.body").where_clause
+      assert_equal expected, relation.unscope(where: { comments: :body }).where_clause
+      assert_equal expected, relation.unscope(where: Comment.arel_table[:body]).where_clause
+    end
+  end
+
+  def test_rewhere_is_not_deprecated_for_column_on_other_tables
+    relation = Post.joins(:comments).where(body: "post", comments: { body: "test" })
+
+    rewhered = assert_not_deprecated(ActiveRecord.deprecator) do
+      relation.rewhere(body: "other")
+    end
+
+    assert_equal Post.joins(:comments).where(comments: { body: "test" }).where(body: "other").where_clause, rewhered.where_clause
   end
 
   def test_unscope_with_unknown_column
@@ -2593,7 +2771,87 @@ class CreateOrFindByWithinTransactions < ActiveRecord::TestCase
       duel { Subscriber.find_or_create_by!(nick: "bob") }
     end
 
+    if current_adapter?(:Mysql2Adapter, :TrilogyAdapter)
+      def test_three_concurrent_find_or_create_by_within_repeatable_read_transactions
+        three_concurrent_creates(:find_or_create_by, :repeatable_read)
+      end
+
+      def test_three_concurrent_find_or_create_by_bang_within_repeatable_read_transactions
+        three_concurrent_creates(:find_or_create_by!, :repeatable_read)
+      end
+
+      def test_three_concurrent_find_or_create_by_within_savepoints_in_repeatable_read_transactions
+        three_concurrent_creates(:find_or_create_by, :repeatable_read, requires_new: true) do
+          Subscriber.create!(nick: "after_#{Thread.current.object_id}")
+        end
+
+        assert_equal 2, Subscriber.where("nick LIKE 'after_%'").count
+      end
+
+      def test_three_concurrent_find_or_create_by_within_read_committed_transactions
+        three_concurrent_creates(:find_or_create_by, :read_committed)
+      end
+
+      def test_three_concurrent_find_or_create_by_bang_within_read_committed_transactions
+        three_concurrent_creates(:find_or_create_by!, :read_committed)
+      end
+    end
+
     private
+      def three_concurrent_creates(method, isolation, requires_new: false)
+        threads = []
+        assert_nil Subscriber.find_by(nick: "bob")
+
+        ready = Concurrent::CountDownLatch.new(2)
+        winner_committed = Concurrent::Event.new
+        duplicate_inserts = Concurrent::CyclicBarrier.new(2)
+
+        subscriber = ->(*args) do
+          payload = args.last
+          if threads.include?(Thread.current) && payload[:exception_object].is_a?(ActiveRecord::RecordNotUnique)
+            # Both duplicate INSERTs must hold their shared record locks before
+            # either transaction attempts the readback.
+            raise "Timed out waiting for duplicate INSERTs" unless duplicate_inserts.wait(10)
+          end
+        end
+
+        ActiveSupport::Notifications.subscribed(subscriber, "sql.active_record") do
+          2.times do
+            threads << Thread.new do
+              Thread.current.report_on_exception = false
+              Subscriber.transaction(isolation: isolation) do
+                # Read in the outer transaction so requires_new uses a savepoint
+                # instead of restarting the parent transaction.
+                Subscriber.find_by(nick: "bob") if requires_new
+                record = Subscriber.transaction(requires_new: requires_new) do
+                  Subscriber.public_send(method, nick: "bob") do
+                    # The initial SELECT has missed the row, establishing a stale
+                    # snapshot under REPEATABLE READ before the winner commits.
+                    ready.count_down
+                    raise "Timed out waiting for the winner to commit" unless winner_committed.wait(10)
+                  end
+                end
+                yield if block_given?
+                record
+              end
+            end
+          end
+
+          assert ready.wait(10), "Timed out waiting for the initial SELECTs"
+          winner = Subscriber.transaction { Subscriber.create!(nick: "bob") }
+          winner_committed.set
+
+          threads.each do |thread|
+            assert thread.join(15), "Timed out waiting for find_or_create_by"
+            assert_equal winner, thread.value
+          end
+          assert_equal 1, Subscriber.where(nick: "bob").count
+        end
+      ensure
+        threads.each { |thread| thread.kill if thread.alive? }
+        threads.each { |thread| thread.join unless thread.status.nil? }
+      end
+
       def duel
         assert_nil Subscriber.find_by(nick: "bob")
 

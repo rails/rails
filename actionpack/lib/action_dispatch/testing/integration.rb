@@ -1,7 +1,5 @@
 # frozen_string_literal: true
 
-# :markup: markdown
-
 require "stringio"
 require "uri"
 require "rack/test"
@@ -53,6 +51,16 @@ module ActionDispatch
       # ActionDispatch::Integration::Session#process for more details.
       def options(path, **args)
         process(:options, path, **args)
+      end
+
+      # Performs a QUERY request with the given parameters. Params are sent as
+      # the request body, per [RFC 10008](https://www.rfc-editor.org/rfc/rfc10008),
+      # with a default `Content-Type` of `application/x-www-form-urlencoded`
+      # (RFC 10008 requires QUERY requests to declare one) — pass `as: :json` or
+      # an explicit `CONTENT_TYPE` header to override. See
+      # ActionDispatch::Integration::Session#process for more details.
+      def query(path, **args)
+        process(:query, path, **args)
       end
 
       # Follow a single redirect response. If the last response was not a redirect, an
@@ -388,21 +396,79 @@ module ActionDispatch
         @integration_session = nil
       end
 
-      %w(get post patch put head delete cookies assigns follow_redirect!).each do |method|
-        # reset the html_document variable, except for cookies/assigns calls
-        unless method == "cookies" || method == "assigns"
-          reset_html_document = "@html_document = nil"
-        end
+      def get(...)
+        @html_document = nil
+        result = integration_session.get(...)
+        copy_session_variables!
+        result
+      end
 
-        module_eval <<~RUBY, __FILE__, __LINE__ + 1
-          def #{method}(...)
-            #{reset_html_document}
+      def post(...)
+        @html_document = nil
+        result = integration_session.post(...)
+        copy_session_variables!
+        result
+      end
 
-            result = integration_session.#{method}(...)
-            copy_session_variables!
-            result
-          end
-        RUBY
+      def patch(...)
+        @html_document = nil
+        result = integration_session.patch(...)
+        copy_session_variables!
+        result
+      end
+
+      def put(...)
+        @html_document = nil
+        result = integration_session.put(...)
+        copy_session_variables!
+        result
+      end
+
+      def head(...)
+        @html_document = nil
+        result = integration_session.head(...)
+        copy_session_variables!
+        result
+      end
+
+      def delete(...)
+        @html_document = nil
+        result = integration_session.delete(...)
+        copy_session_variables!
+        result
+      end
+
+      def options(...)
+        @html_document = nil
+        result = integration_session.options(...)
+        copy_session_variables!
+        result
+      end
+
+      def query(...)
+        @html_document = nil
+        result = integration_session.query(...)
+        copy_session_variables!
+        result
+      end
+
+      def follow_redirect!(...)
+        @html_document = nil
+        result = integration_session.follow_redirect!(...)
+        copy_session_variables!
+        result
+      end
+
+      def cookies(...)
+        result = integration_session.cookies(...)
+        copy_session_variables!
+        result
+      end
+
+      def assigns(...)
+        result = integration_session.assigns(...)
+        copy_session_variables!
+        result
       end
 
       # Open a new session instance. If a block is given, the new session is yielded

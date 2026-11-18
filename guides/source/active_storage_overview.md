@@ -78,7 +78,7 @@ Various features of Active Storage depend on third-party software. Rails does
 not install these by default so you will need to do so separately:
 
 * [libvips](https://github.com/libvips/libvips) or
-  [ImageMagick](https://imagemagick.org/index.php) - for image analysis and
+  [ImageMagick](https://imagemagick.org/) - for image analysis and
   transformations.
 * [ffmpeg](http://ffmpeg.org/) - for video previews and ffprobe for video/audio
   analysis.
@@ -133,7 +133,7 @@ services](#configuring-cloud-services) in a later section.
 
 Active Storage automatically adds routes to your application for serving files.
 These routes are mounted under `/rails/active_storage` by default. For example,
-So when someone requests a file attachment in your app, the URL may look like
+when someone requests a file attachment in your app, the URL may look like
 `https://example.com/rails/active_storage/blobs/redirect/eyJf.../photo.jpg`. You can see all the routes by running:
 
 ```bash
@@ -328,7 +328,7 @@ newly uploaded files, Rails will interpret that as replacing the collection.
 
 To keep existing attachments, you can use hidden form fields with the
 [`signed_id`][ActiveStorage::Blob#signed_id] to re-submit each of the already
-attached file:
+attached files:
 
 ```erb
 <% @product.images.each do |image| %>
@@ -366,7 +366,7 @@ possible:
 ```
 
 You can also instruct Active Storage not to infer content type from the data by
-using the`identify` option:
+using the `identify` option:
 
 ```ruby
 @product.images.attach(
@@ -962,13 +962,104 @@ can use the `process: :later` option (with both `has_one_attached` and
 
 WARNING: It should be considered unsafe to provide arbitrary user supplied
 transformations or parameters to variant processors. This can potentially enable
-command injection vulnerabilities in your app. It is also recommended to
-implement a strict [ImageMagick security
-policy](https://imagemagick.org/script/security-policy.php) when MiniMagick is
-the variant processor of choice. With ruby-vips, you can
-[block untrusted formats][https://www.libvips.org/2022/05/28/What's-new-in-8.13.html#blocking-of-unfuzzed-loaders]
-by setting `VIPS_BLOCK_UNTRUSTED` environment variable or calling
-`Vips.block_untrusted(true)` in an initializer.
+command injection vulnerabilities in your app.
+
+WARNING: It is also recommended to implement a strict [ImageMagick security
+policy](https://imagemagick.org/script/security-policy.php) when MiniMagick is the variant processor
+of choice, or when libvips is delegating to ImageMagick (run `vips -l` on your platform).
+
+#### ImageMagick Security Policy
+
+Active Storage ships an ImageMagick security policy, in
+`ActiveStorage::ImageMagick::POLICY_DIRECTORY`, that denies coders that untrusted uploads must not reach.
+It prepends that directory to `MAGICK_CONFIGURE_PATH` through `MiniMagick.cli_env`, so every
+ImageMagick process MiniMagick spawns applies it. ImageMagick applies every `policy.xml` on its
+search path, so the shipped policy adds to your system policy rather than replacing it, and a
+`MAGICK_CONFIGURE_PATH` you set, in the environment or in `MiniMagick.cli_env`, stays on the
+search path after it. Active Storage applies the policy again after your application initializes,
+so a value an initializer or dotenv sets is kept too. ImageMagick policies are
+blocklists, so expect Active Storage to maintain and expand the shipped file over time.
+
+Because `MAGICK_CONFIGURE_PATH` is set in `MiniMagick.cli_env` rather than the shell, list the
+policy through MiniMagick to see what your application actually loads:
+
+```bash
+bin/rails runner 'puts MiniMagick.identify { |i| i.list "policy" }'
+```
+
+Applying the policy requires mini_magick 5.1 or later. With an older mini_magick, an application
+whose variant processor is `:mini_magick` raises at boot.
+
+The shipped policy reaches only ImageMagick processes started through MiniMagick with its default
+shell. If your application replaces `MiniMagick.cli_env` after it boots, clears the environment with
+`MiniMagick.cli_prefix`, or installs its own `MiniMagick::Shell`, it does not receive the shipped
+policy: copy its rules into a policy in ImageMagick's system location, such as
+`/etc/ImageMagick-7/policy.xml`. That is also where any stricter rules of your own belong.
+GraphicsMagick does not read ImageMagick policies, so an application that uses it gets no
+protection from the shipped policy.
+
+The policy denies the coders that reach a file or a script through ImageMagick rather than
+through the image itself, the coders backed by Ghostscript, and the `gs` delegate. It applies to
+every ImageMagick command MiniMagick runs, not only Active Storage's. An application that renders
+PostScript or PDF through ImageMagick must re-allow the `gs` delegate and the coders it uses in
+its own `policy.xml`:
+
+```xml
+<policy domain="delegate" rights="execute" pattern="gs"/>
+<policy domain="coder" rights="read|write" pattern="PDF"/>
+```
+
+A rule in your policy that allows a coder, including a wildcard such as `pattern="*"`, overrides
+the shipped deny, so allow only what you use.
+
+The shipped policy sets no resource limits. ImageMagick takes each limit from the first policy on
+its search path that sets it, so a limit shipped by Active Storage could not be changed by yours.
+Set limits such as `width`, `height` and `area` in your system policy.
+
+#### Disabled Vips Image Loaders and Savers
+
+libvips marks some of its image loaders and savers as
+[unfuzzed](https://www.libvips.org/2022/05/28/What's-new-in-8.13.html#blocking-of-unfuzzed-loaders),
+meaning they should not be used to process untrusted content. Active Storage disables all of them
+while your application boots, before any initializer runs.
+
+Doing so requires libvips 8.13 or later and ruby-vips 2.2.1 or later, which are Active Storage's
+minimum supported versions. When ruby-vips is installed and either minimum is not met, Active
+Storage raises a `RuntimeError` while booting rather than run in an unsecurable environment. Upgrade
+libvips and ruby-vips.
+
+Notably, ImageMagick is marked as an unfuzzed loader and is disabled by default. On many platforms,
+libvips relies on ImageMagick to read BMP, ICO, and PSD files, so attachments in those formats
+cannot be transformed by default on those platforms. Attaching, storing, and downloading them is
+unaffected, but generating a variant raises `Vips::Error`, and analysis does not record their
+`width` and `height`.
+
+Analysis also does not record dimensions for other types that libvips reads with an unfuzzed
+loader, such as SVG, JPEG XL, JPEG 2000, and Netpbm. Those types are not in the default
+`ActiveStorage.variable_content_types`, so they are not variable in the first place.
+
+The savers marked unfuzzed are typically FITS, JXL, and ImageMagick, so requesting one of those as
+a variant's output format, such as `variant(format: :jxl)`, also raises `Vips::Error`.
+
+An application that needs BMP, ICO, or PSD variants of trusted inputs can re-enable the ImageMagick
+loader in an initializer:
+
+```ruby
+# config/initializers/vips.rb
+Vips.block("VipsForeignLoadMagick", false) # Note this is dangerous for untrusted content!
+```
+
+Operation names and which of them are marked unfuzzed are both platform-dependent, so run `vips -l`
+to see the class hierarchy for your build.
+
+WARNING: Re-enabling unfuzzed image loaders and savers is dangerous. You should only attempt this
+after researching how your distribution builds libvips and which library delegates are enabled.
+
+WARNING: Even re-enabling only the ImageMagick loader, as illustrated above, is dangerous. libvips
+delegates many more file types to ImageMagick than just BMP, ICO, and PSD, so re-enabling it exposes
+a much larger attack surface. Do this only when all image uploads are trusted content, and only
+alongside a strict [ImageMagick security
+policy](https://imagemagick.org/script/security-policy.php).
 
 ### Non-image Previews
 
@@ -1211,7 +1302,7 @@ limits, and upload options - that can be included:
 
 ```yaml
 amazon:
-  ...
+  # ...
   http_open_timeout: 0
   http_read_timeout: 0
   retry_limit: 0
@@ -1315,7 +1406,7 @@ for more information.
 ```yaml
 google:
   service: GCS
-  ...
+  # ...
   iam: true
 ```
 
@@ -1328,7 +1419,7 @@ present (e.g. local tests) and you may wish to use a non-default GSA.
 ```yaml
 google:
   service: GCS
-  ...
+  # ...
   iam: true
   gsa_email: "foobar@baz.iam.gserviceaccount.com"
 ```
@@ -1538,6 +1629,7 @@ Take care to allow:
   * `Content-MD5`
   * `Content-Disposition`
   * `Cache-Control` (for GCS, only if `cache_control` is set)
+  * `x-goog-content-length-range` (for GCS)
 
 No CORS configuration is required for the Disk service since it shares your
 app’s origin.
@@ -1570,7 +1662,7 @@ app’s origin.
   {
     "origin": ["https://www.example.com"],
     "method": ["PUT"],
-    "responseHeader": ["Content-Type", "Content-MD5", "Content-Disposition"],
+    "responseHeader": ["Content-Type", "Content-MD5", "Content-Disposition", "x-goog-content-length-range"],
     "maxAgeSeconds": 3600
   }
 ]

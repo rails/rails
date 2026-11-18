@@ -89,19 +89,47 @@ module ActiveRecord
         end
 
         def preloaders_for_reflection(reflection, reflection_records)
-          reflection_records.group_by do |record|
-            klass = record.association(association).klass
+          loader = preloader_for(reflection)
+          # An inherited reflection can resolve differently for each owner class,
+          # so include the route when grouping those owners into loaders.
+          group_by_route = reflection_records.any? { |record| record.class != reflection.active_record }
+          if reflection.scope && reflection.scope.arity != 0
+            reflection_records.map do |record|
+              klass = record.association(association).klass
 
-            if reflection.scope && reflection.scope.arity != 0
               # For instance dependent scopes, the scope is potentially
               # different for each record. To allow this we'll group each
-              # object separately into its own preloader
+              # object separately unless the resulting scopes are equivalent.
               reflection_scope = reflection.join_scopes(klass.arel_table, klass.predicate_builder, klass, record).inject(&:merge!)
-            end
+              route = loader.association_route_for(reflection, record.class, klass) if group_by_route
 
-            [klass, reflection_scope]
-          end.map do |(rhs_klass, reflection_scope), rs|
-            preloader_for(reflection).new(rhs_klass, rs, reflection, scope, reflection_scope, associate_by_default)
+              [klass, route, reflection_scope, record]
+            end.group_by do |klass, route, reflection_scope, _|
+              [
+                klass,
+                route,
+                reflection_scope.table_name,
+                reflection_scope.model.connection_specification_name,
+                reflection_scope.values_for_queries,
+              ]
+            end.map do |_preloader_key, values|
+              rhs_klass, _, reflection_scope = values.first
+              records = values.map { |_, _, _, record| record }
+              loader.new(rhs_klass, records, reflection, scope, reflection_scope, associate_by_default)
+            end
+          elsif group_by_route
+            reflection_records.group_by do |record|
+              klass = record.association(association).klass
+              [klass, loader.association_route_for(reflection, record.class, klass)]
+            end.map do |(rhs_klass, _), records|
+              loader.new(rhs_klass, records, reflection, scope, nil, associate_by_default)
+            end
+          else
+            reflection_records.group_by do |record|
+              record.association(association).klass
+            end.map do |rhs_klass, records|
+              loader.new(rhs_klass, records, reflection, scope, nil, associate_by_default)
+            end
           end
         end
 

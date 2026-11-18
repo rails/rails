@@ -34,6 +34,10 @@ module ActionDispatch
           assert_equal "/foo%AAbar%AAbaz", Utils.normalize_path("/foo%aabar%aabaz")
         end
 
+        def test_normalize_path_uppercases_mixed_case_percent_escapes
+          assert_equal "/foo%AAbar%AAbaz", Utils.normalize_path("/foo%aAbar%Aabaz")
+        end
+
         def test_normalize_path_maintains_string_encoding
           path = "/foo%AAbar%AAbaz".b
           assert_equal Encoding::BINARY, Utils.normalize_path(path).encoding
@@ -41,6 +45,24 @@ module ActionDispatch
 
         def test_normalize_path_with_nil
           assert_equal "/", Utils.normalize_path(nil)
+        end
+
+        def test_normalized_path_predicate_is_true_only_for_paths_normalize_path_leaves_alone
+          ["/", "/foo", "/foo/bar", "/foo.bar-baz_qux~"].each do |path|
+            assert Utils.normalized_path?(path), "expected #{path.inspect} to count as normalized"
+            assert_equal path, Utils.normalize_path(path)
+          end
+
+          [nil, "", "foo", "/foo/", "//foo", "/foo//bar", "/foo%ab", "/foo%aB"].each do |path|
+            assert_not Utils.normalized_path?(path), "expected #{path.inspect} not to count as normalized"
+            assert_not_equal path, Utils.normalize_path(path)
+          end
+
+          # Percent escapes are declined without looking at their case.
+          ["/foo%20bar", "/foo%AB"].each do |path|
+            assert_not Utils.normalized_path?(path), "expected #{path.inspect} not to count as normalized"
+            assert_equal path, Utils.normalize_path(path)
+          end
         end
       end
     end

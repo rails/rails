@@ -24,6 +24,8 @@ class DefaultTest < ActiveRecord::TestCase
 end
 
 class DefaultNumbersTest < ActiveRecord::TestCase
+  skip_under_ractor_proxy
+
   class DefaultNumber < ActiveRecord::Base; end
 
   setup do
@@ -42,23 +44,25 @@ class DefaultNumbersTest < ActiveRecord::TestCase
   def test_default_positive_integer
     record = DefaultNumber.new
     assert_equal 7, record.positive_integer
-    assert_equal 7, record.positive_integer_before_type_cast
+    assert_equal "7", record.positive_integer_before_type_cast
   end
 
   def test_default_negative_integer
     record = DefaultNumber.new
     assert_equal (-5), record.negative_integer
-    assert_equal (-5), record.negative_integer_before_type_cast
+    assert_equal "-5", record.negative_integer_before_type_cast
   end
 
   def test_default_decimal_number
     record = DefaultNumber.new
     assert_equal BigDecimal("2.78"), record.decimal_number
-    assert_equal BigDecimal("2.78"), record.decimal_number_before_type_cast
+    assert_equal "2.78", record.decimal_number_before_type_cast
   end
 end
 
 class DefaultStringsTest < ActiveRecord::TestCase
+  skip_under_ractor_proxy
+
   class DefaultString < ActiveRecord::Base; end
 
   setup do
@@ -84,6 +88,8 @@ class DefaultStringsTest < ActiveRecord::TestCase
 end
 
 class DefaultBinaryTest < ActiveRecord::TestCase
+  skip_under_ractor_proxy
+
   if current_adapter?(:SQLite3Adapter, :PostgreSQLAdapter)
     class DefaultBinary < ActiveRecord::Base; end
 
@@ -117,6 +123,8 @@ class DefaultBinaryTest < ActiveRecord::TestCase
 end
 
 class DefaultTextTest < ActiveRecord::TestCase
+  skip_under_ractor_proxy
+
   if supports_text_column_with_default?
     class DefaultText < ActiveRecord::Base; end
 

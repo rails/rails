@@ -10,7 +10,7 @@ module ActionView
       @content = Hash.new { |h, k| h[k] = ActiveSupport::SafeBuffer.new }
     end
 
-    # Called by _layout_for to read stored values.
+    # Called by \_layout_for to read stored values.
     def get(key)
       @content[key]
     end

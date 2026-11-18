@@ -2,7 +2,6 @@
 
 require "abstract_unit"
 require "active_support/testing/event_reporter_assertions"
-require "rails/structured_event_subscriber"
 
 module Rails
   class StructuredEventSubscriberTest < ActiveSupport::TestCase

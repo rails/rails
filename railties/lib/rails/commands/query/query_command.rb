@@ -25,17 +25,17 @@ module Rails
         boot_application!
         Rails.application.load_runner
 
-        ActiveSupport::Notifications.instrument("query.rails", expression: expression) do
-          case expression
-          when "schema"
-            run_schema(args.first)
-          when "models"
-            run_models
-          when "explain"
-            run_explain(args.first)
-          else
-            run_query(expression)
-          end
+        case expression
+        when "schema"
+          instrument("schema", *args.first) { run_schema(args.first) }
+        when "models"
+          instrument("models") { run_models }
+        when "explain"
+          query = resolve_expression(args.first)
+          instrument("explain", query) { run_explain(query) }
+        else
+          expression = resolve_expression(expression)
+          instrument(expression) { run_query(expression) }
         end
       rescue StandardError, SyntaxError, NotImplementedError => e
         output_error(e.message)
@@ -72,9 +72,12 @@ module Rails
           say JSON.generate(data)
         end
 
-        def run_explain(expression = nil)
-          expression = resolve_expression(expression)
+        # Reports what runs, stdin resolved, so a subscriber such as an audit log records it.
+        def instrument(*command, &block)
+          ActiveSupport::Notifications.instrument("query.rails", expression: command.join(" "), &block)
+        end
 
+        def run_explain(expression)
           if options[:sql]
             with_readonly_connection do |connection|
               result = connection.select_all("EXPLAIN #{expression}")
@@ -91,7 +94,6 @@ module Rails
         end
 
         def run_query(expression)
-          expression = resolve_expression(expression)
           page = [ options[:page], 1 ].max
           per = [ [ options[:per], 1 ].max, 10_000 ].min
 
@@ -150,7 +152,7 @@ module Rails
         end
 
         def execute_sql(connection:, sql:, page:, per:)
-          unless sql.gsub(/--.*$|\/\*.*?\*\//m, "").match?(/\bLIMIT\b/i)
+          unless sql.gsub(/--[^\n]*|\/\*.*?\*\//m, "").match?(/\bLIMIT\b/i)
             offset = (page - 1) * per
             sql = "#{sql.rstrip.chomp(';')} LIMIT #{per + 1}"
             sql += " OFFSET #{offset}" if offset > 0
@@ -172,7 +174,11 @@ module Rails
         def tabular_result_parts_for(result, expression:, page:, per:)
           case result
           when ActiveRecord::Relation
-            relation = result.offset((page - 1) * per).limit(per + 1)
+            relation = if result.limit_value
+              result
+            else
+              result.offset((page - 1) * per).limit(per + 1)
+            end
             relation_sql = relation.to_sql
 
             with_readonly_connection_for(relation.model.connection_class_for_self) do |connection|

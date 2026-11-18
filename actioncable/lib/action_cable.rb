@@ -52,7 +52,6 @@ Zeitwerk::Loader.for_gem.tap do |loader|
   loader.inflector.inflect("postgresql" => "PostgreSQL")
 end.setup
 
-# :markup: markdown
 # :include: ../README.md
 module ActionCable
   require_relative "action_cable/version"

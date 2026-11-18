@@ -110,6 +110,31 @@ module ApplicationTests
       assert_includes comment, "controller:users"
     end
 
+    test "prepared statements will be disabled when query log tags are true" do
+      add_to_config "config.active_record.query_log_tags_enabled = true"
+
+      boot_app
+
+      assert ActiveRecord.disable_prepared_statements
+    end
+
+    test "prepared statements will be enabled disabled_prepared_statements is explictly set" do
+      add_to_config "config.active_record.query_log_tags_enabled = true"
+      add_to_config "config.active_record.disable_prepared_statements = false"
+      add_to_config "config.active_record.query_log_tags_format = :sqlcommenter"
+      add_to_config "config.active_record.query_log_tags = [ :pid ]"
+
+      boot_app
+
+      assert_not ActiveRecord.disable_prepared_statements
+
+      get "/", {}, { "HTTPS" => "on" }
+      comment = last_response.body.strip
+
+      assert_match(/pid='\d+'/, comment)
+      assert_includes comment, "controller='users'"
+    end
+
     test "sqlcommenter formatting works when specified" do
       add_to_config "config.active_record.query_log_tags_enabled = true"
       add_to_config "config.active_record.query_log_tags_format = :sqlcommenter"

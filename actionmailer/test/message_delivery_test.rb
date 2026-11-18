@@ -138,6 +138,30 @@ class MessageDeliveryTest < ActiveSupport::TestCase
     end
   end
 
+  test "deliver_all_later after accessing a message is disallowed" do
+    mail1 = DelayedMailer.test_message(1)
+    mail2 = DelayedMailer.test_message(2)
+    mail2.message # Load the message, which calls the mailer method.
+
+    assert_no_enqueued_jobs do
+      assert_raise(RuntimeError, match: "accessed the message before asking") do
+        ActionMailer.deliver_all_later(mail1, mail2)
+      end
+    end
+  end
+
+  test "deliver_all_later! after accessing a message is disallowed" do
+    mail1 = DelayedMailer.test_message(1)
+    mail2 = DelayedMailer.test_message(2)
+    mail2.message # Load the message, which calls the mailer method.
+
+    assert_no_enqueued_jobs do
+      assert_raise(RuntimeError, match: "accessed the message before asking") do
+        ActionMailer.deliver_all_later!(mail1, mail2)
+      end
+    end
+  end
+
   test "deliver_all_later enqueues multiple deliveries" do
     mail1 = DelayedMailer.test_message(1)
     mail2 = DelayedMailer.test_kwargs(argument: 1)
@@ -238,6 +262,12 @@ class MessageDeliveryTest < ActiveSupport::TestCase
       raise "boom, missing find"
     end
 
+    # GlobalID::Locator.fetch, used during argument deserialization, looks
+    # records up through a non-raising finder, so blow up here too.
+    def self.where(id:)
+      raise "boom, missing find"
+    end
+
     attr_reader :id
     def initialize(id = 1)
       @id = id
@@ -256,7 +286,8 @@ class MessageDeliveryTest < ActiveSupport::TestCase
     # on the mailer class.
     assert_nothing_raised { message.deliver_later }
     assert_equal DelayedMailer, DelayedMailer.last_rescue_from_instance
-    assert_equal "Error while trying to deserialize arguments: boom, missing find", DelayedMailer.last_error.message
+    assert_match "Error while trying to deserialize arguments:", DelayedMailer.last_error.message
+    assert_match "boom, missing find", DelayedMailer.last_error.message
   end
 
   test "allows for keyword arguments" do

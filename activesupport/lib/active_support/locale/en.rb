@@ -4,7 +4,7 @@
   en: {
     number: {
       nth: {
-        ordinals: lambda do |_key, options|
+        ordinals: ActiveSupport::Ractors.shareable_lambda do |_key, options|
           number = options[:number]
           case number
           when 1; "st"
@@ -23,7 +23,7 @@
           end
         end,
 
-        ordinalized: lambda do |_key, options|
+        ordinalized: ActiveSupport::Ractors.shareable_lambda do |_key, options|
           number = options[:number]
           "#{number}#{ActiveSupport::Inflector.ordinal(number)}"
         end

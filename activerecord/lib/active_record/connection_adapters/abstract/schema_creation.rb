@@ -16,19 +16,24 @@ module ActiveRecord
       delegate :quote_column_name, :quote_table_name, :quote_default_expression, :type_to_sql,
         :options_include_default?, :supports_indexes_in_create?, :use_foreign_keys?,
         :quoted_columns_for_index, :supports_partial_index?, :supports_check_constraints?,
-        :supports_index_include?, :supports_exclusion_constraints?, :supports_unique_constraints?,
-        :supports_nulls_not_distinct?, :lookup_cast_type,
+        :lookup_cast_type,
         to: :@conn, private: true
 
       private
         def visit_AlterTable(o)
-          sql = +"ALTER TABLE #{quote_table_name(o.name)} "
-          sql << o.adds.map { |col| accept col }.join(" ")
-          sql << o.foreign_key_adds.map { |fk| visit_AddForeignKey fk }.join(" ")
-          sql << o.foreign_key_drops.map { |fk| visit_DropForeignKey fk }.join(" ")
-          sql << o.check_constraint_adds.map { |con| visit_AddCheckConstraint con }.join(" ")
-          sql << o.check_constraint_drops.map { |con| visit_DropCheckConstraint con }.join(" ")
-          sql << o.constraint_drops.map { |con| visit_DropConstraint con }.join(" ")
+          "ALTER TABLE #{quote_table_name(o.name)} #{o.operations.map { |op| accept(op) }.join(', ')}"
+        end
+
+        def visit_DropColumn(o)
+          "DROP COLUMN #{quote_column_name(o.name)}"
+        end
+
+        def visit_RenameColumn(o)
+          "RENAME COLUMN #{quote_column_name(o.from_name)} TO #{quote_column_name(o.to_name)}"
+        end
+
+        def visit_ChangeColumnNull(o)
+          "ALTER COLUMN #{quote_column_name(o.name)} #{o.null ? 'DROP' : 'SET'} NOT NULL"
         end
 
         def visit_ColumnDefinition(o)
@@ -54,21 +59,7 @@ module ActiveRecord
             statements.concat(o.indexes.map { |column_name, options| index_in_create(o.name, column_name, options) })
           end
 
-          if use_foreign_keys?
-            statements.concat(o.foreign_keys.map { |fk| accept fk })
-          end
-
-          if supports_check_constraints?
-            statements.concat(o.check_constraints.map { |chk| accept chk })
-          end
-
-          if supports_exclusion_constraints?
-            statements.concat(o.exclusion_constraints.map { |exc| accept exc })
-          end
-
-          if supports_unique_constraints?
-            statements.concat(o.unique_constraints.map { |exc| accept exc })
-          end
+          add_table_constraints!(statements, o)
 
           create_sql << "(#{statements.join(', ')})" if statements.present?
           add_table_options!(create_sql, o)
@@ -94,11 +85,11 @@ module ActiveRecord
         end
 
         def visit_AddForeignKey(o)
-          "ADD #{accept(o)}"
+          "ADD #{accept(o.foreign_key)}"
         end
 
-        def visit_DropConstraint(name)
-          "DROP CONSTRAINT #{quote_column_name(name)}"
+        def visit_DropConstraint(o)
+          "DROP CONSTRAINT #{quote_column_name(o.name)}"
         end
         alias :visit_DropForeignKey :visit_DropConstraint
         alias :visit_DropCheckConstraint :visit_DropConstraint
@@ -111,13 +102,10 @@ module ActiveRecord
           sql << "INDEX"
           sql << o.algorithm if o.algorithm
           sql << "IF NOT EXISTS" if o.if_not_exists
-          sql << index.type if index.type
           sql << "#{quote_column_name(index.name)} ON #{quote_table_name(index.table)}"
           sql << "USING #{index.using}" if supports_index_using? && index.using
           sql << "(#{quoted_columns(index)})"
-          sql << "INCLUDE (#{quoted_include_columns(index.include)})" if supports_index_include? && index.include
-          sql << "NULLS NOT DISTINCT" if supports_nulls_not_distinct? && index.nulls_not_distinct
-          sql << "WHERE #{index.where}" if supports_partial_index? && index.where
+          add_index_options!(sql, index)
 
           sql.join(" ")
         end
@@ -127,7 +115,7 @@ module ActiveRecord
         end
 
         def visit_AddCheckConstraint(o)
-          "ADD #{accept(o)}"
+          "ADD #{accept(o.check_constraint)}"
         end
 
         def quoted_columns(o)
@@ -136,6 +124,23 @@ module ActiveRecord
 
         def supports_index_using?
           true
+        end
+
+        def add_table_constraints!(statements, o)
+          if use_foreign_keys?
+            statements.concat(o.foreign_keys.map { |fk| accept fk })
+          end
+
+          if supports_check_constraints?
+            statements.concat(o.check_constraints.map { |chk| accept chk })
+          end
+
+          statements
+        end
+
+        def add_index_options!(sql, index)
+          sql << "WHERE #{index.where}" if supports_partial_index? && index.where
+          sql
         end
 
         def add_table_options!(create_sql, o)

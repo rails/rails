@@ -1,7 +1,5 @@
 # frozen_string_literal: true
 
-# :markup: markdown
-
 require "action_dispatch/journey/nfa/dot"
 
 module ActionDispatch
@@ -18,32 +16,29 @@ module ActionDispatch
           @stdparam_states = {}
           @regexp_states   = {}
           @string_states   = {}
-          @accepting       = {}
-          @memos           = Hash.new { |h, k| h[k] = [] }
+          @memos           = {}
         end
 
-        def add_accepting(state)
-          @accepting[state] = true
+        def freeze
+          return self if frozen?
+
+          @stdparam_states.freeze
+          @regexp_states.freeze
+          @string_states.freeze
+          @memos.freeze
+          super
         end
 
         def accepting_states
-          @accepting.keys
-        end
-
-        def accepting?(state)
-          @accepting[state]
+          @memos.keys
         end
 
         def add_memo(idx, memo)
-          @memos[idx] << memo
+          (@memos[idx] ||= []) << memo
         end
 
         def memo(idx)
           @memos[idx]
-        end
-
-        def eclosure(t)
-          Array(t)
         end
 
         def move(t, full_string, token, start_index, token_matches_default)
@@ -113,7 +108,7 @@ module ActionDispatch
             regexp_states:   simple_regexp.stringify_keys,
             string_states:   @string_states.stringify_keys,
             stdparam_states: @stdparam_states.stringify_keys,
-            accepting:       @accepting.stringify_keys
+            accepting:       @memos.to_h { |state, _| [state.to_s, true] }
           }
         end
 
@@ -182,13 +177,6 @@ module ActionDispatch
           else
             raise ArgumentError, "unknown symbol: %s" % sym.class
           end
-        end
-
-        def states
-          ss = @string_states.keys + @string_states.values.flat_map(&:values)
-          ps = @stdparam_states.keys + @stdparam_states.values
-          rs = @regexp_states.keys + @regexp_states.values.flat_map(&:values)
-          (ss + ps + rs).uniq
         end
 
         def transitions

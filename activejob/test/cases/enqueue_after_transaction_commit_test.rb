@@ -125,6 +125,63 @@ class EnqueueAfterTransactionCommitTest < ActiveSupport::TestCase
     end
   end
 
+  class CapturingAdapter
+    attr_reader :enqueued, :scheduled
+
+    def initialize
+      @enqueued = []
+      @scheduled = []
+    end
+
+    def enqueue(job)
+      @enqueued << { job: job, queue_name: job.queue_name, priority: job.priority }
+    end
+
+    def enqueue_at(job, timestamp)
+      @scheduled << { job: job, timestamp: timestamp, queue_name: job.queue_name, priority: job.priority }
+    end
+  end
+
+  class CapturingJob < ActiveJob::Base
+    self.queue_adapter = CapturingAdapter.new
+
+    def perform
+      # noop
+    end
+  end
+
+  test "#retry_job preserves scheduled_at, queue_name, and priority when enqueue is deferred" do
+    fake_active_record = FakeActiveRecord.new(false)
+    stub_const(Object, :ActiveRecord, fake_active_record, exists: false) do
+      CapturingJob.enqueue_after_transaction_commit = true
+
+      job = CapturingJob.new
+      scheduled_time = Time.now.utc + 60
+      job.retry_job(wait_until: scheduled_time, queue: "retries", priority: 10)
+
+      # `retry_job` restores the original attributes on `self` after enqueue,
+      # but the deferred enqueue should still use the attributes passed to it.
+      assert_nil job.scheduled_at
+      assert_equal "default", job.queue_name
+      assert_nil job.priority
+
+      fake_active_record.run_after_commit_callbacks
+
+      scheduled = CapturingJob.queue_adapter.scheduled.last
+      assert_not_nil scheduled, "expected job to be scheduled via enqueue_at"
+      assert_same job, scheduled[:job]
+      assert_in_delta scheduled_time.to_f, scheduled[:timestamp], 0.001
+      assert_equal "retries", scheduled[:queue_name]
+      assert_equal 10, scheduled[:priority]
+
+      # After the deferred enqueue runs, the original attributes remain
+      # restored on `self` so callers don't observe mutated state.
+      assert_nil job.scheduled_at
+      assert_equal "default", job.queue_name
+      assert_nil job.priority
+    end
+  end
+
   test "#perform_later defers enqueue callbacks until after commit" do
     fake_active_record = FakeActiveRecord.new(false)
     stub_const(Object, :ActiveRecord, fake_active_record, exists: false) do

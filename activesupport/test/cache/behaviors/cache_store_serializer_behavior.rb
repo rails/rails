@@ -36,6 +36,23 @@ module CacheStoreSerializerBehavior
       end
     end
 
+    test ":message_pack serializer treats an entry whose class no longer exists as a cache miss" do
+      klass = Class.new do
+        def self.name; "DoesNotActuallyExist"; end
+        def self.from_msgpack_ext(string); new; end
+        def to_msgpack_ext; ""; end
+      end
+
+      @cache = with_format(7.1) { lookup_store(serializer: :message_pack) }
+      key = "key#{rand}"
+
+      @cache.write(key, klass.new)
+      assert_not @cache.exist?(key)
+      assert_equal({}, @cache.read_multi(key))
+      assert_equal "recomputed", @cache.fetch(key) { "recomputed" }
+      assert_equal "recomputed", @cache.read(key)
+    end
+
     test "specifying a serializer raises when also specifying a coder" do
       with_format(7.1) do
         assert_raises ArgumentError, match: /serializer/i do

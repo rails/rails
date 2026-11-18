@@ -32,6 +32,12 @@ module ActiveModel
         assert_equal "f", type.cast(false)
       end
 
+      test "#to_immutable_string returns self" do
+        type = Type::ImmutableString.new
+
+        assert_same type, type.to_immutable_string
+      end
+
       test "serialize coerces numerics and symbols to strings" do
         type = Type::ImmutableString.new
         assert_equal "123", type.serialize(123)

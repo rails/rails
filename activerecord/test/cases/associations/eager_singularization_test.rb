@@ -51,6 +51,7 @@ class EagerSingularizationTest < ActiveRecord::TestCase
   end
 
   def setup
+    connection = main_ractor_connection(self.connection)
     connection.create_table :viri do |t|
       t.column :octopus_id, :integer
       t.column :species, :string

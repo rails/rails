@@ -12,7 +12,8 @@ require "active_model/railtie"
 require "action_controller/railtie"
 
 module ActiveRecord
-  # = Active Record Railtie
+  # Active Record Railtie
+  # =====================
   class Railtie < Rails::Railtie # :nodoc:
     config.active_record = ActiveSupport::OrderedOptions.new
     config.active_record.encryption = ActiveSupport::OrderedOptions.new
@@ -37,10 +38,13 @@ module ActiveRecord
     config.active_record.cache_query_log_tags = false
     config.active_record.query_log_tags_prepend_comment = false
     config.active_record.raise_on_assign_to_attr_readonly = false
+    config.active_record.shuffle_unordered_selects = false
     config.active_record.belongs_to_required_validates_foreign_key = true
     config.active_record.generate_secure_token_on = :create
     config.active_record.use_legacy_signed_id_verifier = :generate_and_verify
     config.active_record.deprecated_associations_options = { mode: :warn, backtrace: false }
+    config.active_record.dump_schema_migrations = false
+    config.active_record.dump_schema_migrations_sort_by = :reverse
 
     config.active_record.queues = ActiveSupport::InheritableOptions.new
 
@@ -98,7 +102,7 @@ module ActiveRecord
     initializer "active_record.postgresql_time_zone_aware_types" do
       ActiveSupport.on_load(:active_record_postgresqladapter) do
         ActiveSupport.on_load(:active_record) do
-          ActiveRecord::Base.time_zone_aware_types << :timestamptz
+          (ActiveRecord::Base.time_zone_aware_types += [:timestamptz]).freeze
         end
       end
     end
@@ -411,7 +415,7 @@ To keep using the current cache store, you can turn off cache versioning entirel
             database:     ->(context) { context[:connection].pool.db_config.database },
             source_location: -> { QueryLogs.query_source_location }
           )
-          ActiveRecord.disable_prepared_statements = true
+          ActiveRecord.disable_prepared_statements = true if config.active_record.disable_prepared_statements.nil?
 
           if app.config.active_record.query_log_tags.present?
             ActiveRecord::QueryLogs.tags = app.config.active_record.query_log_tags
@@ -451,6 +455,20 @@ To keep using the current cache store, you can turn off cache versioning entirel
         ActiveSupport.on_load(:active_record) do
           require "active_record/message_pack"
           ActiveRecord::MessagePack::Extensions.install(ActiveSupport::MessagePack::CacheSerializer)
+        end
+      end
+    end
+
+    initializer "active_record.ractorize" do
+      ActiveSupport.on_load(:before_ractorize) do
+        ActiveRecord::Base.descendants.each(&:make_reflections_shareable!)
+
+        ActiveSupport::Ractors.make_shareable(ActiveRecord.query_transformers)
+        ActiveSupport::Ractors.make_shareable(ActiveRecord.schema_ignored_tables)
+
+        ActiveSupport.on_load(:active_record) do
+          ActiveRecord::Base.time_zone_aware_types.freeze
+          ActiveRecord::Base.skip_time_zone_conversion_for_attributes.freeze
         end
       end
     end
