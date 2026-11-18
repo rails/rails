@@ -1240,6 +1240,29 @@ module ActiveRecord
         assert_equal ActiveSupport::Concurrency::NullLock, @pool.lease_connection.lock
       end
 
+      def test_pin_connection_installs_the_lock_before_another_thread_can_check_the_connection_out
+        connection = @pool.lease_connection
+        pool = @pool
+        checked_out = nil
+
+        # Another thread checks out a connection while the pin is installing
+        # the lock, as a background thread may during a test's setup.
+        connection.singleton_class.prepend(Module.new do
+          define_method(:lock_thread=) do |context|
+            if context && checked_out.nil?
+              Thread.new { pool.with_connection { |conn| checked_out = conn } }.join
+            end
+            super(context)
+          end
+        end)
+
+        @pool.pin_connection!(true)
+
+        assert_not_same connection, checked_out
+      ensure
+        @pool.unpin_connection!
+      end
+
       def test_inspect_does_not_show_secrets
         assert_match(/#<ActiveRecord::ConnectionAdapters::ConnectionPool env_name="\w+" role=:writing>/, @pool.inspect)
 
