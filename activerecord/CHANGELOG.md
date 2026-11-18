@@ -1,3 +1,11 @@
+*   Use `mariadb-dump` and `mariadb` for MySQL structure dumps and loads when
+    they are on the `PATH`, falling back to `mysqldump` and `mysql`.
+
+    MariaDB 11 deprecates the old names and prints a warning on every run, and
+    the official `mariadb` Docker image no longer ships them.
+
+    *Yashaswi Kumar*
+
 *   Add `config.active_record.association_scope_keeps_owner_conditions` to
     always apply the conditions tying the records of an association to the
     owner, and deprecate removing them with the association scope.
