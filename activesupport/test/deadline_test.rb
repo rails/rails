@@ -44,6 +44,21 @@ module ActiveSupport
       end
     end
 
+    test "allow zero and negative timeout" do
+      # Useful for testing
+      stub_monotonic_time(@started_at) do
+        deadline = Deadline.new(0)
+        assert_raises Deadline::Exceeded do
+          deadline.clamp(1)
+        end
+
+        deadline = Deadline.new(-1)
+        assert_raises Deadline::Exceeded do
+          deadline.clamp(1)
+        end
+      end
+    end
+
     test "Null#clamp always returns the maximum" do
       assert_equal 1_000.0, Deadline::Null.clamp(1_000)
     end

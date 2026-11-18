@@ -37,14 +37,8 @@ module ActiveSupport
         def clamp(maximum, minimum: 0.0, error: Exceeded)
           Float(maximum) # Ensure coerced to Float
         end
-      end
-    end
 
-    module Over
-      class << self
-        def clamp(maximum, minimum: 0.0, error: Exceeded)
-          Float(maximum)
-          raise error, "Execution terminated"
+        def close
         end
       end
     end
@@ -73,6 +67,13 @@ module ActiveSupport
         raise error, "Deadline exceeded"
       end
       [maximum, remaining].min
+    end
+
+    # Marks the deadline as terminated, ensuring any further
+    # uses will result in a Deadline::Exceeded error.
+    def close
+      @ends_at = -1.0
+      nil
     end
 
     private
