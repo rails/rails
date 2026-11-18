@@ -5688,6 +5688,44 @@ module ApplicationTests
       assert_equal "[:active_record_connected_to_stack, :custom_key]", last_response.body
     end
 
+    test "config.action_controller.live_streaming_copy_thread_locals is true by default for upgraded apps" do
+      remove_from_config '.*config\.load_defaults.*\n'
+
+      app "development"
+
+      assert_equal true, ActionController::Live.live_streaming_copy_thread_locals
+    end
+
+    test "config.action_controller.live_streaming_copy_thread_locals is false by default for new apps" do
+      app "development"
+
+      assert_equal false, ActionController::Live.live_streaming_copy_thread_locals
+    end
+
+    test "config.action_controller.live_streaming_copy_thread_locals configures ActionController::Live" do
+      app_file "app/controllers/posts_controller.rb", <<-RUBY
+      class PostsController < ActionController::Base
+        include ActionController::Live
+
+        def index
+          render plain: self.class.live_streaming_copy_thread_locals.inspect
+        end
+      end
+      RUBY
+
+      add_to_config <<-RUBY
+        routes.prepend do
+          resources :posts
+        end
+        config.action_controller.live_streaming_copy_thread_locals = true
+      RUBY
+
+      app "development"
+
+      get "/posts"
+      assert_equal "true", last_response.body
+    end
+
     test "ActiveRecord configuration lists can be appended to after boot" do
       app_file "config/initializers/append_to_active_record_config.rb", <<~RUBY
         module AppendedQueryTransformer

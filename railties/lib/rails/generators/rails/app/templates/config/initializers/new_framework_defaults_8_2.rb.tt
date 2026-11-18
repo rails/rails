@@ -137,6 +137,17 @@
 # Rails.application.config.action_controller.rescue_from_event_backtrace = :array
 
 ###
+# Stop copying thread locals (`Thread.current[]`) from the request thread to the
+# thread that runs `ActionController::Live` actions.
+#
+# Only references are copied, so mutable objects stored in thread locals end up
+# shared between both threads. Use `ActiveSupport::CurrentAttributes` or
+# `ActiveSupport::IsolatedExecutionState` for state that needs to be available
+# while streaming.
+#++
+# Rails.application.config.action_controller.live_streaming_copy_thread_locals = false
+
+###
 # Honor specific formats in the `Accept` header even when it contains the `*/*`
 # wildcard, instead of always defaulting to HTML. For example, a request with
 # `Accept: application/json, */*` now returns JSON.

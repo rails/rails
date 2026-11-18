@@ -1,3 +1,18 @@
+*   Add `config.action_controller.live_streaming_copy_thread_locals` to stop
+    copying thread locals to the thread running `ActionController::Live` actions.
+
+    `ActionController::Live` copies every `Thread.current[]` entry of the request
+    thread to the streaming thread. Only references are copied, so mutable objects
+    stored in thread locals end up shared between both threads. When set to `false`,
+    the streaming thread only inherits `ActiveSupport::IsolatedExecutionState`
+    (which backs `ActiveSupport::CurrentAttributes`).
+
+    Defaults to `false` for new applications (`load_defaults "8.2"`).
+
+    Fixes #59733.
+
+    *Vinícius Alonso*
+
 *   Apply `config.action_dispatch.cookies_same_site_protection` to every session
     store.
 
