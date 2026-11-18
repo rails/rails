@@ -319,6 +319,43 @@ class HttpTokenAuthenticationTest < ActionController::TestCase
     assert_equal expected_options, actual.last
   end
 
+  test "token_and_options returns the token for Token, Bearer and DPoP" do
+    ["Token abc", "bearer abc", "DPoP abc"].each do |authorization|
+      actual = ActionController::HttpAuthentication::Token.token_and_options(mock_authorization_request(authorization))
+      assert_equal ["abc", {}], actual, authorization
+    end
+  end
+
+  test "token_and_options returns nil for other schemes" do
+    ["Basic YWxpY2U6c2VjcmV0", 'Digest username="alice"', "PrivateToken abc", "abc"].each do |authorization|
+      assert_nil ActionController::HttpAuthentication::Token.token_and_options(mock_authorization_request(authorization)), authorization
+    end
+  end
+
+  test "authenticate calls an overridden token_and_options" do
+    token = Module.new do
+      include ActionController::HttpAuthentication::Token
+      extend self
+
+      def token_and_options(request)
+        ["overridden", {}]
+      end
+    end
+
+    { "Token abc" => :token, "ApiKey abc" => :apikey, nil => nil }.each do |authorization, scheme|
+      controller = Struct.new(:request).new(mock_authorization_request(authorization))
+      assert_equal ["overridden", {}, scheme], token.authenticate(controller) { |*args| args }, authorization.inspect
+    end
+  end
+
+  test "authenticate ignores a header without a scheme" do
+    controller = Struct.new(:request).new(mock_authorization_request("abc"))
+
+    result = ActionController::HttpAuthentication::Token.authenticate(controller, scheme: [nil, "Bearer"]) { flunk }
+
+    assert_nil result
+  end
+
   test "raw_params returns a tuple of two key value pair strings" do
     auth = sample_request("rcHu+HzSFw89Ypyhn/896A=").authorization.to_s
     actual = ActionController::HttpAuthentication::Token.raw_params(auth)
