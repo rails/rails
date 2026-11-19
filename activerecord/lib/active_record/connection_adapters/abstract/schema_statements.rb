@@ -940,6 +940,18 @@ module ActiveRecord
       #
       # Note: only supported by PostgreSQL version 15.0.0 and greater.
       #
+      # ====== Creating an index with storage parameters
+      #
+      #   add_index(:people, :last_name, with: { fillfactor: 70 })
+      #
+      # generates:
+      #
+      #   CREATE INDEX index_people_on_last_name ON people (last_name) WITH (fillfactor = '70')
+      #
+      # A string is passed through as written, e.g. <tt>with: "fillfactor = 70"</tt>.
+      #
+      # Note: only supported by PostgreSQL.
+      #
       # ====== Creating an index with a specific method
       #
       #   add_index(:developers, :name, using: 'btree')
