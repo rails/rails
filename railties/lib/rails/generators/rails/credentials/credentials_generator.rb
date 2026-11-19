@@ -40,7 +40,7 @@ module Rails
         end
 
         def secret_key_base
-          @secret_key_base ||= SecureRandom.hex(64)
+          @secret_key_base ||= SecureRandom.alphanumeric(128)
         end
 
         def render_template_to_encrypted_file

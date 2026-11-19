@@ -1,3 +1,10 @@
+*   Generate alphanumeric secret key bases instead of hexadecimal strings.
+
+    `rails secret`, generated credentials, and local secrets retain their
+    128-character length. Existing secrets and master keys are unchanged.
+
+    *Ally Piechowski*
+
 *   Detect Kamal in `bin/rails app:update`.
 
     The update command didn't pass `skip_kamal`, so it rendered config files

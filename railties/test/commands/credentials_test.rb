@@ -30,6 +30,18 @@ class Rails::Command::CredentialsTest < ActiveSupport::TestCase
     end
   end
 
+  test "generated secret_key_base is alphanumeric and memoized" do
+    require "rails/generators"
+    require "rails/generators/rails/credentials/credentials_generator"
+
+    secret = "Z" * 128
+    generator = Rails::Generators::CredentialsGenerator.new
+
+    assert_called_with(SecureRandom, :alphanumeric, [128], returns: secret) do
+      2.times { assert_equal secret, generator.send(:secret_key_base) }
+    end
+  end
+
   test "edit credentials" do
     # Run twice to ensure credentials can be reread after first edit pass.
     2.times do
@@ -368,7 +380,7 @@ class Rails::Command::CredentialsTest < ActiveSupport::TestCase
   end
 
   private
-    DEFAULT_CREDENTIALS_PATTERN = /access_key_id: 123\n.*secret_key_base: \h{128}\n/m
+    DEFAULT_CREDENTIALS_PATTERN = /access_key_id: 123\n.*secret_key_base: [a-zA-Z0-9]{128}\n/m
 
     def run_edit_command(visual: "cat", editor: "cat", environment: nil, **options)
       switch_env("VISUAL", visual) do
