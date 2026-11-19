@@ -27,7 +27,7 @@ module ActiveRecord
       end
 
       def column_names
-        @column_names ||= @model_class ? @model_class.columns.map(&:name).to_set : Set.new
+        @column_names ||= @model_class ? @model_class.columns.reject(&:virtual?).map(&:name).to_set : Set.new
       end
 
       def timestamp_column_names
