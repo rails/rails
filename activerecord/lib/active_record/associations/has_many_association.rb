@@ -29,30 +29,21 @@ module ActiveRecord
           load_target.each { |t| t.destroyed_by_association = reflection }
           destroy_all
         when :destroy_async
-          load_target.each do |t|
-            t.destroyed_by_association = reflection
-          end
+          association_class = scope.model
+          primary_key_column = association_class.query_constraints_list || Array(association_class.primary_key)
+          batch_size = owner.class.destroy_association_async_batch_size || scope.count
 
-          unless target.empty?
-            association_class = target.first.class
-            if association_class.query_constraints_list
-              primary_key_column = association_class.query_constraints_list
-              ids = target.collect { |assoc| primary_key_column.map { |col| assoc.public_send(col) } }
-            else
-              primary_key_column = association_class.primary_key
-              ids = target.collect { |assoc| assoc.public_send(primary_key_column) }
-            end
+          scope.in_batches(of: batch_size, cursor: primary_key_column) do |batch|
+            batch_ids = batch.pluck(*primary_key_column)
 
-            ids.each_slice(owner.class.destroy_association_async_batch_size || ids.size) do |ids_batch|
-              enqueue_destroy_association(
-                owner_model_name: owner.class.to_s,
-                owner_id: owner.id,
-                association_class: reflection.klass.to_s,
-                association_ids: ids_batch,
-                association_primary_key_column: primary_key_column,
-                ensuring_owner_was_method: options.fetch(:ensuring_owner_was, nil)
-              )
-            end
+            enqueue_destroy_association(
+              owner_model_name: owner.class.to_s,
+              owner_id: owner.id,
+              association_class: association_class.to_s,
+              association_ids: batch_ids,
+              association_primary_key_column: primary_key_column,
+              ensuring_owner_was_method: options.fetch(:ensuring_owner_was, nil)
+            )
           end
         else
           delete_all
