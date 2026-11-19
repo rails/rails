@@ -1,3 +1,13 @@
+*   Fix `encrypted_attribute?` and `ciphertext_for` for encrypted binary
+    attributes loaded from PostgreSQL.
+
+    PostgreSQL returns `bytea` columns hex-escaped, so the stored ciphertext
+    wasn't recognized as encrypted.
+
+    Fixes #59581.
+
+    *Michał Smykowski*
+
 *   Log source location when scoped order is ignored in batching.
 
     *fatkodima*

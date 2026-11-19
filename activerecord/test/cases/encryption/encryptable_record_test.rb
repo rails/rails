@@ -423,6 +423,13 @@ class ActiveRecord::Encryption::EncryptableRecordTest < ActiveRecord::Encryption
     assert_encrypted_attribute EncryptedBookWithBinary.create!(logo: high_bytes), :logo, high_bytes
   end
 
+  test "encrypted_attribute? and ciphertext_for work for binary attributes loaded from the database" do
+    book = EncryptedBookWithBinary.find(EncryptedBookWithBinary.create!(logo: "Dune").id)
+
+    assert book.encrypted_attribute?(:logo)
+    assert_equal book.logo_before_type_cast, book.ciphertext_for(:logo)
+  end
+
   test "serialized binary data can be encrypted" do
     json_bytes = (32..127).map(&:chr)
     assert_encrypted_attribute EncryptedBookWithSerializedFirstBinary.create!(logo: json_bytes), :logo, json_bytes
