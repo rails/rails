@@ -1,3 +1,17 @@
+*   Don't mark a serialized attribute as changed when its stored value is only
+    encoded differently from what the coder writes.
+
+    Reading a serialized or `store` attribute compared the stored bytes with a
+    fresh encoding of the value, so a value encoded any other way made the record
+    dirty as soon as it was read: JSON written with the HTML escaping
+    `ActiveRecord::Coders::JSON` used before 8.1.4, or by a database's own JSON
+    functions (`{"identified": true}`). Every such record issued a needless
+    UPDATE when saved, and Active Storage didn't save a preview image attached to
+    such a blob, because `attach` defers saving a record that already has
+    changes. The stored value is now re-encoded before it is compared.
+
+    *Andrew K. Fader*
+
 *   Log source location when scoped order is ignored in batching.
 
     *fatkodima*
