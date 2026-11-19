@@ -70,6 +70,12 @@ module Rails
           # the previous state when it finishes, so if we left that as nil a
           # hook that touched routes would re-enter and draw again.
           @load_state = :loading
+
+          # reload! sets disable_clear_and_finalize back to false on every
+          # route set. A caller that set it before triggering this load, to
+          # draw on top of the loaded routes, would otherwise lose it and
+          # clear them.
+          drawing_on_top = route_sets.select(&:disable_clear_and_finalize)
           begin
             execute
             ActiveSupport.run_load_hooks(:after_routes_loaded, Rails.application)
@@ -77,6 +83,9 @@ module Rails
             true
           ensure
             @load_state = nil if @load_state == :loading
+            drawing_on_top.each do |routes|
+              routes.disable_clear_and_finalize = true unless routes.frozen?
+            end
           end
         end
       end
