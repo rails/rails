@@ -1,3 +1,12 @@
+*   Apply `normalizes ..., apply_to_nil: true` when querying with `nil`.
+
+    `where(attr: nil)` always emitted `IS NULL`, even when the normalizer
+    turns `nil` into a non-nil value such as `""`. The query now uses that
+    normalized value, so `where(attr: nil)` matches `where(attr: "")`.
+    A normalizer that maps blank values to `nil` still queries with `IS NULL`.
+
+    *Said Kaldybaev*
+    
 *   Log source location when scoped order is ignored in batching.
 
     *fatkodima*
