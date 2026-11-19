@@ -194,6 +194,16 @@ class ActiveStorage::ManyAttachedTest < ActiveSupport::TestCase
     assert ActiveStorage::Blob.service.exist?(user.highlights.second.key)
   end
 
+  test "attaching many new blobs uploads all the files when another instance of the record is saved later in the transaction" do
+    ActiveRecord::Base.transaction do
+      @user.highlights.attach fixture_file_upload("image.gif"), fixture_file_upload("racecar.jpg")
+      User.find(@user.id).update!(name: "Tina")
+    end
+
+    assert ActiveStorage::Blob.service.exist?(@user.highlights.first.key)
+    assert ActiveStorage::Blob.service.exist?(@user.highlights.second.key)
+  end
+
   test "attaching new blobs within a transaction create the exact amount of records" do
     assert_difference -> { ActiveStorage::Blob.count }, +2 do
       ActiveRecord::Base.transaction do

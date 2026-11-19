@@ -365,6 +365,14 @@ module ActiveStorage
       @attachment_changes = nil
     end
 
+    def committed!(should_run_callbacks: true) # :nodoc:
+      unless should_run_callbacks || destroyed?
+        changes, @attachment_changes = @attachment_changes, nil
+        changes&.each_value { |change| change.try(:upload) }
+      end
+      super
+    end
+
     def reload(*) # :nodoc:
       super.tap { @attachment_changes = nil }
     end
