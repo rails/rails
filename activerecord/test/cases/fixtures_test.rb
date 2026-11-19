@@ -1874,3 +1874,42 @@ class MultipleFixtureConnectionsTest < ActiveRecord::TestCase
     end
   end
 end
+
+class FixturesWithVirtualCompositePrimaryKeyTest < ActiveRecord::TestCase
+  if supports_virtual_columns_in_primary_key?
+    self.use_transactional_tests = false
+
+    class LineItem < ActiveRecord::Base
+      self.table_name = "virtual_key_line_items"
+    end
+
+    def setup
+      @connection = ActiveRecord::Base.lease_connection
+      @connection.create_table :virtual_key_line_items, primary_key: [:order_id, :sku_key], force: true do |t|
+        t.bigint :order_id, null: false
+        t.string :sku, null: false
+        t.virtual :sku_key, type: :string, as: "LOWER(sku)", stored: true
+      end
+
+      @fixtures_dir = Dir.mktmpdir
+      File.write(File.join(@fixtures_dir, "virtual_key_line_items.yml"), <<~FIXTURE)
+        widget:
+          order_id: 1
+          sku: ABC-1
+      FIXTURE
+    end
+
+    def teardown
+      FileUtils.rm_rf(@fixtures_dir)
+      ActiveRecord::FixtureSet.reset_cache
+      @connection.drop_table :virtual_key_line_items, if_exists: true
+      LineItem.reset_column_information
+    end
+
+    def test_does_not_generate_virtual_primary_key_columns
+      ActiveRecord::FixtureSet.create_fixtures(@fixtures_dir, "virtual_key_line_items", "virtual_key_line_items" => LineItem)
+
+      assert_equal [1, "abc-1"], LineItem.sole.id
+    end
+  end
+end
