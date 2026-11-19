@@ -366,8 +366,39 @@ class ParametersAccessorsTest < ActiveSupport::TestCase
     assert_predicate @params.deep_transform_values { |v| v }, :permitted?
   end
 
+  test "deep_transform_values retains permitted status of nested parameters" do
+    params = ActionController::Parameters.new(user: { name: " Alice " }).permit(user: [:name])
+
+    transformed = params.deep_transform_values(&:strip)
+
+    assert_equal "Alice", transformed[:user][:name]
+    assert_equal({ "user" => { "name" => "Alice" } }, transformed.to_h)
+    assert_equal({ "user" => { "name" => " Alice " } }, params.to_h)
+  end
+
+  test "deep_transform_values retains permitted status of parameters in arrays" do
+    params = ActionController::Parameters.new(users: [{ name: " Alice " }]).permit(users: [:name])
+
+    transformed = params.deep_transform_values(&:strip)
+
+    assert_equal "Alice", transformed[:users].first[:name]
+    assert_equal({ "users" => [{ "name" => "Alice" }] }, transformed.to_h)
+    assert_equal({ "users" => [{ "name" => " Alice " }] }, params.to_h)
+  end
+
   test "deep_transform_values retains unpermitted status" do
     assert_not_predicate @params.deep_transform_values { |v| v }, :permitted?
+  end
+
+  test "deep_transform_values does not permit unpermitted nested parameters" do
+    params = ActionController::Parameters.new(name: " Alice ").permit(:name)
+    params[:extra] = ActionController::Parameters.new(role: " admin ")
+
+    transformed = params.deep_transform_values(&:strip)
+
+    assert_raises(ActionController::UnfilteredParameters) { transformed.to_h }
+    assert_not_predicate transformed[:extra], :permitted?
+    assert_equal "admin", transformed[:extra][:role]
   end
 
   test "deep_transform_values yields only leaf values" do
