@@ -1428,10 +1428,7 @@ module ActiveRecord
               Arel::Collectors::Bind.new,
             )
           else
-            Arel::Collectors::SubstituteBinds.new(
-              self,
-              Arel::Collectors::SQLString.new,
-            )
+            Arel::Collectors::SubstituteBinds.new(self)
           end
         end
 
