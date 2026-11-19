@@ -1,3 +1,18 @@
+*   Patch Rack to prevent submitting requested parameters encoded in arbitrary encodings.
+
+    This is a part of the HTTP specification that has little to no legitimate use
+    but has been used several times in exploit chains targetting Rails applications.
+
+    Rails now patches Rack by default to disable that dangerous behavior.
+
+    It is likely that Rack 4.0 will make this the default.
+
+    In the unlikely case that your application do depend on that behavior, you
+    can prevent the patch from being applied by setting
+    `config.action_dispatch.allow_rack_multipart_encoding = true`.
+
+    *Jean Boussier*
+
 *   Fix `url_for` to leave out an optional part of a route when its value is a
     blank string, the same way it already does for `nil`.
 

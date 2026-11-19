@@ -92,6 +92,12 @@ module ActionDispatch
   autoload :MiddlewareStack, "action_dispatch/middleware/stack"
   autoload :Routing
 
+  module CoreExt # :nodoc:
+    extend ActiveSupport::Autoload
+
+    autoload :RackMultipartParser
+  end
+
   module Http
     extend ActiveSupport::Autoload
 
