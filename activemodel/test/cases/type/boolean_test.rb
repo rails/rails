@@ -34,6 +34,7 @@ module ActiveModel
         # explicitly check for false vs nil
         assert_equal false, type.cast(false)
         assert_equal false, type.cast(0)
+        assert_equal false, type.cast(0.0)
         assert_equal false, type.cast("0")
         assert_equal false, type.cast("f")
         assert_equal false, type.cast("F")
