@@ -240,23 +240,25 @@ module ActiveRecord
       # Active Record PostgreSQL Adapter \Index Definition
       # ==================================================
       class IndexDefinition < ActiveRecord::ConnectionAdapters::IndexDefinition # :nodoc:
-        attr_reader :opclasses, :include, :nulls_not_distinct
+        attr_reader :opclasses, :include, :nulls_not_distinct, :storage_parameters
 
-        def initialize(*args, opclasses: {}, include: nil, nulls_not_distinct: nil, **kwargs)
+        def initialize(*args, opclasses: {}, include: nil, nulls_not_distinct: nil, storage_parameters: nil, **kwargs)
           super(*args, **kwargs)
           @opclasses = concise_options(opclasses)
           @include = include
           @nulls_not_distinct = nulls_not_distinct
+          @storage_parameters = storage_parameters
         end
 
         def column_options
           super.merge!(opclass: opclasses)
         end
 
-        def defined_for?(columns = nil, include: nil, nulls_not_distinct: nil, **options)
+        def defined_for?(columns = nil, include: nil, nulls_not_distinct: nil, with: nil, **options)
           super(columns, **options) &&
             (include.nil? || Array(self.include) == Array(include).map(&:to_s)) &&
-            (nulls_not_distinct.nil? || self.nulls_not_distinct == nulls_not_distinct)
+            (nulls_not_distinct.nil? || self.nulls_not_distinct == nulls_not_distinct) &&
+            (with.nil? || normalize_storage_parameters(storage_parameters) == normalize_storage_parameters(with))
         end
 
         def as_schema_json
@@ -264,6 +266,7 @@ module ActiveRecord
           json["opclasses"] = @opclasses.presence
           json["include"] = @include
           json["nulls_not_distinct"] = @nulls_not_distinct
+          json["storage_parameters"] = @storage_parameters
           json
         end
 
@@ -272,7 +275,18 @@ module ActiveRecord
           @opclasses = symbolize_concise_options(coder["opclasses"])
           @include = coder["include"]
           @nulls_not_distinct = coder["nulls_not_distinct"]
+          @storage_parameters = coder["storage_parameters"]
         end
+
+        private
+          # Compares parameters the way PostgreSQL stores them in pg_class.reloptions:
+          # names and values as strings, values unquoted.
+          def normalize_storage_parameters(parameters)
+            parameters = parameters.split(",").map { |parameter| parameter.split("=", 2) } if parameters.is_a?(String)
+            parameters.to_h do |name, value|
+              [name.to_s.strip.delete('"'), value.to_s.strip.delete_prefix("'").delete_suffix("'")]
+            end
+          end
       end
 
       ValidateConstraint = Data.define(:name) # :nodoc:

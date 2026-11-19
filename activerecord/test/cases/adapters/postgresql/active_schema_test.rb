@@ -82,6 +82,18 @@ class PostgresqlActiveSchemaTest < ActiveRecord::PostgreSQLTestCase
       assert_equal expected, add_index(:people, :last_name, nulls_not_distinct: true)
     end
 
+    expected = %(CREATE INDEX "index_people_on_last_name" ON "people" ("last_name") WITH ("fillfactor" = '50', "deduplicate_items" = 'false') WHERE state = 'active')
+    assert_equal expected, add_index(:people, :last_name, with: { fillfactor: 50, deduplicate_items: false }, where: "state = 'active'")
+
+    expected = %(CREATE INDEX "index_people_on_lower_last_name" ON "people" USING gin (lower(last_name)) WITH ("fastupdate" = 'false'))
+    assert_equal expected, add_index(:people, "lower(last_name)", name: "index_people_on_lower_last_name", using: :gin, with: { fastupdate: false })
+
+    expected = %(CREATE INDEX "index_people_on_last_name" ON "people" ("last_name") INCLUDE ("first_name") WITH ("fillfactor" = '70'))
+    assert_equal expected, add_index(:people, :last_name, include: :first_name, with: { fillfactor: 70 })
+
+    expected = %(CREATE INDEX "index_people_on_last_name" ON "people" ("last_name") WITH (fillfactor = 70))
+    assert_equal expected, add_index(:people, :last_name, with: "fillfactor = 70")
+
     assert_raise ArgumentError do
       add_index(:people, :last_name, algorithm: :copy)
     end

@@ -5,7 +5,7 @@ module ActiveRecord
     module PostgreSQL
       class SchemaCreation < SchemaCreation # :nodoc:
         private
-          delegate :database_version, :supports_index_include?, :supports_nulls_not_distinct?, to: :@conn, private: true
+          delegate :database_version, :quote, :supports_index_include?, :supports_nulls_not_distinct?, to: :@conn, private: true
 
           def visit_AddForeignKey(o)
             super.dup.tap do |sql|
@@ -126,6 +126,7 @@ module ActiveRecord
           def add_index_options!(sql, index)
             sql << "INCLUDE (#{quoted_include_columns(index.include)})" if supports_index_include? && index.include
             sql << "NULLS NOT DISTINCT" if supports_nulls_not_distinct? && index.nulls_not_distinct
+            sql << "WITH (#{quoted_storage_parameters(index.storage_parameters)})" if index.storage_parameters.present?
             super
           end
 
@@ -148,6 +149,12 @@ module ActiveRecord
               sql << (stored ? " STORED" : " VIRTUAL")
             end
             super
+          end
+
+          def quoted_storage_parameters(parameters)
+            return parameters if String === parameters
+
+            parameters.map { |name, value| "#{quote_column_name(name)} = #{quote(value.to_s)}" }.join(", ")
           end
 
           def quoted_include_columns(o)
