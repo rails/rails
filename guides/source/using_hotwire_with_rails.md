@@ -233,20 +233,23 @@ Streams:
 def create
   @post = Post.new(post_params)
 
-  respond_to do |format|
-    if @post.save
+  if @post.save
+    respond_to do |format|
       format.turbo_stream
       format.html { redirect_to @post, status: :see_other }
-    else
-      render :new, status: :unprocessable_entity
     end
+  else
+    render :new, status: :unprocessable_entity
   end
 end
 
 # ...
 ```
 
-This action will render the following Turbo Stream response:
+On validation failure, the action can render `new.html.erb` with a 422 status.
+Turbo form submissions also accept HTML, so Turbo can display the validation errors.
+
+On success, this action can render the following Turbo Stream response:
 
 ```html
 <turbo-stream action="prepend" target="posts">
@@ -270,8 +273,8 @@ controller:
 def create
   @post = Post.new(post_params)
 
-  respond_to do |format|
-    if @post.save
+  if @post.save
+    respond_to do |format|
       format.turbo_stream do
         # Renders:
         # <turbo-stream action="prepend" target="posts">
@@ -282,9 +285,9 @@ def create
         render turbo_stream: turbo_stream.prepend("posts", helpers.tag.h2(@post.title))
       end
       format.html { redirect_to @post, status: :see_other }
-    else
-      render :new, status: :unprocessable_entity
     end
+  else
+    render :new, status: :unprocessable_entity
   end
 end
 ```
