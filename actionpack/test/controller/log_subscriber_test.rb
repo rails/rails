@@ -354,6 +354,48 @@ class ACLogSubscriberTest < ActionController::TestCase
     assert_match(/Write fragment views\/foo/, logs[2])
   end
 
+  def test_structured_event_handlers_run_only_while_their_events_are_logged
+    with_only_log_subscribers do
+      structured_subscriber = ActiveSupport::Subscriber.subscribers.grep(ActionController::StructuredEventSubscriber).first
+      # Checks are skipped for a while after events of earlier tests were consumed.
+      structured_subscriber.instance_variable_set(:@checks_to_skip, 0)
+
+      @logger.level = Logger::WARN
+      assert_not_called(structured_subscriber, :start_processing) do
+        assert_not_called(structured_subscriber, :process_action) do
+          assert_not_called(structured_subscriber, :read_fragment) do
+            assert_not_called(structured_subscriber, :write_fragment) do
+              get :with_fragment_cache
+            end
+          end
+        end
+      end
+      assert_response :ok
+      assert_empty @logger.logged(:info)
+
+      @logger.level = Logger::INFO
+      # Read and write the fragment again, as the request above cached it.
+      @controller.cache_store.clear
+      get :with_fragment_cache
+      assert_equal 4, logs.size
+      assert_equal "Processing by #{Another::LogSubscribersController}#with_fragment_cache as HTML", logs[0]
+      assert_match(/Read fragment views\/foo/, logs[1])
+      assert_match(/Write fragment views\/foo/, logs[2])
+      assert_match(/Completed 200 OK/, logs[3])
+    end
+  end
+
+  def test_structured_event_handlers_are_declared_with_logged_events
+    emitted_events = ActionController::StructuredEventSubscriber.emitted_events
+    assert_not_empty emitted_events
+
+    emitted_events.each do |method, name|
+      assert ActionController::StructuredEventSubscriber.public_method_defined?(method), "#{method} is not a handler"
+      assert_equal "action_controller", name.split(".").first, name
+      assert ActionController::LogSubscriber.log_levels.key?(ActionController::LogSubscriber.event_method_for(name)), "#{name} is not logged"
+    end
+  end
+
   def test_with_fragment_cache_when_log_disabled
     ActionController::Base.enable_fragment_cache_logging = false
     get :with_fragment_cache
@@ -460,5 +502,16 @@ class ACLogSubscriberTest < ActionController::TestCase
 
   def logs
     @logs ||= @logger.logged(:info)
+  end
+
+  # Event reporter assertions used by other tests stay subscribed and consume
+  # every event, so keep only the log subscribers, as in an application.
+  def with_only_log_subscribers
+    subscribers = ActiveSupport.event_reporter.subscribers
+    old_subscribers = subscribers.dup
+    subscribers.select! { |entry| ActiveSupport::EventReporter::LogSubscriber === entry[:subscriber] }
+    yield
+  ensure
+    subscribers.replace(old_subscribers)
   end
 end

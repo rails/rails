@@ -25,6 +25,7 @@ module ActionController
         params:,
       )
     end
+    emits :start_processing, "action_controller.request_started"
 
     def process_action(event)
       return unless emitting?("action_controller.request_completed")
@@ -45,6 +46,7 @@ module ActionController
         gc_time_ms: event.gc_time.round(1),
       }.compact)
     end
+    emits :process_action, "action_controller.request_completed"
 
     def halted_callback(event)
       emit_event("action_controller.callback_halted", filter: event.payload[:filter])
@@ -135,6 +137,10 @@ module ActionController
 
     def expire_fragment(event)
       fragment_cache(__method__, event)
+    end
+
+    %i[write_fragment read_fragment exist_fragment? expire_fragment].each do |method|
+      emits method, "action_controller.fragment_cache"
     end
 
     private
