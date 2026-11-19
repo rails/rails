@@ -77,13 +77,9 @@ module ActiveRecord
       end
 
       def cached?(table_name)
-        if @cache.nil?
-          # If `check_schema_cache_dump_version` is enabled we can't load
-          # the schema cache dump without connecting to the database.
-          unless self.class.check_schema_cache_dump_version
-            @cache = load_cache(nil)
-          end
-        end
+        # If `check_schema_cache_dump_version` is enabled we can't load
+        # the schema cache dump without connecting to the database.
+        cache(nil) unless self.class.check_schema_cache_dump_version
 
         @cache&.cached?(table_name)
       end
@@ -118,7 +114,14 @@ module ActiveRecord
           return unless possible_cache_available?
 
           # Check we can find one
-          return unless new_cache = SchemaCache._load_from(@cache_path)
+          begin
+            return unless new_cache = SchemaCache._load_from(@cache_path)
+          rescue => error
+            # e.g. truncated, or references a class removed by a Rails upgrade.
+            warn "Ignoring #{@cache_path} because it could not be loaded: #{error.class}: #{error.message}"
+            ActiveSupport.error_reporter.report(error, source: "active_record.schema_cache", context: { path: @cache_path })
+            return
+          end
 
           if self.class.check_schema_cache_dump_version
             begin
