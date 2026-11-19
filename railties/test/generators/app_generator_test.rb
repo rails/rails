@@ -985,6 +985,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
 
     ensure_environment_is_set = -> *_args do
       assert_equal "user:pass", ENV["BUNDLE_RUBYONRAILS__ORG"]
+      true
     end
 
     Bundler.stub :original_env, mock_original_env do
@@ -992,6 +993,21 @@ class AppGeneratorTest < Rails::Generators::TestCase
         quietly { generator.invoke_all }
       end
     end
+  end
+
+  def test_generation_aborts_on_bundle_install_failure
+    generator([destination_root])
+
+    # Simulate bundle install failure by making bundle_command return false
+    failing_bundle_command = ->(*) { false }
+
+    error = assert_raises(SystemExit) do
+      generator.stub :bundle_command, failing_bundle_command do
+        quietly { generator.invoke_all }
+      end
+    end
+
+    assert_equal 1, error.status
   end
 
   def test_skip_active_job_option
@@ -1083,7 +1099,9 @@ class AppGeneratorTest < Rails::Generators::TestCase
 
     # fallback to latest when yarn is not installed
     generator.stub :dockerfile_yarn_version, "latest" do
-      quietly { generator.invoke_all }
+      generator.stub :bundle_command, true do
+        quietly { generator.invoke_all }
+      end
     end
 
     assert_gem "jsbundling-rails"
@@ -1124,7 +1142,9 @@ class AppGeneratorTest < Rails::Generators::TestCase
 
     # fallback to constant when bun is not installed
     generator.stub :dockerfile_bun_version, bun_version do
-      quietly { generator.invoke_all }
+      generator.stub :bundle_command, true do
+        quietly { generator.invoke_all }
+      end
     end
 
     assert_gem "jsbundling-rails"
@@ -1426,7 +1446,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
         # assert that we don't run `bundle lock --add-platform`, so the
         # following assertion assumes that the sole call to `bundle_command` is
         # for `bundle install`.
-        assert_called_on_instance_of(generator_class, :bundle_command, times: 1) do
+        assert_called_on_instance_of(generator_class, :bundle_command, times: 1, returns: true) do
           quietly { generator_class.apply_rails_template("lib/template.rb", destination_root) }
         end
       end
