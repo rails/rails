@@ -1,3 +1,13 @@
+*   Add `ActionController::Parameters#expected` and `#expected!` as
+    aliases of `#expect` and `#expect!`.
+
+    `expect` is one letter away from `except` and easy to misread at a glance.
+    `expected` reads as the same intent without the visual collision.
+
+        params.expected(person: [:name, :age])
+
+    *Josua Schmid*
+
 *   Apply `config.action_dispatch.cookies_same_site_protection` to every session
     store.
 
