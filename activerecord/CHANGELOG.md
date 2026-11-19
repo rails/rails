@@ -1,3 +1,15 @@
+*   Ignore a schema cache dump that can't be deserialized instead of raising.
+
+    A dump can reference classes that no longer exist, for instance after
+    upgrading Rails, or be truncated. Loading it used to raise every time the
+    schema cache was accessed, and prevented the application from booting with
+    `config.active_record.check_schema_cache_dump_version = false`. A warning
+    is now emitted, the error is reported to `Rails.error` as handled, and the
+    schema is loaded from the database instead, as is already the case for an
+    expired dump.
+
+    *Lasha Abulashvili*
+
 *   Bump the minimum supported SQLite version to 3.37.0.
 
     SQLite 3.37.0 introduced `pragma_table_list`, which the SQLite3 adapter

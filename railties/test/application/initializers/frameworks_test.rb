@@ -400,6 +400,23 @@ module ApplicationTests
       end
     end
 
+    test "boots when the schema cache dump cannot be loaded and check_schema_cache_dump_version is false" do
+      app_file "app/models/post.rb", "class Post < ActiveRecord::Base; end"
+      app_file "db/schema_cache.yml", "--- !ruby/object:RemovedClass {}"
+
+      add_to_config <<-RUBY
+        config.eager_load = true
+        config.active_record.check_schema_cache_dump_version = false
+      RUBY
+
+      Dir.chdir(app_path) do
+        _, error = capture_io { app }
+
+        assert_match(/Ignoring db\/schema_cache\.yml because it could not be loaded: ArgumentError/, error)
+        assert_not_predicate Post, :attribute_methods_generated?
+      end
+    end
+
     test "active record establish_connection uses Rails.env if DATABASE_URL is not set" do
       app("development")
       with_env DATABASE_URL: nil, RAILS_ENV: "development" do
