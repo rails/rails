@@ -1,10 +1,13 @@
 *   Harden generated GitHub Actions workflows
 
-    Generated `ci.yml` pins versions of actions to mitigate repointed git tag
-    attacks. Pins use dependabot-friendly format so the sha and version comment
-    will be kept up-to-date by the existing `dependabot.yml` config. Sets
+    Generated `ci.yml` pins versions of actions (except ruby/setup-ruby) to
+    mitigate repointed git tag attacks. Pins use dependabot-friendly format so
+    the sha and version comment will be kept up-to-date by the existing
+    `dependabot.yml` config. ruby/setup-ruby is not pinned so latest ruby
+    releases are available without having to re-pin and update `ci.yml` which
+    may hinder critical ruby security patches. Sets
     `persist-credentials: false` for checkout actions to mitigate later steps
-    reading GitHub tokens from filesystem. `ci.yml` passes zizmor scan.
+    reading GitHub tokens from filesystem.
 
     *Eliot Sykes*
 
