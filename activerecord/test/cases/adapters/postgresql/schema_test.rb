@@ -916,6 +916,24 @@ class SchemaIndexDefinitionRoundTripTest < ActiveRecord::PostgreSQLTestCase
     assert_equal '("position" IS NOT NULL)', expression_index.where
   end
 
+  def test_storage_parameters_round_trip
+    line = assert_index_round_trip "CREATE INDEX trains_index ON trains (name) WITH (fillfactor = 70, deduplicate_items = off)"
+    assert_includes line, 'with: { fillfactor: "70", deduplicate_items: "off" }'
+  end
+
+  def test_storage_parameters_with_include_round_trip
+    skip unless @connection.supports_index_include?
+
+    line = assert_index_round_trip "CREATE INDEX trains_index ON trains (name DESC) INCLUDE (position) WITH (fillfactor = 70)"
+    assert_includes line, 'with: { fillfactor: "70" }'
+  end
+
+  def test_partial_expression_index_with_storage_parameters_round_trip
+    line = assert_index_round_trip "CREATE INDEX trains_index ON trains (lower(name)) WITH (fillfactor = 70) WHERE position IS NOT NULL"
+    assert_includes line, 'with: { fillfactor: "70" }'
+    assert_not_includes line, "WITH ("
+  end
+
   private
     def assert_index_round_trip(sql)
       @connection.execute sql
@@ -1126,6 +1144,75 @@ class SchemaIndexNullsNotDistinctTest < ActiveRecord::PostgreSQLTestCase
     output = dump_table_schema "trains"
 
     assert_no_match(/nulls_not_distinct/, output)
+  end
+end
+
+class SchemaIndexStorageParametersTest < ActiveRecord::PostgreSQLTestCase
+  include SchemaDumpingHelper
+
+  setup do
+    @connection = ActiveRecord::Base.lease_connection
+    @connection.create_table "trains" do |t|
+      t.string :name
+      t.integer :position
+      t.string :tags, array: true
+    end
+  end
+
+  teardown do
+    @connection.drop_table "trains", if_exists: true
+  end
+
+  def test_storage_parameters_are_dumped
+    @connection.add_index "trains", :name, with: { fillfactor: 70 }
+    @connection.add_index "trains", "lower((name)::text)", name: "trains_lower_name", with: { fillfactor: 80 }
+    @connection.add_index "trains", :position, name: "trains_active_position", with: { fillfactor: 60 }, where: "position > 0"
+    @connection.add_index "trains", :tags, using: :gin, with: { fastupdate: false, gin_pending_list_limit: 128 }
+
+    output = dump_table_schema "trains"
+
+    assert_match 't.index ["name"], name: "index_trains_on_name", with: { fillfactor: "70" }', output
+    assert_match 't.index "lower((name)::text)", name: "trains_lower_name", with: { fillfactor: "80" }', output
+    assert_match 't.index ["position"], name: "trains_active_position", where: "(\"position\" > 0)", with: { fillfactor: "60" }', output
+    assert_match 't.index ["tags"], name: "index_trains_on_tags", using: :gin, with: { fastupdate: "false", gin_pending_list_limit: "128" }', output
+  end
+
+  def test_storage_parameters_set_outside_add_index_are_dumped
+    @connection.execute "CREATE INDEX trains_name ON trains (name) WITH (fillfactor = 70)"
+    @connection.execute "CREATE INDEX trains_lower_name ON trains (lower(name)) WITH (fillfactor = 80) WHERE position > 0"
+
+    output = dump_table_schema "trains"
+
+    assert_match 't.index ["name"], name: "trains_name", with: { fillfactor: "70" }', output
+    assert_match 't.index "lower((name)::text)", name: "trains_lower_name", where: "(\"position\" > 0)", with: { fillfactor: "80" }', output
+  end
+
+  def test_storage_parameters_round_trip_through_schema_load
+    @connection.add_index "trains", :name, with: { fillfactor: 70 }
+    @connection.add_index "trains", "lower((name)::text)", name: "trains_lower_name", with: { fillfactor: 80 }, where: "position > 0"
+    @connection.add_index "trains", :tags, using: :gin, with: { fastupdate: false }
+
+    dumped = dump_table_schema "trains"
+    @connection.drop_table "trains"
+
+    ActiveRecord::Migration.suppress_messages do
+      ActiveRecord::Schema.define { eval(dumped) }
+    end
+
+    assert_equal dumped, dump_table_schema("trains")
+
+    indexes = @connection.indexes("trains").index_by(&:name)
+    assert_equal({ "fillfactor" => "70" }, indexes["index_trains_on_name"].storage_parameters)
+    assert_equal({ "fillfactor" => "80" }, indexes["trains_lower_name"].storage_parameters)
+    assert_equal "lower((name)::text)", indexes["trains_lower_name"].columns
+    assert_equal "(\"position\" > 0)", indexes["trains_lower_name"].where
+    assert_equal({ "fastupdate" => "false" }, indexes["index_trains_on_tags"].storage_parameters)
+  end
+
+  def test_index_without_storage_parameters_dumps_no_with
+    @connection.add_index "trains", :name
+
+    assert_no_match(/with:/, dump_table_schema("trains"))
   end
 end
 
