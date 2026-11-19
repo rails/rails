@@ -810,6 +810,110 @@ class AppGeneratorTest < Rails::Generators::TestCase
     end
   end
 
+  def test_generation_skips_solid_cache_installer_when_solid_cache_gem_is_absent
+    template_path = File.join(destination_root, "remove_solid_cache.rb")
+    File.write(template_path, <<~RUBY)
+      gsub_file "Gemfile", /^gem "solid_cache"\\n/, ""
+    RUBY
+
+    generator [destination_root], ["--template", template_path]
+
+    @rails_command_stub = ->(command, *_) do
+      if command == "solid_cache:install"
+        raise Rails::Command::UnrecognizedCommandError.new("solid_cache:install")
+      end
+
+      @rails_commands << command
+    end
+
+    run_generator_instance
+
+    assert_no_gem "solid_cache"
+    assert_gem "solid_queue"
+    assert_gem "solid_cable"
+
+    assert_not_includes @rails_commands, "solid_cache:install"
+    assert_includes @rails_commands, "solid_queue:install"
+    assert_includes @rails_commands, "solid_cable:install"
+  end
+
+  def test_generation_runs_solid_installers_when_gems_are_declared_with_parentheses
+    template_path = File.join(destination_root, "parenthesize_solid_gems.rb")
+    File.write(template_path, <<~RUBY)
+      gsub_file "Gemfile", /^gem "solid_cache"$/, 'gem("solid_cache")'
+      gsub_file "Gemfile", /^gem "solid_queue"$/, "gem ('solid_queue', '~> 1.0')"
+      gsub_file "Gemfile", /^gem "solid_cable"$/, 'gem("solid_cable", ">= 3")'
+    RUBY
+
+    generator [destination_root], ["--template", template_path]
+    run_generator_instance
+
+    assert_file "Gemfile" do |content|
+      assert_match(/^gem\("solid_cache"\)$/, content)
+      assert_match(/^gem \('solid_queue', '~> 1.0'\)$/, content)
+      assert_match(/^gem\("solid_cable", ">= 3"\)$/, content)
+    end
+
+    assert_includes @rails_commands, "solid_cache:install"
+    assert_includes @rails_commands, "solid_queue:install"
+    assert_includes @rails_commands, "solid_cable:install"
+  end
+
+  def test_generation_runs_solid_installer_when_gem_declaration_spans_lines
+    template_path = File.join(destination_root, "split_solid_gem.rb")
+    File.write(template_path, <<~'RUBY')
+      gsub_file "Gemfile", /^gem "solid_queue"$/, "gem(\n  \"solid_queue\",\n  \"~> 1.0\"\n)"
+    RUBY
+
+    generator [destination_root], ["--template", template_path]
+    run_generator_instance
+
+    assert_file "Gemfile" do |content|
+      assert_match(/^gem\(\n  "solid_queue",\n  "~> 1.0"\n\)$/, content)
+    end
+
+    assert_includes @rails_commands, "solid_queue:install"
+  end
+
+  def test_run_solid_supports_all_solid_gem_combinations
+    all_solid_gems = %w[solid_cache solid_queue solid_cable]
+    combinations = (0..all_solid_gems.length).flat_map { |size| all_solid_gems.combination(size).to_a }
+
+    combinations.each do |configured_gems|
+      generator [destination_root]
+
+      executed_commands = []
+
+      generator.stub(:solid_gem_configured?, ->(gem_name) { configured_gems.include?(gem_name) }) do
+        generator.stub(:rails_command, ->(command, *_) { executed_commands << command }) do
+          generator.send(:run_solid)
+        end
+      end
+
+      expected_commands = []
+      expected_commands << "solid_cache:install" if configured_gems.include?("solid_cache")
+      expected_commands << "solid_queue:install" if configured_gems.include?("solid_queue")
+      expected_commands << "solid_cable:install" if configured_gems.include?("solid_cable")
+
+      assert_equal expected_commands, executed_commands,
+        "Expected #{configured_gems.inspect} to map to #{expected_commands.inspect}, got #{executed_commands.inspect}"
+    end
+  end
+
+  def test_run_solid_does_not_run_cable_installer_when_action_cable_is_skipped
+    generator [destination_root], ["--skip-action-cable"]
+
+    executed_commands = []
+
+    generator.stub(:solid_gem_configured?, ->(_gem_name) { true }) do
+      generator.stub(:rails_command, ->(command, *_) { executed_commands << command }) do
+        generator.send(:run_solid)
+      end
+    end
+
+    assert_equal ["solid_cache:install", "solid_queue:install"], executed_commands
+  end
+
   def test_inclusion_of_kamal_files
     generator [destination_root]
     run_generator_instance
@@ -1008,7 +1112,9 @@ class AppGeneratorTest < Rails::Generators::TestCase
     generator([destination_root], skip_solid: true)
     run_generator_instance
 
-    assert_not_includes @rails_commands, "solid_cache:install solid_queue:install solid_cable:install", "`solid_cache:install solid_queue:install solid_cable:install` expected to not be called."
+    assert_not_includes @rails_commands, "solid_cache:install"
+    assert_not_includes @rails_commands, "solid_queue:install"
+    assert_not_includes @rails_commands, "solid_cable:install"
     assert_no_gem "solid_cache"
     assert_no_gem "solid_queue"
     assert_no_gem "solid_cable"
@@ -1238,7 +1344,8 @@ class AppGeneratorTest < Rails::Generators::TestCase
     run_generator_instance
 
     expected_commands = [
-      "credentials:diff --enroll", "importmap:install", "turbo:install stimulus:install", "solid_cache:install solid_queue:install solid_cable:install"
+      "credentials:diff --enroll", "importmap:install", "turbo:install stimulus:install",
+      "solid_cache:install", "solid_queue:install", "solid_cable:install"
     ]
     assert_equal expected_commands, @rails_commands
   end
