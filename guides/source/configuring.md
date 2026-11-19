@@ -2195,6 +2195,17 @@ Specifies server specific X-Sendfile header. This is useful for accelerated file
 Sets the HTTP Auth salt value. Defaults
 to `'http authentication'`.
 
+#### `config.action_dispatch.allow_rack_multipart_encoding`
+
+Sets whether Rack arbitrary string encoding in multipart form-data.
+Defaults to `false`.
+
+If set to `false` Rack is patched to only allow UTF-8 and binary strings in multipart form-data.
+
+| Starting with version | The default value is |
+| --------------------- | -------------------- |
+| (original)            | `false`              |
+
 #### `config.action_dispatch.signed_cookie_salt`
 
 Sets the signed cookies salt value.

@@ -1,3 +1,19 @@
+*   Patch Rack to prevent submitting requested parameters encoded in arbitrary encodings.
+
+    This is a part of the HTTP specification that has little to no legitimate use
+    but has been used several times in exploit chains targetting Rails applications.
+
+    Rails now patches Rack by default to disable that dangerous behavior.
+
+    It is likely that Rack 4.0 will make this the default.
+
+    In the unlikely case that your application do depend on that behavior, you
+    can prevent the patch from being applied by setting
+    `config.action_dispatch.allow_rack_multipart_encoding = true`.
+
+    *Jean Boussier*
+
+
 ## Rails 8.1.4.1 (November 03, 2026) ##
 
 *   Apply `config.action_dispatch.cookies_same_site_protection` to every session
