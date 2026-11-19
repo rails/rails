@@ -68,6 +68,10 @@ module ActionDispatch
         self.default_headers = app.config.action_dispatch.default_headers
       end
 
+      unless app.config.action_dispatch.allow_rack_multipart_encoding
+        ActionDispatch::CoreExt::RackMultipartParser.apply
+      end
+
       ActionDispatch::ExceptionWrapper.rescue_responses.merge!(config.action_dispatch.rescue_responses)
       ActionDispatch::ExceptionWrapper.rescue_templates.merge!(config.action_dispatch.rescue_templates)
 
