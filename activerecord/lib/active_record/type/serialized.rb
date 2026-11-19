@@ -44,12 +44,13 @@ module ActiveRecord
         raw_new_value = encoded(value)
 
         return true if raw_old_value.nil? != raw_new_value.nil?
+        return false unless serialized_differently?(raw_old_value, raw_new_value)
 
-        if subtype.mutable?
-          subtype.changed_in_place?(raw_old_value, raw_new_value)
-        else
-          raw_old_value != subtype.serialize(raw_new_value)
-        end
+        # The stored bytes may only be encoded differently from what the coder
+        # writes today: written by an earlier version of the coder, or by
+        # something other than Active Record. Re-encode the stored value before
+        # concluding it was changed.
+        serialized_differently?(subtype.serialize(encoded(deserialize(raw_old_value))), raw_new_value)
       end
 
       def accessor
@@ -82,6 +83,14 @@ module ActiveRecord
 
         def default_value?(value)
           value == coder.load(nil)
+        end
+
+        def serialized_differently?(raw_old_value, raw_new_value)
+          if subtype.mutable?
+            subtype.changed_in_place?(raw_old_value, raw_new_value)
+          else
+            raw_old_value != subtype.serialize(raw_new_value)
+          end
         end
 
         def encoded(value)

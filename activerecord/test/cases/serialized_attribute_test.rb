@@ -697,6 +697,51 @@ class SerializedAttributeTest < ActiveRecord::TestCase
     assert_predicate topic, :changed?
   end
 
+  def test_mutation_detection_ignores_how_the_stored_value_was_encoded
+    model = Class.new(Topic) do
+      serialize :content, coder: ActiveRecord::Coders::JSON
+    end
+    topic = model.create!(content: { "title" => "Tom & Jerry <3" })
+    # Active Record 8.1.3 and earlier HTML-escaped JSON written by Coders::JSON,
+    # and a database's own JSON functions add whitespace.
+    [
+      '{"title":"Tom \\u0026 Jerry \\u003c3"}',
+      '{"title": "Tom & Jerry <3"}',
+    ].each do |stored|
+      model.lease_connection.update("UPDATE topics SET content = #{model.lease_connection.quote(stored)} WHERE id = #{topic.id}")
+      topic = model.find(topic.id)
+
+      topic.content
+      assert_not_predicate topic, :changed?, "reading #{stored} marked the record as changed"
+
+      topic.content["title"] = "Tom & Jerry"
+      assert_predicate topic, :changed?
+    end
+  end
+
+  def test_mutation_detection_still_compares_numbers_by_their_encoding
+    model = Class.new(Topic) do
+      serialize :content, coder: ActiveRecord::Coders::JSON
+    end
+    topic = model.create!(content: { "rating" => 1.0 })
+    topic = model.find(topic.id)
+
+    topic.content["rating"] = 1
+    assert_predicate topic, :changed?
+  end
+
+  def test_store_read_does_not_mark_record_changed_when_stored_json_is_encoded_differently
+    model = Class.new(Topic) do
+      store :content, accessors: [:tagline], coder: ActiveRecord::Coders::JSON
+    end
+    topic = model.create!(tagline: "<b>bold</b>")
+    model.lease_connection.update("UPDATE topics SET content = #{model.lease_connection.quote('{"tagline":"\\u003cb\\u003ebold\\u003c/b\\u003e"}')} WHERE id = #{topic.id}")
+    topic = model.find(topic.id)
+
+    assert_equal "<b>bold</b>", topic.tagline
+    assert_not_predicate topic, :changed?
+  end
+
   def test_serialized_attribute_works_under_concurrent_initial_access
     model = Class.new(Topic)
 
