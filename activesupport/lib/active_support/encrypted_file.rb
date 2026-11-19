@@ -140,7 +140,7 @@ module ActiveSupport
       end
 
       def check_key_length
-        raise InvalidKeyLengthError if key&.length != self.class.expected_key_length
+        raise InvalidKeyLengthError if key&.split(",", 2)&.first&.length != self.class.expected_key_length
       end
   end
 end
