@@ -176,9 +176,14 @@ module ActiveRecord
       class Lease # :nodoc:
         attr_accessor :connection, :sticky
 
-        def initialize
+        def initialize(terminated_flag)
           @connection = nil
           @sticky = nil
+          @terminated_flag = terminated_flag
+        end
+
+        def terminated?
+          @terminated_flag.true?
         end
 
         def release
@@ -200,8 +205,27 @@ module ActiveRecord
       end
 
       class LeaseRegistry < ActiveSupport::WeakKeyMap # :nodoc:
+        def initialize
+          @terminated_flag = Concurrent::AtomicBoolean.new(false)
+          @mutex = Mutex.new
+        end
+
         def lease(context)
-          fetch_or_store(context) { Lease.new }
+          @mutex.synchronize do
+            fetch_or_store(context) do
+              Lease.new(@terminated_flag)
+            end
+          end
+        end
+
+        def clear
+          @mutex.synchronize do
+            result = super
+            old_flag = @terminated_flag
+            @terminated_flag = Concurrent::AtomicBoolean.new(false)
+            old_flag.make_true
+            result
+          end
         end
       end
 
@@ -380,7 +404,7 @@ module ActiveRecord
       # held in a cache keyed by a thread.
       def lease_connection
         lease = connection_lease
-        lease.connection ||= checkout
+        lease = checkout_lease(lease) unless lease.connection
         lease.sticky = true
         lease.connection
       end
@@ -484,7 +508,9 @@ module ActiveRecord
           end
         else
           begin
-            yield lease.connection = checkout
+            lease = checkout_lease(lease)
+            lease.sticky = false if prevent_permanent_checkout
+            yield lease.connection
           ensure
             lease.sticky = sticky_was if prevent_permanent_checkout
             release_connection(lease) unless lease.sticky
@@ -941,6 +967,14 @@ module ActiveRecord
       private
         def connection_lease
           @leases.lease(ActiveSupport::IsolatedExecutionState.context)
+        end
+
+        def checkout_lease(lease)
+          connection = checkout
+          # A disconnect while checkout waited may have invalidated this lease.
+          lease = connection_lease if lease.terminated?
+          lease.connection = connection
+          lease
         end
 
         def build_async_executor
