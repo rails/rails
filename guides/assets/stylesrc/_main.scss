@@ -356,6 +356,7 @@ body.guide {
     background: $gray-200;
     border-radius: calc($base-border-radius / 2);
     padding: 1px 3px;
+    white-space: normal;
   }
 
   p img {
