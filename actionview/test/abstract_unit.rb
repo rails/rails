@@ -7,6 +7,7 @@ $:.unshift File.expand_path("lib", __dir__)
 ENV["TMPDIR"] = File.expand_path("tmp", __dir__)
 
 require "active_support/core_ext/kernel/reporting"
+require "active_support/core_ext/object/with"
 
 # These are the normal settings that will be set up by Railties
 # TODO: Have these tests support other combinations of these values

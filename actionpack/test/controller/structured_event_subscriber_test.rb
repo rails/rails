@@ -4,8 +4,6 @@ require "abstract_unit"
 require "active_support/testing/event_reporter_assertions"
 require "action_controller/structured_event_subscriber"
 
-require "active_support/core_ext/object/with"
-
 module ActionController
   class StructuredEventSubscriberTest < ActionController::TestCase
     module Another
@@ -237,7 +235,8 @@ module ActionController
           get :open_redirector
         end
 
-        assert(event[:payload][:stacktrace].find { |line| line.include?("structured_event_subscriber_test.rb:51") })
+        lineno = Another::StructuredEventSubscribersController.instance_method(:open_redirector).source_location.last + 1
+        assert(event[:payload][:stacktrace].find { |line| line.include?("structured_event_subscriber_test.rb:#{lineno}") })
       end
     end
   end

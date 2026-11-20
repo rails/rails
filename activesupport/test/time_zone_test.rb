@@ -2,7 +2,6 @@
 
 require_relative "abstract_unit"
 require "active_support/time"
-require "active_support/core_ext/object/with"
 require "active_support/testing/ractors_assertions"
 require_relative "time_zone_test_helpers"
 require "yaml"

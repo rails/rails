@@ -6,6 +6,7 @@ ORIG_ARGV = ARGV.dup
 
 require "bundler/setup"
 require "active_support/core_ext/kernel/reporting"
+require "active_support/core_ext/object/with"
 
 silence_warnings do
   Encoding.default_internal = Encoding::UTF_8

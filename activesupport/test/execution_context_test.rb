@@ -2,7 +2,6 @@
 
 require_relative "abstract_unit"
 require "active_support/execution_context/test_helper"
-require "active_support/core_ext/object/with"
 require "active_support/testing/ractors_assertions"
 
 class ExecutionContextTest < ActiveSupport::TestCase

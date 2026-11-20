@@ -2,7 +2,6 @@
 
 require "cases/helper"
 require "active_support/testing/ractors_assertions"
-require "active_support/core_ext/object/with"
 require "models/post"
 
 class OverloadedType < ActiveRecord::Base

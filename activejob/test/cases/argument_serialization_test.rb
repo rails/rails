@@ -11,7 +11,6 @@ require "jobs/kwargs_job"
 require "jobs/arguments_round_trip_job"
 require "support/stubs/strong_parameters"
 require "active_support/core_ext/string/output_safety"
-require "active_support/core_ext/object/with"
 require "active_support/testing/ractors_assertions"
 
 class ArgumentSerializationTest < ActiveSupport::TestCase

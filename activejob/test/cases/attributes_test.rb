@@ -2,7 +2,6 @@
 
 require "helper"
 require "active_job/continuation/test_helper"
-require "active_support/core_ext/object/with"
 require "support/do_not_perform_enqueued_jobs"
 
 return unless adapter_is?(:test)

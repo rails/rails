@@ -2,7 +2,6 @@
 
 require "helper"
 require "active_job/serializers"
-require "active_support/core_ext/object/with"
 require "active_support/testing/ractors_assertions"
 
 class SerializersTest < ActiveSupport::TestCase

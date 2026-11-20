@@ -1,7 +1,5 @@
 # frozen_string_literal: true
 
-require "active_support/core_ext/object/with"
-
 module CacheStoreFormatVersionBehavior
   extend ActiveSupport::Concern
 

@@ -4,7 +4,6 @@ require "cases/helper"
 require "support/ddl_helper"
 require "support/connection_helper"
 
-require "active_support/core_ext/object/with"
 require "active_support/error_reporter/test_helper"
 require "json"
 
