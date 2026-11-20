@@ -1,3 +1,8 @@
+*   Remove the job from the execution context after `perform_now`.
+
+    *Azmi Muwahid*
+
+
 ## Rails 8.1.4.1 (November 03, 2026) ##
 
 *   No changes.
