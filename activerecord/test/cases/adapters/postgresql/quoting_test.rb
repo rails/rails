@@ -38,7 +38,7 @@ module ActiveRecord
         end
 
         def test_quote_rational
-          assert_equal "3/4", @conn.quote(Rational(3, 4))
+          assert_equal "0.75", @conn.quote(Rational(3, 4))
         end
 
         def test_quote_range

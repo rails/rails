@@ -161,6 +161,10 @@ module ActiveRecord
         assert_equal bignum.to_s, @quoter.quote(bignum)
       end
 
+      def test_quote_rational
+        assert_equal "0.75", @quoter.quote(Rational(3, 4))
+      end
+
       def test_quote_bigdecimal
         bigdec = BigDecimal((1 << 100).to_s)
         assert_equal bigdec.to_s("F"), @quoter.quote(bigdec)
