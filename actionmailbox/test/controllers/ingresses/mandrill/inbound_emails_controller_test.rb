@@ -43,6 +43,26 @@ class ActionMailbox::Ingresses::Mandrill::InboundEmailsControllerTest < ActionDi
     assert_response :unprocessable_content
   end
 
+  test "rejecting a Mandrill events payload with an array parameter" do
+    events = [@events]
+    assert_no_difference -> { ActionMailbox::InboundEmail.count } do
+      post rails_mandrill_inbound_emails_url,
+        headers: { "X-Mandrill-Signature" => signature_for(events) }, params: { mandrill_events: events }
+    end
+
+    assert_response :unprocessable_content
+  end
+
+  test "rejecting a Mandrill events payload with a hash parameter" do
+    events = { "event" => "inbound" }
+    assert_no_difference -> { ActionMailbox::InboundEmail.count } do
+      post rails_mandrill_inbound_emails_url,
+        headers: { "X-Mandrill-Signature" => signature_for(events) }, params: { mandrill_events: events }
+    end
+
+    assert_response :unprocessable_content
+  end
+
   test "rejecting a Mandrill events payload that parses to null" do
     events = "null"
     assert_no_difference -> { ActionMailbox::InboundEmail.count } do

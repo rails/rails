@@ -79,7 +79,10 @@ module ActionMailbox
       end
 
       def envelope_recipients
-        envelope = JSON.parse(params.require(:envelope))
+        raw_envelope = params.require(:envelope)
+        raise MalformedEnvelopeError unless raw_envelope.is_a?(String)
+
+        envelope = JSON.parse(raw_envelope)
         raise MalformedEnvelopeError unless envelope.is_a?(Hash)
         raise MalformedEnvelopeError unless envelope.key?("to")
 
