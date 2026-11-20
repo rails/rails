@@ -231,7 +231,7 @@ module ActiveRecord
 
         read(filename) do |file|
           if filename.include?(".dump")
-            Marshal.load(file, freeze: true)
+            Marshal.load(file, freeze: true).dup
           elsif filename.include?(".json")
             JSONSchemaCacheSerializer.load(file)
           else

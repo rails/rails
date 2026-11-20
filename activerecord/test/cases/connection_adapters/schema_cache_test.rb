@@ -565,6 +565,60 @@ module ActiveRecord
     class MarshalFormatTest < ActiveRecord::TestCase
       include DumpAndLoadTests
 
+      self.use_transactional_tests = false
+
+      def test_table_exists_for_missing_table_after_loading_schema_cache
+        Course.with(table_name: "schema_cache_missing_table") do
+          Tempfile.create(["schema_cache-", format_extension]) do |tempfile|
+            new_bound_reflection.dump_to(tempfile.path)
+
+            @pool.with(schema_reflection: SchemaReflection.new(tempfile.path)) do
+              assert_not Course.table_exists?
+            end
+          end
+        end
+      end
+
+      def test_reset_column_information_after_loading_schema_cache
+        Tempfile.create(["schema_cache-", format_extension]) do |tempfile|
+          new_bound_reflection.dump_to(tempfile.path)
+
+          @pool.with(schema_reflection: SchemaReflection.new(tempfile.path)) do
+            Course.reset_column_information
+            assert_equal 3, Course.columns.size
+          end
+        end
+      end
+
+      def test_create_table_after_loading_schema_cache
+        connection = @pool.lease_connection
+        Tempfile.create(["schema_cache-", format_extension]) do |tempfile|
+          new_bound_reflection.dump_to(tempfile.path)
+
+          @pool.with(schema_reflection: SchemaReflection.new(tempfile.path)) do
+            connection.create_table(:schema_cache_created_table)
+            assert connection.table_exists?(:schema_cache_created_table)
+          end
+        end
+      ensure
+        connection&.drop_table(:schema_cache_created_table, if_exists: true)
+      end
+
+      def test_drop_table_after_loading_schema_cache
+        connection = @pool.lease_connection
+        connection.create_table(:schema_cache_dropped_table)
+        Tempfile.create(["schema_cache-", format_extension]) do |tempfile|
+          new_bound_reflection.dump_to(tempfile.path)
+
+          @pool.with(schema_reflection: SchemaReflection.new(tempfile.path)) do
+            connection.drop_table(:schema_cache_dropped_table)
+            assert_not connection.table_exists?(:schema_cache_dropped_table)
+          end
+        end
+      ensure
+        connection&.drop_table(:schema_cache_dropped_table, if_exists: true)
+      end
+
       private
         def format_extension
           ".dump"
