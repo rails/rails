@@ -513,6 +513,55 @@ module MyApp
 end
 ```
 
+#### Keeping Per-Request State Out of the Middleware
+
+Rails builds a single instance of each middleware when the application boots, and every request goes through that instance, concurrently on a multithreaded server such as Puma. Anything stored on the instance, or in other objects shared between requests, can be read or overwritten by another request. Keep per-request state in local variables, like `request` in `ExtractLocale` above, or in the Rack `env`.
+
+Instance variables set in `call` are shared by every request:
+
+```ruby
+# BAD: another request can replace @env before the response is built.
+def call(env)
+  @env = env
+  status, headers, body = @app.call(env)
+  headers["content-language"] = @env["myapp.locale"]
+  [status, headers, body]
+end
+
+# GOOD: env is local to this call.
+def call(env)
+  status, headers, body = @app.call(env)
+  headers["content-language"] = env["myapp.locale"]
+  [status, headers, body]
+end
+```
+
+The same applies to memoization with `@value ||=`: whatever the first request computes is served to every request after it.
+
+Responses built once and returned from `call` are shared too. Middleware higher in the stack modify response headers in place (for example, [`ActionDispatch::RequestId`][] adds `x-request-id`), so a shared response accumulates headers from earlier requests:
+
+```ruby
+# BAD: every request gets the same Hash, mutated by the middleware above.
+NOT_FOUND = [404, { "content-type" => "text/plain" }, ["Not found"]]
+
+def call(env)
+  return NOT_FOUND unless env["myapp.locale"]
+
+  @app.call(env)
+end
+
+# GOOD: build a new response for each request.
+def call(env)
+  return [404, { "content-type" => "text/plain" }, ["Not found"]] unless env["myapp.locale"]
+
+  @app.call(env)
+end
+```
+
+Values stored in `Thread.current` outlive the request, because servers reuse threads. Use the Rack `env` to pass data to the application, or [`ActiveSupport::CurrentAttributes`][], which Rails clears at the end of every request.
+
+[`ActiveSupport::CurrentAttributes`]: https://api.rubyonrails.org/classes/ActiveSupport/CurrentAttributes.html
+
 ### Adding Custom Middleware to the Stack
 
 Custom middleware can be added in `application.rb`
