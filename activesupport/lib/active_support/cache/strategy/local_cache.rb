@@ -167,7 +167,7 @@ module ActiveSupport
           end
 
           def read_multi_entries_from_local_cache(names, options)
-            keys_to_names = names.index_by { |name| normalize_key(name, options) }
+            keys_to_names = names.index_by { |name| normalized_key_for(name, options) }
 
             local_entries = local_cache.read_multi_entries(keys_to_names.keys)
 

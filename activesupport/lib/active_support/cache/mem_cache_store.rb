@@ -253,7 +253,7 @@ module ActiveSupport
 
         # Reads multiple entries from the cache implementation.
         def read_multi_entries(names, **options)
-          keys_to_names = names.index_by { |name| normalize_key(name, options) }
+          keys_to_names = names.index_by { |name| normalized_key_for(name, options) }
 
           rescue_error_with({}) do
             raw_values = @data.with { |c| c.get_multi(keys_to_names.keys) }
