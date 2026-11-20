@@ -1,7 +1,6 @@
 # frozen_string_literal: true
 
 require "active_support/core_ext/numeric/bytes"
-require "active_support/core_ext/object/with"
 
 module CacheStoreCompressionBehavior
   extend ActiveSupport::Concern

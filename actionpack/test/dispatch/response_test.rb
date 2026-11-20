@@ -1,7 +1,6 @@
 # frozen_string_literal: true
 
 require "abstract_unit"
-require "active_support/core_ext/object/with"
 require "active_support/testing/ractors_assertions"
 require "timeout"
 require "rack/content_length"

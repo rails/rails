@@ -2,7 +2,6 @@
 
 require_relative "abstract_unit"
 require "active_support/core_ext/kernel/singleton_class"
-require "active_support/core_ext/object/with"
 require "active_support/testing/ractors_assertions"
 
 module CallbacksTest

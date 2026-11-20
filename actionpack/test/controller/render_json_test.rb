@@ -3,7 +3,6 @@
 require "abstract_unit"
 require "controller/fake_models"
 require "active_support/logger"
-require "active_support/core_ext/object/with"
 
 class RenderJsonTest < ActionController::TestCase
   class JsonRenderable

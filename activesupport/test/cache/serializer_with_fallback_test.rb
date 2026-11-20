@@ -1,7 +1,6 @@
 # frozen_string_literal: true
 
 require_relative "../abstract_unit"
-require "active_support/core_ext/object/with"
 
 class CacheSerializerWithFallbackTest < ActiveSupport::TestCase
   FORMATS = ActiveSupport::Cache::SerializerWithFallback::SERIALIZERS.keys

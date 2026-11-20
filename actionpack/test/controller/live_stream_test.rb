@@ -1,8 +1,6 @@
 # frozen_string_literal: true
 
 require "abstract_unit"
-require "active_support/core_ext/object/with"
-require "timeout"
 require "concurrent/atomic/count_down_latch"
 require "zeitwerk"
 

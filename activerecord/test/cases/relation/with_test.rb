@@ -1,7 +1,6 @@
 # frozen_string_literal: true
 
 require "cases/helper"
-require "active_support/core_ext/object/with"
 require "models/comment"
 require "models/post"
 require "models/company"

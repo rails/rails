@@ -4,7 +4,6 @@ require "fileutils"
 require "abstract_unit"
 require "lib/controller/fake_models"
 require "active_support/testing/ractors_assertions"
-require "active_support/core_ext/object/with"
 
 CACHE_DIR = "test_cache"
 # Don't change '/../temp/' cavalierly or you might hose something you don't want hosed

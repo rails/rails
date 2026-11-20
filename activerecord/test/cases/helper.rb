@@ -10,6 +10,7 @@ require "active_support/dependencies"
 require "active_support/logger"
 require "active_support/core_ext/kernel/reporting"
 require "active_support/core_ext/kernel/singleton_class"
+require "active_support/core_ext/object/with"
 
 require "support/global_config"
 require "support/adapter_config"

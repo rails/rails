@@ -2,7 +2,6 @@
 
 require "cases/encryption/helper"
 require "models/book_encrypted"
-require "active_support/core_ext/object/with"
 
 class ActiveRecord::Encryption::ExtendedDeterministicQueriesTest < ActiveRecord::EncryptionTestCase
   setup do

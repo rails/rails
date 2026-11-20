@@ -1,7 +1,6 @@
 # frozen_string_literal: true
 
 require "cases/helper"
-require "active_support/core_ext/object/with"
 require "support/deprecated_associations_test_helpers"
 require "models/developer"
 require "models/computer"

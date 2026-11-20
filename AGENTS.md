@@ -98,8 +98,6 @@ This pattern is used throughout the test suite, especially for:
 - `ActionController::Base.with(config_option: value)`
 - Other framework configuration testing
 
-**Requires**: `require "active_support/core_ext/object/with"` at the top of test files.
-
 ## Code Conventions
 
 ### Configuration Flags
