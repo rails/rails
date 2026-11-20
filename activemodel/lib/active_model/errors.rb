@@ -109,8 +109,7 @@ module ActiveModel
 
     # The actual array of `Error` objects
     # This method is aliased to `objects`.
-    #: Array[ActiveModel::Error]
-    attr_reader :errors
+    attr_reader :errors #: Array[ActiveModel::Error]
     alias :objects :errors
 
     # Pass in the instance of the object that is using the errors object.
@@ -161,7 +160,7 @@ module ActiveModel
     #
     # * `:attribute` - Override the attribute the error belongs to.
     # * `:type` - Override type of the error.
-    #: (ActiveModel::Error, ?untyped) -> Array[ActiveModel::Error]
+    #: (ActiveModel::Error, ?Hash[Symbol, untyped]) -> Array[ActiveModel::Error]
     def import(error, override_options = {})
       override_options = override_options.dup
       [:attribute, :type].each do |key|
@@ -185,7 +184,7 @@ module ActiveModel
     # person.errors.merge!(other)
     # ```
     #
-    #: (untyped) -> Array[ActiveModel::Error]
+    #: (ActiveModel::Errors) -> Array[ActiveModel::Error]
     def merge!(other)
       return errors if equal?(other)
 
@@ -235,7 +234,7 @@ module ActiveModel
     # person.errors.delete(:name) # => ["cannot be nil"]
     # person.errors[:name]        # => []
     # ```
-    #: (Symbol | String, ?untyped, **untyped) -> Array[untyped]?
+    #: (Symbol | String, ?untyped, **untyped) -> Array[String]?
     def delete(attribute, type = nil, **options)
       attribute, type, options = normalize_arguments(attribute, type, **options)
       matches = where(attribute, type, **options)
@@ -252,7 +251,7 @@ module ActiveModel
     # person.errors[:name]  # => ["cannot be nil"]
     # person.errors['name'] # => ["cannot be nil"]
     # ```
-    #: (Symbol | String) -> Array[untyped]
+    #: (Symbol | String) -> Array[String]
     def [](attribute)
       messages_for(attribute)
     end
@@ -263,7 +262,7 @@ module ActiveModel
     # person.errors.messages        # => {:name=>["cannot be nil", "must be specified"]}
     # person.errors.attribute_names # => [:name]
     # ```
-    #: () -> Array[Symbol | String]
+    #: () -> Array[Symbol]
     def attribute_names
       @errors.map(&:attribute).uniq.freeze
     end
@@ -276,7 +275,7 @@ module ActiveModel
     # person.errors.as_json                      # => {:name=>["cannot be nil"]}
     # person.errors.as_json(full_messages: true) # => {:name=>["name cannot be nil"]}
     # ```
-    #: (?untyped) -> Hash[untyped, untyped]
+    #: (?untyped) -> Hash[Symbol, Array[String]]
     def as_json(options = nil)
       to_hash(options && options[:full_messages])
     end
@@ -288,7 +287,7 @@ module ActiveModel
     # person.errors.to_hash       # => {:name=>["cannot be nil"]}
     # person.errors.to_hash(true) # => {:name=>["name cannot be nil"]}
     # ```
-    #: (?untyped) -> Hash[Symbol | String, Array[untyped]]
+    #: (?boolish) -> Hash[Symbol, Array[String]]
     def to_hash(full_messages = false)
       message_method = full_messages ? :full_message : :message
       group_by_attribute.transform_values do |errors|
@@ -301,7 +300,7 @@ module ActiveModel
     EMPTY_ARRAY = [].freeze # :nodoc:
 
     # Returns a Hash of attributes with an array of their error messages.
-    #: () -> Hash[Symbol | String, Array[untyped]]
+    #: () -> Hash[Symbol, Array[String]]
     def messages
       hash = to_hash
       hash.default = EMPTY_ARRAY
@@ -310,7 +309,7 @@ module ActiveModel
     end
 
     # Returns a Hash of attributes with an array of their error details.
-    #: () -> Hash[Symbol | String, Array[Hash[Symbol, untyped]]]
+    #: () -> Hash[Symbol, Array[Hash[Symbol, untyped]]]
     def details
       hash = group_by_attribute.transform_values do |errors|
         errors.map(&:details)
@@ -326,7 +325,7 @@ module ActiveModel
     # person.errors.group_by_attribute
     # # => {:name=>[<#ActiveModel::Error>, <#ActiveModel::Error>]}
     # ```
-    #: () -> Hash[Symbol | String, Array[ActiveModel::Error]]
+    #: () -> Hash[Symbol, Array[ActiveModel::Error]]
     def group_by_attribute
       @errors.group_by(&:attribute)
     end
@@ -388,7 +387,7 @@ module ActiveModel
     # person.errors.details
     # # => {:base=>[{error: :name_or_email_blank}]}
     # ```
-    #: (Symbol | String, ?untyped, **untyped) -> ActiveModel::Error
+    #: (Symbol | String, ?Symbol | String | ^(untyped, Hash[Symbol, untyped]) -> (Symbol | String), **untyped) -> ActiveModel::Error
     def add(attribute, type = :invalid, **options)
       attribute, type, options = normalize_arguments(attribute, type, **options)
       error = Error.new(@base, attribute, type, **options)
@@ -472,7 +471,7 @@ module ActiveModel
     # person.errors.full_messages
     # # => ["Name is too short (minimum is 5 characters)", "Name can't be blank", "Email can't be blank"]
     # ```
-    #: () -> Array[untyped]
+    #: () -> Array[String]
     def full_messages
       @errors.map(&:full_message)
     end
@@ -494,7 +493,7 @@ module ActiveModel
     # person.errors.full_messages_for(:name, :invalid)
     # # => ["Name is invalid"]
     # ```
-    #: (Symbol | String, ?untyped) -> Array[untyped]
+    #: (Symbol | String, ?untyped) -> Array[String]
     def full_messages_for(attribute, type = nil)
       where(attribute, type).map(&:full_message).freeze
     end
@@ -515,7 +514,7 @@ module ActiveModel
     # person.errors.messages_for(:name, :invalid)
     # # => ["is invalid"]
     # ```
-    #: (Symbol | String, ?untyped) -> Array[untyped]
+    #: (Symbol | String, ?untyped) -> Array[String]
     def messages_for(attribute, type = nil)
       where(attribute, type).map(&:message)
     end
@@ -554,7 +553,7 @@ module ActiveModel
     # * `activemodel.errors.messages.blank`
     # * `errors.attributes.title.blank`
     # * `errors.messages.blank`
-    #: (Symbol | String, ?untyped, ?untyped) -> untyped
+    #: (Symbol | String, ?Symbol, ?Hash[Symbol, untyped]) -> String
     def generate_message(attribute, type = :invalid, options = {})
       Error.generate_message(attribute, type, @base, options)
     end
