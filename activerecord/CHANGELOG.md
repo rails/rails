@@ -1,3 +1,14 @@
+*   Fix `validates_presence_of` with `allow_nil` for `belongs_to` associations
+    pointing at a missing record.
+
+    The association reader returns `nil` both when the foreign key is `nil`
+    and when it points at a record that does not exist, so `allow_nil: true`
+    skipped the validation in both cases. `allow_nil` now refers to the
+    foreign key: a missing association with a foreign key set is blank,
+    not nil.
+
+    *Azmi Muwahid*
+
 *   Log source location when scoped order is ignored in batching.
 
     *fatkodima*

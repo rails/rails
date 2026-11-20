@@ -3,6 +3,26 @@
 module ActiveRecord
   module Validations
     class PresenceValidator < ActiveModel::Validations::PresenceValidator # :nodoc:
+      def validate(record)
+        attributes.each do |attribute|
+          value = record.read_attribute_for_validation(attribute)
+          reflection = record.class._reflect_on_association(attribute)
+
+          if reflection&.belongs_to?
+            # For a belongs_to association, allow_nil refers to the foreign
+            # key: a missing association whose foreign key is set means the
+            # associated record does not exist, which is blank, not nil.
+            next if value.nil? && allow_nil?(record) && record.read_attribute_for_validation(reflection.foreign_key).nil?
+            next if value.blank? && allow_blank?(record)
+          else
+            next if (value.nil? && allow_nil?(record)) || (value.blank? && allow_blank?(record))
+          end
+
+          value = prepare_value_for_validation(value, record, attribute)
+          validate_each(record, attribute, value)
+        end
+      end
+
       def validate_each(record, attribute, association_or_value)
         if record.class._reflect_on_association(attribute)
           association_or_value = Array.wrap(association_or_value).reject(&:marked_for_destruction?)
