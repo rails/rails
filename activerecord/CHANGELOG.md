@@ -1,3 +1,10 @@
+*   Write `db/schema.rb` atomically when dumping the schema.
+
+    Processes loading the schema while it was being dumped could read an empty or partial file,
+    and a dump that failed partway left the truncated file behind.
+
+    *Andrew K. Fader*
+
 *   Log source location when scoped order is ignored in batching.
 
     *fatkodima*
