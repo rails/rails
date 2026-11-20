@@ -37,6 +37,16 @@ if RUBY_VERSION >= "4.0" && ENV["RACK"] == "head"
         assert_ractor_shareable Rails.backtrace_cleaner
       end
 
+      test "ractorize! raises unless eager loading is enabled" do
+        add_to_env_config "production", "config.eager_load = false"
+
+        app "production"
+
+        error = assert_raises(RuntimeError) { ractorize! }
+        assert_match "config.eager_load", error.message
+        assert_not_predicate Rails.application, :frozen?
+      end
+
       test "ractorize! runs before_ractorize load hooks with the application" do
         app_file "config/initializers/before_ractorize.rb", <<~RUBY
           $before_ractorize_calls = []
