@@ -124,6 +124,26 @@ class Rails::Command::QueryTest < ActiveSupport::TestCase
     assert_match(/readonly|Write query/i, output)
   end
 
+  test "prevents writes via data-modifying CTE" do
+    rails "runner", 'Post.create!(title: "Test")'
+
+    output = query_error("--sql", "WITH deleted AS (DELETE FROM posts RETURNING *) SELECT * FROM deleted")
+    assert_match(/readonly|Write query/i, output)
+
+    count = rails("runner", "puts Post.count").strip
+    assert_equal "1", count
+  end
+
+  test "prevents writes via multiple statements" do
+    rails "runner", 'Post.create!(title: "Test")'
+
+    output = query_error("--sql", "SELECT 1; DELETE FROM posts")
+    assert_match(/readonly|Write query/i, output)
+
+    count = rails("runner", "puts Post.count").strip
+    assert_equal "1", count
+  end
+
   test "prevents writes via AR expression" do
     rails "runner", 'Post.create!(title: "Test")'
 

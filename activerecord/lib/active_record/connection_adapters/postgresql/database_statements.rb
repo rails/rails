@@ -25,9 +25,9 @@ module ActiveRecord
         private_constant :READ_QUERY
 
         def write_query?(sql) # :nodoc:
-          !READ_QUERY.match?(sql)
+          !AbstractAdapter.read_query?(sql, READ_QUERY)
         rescue ArgumentError # Invalid encoding
-          !READ_QUERY.match?(sql.b)
+          !AbstractAdapter.read_query?(sql.b, READ_QUERY)
         end
 
         def insert(arel_or_sql, name = nil, pk = nil, id_value = nil, sequence_name = nil, binds = [], returning: nil) # :nodoc:

@@ -179,6 +179,47 @@ module ActiveRecord
         /\A(?:[(\s]|#{COMMENT_REGEX})*#{Regexp.union(*parts)}/
       end
 
+      # Matches a data-modifying statement (`INSERT`, `UPDATE` or `DELETE`).
+      # Used to spot writes hiding inside a common table expression, where the
+      # outermost statement still looks like a read, e.g.
+      # `WITH moved AS (DELETE FROM ...) SELECT ...`.
+      DATA_MODIFYING_STATEMENT = /\b(?:insert|update|delete)\b/i # :nodoc:
+      private_constant :DATA_MODIFYING_STATEMENT
+
+      # Matches string literals, quoted identifiers and comments, so they can
+      # be stripped before scanning SQL for keywords and statement separators.
+      SQL_LITERAL_OR_COMMENT = %r{
+        '(?:[^'\\]|\\.|'')*'   # single-quoted string
+        | "(?:[^"]|"")*"       # double-quoted identifier
+        | `(?:[^`]|``)*`       # backtick-quoted identifier
+        | --[^\n]*             # line comment
+        | /\*(?:[^*]|\*[^/])*\*/ # block comment
+      }x # :nodoc:
+      private_constant :SQL_LITERAL_OR_COMMENT
+
+      # Matches a dollar-quoted string, e.g. `$$...$$` or `$tag$...$tag$`.
+      DOLLAR_QUOTED_STRING = /\$\$.*?\$\$|\$(\w+)\$.*?\$\1\$/m # :nodoc:
+      private_constant :DOLLAR_QUOTED_STRING
+
+      # Returns true if +sql+ only reads data, i.e. it cannot modify data.
+      #
+      # Besides checking that the statement starts with a read keyword (see
+      # +build_read_query_regexp+), this also rejects statements that hide a
+      # write behind a read-looking first keyword: data-modifying common table
+      # expressions (`WITH moved AS (DELETE FROM ...) SELECT ...`) and multiple
+      # statements (`SELECT 1; DELETE FROM ...`).
+      #
+      # String literals, quoted identifiers and comments are stripped before
+      # scanning, so keywords and semicolons inside them are not mistaken
+      # for SQL.
+      def self.read_query?(sql, read_query_regexp) # :nodoc:
+        return false unless read_query_regexp.match?(sql)
+
+        stripped_sql = sql.gsub(DOLLAR_QUOTED_STRING, "").gsub(SQL_LITERAL_OR_COMMENT, "")
+
+        !stripped_sql.match?(/;\s*\S/) && !stripped_sql.match?(DATA_MODIFYING_STATEMENT)
+      end
+
       def self.find_cmd_and_exec(commands, *args) # :doc:
         commands = Array(commands)
 
