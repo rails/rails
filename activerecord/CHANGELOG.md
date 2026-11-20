@@ -1,3 +1,13 @@
+*   Prevent data-modifying CTEs and multiple statements while preventing writes.
+
+    `while_preventing_writes` classified a query by its first keyword only, so
+    a query starting with `WITH` or `SELECT` could still write, e.g.
+    `WITH x AS (DELETE FROM ...) SELECT ...` or `SELECT 1; DELETE FROM ...`.
+    The read-query check now also rejects multiple statements and
+    data-modifying statements hiding inside a common table expression.
+
+    *Azmi Muwahid*
+
 *   Log source location when scoped order is ignored in batching.
 
     *fatkodima*

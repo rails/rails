@@ -93,6 +93,81 @@ module ActiveRecord
           assert_equal 1, result.length
         end
       end
+
+      def test_errors_when_a_delete_query_is_called_through_a_cte_while_preventing_writes
+        @connection.insert("INSERT INTO subscribers(nick) VALUES ('138853948594')")
+
+        ActiveRecord::Base.while_preventing_writes do
+          assert_raises(ActiveRecord::ReadOnlyError) do
+            @connection.select_all(<<~SQL)
+              WITH deleted_subscriber AS (DELETE FROM subscribers WHERE nick = '138853948594' RETURNING *)
+              SELECT * FROM deleted_subscriber
+            SQL
+          end
+        end
+
+        assert_equal 1, @connection.select_value("SELECT COUNT(*) FROM subscribers")
+      end
+
+      def test_errors_when_a_delete_query_follows_a_read_cte_while_preventing_writes
+        @connection.insert("INSERT INTO subscribers(nick) VALUES ('138853948594')")
+
+        ActiveRecord::Base.while_preventing_writes do
+          assert_raises(ActiveRecord::ReadOnlyError) do
+            @connection.select_all(<<~SQL)
+              WITH x AS (SELECT 'LIMIT')
+              DELETE FROM subscribers WHERE nick = '138853948594'
+            SQL
+          end
+        end
+
+        assert_equal 1, @connection.select_value("SELECT COUNT(*) FROM subscribers")
+      end
+    end
+
+    def test_errors_when_a_delete_query_follows_a_select_in_a_multi_statement_query_while_preventing_writes
+      @connection.insert("INSERT INTO subscribers(nick) VALUES ('138853948594')")
+
+      ActiveRecord::Base.while_preventing_writes do
+        assert_raises(ActiveRecord::ReadOnlyError) do
+          @connection.select_all("SELECT 1; DELETE FROM subscribers WHERE nick = '138853948594'")
+        end
+      end
+
+      assert_equal 1, @connection.select_value("SELECT COUNT(*) FROM subscribers")
+    end
+
+    def test_doesnt_error_when_a_select_query_contains_a_semicolon_in_a_string_literal_while_preventing_writes
+      @connection.insert("INSERT INTO subscribers(nick) VALUES ('a;b')")
+
+      ActiveRecord::Base.while_preventing_writes do
+        result = @connection.select_all("SELECT subscribers.* FROM subscribers WHERE nick = 'a;b'")
+        assert_equal 1, result.length
+      end
+    end
+
+    def test_doesnt_error_when_a_select_query_contains_write_keywords_in_a_string_literal_or_comment_while_preventing_writes
+      @connection.insert("INSERT INTO subscribers(nick) VALUES ('DELETE')")
+
+      ActiveRecord::Base.while_preventing_writes do
+        result = @connection.select_all("SELECT subscribers.* FROM subscribers WHERE nick = 'DELETE'")
+        assert_equal 1, result.length
+
+        result = @connection.select_all("-- DELETE FROM subscribers\nSELECT subscribers.* FROM subscribers WHERE nick = 'DELETE'")
+        assert_equal 1, result.length
+
+        result = @connection.select_all("/* DELETE FROM subscribers */ SELECT subscribers.* FROM subscribers WHERE nick = 'DELETE'")
+        assert_equal 1, result.length
+      end
+    end
+
+    def test_doesnt_error_when_a_select_query_ends_with_a_semicolon_while_preventing_writes
+      @connection.insert("INSERT INTO subscribers(nick) VALUES ('138853948594')")
+
+      ActiveRecord::Base.while_preventing_writes do
+        result = @connection.select_all("SELECT subscribers.* FROM subscribers WHERE nick = '138853948594';")
+        assert_equal 1, result.length
+      end
     end
 
     def test_doesnt_error_when_a_select_query_starting_with_a_slash_star_comment_is_called_while_preventing_writes
