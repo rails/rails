@@ -38,7 +38,7 @@ module ActionDispatch
           end
 
 
-          if body.is_a?(String) && !name.frozen?
+          if body.is_a?(String) && !body.frozen?
             case body.encoding
             when Encoding::UTF_8, Encoding::BINARY
               # noop
