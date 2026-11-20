@@ -6,6 +6,20 @@ module ActionDispatch
 
     self.namespace = "action_dispatch"
 
+    # Started GET "/session/new" for 127.0.0.1 at 2012-09-26 14:51:42 -0700
+    def request_started(event)
+      info do
+        payload = event[:payload]
+
+        sprintf('Started %s "%s" for %s at %s',
+          payload[:method],
+          payload[:path],
+          payload[:remote_ip],
+          Time.now)
+      end
+    end
+    event_log_level :request_started, :info
+
     def redirect(event)
       payload = event[:payload]
 
