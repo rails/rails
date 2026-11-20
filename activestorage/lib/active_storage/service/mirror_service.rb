@@ -16,7 +16,7 @@ module ActiveStorage
   class Service::MirrorService < Service
     attr_reader :primary, :mirrors
 
-    delegate :download, :download_chunk, :exist?, :url,
+    delegate :primary_service, :download, :download_chunk, :exist?, :url,
       :url_for_direct_upload, :headers_for_direct_upload, :path_for, :compose, to: :primary
 
     # Stitch together from named services.
@@ -46,7 +46,7 @@ module ActiveStorage
     # ensure a match when the upload has completed or raise an ActiveStorage::IntegrityError.
     def upload(key, io, checksum: nil, **options)
       io.rewind
-      primary.upload key, io, checksum: checksum, **options
+      primary_service.upload key, io, checksum: checksum, **options
       mirror_later key, checksum: checksum
     end
 
@@ -77,11 +77,15 @@ module ActiveStorage
             content = io.read.freeze
             tasks = mirrors_in_need_of_mirroring.map do |service|
               Concurrent::Promise.execute(executor: @executor) do
-                service.upload key, StringIO.new(content), checksum: checksum, **metadata
+                service.primary_service.upload key, StringIO.new(content), checksum: checksum, **metadata
               end
             end
             tasks.each(&:value!)
           end
+        end
+
+        each_service do |service|
+          service.mirror(key, checksum: checksum) if service.is_a?(Service::MirrorService)
         end
       end
     end

@@ -1,8 +1,10 @@
 *   Ensure tracked variants are uploaded before their variant records become visible.
 
-    Failed uploads no longer leave a variant record that suppresses regeneration. Uploaded blobs
-    are cleaned up after transaction rollbacks, record creation failures, and lost concurrency races.
-    Cleanup jobs wait for enclosing transactions to commit.
+    Failed uploads can be retried. Rolling back a transaction removes the uploaded file.
+    When processing fails or another request creates the variant first, the unused blob is
+    purged after commit. Only the winning variant is mirrored.
+
+    Related to #55088.
 
     *ablzh*
 

@@ -57,35 +57,61 @@ class ActiveStorage::VariantWithRecord
 
     def create_or_find_record(image:)
       ActiveRecord::Base.connected_to(role: ActiveRecord.writing_role) do
-        # Upload first so the variant record remains an availability marker.
         image_blob = ActiveStorage::Blob.build_after_unfurling(**image)
+        attachment = nil
 
         begin
-          image_blob.local_io = image.fetch(:io)
-          image_blob.analyze_without_saving unless ActiveStorage.analyze == :lazily
-          image_blob.save!
-          image_blob.class.current_transaction.after_rollback { image_blob.delete }
-          image_blob.local_io.rewind
-          image_blob.upload_without_unfurling(image_blob.local_io)
-        rescue
-          image_blob.class.current_transaction.after_commit { image_blob.purge_later } if image_blob.persisted?
-          raise
-        ensure
-          image_blob.local_io = nil
-        end
+          upload_image(image_blob, image.fetch(:io))
 
-        image_blob_attached = false
-        begin
-          @record =
-            blob.variant_records.create_or_find_by!(variation_digest: variation.digest) do |record|
-              record.image.attach(image_blob)
-            end.tap do |record|
-              image_blob_attached = record.image_blob == image_blob
-            end
+          @record = blob.variant_records.create_or_find_by!(variation_digest: variation.digest) do |record|
+            record.image.attach(image_blob)
+            attachment = record.image.attachment
+            # The file is on the primary. Run upload callbacks only if this attachment commits.
+            attachment.pending_upload = true
+          end
         ensure
-          image_blob.class.current_transaction.after_commit { image_blob.purge_later } unless image_blob_attached
+          if image_blob.persisted?
+            ActiveStorage::Blob.with_connection { |connection| finish_upload(connection, image_blob, attachment) }
+          end
         end
-        @record
+      end
+    end
+
+    def upload_image(image_blob, io)
+      image_blob.local_io = io
+      image_blob.analyze_without_saving unless ActiveStorage::Attachment.analyze_lazily?(ActiveStorage::VariantRecord, :image)
+      image_blob.save!
+      io.rewind
+      image_blob.upload_without_unfurling(io, service: image_blob.service.primary_service)
+    ensure
+      image_blob.local_io = nil
+    end
+
+    def finish_upload(connection, image_blob, attachment)
+      transaction = connection.current_transaction
+      if transaction.open?
+        transaction.after_rollback { rollback_upload(image_blob, attachment) }
+        # A savepoint inside a non-joinable transaction can run its commit callbacks
+        # before the enclosing transaction commits. Follow it to the outermost commit.
+        transaction.after_commit { finish_upload(connection, image_blob, attachment) }
+      elsif attachment&.persisted?
+        attachment.run_upload_callbacks
+      else
+        image_blob.purge_later
+      end
+    end
+
+    def rollback_upload(image_blob, attachment)
+      if attachment
+        blob.variant_records.target.delete(attachment.record)
+        @record = nil if @record.equal?(attachment.record)
+      end
+
+      # Even a queue adapter that cannot schedule the deletion retry must let
+      # the application's remaining rollback callbacks run.
+      context = { service_name: image_blob.service_name, key: image_blob.key }
+      ActiveSupport.error_reporter.handle(StandardError, NotImplementedError, source: "active_storage", context: context) do
+        ActiveStorage::DeleteVariantUploadJob.perform_now(image_blob.service_name, image_blob.key)
       end
     end
 

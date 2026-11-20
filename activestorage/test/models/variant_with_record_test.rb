@@ -55,6 +55,47 @@ class ActiveStorage::VariantWithRecordTest < ActiveSupport::TestCase
     assert_equal 67, image.height
   end
 
+  test "variant image analysis uses the local file by default" do
+    blob = create_file_blob(filename: "racecar.jpg")
+    variant = blob.variant(resize_to_limit: [100, 100])
+
+    blob.open do |io|
+      blob.with(local_io: io) do
+        assert_no_notifications(/download\.active_storage/) { variant.processed }
+      end
+    end
+
+    assert_equal 100, variant.image.blob.reload.metadata[:width]
+  end
+
+  test "lazy analysis on the variant image overrides global immediate analysis" do
+    blob = create_file_blob(filename: "racecar.jpg")
+    reflection = ActiveStorage::VariantRecord.reflect_on_attachment(:image)
+
+    ActiveStorage.with(analyze: :immediately) do
+      reflection.stub(:options, reflection.options.merge(analyze: :lazily)) do
+        assert_no_enqueued_jobs only: ActiveStorage::AnalyzeJob do
+          variant = blob.variant(resize_to_limit: [100, 100]).processed
+          assert_not variant.image.blob.reload.analyzed?
+        end
+      end
+    end
+  end
+
+  test "immediate analysis on the variant image overrides global lazy analysis" do
+    blob = create_file_blob(filename: "racecar.jpg")
+    reflection = ActiveStorage::VariantRecord.reflect_on_attachment(:image)
+
+    ActiveStorage.with(analyze: :lazily) do
+      reflection.stub(:options, reflection.options.merge(analyze: :immediately)) do
+        assert_no_enqueued_jobs only: ActiveStorage::AnalyzeJob do
+          variant = blob.variant(resize_to_limit: [100, 100]).processed
+          assert_equal 100, variant.image.blob.reload.metadata[:width]
+        end
+      end
+    end
+  end
+
   test "variant of a blob is on the same service" do
     blob = create_file_blob(filename: "racecar.jpg", service_name: "local_public")
     variant = blob.variant(resize_to_limit: [100, 100]).processed
@@ -82,17 +123,26 @@ class ActiveStorage::VariantWithRecordTest < ActiveSupport::TestCase
     assert blob.service.exist?(variant.key)
   end
 
+  uses_transaction :test_failed_variant_upload_can_be_retried
   test "failed variant upload can be retried" do
     blob = create_file_blob(filename: "racecar.jpg")
     variant = blob.variant(resize_to_limit: [100, 100])
+    upload = blob.service.method(:upload)
+    failed_key = nil
     upload_error = Class.new(StandardError)
 
     ActiveStorage::PurgeJob.with(enqueue_after_transaction_commit: false) do
       assert_enqueued_with(job: ActiveStorage::PurgeJob) do
-        ActiveStorage::Blob.transaction(requires_new: true) do
-          assert_no_difference -> { blob.variant_records.count } do
-            blob.service.stub(:upload, ->(*, **) { raise upload_error }) do
-              assert_raises(upload_error) { variant.processed }
+        ActiveStorage::Blob.transaction(joinable: false) do
+          ActiveStorage::Blob.transaction(requires_new: true) do
+            assert_no_difference -> { blob.variant_records.count } do
+              blob.service.stub(:upload, ->(key, *args, **options) do
+                upload.call(key, *args, **options)
+                failed_key = key
+                raise upload_error
+              end) do
+                assert_raises(upload_error) { variant.processed }
+              end
             end
           end
 
@@ -102,6 +152,9 @@ class ActiveStorage::VariantWithRecordTest < ActiveSupport::TestCase
     end
 
     assert_not variant.processed?
+    assert blob.service.exist?(failed_key)
+    perform_enqueued_jobs(only: ActiveStorage::PurgeJob)
+    assert_not blob.service.exist?(failed_key)
 
     assert_difference -> { blob.variant_records.count }, +1 do
       variant.processed
@@ -109,8 +162,12 @@ class ActiveStorage::VariantWithRecordTest < ActiveSupport::TestCase
 
     assert variant.processed?
     assert blob.service.exist?(variant.key)
+  ensure
+    blob&.purge
+    perform_enqueued_jobs(only: ActiveStorage::PurgeJob)
   end
 
+  uses_transaction :test_uploaded_image_is_purged_when_variant_record_creation_fails
   test "uploaded image is purged when variant record creation fails" do
     blob = create_file_blob(filename: "racecar.jpg")
     variant = blob.variant(resize_to_limit: [100, 100])
@@ -130,20 +187,20 @@ class ActiveStorage::VariantWithRecordTest < ActiveSupport::TestCase
     perform_enqueued_jobs(only: ActiveStorage::PurgeJob)
     assert_not blob.service.exist?(image_blob.key)
     assert_not ActiveStorage::Blob.exists?(image_blob.id)
+  ensure
+    blob&.purge
   end
 
   test "uploaded image is deleted when an enclosing transaction rolls back" do
     blob = create_file_blob(filename: "racecar.jpg")
-    transformations = { resize_to_limit: [100, 100] }
-    upload = blob.service.method(:upload)
+    blob.variant_records.load
+    other_record = blob.variant_records.build(variation_digest: "other")
+    variant = blob.variant(resize_to_limit: [100, 100])
     uploaded_key = nil
 
-    ActiveStorage::Blob.transaction(requires_new: true) do
-      blob.service.stub(:upload, ->(key, *args, **options) do
-        uploaded_key = key
-        upload.call(key, *args, **options)
-      end) do
-        blob.variant(transformations).processed
+    ActiveStorage::Blob.transaction(requires_new: true, joinable: false) do
+      ActiveStorage::Blob.transaction(requires_new: true) do
+        uploaded_key = variant.processed.key
       end
 
       assert blob.service.exist?(uploaded_key)
@@ -151,9 +208,66 @@ class ActiveStorage::VariantWithRecordTest < ActiveSupport::TestCase
     end
 
     assert_not blob.service.exist?(uploaded_key)
-    assert_not blob.variant(transformations).processed?
+    assert_not variant.processed?
+    assert_includes blob.variant_records, other_record
+    assert blob.service.exist?(variant.processed.key)
   end
 
+  test "an unavailable retry queue preserves the exception that caused the rollback" do
+    blob = create_file_blob
+    transaction_error = Class.new(StandardError)
+    later_callback_ran = false
+    uploaded_key = nil
+
+    ActiveStorage::DeleteVariantUploadJob.queue_adapter.stub(:enqueue_at, ->(*) { raise NotImplementedError }) do
+      blob.service.stub(:delete, ->(*) { raise IOError }) do
+        assert_error_reported(NotImplementedError) do
+          assert_raises(transaction_error) do
+            ActiveStorage::Blob.transaction(requires_new: true) do |transaction|
+              uploaded_key = blob.variant(resize_to_limit: [100, 100]).processed.key
+              transaction.after_rollback { later_callback_ran = true }
+              raise transaction_error
+            end
+          end
+        end
+      end
+    end
+
+    assert later_callback_ran
+  ensure
+    blob.service.delete(uploaded_key) if uploaded_key
+  end
+
+  test "failed rollback deletion retries after the blob row is gone" do
+    blob = create_file_blob(service_name: "local_public")
+    uploaded_key = nil
+    later_callback_ran = false
+    transaction_error = Class.new(StandardError)
+
+    ActiveStorage::Blob.transaction(requires_new: true) do
+      blob.service.stub(:delete, ->(*) { raise IOError, "storage temporarily unavailable" }) do
+        assert_raises(transaction_error) do
+          ActiveStorage::Blob.transaction(requires_new: true) do |transaction|
+            uploaded_key = blob.variant(resize_to_limit: [100, 100]).processed.key
+            transaction.after_rollback { later_callback_ran = true }
+            raise transaction_error
+          end
+        end
+      end
+      raise ActiveRecord::Rollback
+    end
+
+    assert later_callback_ran
+    assert_not ActiveStorage::Blob.exists?(key: uploaded_key)
+    assert blob.service.exist?(uploaded_key)
+    assert_enqueued_with(job: ActiveStorage::DeleteVariantUploadJob, args: [blob.service_name, uploaded_key])
+
+    perform_enqueued_jobs(only: ActiveStorage::DeleteVariantUploadJob)
+    assert_not blob.service.exist?(uploaded_key)
+    assert blob.service.exist?(blob.key)
+  end
+
+  uses_transaction :test_concurrent_processing_keeps_one_variant_record_and_purges_the_unused_image
   test "concurrent processing keeps one variant record and purges the unused image" do
     blob = create_file_blob(filename: "racecar.jpg")
     transformations = { resize_to_limit: [100, 100] }
@@ -164,7 +278,7 @@ class ActiveStorage::VariantWithRecordTest < ActiveSupport::TestCase
 
     ActiveStorage::PurgeJob.with(enqueue_after_transaction_commit: false) do
       assert_enqueued_with(job: ActiveStorage::PurgeJob) do
-        ActiveStorage::Blob.transaction(requires_new: true) do
+        ActiveStorage::Blob.transaction(joinable: false) do
           blob.service.stub(:upload, ->(*args, **options) do
             unless concurrent_variant_processed
               concurrent_variant_processed = true
@@ -187,6 +301,9 @@ class ActiveStorage::VariantWithRecordTest < ActiveSupport::TestCase
     assert_equal 1, blob.variant_records.count
     assert_equal concurrent_variant.key, variant.key
     assert blob.service.exist?(variant.key)
+  ensure
+    blob&.purge
+    perform_enqueued_jobs(only: ActiveStorage::PurgeJob)
   end
 
   uses_transaction :test_concurrent_processing_with_separate_database_connections
@@ -266,6 +383,46 @@ class ActiveStorage::VariantWithRecordTest < ActiveSupport::TestCase
         pool&.disconnect!
       end
     end
+  end
+
+  uses_transaction :test_mirroring_only_the_winning_variant_after_commit
+  test "mirroring only the winning variant after commit" do
+    blob = create_file_blob(service_name: "nested_mirror")
+    perform_enqueued_jobs(only: ActiveStorage::MirrorJob)
+
+    transformations = { resize_to_limit: [100, 100] }
+    variant = blob.variant(transformations)
+    primary = blob.service.primary_service
+    upload = primary.method(:upload)
+    uploaded_keys = []
+
+    ActiveStorage::MirrorJob.with(enqueue_after_transaction_commit: false) do
+      ActiveStorage::Blob.transaction(joinable: false) do
+        ActiveStorage::Blob.transaction(requires_new: true) do
+          primary.stub(:upload, ->(key, *args, **options) do
+            uploaded_keys << key
+            blob.variant(transformations).processed if uploaded_keys.one?
+            upload.call(key, *args, **options)
+          end) do
+            variant.processed
+          end
+        end
+
+        assert_no_enqueued_jobs only: ActiveStorage::MirrorJob
+      end
+    end
+
+    unused_key = (uploaded_keys - [variant.key]).sole
+    assert_enqueued_jobs 1, only: ActiveStorage::MirrorJob
+    perform_enqueued_jobs(only: ActiveStorage::MirrorJob)
+    %w[ disk_mirror_1 disk_mirror_2 disk_mirror_3 ].each do |name|
+      mirror = ActiveStorage::Blob.services.fetch(name)
+      assert_equal variant.download, mirror.download(variant.key)
+      assert_not mirror.exist?(unused_key)
+    end
+  ensure
+    blob&.purge
+    perform_enqueued_jobs(only: ActiveStorage::PurgeJob)
   end
 
   test "eager loading has_one_attached record" do
@@ -504,16 +661,9 @@ class ActiveStorage::VariantWithRecordTest < ActiveSupport::TestCase
     user.reload
 
     assert_difference -> { ActiveStorage::VariantRecord.count }, +2 do
-      # More queries here because we are creating a different variant.
-      # The second time we load this variant, we are back down to just 3 queries.
-
-      assert_queries_match(/SELECT/i, count: 10) do
-        # 10 queries:
-        # attachments (vlogs) initial load x 1
-        # blob x 1 (gets both records)
-        # variant record x 1 (gets both records)
-        # preview_image_attachments for non-images
-        # 2x get blob, attachment, variant records again, this happens when loading the new blob inside `VariantWithRecord#key`
+      # Six queries preload the vlogs and their variants. Each new variant
+      # needs one more query when assigning its image attachment.
+      assert_queries_match(/SELECT/i, count: 8) do
         user.vlogs.with_all_variant_records.each do |vlog|
           rep = vlog.representation(resize_to_limit: [200, 200])
           rep.processed
