@@ -463,6 +463,18 @@ class ActiveStorage::BlobTest < ActiveSupport::TestCase
     assert_equal ["is invalid"], blob.errors[:service_name]
   end
 
+  test "attaching to a blob whose metadata JSON was written by the database saves the attachment" do
+    blob = create_blob
+    ActiveStorage::Blob.where(id: blob.id).update_all("metadata = #{ActiveStorage::Blob.lease_connection.quote('{"identified": true, "analyzed": true}')}")
+    blob = ActiveStorage::Blob.find(blob.id)
+
+    assert_predicate blob, :analyzed?
+    assert_not_predicate blob, :changed?
+
+    blob.preview_image.attach(io: StringIO.new("preview"), filename: "preview.png", content_type: "image/png")
+    assert_predicate ActiveStorage::Blob.find(blob.id).preview_image, :attached?
+  end
+
   test "sync_metadata uploads metadata to service" do
     blob = directly_upload_file_blob(filename: "racecar.jpg")
 
