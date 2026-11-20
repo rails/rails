@@ -779,7 +779,7 @@ match "photos", to: "photos#show", via: :all
 NOTE: Routing both `GET` and `POST` requests to a single action has security
 implications. For example, the `GET` action won't check for CSRF token (so
 writing to the database from `GET` request is not a good idea. For more
-information see the [security guide](security.html#csrf-countermeasures)). In
+information see the [security guide](security.html#cross-site-request-forgery-csrf). In
 general, avoid routing all verbs to a single action unless you have a good
 reason.
 
