@@ -233,9 +233,11 @@ module ActiveRecord
         route.destination_fixed_values.each do |column, value|
           klass_scope._where!(column => value)
         end
-        fixed_clause = klass_scope.where_clause - where_clause
-        scope_chain_items.inject(klass_scope, &:merge!)
-        keep_owner_conditions(klass_scope, Relation::WhereClause.empty, fixed_clause)
+        unless scope_chain_items.empty?
+          fixed_clause = klass_scope.where_clause - where_clause
+          scope_chain_items.inject(klass_scope, &:merge!)
+          keep_owner_conditions(klass_scope, Relation::WhereClause.empty, fixed_clause)
+        end
 
         route.each_match do |origin_column, destination_column|
           destination_attribute = predicate_builder.predicate_attribute(table[destination_column])
