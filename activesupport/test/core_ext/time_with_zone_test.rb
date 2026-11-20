@@ -113,6 +113,16 @@ class TimeWithZoneTest < ActiveSupport::TestCase
     assert_equal "%EST %-0500", @twz.strftime("%%%Z %%%z")
   end
 
+  def test_strftime_with_utc_zone
+    twz = ActiveSupport::TimeWithZone.new(@utc, ActiveSupport::TimeZone["UTC"])
+    assert_equal "2000-01-01 00:00:00 UTC +0000 +00:00", twz.strftime("%Y-%m-%d %H:%M:%S %Z %z %:z")
+    assert_equal "+0000", twz.strftime("%-z")
+    assert_equal "", twz.strftime("%^Z")
+    assert_equal "", twz.strftime("%10Z")
+    assert_equal "2000-01-01T00:00:00Z", twz.strftime("%Y-%m-%dT%H:%M:%SZ")
+    assert_equal "%Z UTC", twz.strftime("%%Z %Z")
+  end
+
   def test_inspect
     assert_equal "1999-12-31 19:00:00.000000000 EST -05:00", @twz.inspect
 

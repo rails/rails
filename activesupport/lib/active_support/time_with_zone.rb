@@ -49,6 +49,10 @@ module ActiveSupport
     PRECISIONS = Hash.new { |h, n| h[n] = "%FT%T.%#{n}N" }
     PRECISIONS[0] = "%FT%T"
 
+    FLAGGED_ZONE = /[-_^#:\dEO]Z/
+    DASH_FLAGGED_OFFSET = /-[-_^#\d]*:*z/
+    private_constant :FLAGGED_ZONE, :DASH_FLAGGED_OFFSET
+
     include Comparable
     attr_reader :time_zone
 
@@ -264,8 +268,14 @@ module ActiveSupport
     # Replaces `%Z` directive with +zone before passing to Time#strftime,
     # so that zone information is correct.
     def strftime(format)
-      format = format.gsub(/((?:\A|[^%])(?:%%)*)%Z/, "\\1#{zone}") if format.include?("%Z")
-      getlocal(utc_offset).strftime(format)
+      if @time_zone.utc? &&
+          !(format.include?("Z") && (format.match?(FLAGGED_ZONE) || (format.include?("%Z") && zone != "UTC"))) &&
+          !(format.include?("z") && format.include?("-") && format.match?(DASH_FLAGGED_OFFSET))
+        utc.strftime(format)
+      else
+        format = format.gsub(/((?:\A|[^%])(?:%%)*)%Z/, "\\1#{zone}") if format.include?("%Z")
+        getlocal(utc_offset).strftime(format)
+      end
     end
 
     # Use the time in UTC for comparisons.
