@@ -126,6 +126,19 @@ module ActionController
     #
     #     redirect_to "https://rubyonrails.org", allow_other_host: true
     #
+    # To allow redirects to specific external hosts, configure
+    # `allowed_redirect_hosts` on the controller or application:
+    #
+    #     class PaymentsController < ApplicationController
+    #       self.allowed_redirect_hosts = ["payments.example.com"]
+    #     end
+    #
+    #     # config/application.rb
+    #     config.action_controller.allowed_redirect_hosts = ["example.com", /.*\.partner\.jp/]
+    #
+    # Setting this on a controller replaces the application-wide list rather
+    # than adding to it. These hosts are also considered internal by #url_from.
+    #
     # See #url_from for more information on what an internal and safe URL is, or how
     # to fall back to an alternate redirect URL in the unsafe case.
     #
@@ -189,7 +202,8 @@ module ActionController
     #
     # #### Options
     # *   `:allow_other_host` - Allow or disallow redirection to the host that is
-    #     different to the current host, defaults to true.
+    #     different to the current host, defaults to true. Hosts listed in
+    #     `allowed_redirect_hosts` are allowed regardless of this option.
     #
     #
     # All other options that can be passed to #redirect_to are accepted as options,
@@ -242,6 +256,9 @@ module ActionController
     #
     #     # If request.host is on https://example.com or https://app.example.com, you'd get:
     #     url_from("https://dev.example.com/profile") # => nil
+    #
+    # Hosts listed in `allowed_redirect_hosts` are also considered internal and
+    # safe.
     #
     # NOTE: there's a similarity with
     # [url_for](rdoc-ref:ActionDispatch::Routing::UrlFor#url_for), which generates
