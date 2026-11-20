@@ -152,7 +152,15 @@ module ActiveJob
       end
 
       def deserialize_global_id(hash)
-        GlobalID::Locator.fetch hash[GLOBALID_KEY]
+        gid = GlobalID.parse(hash[GLOBALID_KEY])
+
+        # Locator.fetch looks records up with +where+. Classes that only
+        # implement +find+ are still located with it.
+        if gid&.model_class.respond_to?(:where)
+          GlobalID::Locator.fetch(gid)
+        else
+          GlobalID::Locator.locate(gid)
+        end
       end
 
       def custom_serialized?(hash)

@@ -289,6 +289,39 @@ class ArgumentSerializationTest < ActiveSupport::TestCase
     assert_instance_of GlobalID::Locator::RecordUnavailable, error.cause
   end
 
+  class FindOnlyRecord
+    include GlobalID::Identification
+
+    attr_reader :id
+
+    def self.find(id)
+      raise ArgumentError, "Cannot find record with ID=404" if id.to_i == 404
+      new(id)
+    end
+
+    def initialize(id)
+      @id = id
+    end
+  end
+
+  test "deserializes a Global ID of a class that only responds to find" do
+    serialized = ActiveJob::Arguments.serialize [FindOnlyRecord.new(5)]
+
+    record = ActiveJob::Arguments.deserialize(serialized).first
+    assert_instance_of FindOnlyRecord, record
+    assert_equal "5", record.id
+  end
+
+  test "wraps an error from find of a class that only responds to find in a plain DeserializationError" do
+    serialized = ActiveJob::Arguments.serialize [FindOnlyRecord.new(404)]
+
+    error = assert_raises ActiveJob::DeserializationError do
+      ActiveJob::Arguments.deserialize serialized
+    end
+    assert_instance_of ActiveJob::DeserializationError, error
+    assert_instance_of ArgumentError, error.cause
+  end
+
   class RactorTest < ActiveSupport::TestCase
     include ActiveSupport::Testing::Isolation
     include ActiveSupport::Testing::RactorsAssertions
