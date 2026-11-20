@@ -1,3 +1,13 @@
+*   Remove the job from `ActiveSupport::ExecutionContext` after `perform_now`.
+
+    Jobs performed inline (e.g. `MyJob.perform_now`) outside of an executor
+    stayed in the execution context once they finished, so subsequent queries
+    were still tagged with `job='MyJob'` by query logs. The previous context is
+    now restored when the job finishes, including when it raises or when it is
+    nested inside another job.
+
+    *Vinícius Alonso*
+
 *   Fix `ActiveJob::Core#serialize` converting the given `scheduled_at` to UTC in place.
 
     `MyJob.set(wait_until: time).perform_later` used `Time#utc`, which changes
