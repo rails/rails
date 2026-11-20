@@ -84,7 +84,8 @@ Rails.application.configure do
   #   password: Rails.app.credentials.dig(:smtp, :password),
   #   address: "smtp.example.com",
   #   port: 587,
-  #   authentication: :plain
+  #   authentication: :plain,
+  #   enable_starttls: true
   # }
 
   <%- end -%>

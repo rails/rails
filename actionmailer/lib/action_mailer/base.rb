@@ -439,11 +439,15 @@ module ActionMailer
   #   * <tt>:enable_starttls</tt> - Use STARTTLS when connecting to your SMTP server and fail if unsupported. Defaults
   #     to <tt>false</tt>. Requires at least version 2.7 of the Mail gem.
   #   * <tt>:enable_starttls_auto</tt> - Detects if STARTTLS is enabled in your SMTP server and starts
-  #     to use it. Defaults to <tt>true</tt>.
+  #     to use it. Defaults to <tt>true</tt>. If the server doesn't advertise STARTTLS, which an attacker on
+  #     the network path can arrange, mail and credentials are sent in plain text. Use <tt>:enable_starttls</tt>
+  #     when the server supports STARTTLS.
   #   * <tt>:openssl_verify_mode</tt> - When using TLS, you can set how OpenSSL checks the certificate. This is
   #     really useful if you need to validate a self-signed and/or a wildcard certificate. You can use the name
   #     of an OpenSSL verify constant (<tt>'none'</tt> or <tt>'peer'</tt>) or directly the constant
-  #     (+OpenSSL::SSL::VERIFY_NONE+ or +OpenSSL::SSL::VERIFY_PEER+).
+  #     (+OpenSSL::SSL::VERIFY_NONE+ or +OpenSSL::SSL::VERIFY_PEER+). <tt>'none'</tt> disables certificate
+  #     verification, so anyone on the network path can intercept the connection, including the SMTP
+  #     credentials. Prefer adding the server's certificate or CA to the trusted store over using it.
   #   * <tt>:ssl/:tls</tt> Enables the SMTP connection to use SMTP/TLS (SMTPS: SMTP over direct TLS connection)
   #   * <tt>:open_timeout</tt> Number of seconds to wait while attempting to open a connection.
   #   * <tt>:read_timeout</tt> Number of seconds to wait until timing-out a read(2) call.
