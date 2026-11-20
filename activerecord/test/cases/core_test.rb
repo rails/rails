@@ -389,6 +389,25 @@ class CoreTest < ActiveRecord::TestCase
         assert_not_equal title_a, title_b
       end
 
+      def test_serialized_attributes_are_shareable_and_applied_on_a_non_main_ractor
+        model = ActiveSupport::Ractors.with(unshareable_proc_action: :raise) do
+          Class.new(ActiveRecord::Base) do
+            def self.name = "ractor_safe_serialized_attributes"
+            self.table_name = "topics"
+            serialize :content
+            store :important, accessors: [:color], coder: JSON
+          end.tap(&:load_schema)
+        end
+
+        assert_ractor_shareable model.send(:pending_attribute_modifications)
+
+        color = on_ractor do
+          model.schema_context.attributes.types["important"].deserialize('{"color":"red"}')[:color]
+        end
+
+        assert_equal "red", color
+      end
+
       def test_unshareable_pending_attribute_modifications_do_not_break_schema_load
         unshareable = +"local default"
         model = Class.new(ActiveRecord::Base) do
