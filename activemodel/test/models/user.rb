@@ -5,6 +5,10 @@ class User
   include ActiveModel::Attributes
   include ActiveModel::Dirty
   include ActiveModel::SecurePassword
+  include ActiveModel::Model
+  include ActiveModel::Attributes
+
+  attribute :name, :string
 
   define_model_callbacks :create
 
