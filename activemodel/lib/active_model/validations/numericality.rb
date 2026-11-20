@@ -2,6 +2,7 @@
 
 require "active_model/validations/comparability"
 require "active_model/validations/resolve_value"
+require "active_support/core_ext/object/inclusion"
 require "bigdecimal/util"
 
 module ActiveModel
