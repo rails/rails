@@ -28,7 +28,7 @@ module DateAndTime
 
     # Returns true if the date/time is today.
     def today?
-      to_date == ::Date.current
+      to_date == self.class.current
     end
 
     # Returns true if the date/time is tomorrow.
