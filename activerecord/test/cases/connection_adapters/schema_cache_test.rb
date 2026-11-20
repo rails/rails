@@ -524,6 +524,40 @@ module ActiveRecord
         end
       end
 
+      def test_load_ignores_a_dump_that_cannot_be_deserialized
+        Tempfile.create(["schema_cache-", format_extension]) do |tempfile|
+          File.binwrite(tempfile.path, undeserializable_dump)
+
+          cache = new_bound_reflection(tempfile.path)
+          report = nil
+          _, error = capture_io do
+            report = assert_error_reported { cache.load! }
+          end
+
+          assert_match(/Ignoring #{Regexp.escape(tempfile.path)} because it could not be loaded/, error)
+          assert_predicate report, :handled?
+          assert_equal "active_record.schema_cache", report.source
+          assert_equal tempfile.path, report.context[:path]
+          assert_not cache.cached?("courses")
+          assert_equal 3, cache.columns("courses").size
+        end
+      end
+
+      def test_cached_ignores_a_dump_that_cannot_be_deserialized_and_reports_only_once
+        Tempfile.create(["schema_cache-", format_extension]) do |tempfile|
+          File.binwrite(tempfile.path, undeserializable_dump)
+          reflection = SchemaReflection.new(tempfile.path)
+
+          SchemaReflection.with(check_schema_cache_dump_version: false) do
+            reports = capture_error_reports do
+              capture_io { 2.times { assert_not reflection.cached?("courses") } }
+            end
+
+            assert_equal 1, reports.size
+          end
+        end
+      end
+
       private
         def new_bound_reflection(filename = nil)
           BoundSchemaReflection.new(SchemaReflection.new(filename), @pool)
@@ -573,6 +607,13 @@ module ActiveRecord
         def load(data)
           Marshal.load(data)
         end
+
+        # References a class that no longer exists.
+        def undeserializable_dump
+          stub_const(self.class, :RemovedClass, Class.new, exists: false) do
+            Marshal.dump(self.class::RemovedClass.new)
+          end
+        end
     end
 
     class YamlFormatTest < ActiveRecord::TestCase
@@ -586,6 +627,10 @@ module ActiveRecord
         def load(data)
           YAML.unsafe_load(data)
         end
+
+        def undeserializable_dump
+          "--- !ruby/object:RemovedClass {}\n"
+        end
     end
 
     class JsonFormatTest < ActiveRecord::TestCase
@@ -598,6 +643,10 @@ module ActiveRecord
 
         def load(data)
           JSONSchemaCacheSerializer.load(data)
+        end
+
+        def undeserializable_dump
+          JSON.dump([{ "_type" => "removed_type" }])
         end
     end
   end
