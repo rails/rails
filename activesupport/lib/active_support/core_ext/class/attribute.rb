@@ -2,6 +2,7 @@
 
 require "active_support/core_ext/module/redefine_method"
 require "active_support/class_attribute"
+require "active_support/code_generator"
 
 class Class
   # Declare a class-level attribute whose value is inheritable by subclasses.
@@ -100,63 +101,89 @@ class Class
   def class_attribute(*attrs, instance_accessor: true,
     instance_reader: instance_accessor, instance_writer: instance_accessor, instance_predicate: true, default: nil
   )
-    class_methods, methods = [], []
-    attrs.each do |name|
-      unless name.is_a?(Symbol) || name.is_a?(String)
-        raise TypeError, "#{name.inspect} is not a symbol nor a string"
-      end
+    location = caller_locations(1, 1).first
 
-      name = name.to_sym
-      reader_method = :"__class_attr_#{name}"
-      owner_method = :"__class_attr_#{name}_owner"
-      ::ActiveSupport::ClassAttribute.redefine(self, name, owner_method, reader_method, default, instance_reader)
-
-      singleton_class.attr_reader(reader_method)
-
-      class_methods << "def #{name}; #{owner_method}.#{reader_method}; end"
-      class_methods << <<~RUBY
-        def #{name}=(value)
-          if #{owner_method}.equal?(self)
-            @#{reader_method} = value
-          else
-            ::ActiveSupport::ClassAttribute.redefine(self, :#{name}, :#{owner_method}, :#{reader_method}, value, #{!!instance_reader})
+    # The generated methods only depend on the attribute name and options, so
+    # they're shared with every other class that declares the same attribute.
+    #
+    # The inner batch is applied first, so class methods are defined before
+    # instance methods, as hooks like +method_added+ may depend on that order.
+    ActiveSupport::CodeGenerator.batch(self, location.path, location.lineno) do |methods|
+      ActiveSupport::CodeGenerator.batch(singleton_class, location.path, location.lineno) do |class_methods|
+        attrs.each do |name|
+          unless name.is_a?(Symbol) || name.is_a?(String)
+            raise TypeError, "#{name.inspect} is not a symbol nor a string"
           end
-        end
-      RUBY
 
-      if singleton_class?
-        methods << <<~RUBY if instance_reader
-          silence_redefinition_of_method(:#{name})
-          def #{name}
-            self.singleton_class.#{name}
+          name = name.to_sym
+          reader_method = :"__class_attr_#{name}"
+          owner_method = :"__class_attr_#{name}_owner"
+          ::ActiveSupport::ClassAttribute.redefine(self, name, owner_method, reader_method, default, instance_reader)
+
+          singleton_class.attr_reader(reader_method)
+
+          class_methods.define_cached_method(name, namespace: :class_attribute) do |batch|
+            batch << "def #{name}; #{owner_method}.#{reader_method}; end"
           end
-        RUBY
-      else
-        methods << <<~RUBY if instance_reader
-          silence_redefinition_of_method def #{name}
-            if defined?(@#{name})
-              @#{name}
+
+          writer_namespace = instance_reader ? :class_attribute_writer_with_instance_reader : :class_attribute_writer
+          class_methods.define_cached_method(:"#{name}=", namespace: writer_namespace) do |batch|
+            batch << <<~RUBY
+              def #{name}=(value)
+                if #{owner_method}.equal?(self)
+                  @#{reader_method} = value
+                else
+                  ::ActiveSupport::ClassAttribute.redefine(self, :#{name}, :#{owner_method}, :#{reader_method}, value, #{!!instance_reader})
+                end
+              end
+            RUBY
+          end
+
+          if instance_reader
+            silence_redefinition_of_method(name)
+            if singleton_class?
+              methods.define_cached_method(name, namespace: :class_attribute_singleton_reader) do |batch|
+                batch << <<~RUBY
+                  def #{name}
+                    self.singleton_class.#{name}
+                  end
+                RUBY
+              end
             else
-              self.class.#{name}
+              methods.define_cached_method(name, namespace: :class_attribute_reader) do |batch|
+                batch << <<~RUBY
+                  def #{name}
+                    if defined?(@#{name})
+                      @#{name}
+                    else
+                      self.class.#{name}
+                    end
+                  end
+                RUBY
+              end
             end
           end
-        RUBY
-      end
 
-      methods << <<~RUBY if instance_writer
-        silence_redefinition_of_method(:#{name}=)
-        attr_writer :#{name}
-      RUBY
+          if instance_writer
+            silence_redefinition_of_method(:"#{name}=")
+            methods.class_eval { |batch| batch << "attr_writer :#{name}" }
+          end
 
-      if instance_predicate
-        class_methods << "silence_redefinition_of_method def #{name}?; !!self.#{name}; end"
-        if instance_reader
-          methods << "silence_redefinition_of_method def #{name}?; !!self.#{name}; end"
+          if instance_predicate
+            singleton_class.silence_redefinition_of_method(:"#{name}?")
+            class_methods.define_cached_method(:"#{name}?", namespace: :class_attribute_predicate) do |batch|
+              batch << "def #{name}?; !!self.#{name}; end"
+            end
+
+            if instance_reader
+              silence_redefinition_of_method(:"#{name}?")
+              methods.define_cached_method(:"#{name}?", namespace: :class_attribute_predicate) do |batch|
+                batch << "def #{name}?; !!self.#{name}; end"
+              end
+            end
+          end
         end
       end
     end
-
-    location = caller_locations(1, 1).first
-    class_eval(["class << self", *class_methods, "end", *methods].join(";").tr("\n", ";"), location.path, location.lineno)
   end
 end
