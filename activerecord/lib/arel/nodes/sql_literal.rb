@@ -27,6 +27,10 @@ module Arel # :nodoc: all
 
         Fragments.new([self, other])
       end
+
+      def or(other)
+        Nodes::Grouping.new Nodes::Or.new([self, other])
+      end
     end
   end
 end
