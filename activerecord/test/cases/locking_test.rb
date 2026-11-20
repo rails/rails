@@ -708,6 +708,35 @@ class OptimisticLockingTest < ActiveRecord::TestCase
     assert_equal 1, Person.find(person.id).lock_version
   end
 
+  def test_increment_bang_does_not_advance_in_memory_lock_version_when_no_rows_are_updated
+    person = PersonWithLockVersionDefaultScope.unscoped.create!(first_name: "outside", lock_version: 1)
+
+    person.increment!(:followers_count)
+
+    assert_equal 1, person.lock_version
+    assert_not_predicate person, :lock_version_changed?
+  end
+
+  def test_increment_bang_does_not_advance_in_memory_lock_version_when_query_constraints_do_not_match
+    person = PersonWithLockVersionQueryConstraints.create!(first_name: "tenant", lock_version: 0)
+    PersonWithLockVersionQueryConstraints.where(id: person.id).update_all(lock_version: 5)
+
+    person.increment!(:followers_count)
+
+    assert_equal 0, person.lock_version
+    assert_equal 0, Person.find(person.id).followers_count
+    assert_equal 5, Person.find(person.id).lock_version
+  end
+
+  def test_increment_bang_advances_in_memory_lock_version_when_the_row_is_updated
+    person = Person.find(people(:michael).id)
+
+    person.increment!(:followers_count)
+
+    assert_equal Person.find(person.id).lock_version, person.lock_version
+    assert_not_predicate person, :lock_version_changed?
+  end
+
   def test_polymorphic_destroy_with_dependencies_and_lock_version
     car = Car.create!
 
