@@ -619,10 +619,12 @@ module ActiveRecord
         end
 
         ActiveSupport::Ractors.on_main(self) do
+          # A forked child can inherit another thread's in-progress load.
+          reentrant = @load_schema_monitor.mon_owned?
           @load_schema_monitor.synchronize do
             if table = context.loaded_mapped_table
               table
-            elsif @schema_loading_tables.key?(context)
+            elsif reentrant && @schema_loading_tables.key?(context)
               @schema_loading_tables[context]
             else
               begin
