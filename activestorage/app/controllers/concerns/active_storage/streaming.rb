@@ -45,11 +45,15 @@ module ActiveStorage::Streaming
 
       send_data(
         data,
-        disposition: blob.forced_disposition_for_serving || disposition || DEFAULT_BLOB_STREAMING_DISPOSITION,
+        disposition: blob_disposition_for_serving(blob, disposition),
         filename: blob.filename.sanitized,
         status: :partial_content,
         type: content_type
       )
+    end
+
+    def blob_disposition_for_serving(blob, disposition)
+      blob.forced_disposition_for_serving || disposition.to_s.presence_in(%w( attachment inline )) || DEFAULT_BLOB_STREAMING_DISPOSITION
     end
 
     def ranges_valid?(ranges)
@@ -63,7 +67,7 @@ module ActiveStorage::Streaming
     def send_blob_stream(blob, disposition: nil) # :doc:
       send_stream(
           filename: blob.filename.sanitized,
-          disposition: blob.forced_disposition_for_serving || disposition || DEFAULT_BLOB_STREAMING_DISPOSITION,
+          disposition: blob_disposition_for_serving(blob, disposition),
           type: blob.content_type_for_serving) do |stream|
         blob.download do |chunk|
           stream.write chunk
