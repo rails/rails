@@ -237,15 +237,47 @@ class ActionCable::Channel::BaseTest < ActionCable::TestCase
   test "notification for transmit_subscription_confirmation" do
     expected_payload = { channel_class: "ActionCable::Channel::BaseTest::ChatChannel", identifier: "{id: 1}" }
 
-    @channel.subscribe_to_channel
-
     assert_notifications_count("transmit_subscription_confirmation.action_cable", 1) do
       assert_notification("transmit_subscription_confirmation.action_cable", expected_payload) do
-        @channel.stub(:subscription_confirmation_sent?, false) do
-          @channel.send(:transmit_subscription_confirmation)
-        end
+        @channel.send(:transmit_subscription_confirmation)
       end
     end
+  end
+
+  test "subscription confirmation is sent once when a stream ends a new deferral while it is being sent" do
+    sending = Concurrent::CountDownLatch.new
+    finish_sending = Concurrent::CountDownLatch.new
+    confirmations = Concurrent::AtomicFixnum.new
+
+    @connection.define_singleton_method(:transmit) do |message|
+      if message[:type] == "confirm_subscription" && confirmations.increment == 1
+        sending.count_down
+        finish_sending.wait(5)
+      end
+      super(message)
+    end
+
+    @channel.send(:defer_subscription_confirmation!) # stream_from in #subscribed
+    @channel.send(:ensure_confirmation_sent)         # end of #subscribe_to_channel
+
+    # The stream's pubsub callback starts sending the confirmation on another thread.
+    first = Thread.new { @channel.send(:ensure_confirmation_sent) }
+    assert sending.wait(5), "confirmation was not sent"
+
+    # An action streams from another broadcasting, and its callback runs meanwhile.
+    @channel.send(:defer_subscription_confirmation!)
+    @channel.send(:ensure_confirmation_sent)
+    assert_equal 1, confirmations.value, "confirmation sent again while the first was still being sent"
+    assert_not @channel.send(:subscription_confirmation_sent?), "confirmation reported as sent before it was written"
+
+    finish_sending.count_down
+    first.join
+
+    assert_equal 1, confirmations.value
+    assert_predicate @channel, :subscription_confirmation_sent?
+  ensure
+    finish_sending&.count_down
+    first&.join
   end
 
   test "notification for transmit_subscription_rejection" do

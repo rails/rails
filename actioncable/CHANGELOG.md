@@ -1,3 +1,7 @@
+*   Fix channels that use `stream_from` sometimes sending `confirm_subscription` twice.
+
+    *Sampo Kuokkanen*
+
 *   Filter parameters from the message logged when a command can't be handled.
 
     When a channel action raised, the error log included the raw WebSocket message,
