@@ -56,10 +56,107 @@ module ActiveRecord
         class_attribute :partial_updates, instance_writer: false, default: true
         class_attribute :partial_inserts, instance_writer: false, default: true
 
+        ##
+        # :method: saved_change_to_*?
+        #
+        # :call-seq: saved_change_to_*?(**options)
+        #
+        # This method is generated for each attribute.
+        #
+        # Returns true if the attribute changed when the record was last saved.
+        # It is useful in after callbacks to determine if an attribute was
+        # changed during the save that triggered the callbacks to run.
+        #
+        # ```
+        # person = Person.create(name: "Allison")
+        # person.name = "Alice"
+        # person.save
+        # person.saved_change_to_name? # => true
+        # person.saved_change_to_name?(from: "Allison", to: "Alice") # => true
+        # ```
+
+        ##
+        # :method: saved_change_to_*
+        #
+        # This method is generated for each attribute.
+        #
+        # Returns the change to the attribute during the last save, as an array
+        # containing the original value and the saved value, or nil if the
+        # attribute did not change.
+        #
+        # ```
+        # person = Person.create(name: "Allison")
+        # person.name = "Alice"
+        # person.save
+        # person.saved_change_to_name # => ["Allison", "Alice"]
+        # ```
+
+        ##
+        # :method: *_before_last_save
+        #
+        # This method is generated for each attribute.
+        #
+        # Returns the original value of the attribute before the last save.
+        #
+        # ```
+        # person = Person.create(name: "Allison")
+        # person.name = "Alice"
+        # person.save
+        # person.name_before_last_save # => "Allison"
+        # ```
+
         # Attribute methods for "changed in last call to save?"
         attribute_method_affix(prefix: "saved_change_to_", suffix: "?", parameters: "**options")
         attribute_method_prefix("saved_change_to_", parameters: false)
         attribute_method_suffix("_before_last_save", parameters: false)
+
+        ##
+        # :method: will_save_change_to_*?
+        #
+        # :call-seq: will_save_change_to_*?(**options)
+        #
+        # This method is generated for each attribute.
+        #
+        # Returns true if the attribute will change the next time the record is
+        # saved. It is useful in validations and before callbacks to determine
+        # if the next call to `save` will change a particular attribute.
+        #
+        # ```
+        # person = Person.create(name: "Allison")
+        # person.name = "Alice"
+        # person.will_save_change_to_name? # => true
+        # person.will_save_change_to_name?(from: "Allison", to: "Alice") # => true
+        # ```
+
+        ##
+        # :method: *_change_to_be_saved
+        #
+        # This method is generated for each attribute.
+        #
+        # Returns the change to the attribute that will be persisted during the
+        # next save, as an array containing the original value and the new
+        # value, or nil if the attribute will not change.
+        #
+        # ```
+        # person = Person.create(name: "Allison")
+        # person.name = "Alice"
+        # person.name_change_to_be_saved # => ["Allison", "Alice"]
+        # ```
+
+        ##
+        # :method: *_in_database
+        #
+        # This method is generated for each attribute.
+        #
+        # Returns the value of the attribute in the database, as opposed to the
+        # in-memory value that will be persisted the next time the record is
+        # saved.
+        #
+        # ```
+        # person = Person.create(name: "Allison")
+        # person.name = "Alice"
+        # person.name_in_database # => "Allison"
+        # ```
 
         # Attribute methods for "will change if I call save?"
         attribute_method_affix(prefix: "will_save_change_to_", suffix: "?", parameters: "**options")
