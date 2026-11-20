@@ -81,8 +81,8 @@ module ActiveRecord
     #
     # If +count+ is used with {Relation#select}[rdoc-ref:QueryMethods#select], it will count the selected columns:
     #
-    #   Person.select(:age).count
-    #   # => counts the number of different age values
+    #   Person.select(:age).count # returns non-NULL ages
+    #   # => counts the number of people whose age is present in database
     #
     # Note: not all valid {Relation#select}[rdoc-ref:QueryMethods#select] expressions are valid +count+ expressions. The specifics differ
     # between databases. In invalid cases, an error from the database is thrown.
