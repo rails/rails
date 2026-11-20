@@ -1118,6 +1118,12 @@ If you require your cookies to be read by Rails 5.2 and older, or you are still 
 to be able to rollback set
 `Rails.application.config.action_dispatch.use_cookies_with_metadata` to `false`.
 
+WARNING: Disabling `use_cookies_with_metadata` or staying on pre-6.0 defaults
+leaves signed and encrypted cookies without purpose binding. In this mode, a
+legacy signed or encrypted value issued for one cookie name could be replayed
+across different cookie names sharing the same verifier. Applications should
+avoid leaving this flag set to `false` permanently.
+
 ### All npm packages have been moved to the `@rails` scope
 
 If you were previously loading any of the `actioncable`, `activestorage`,
