@@ -85,6 +85,12 @@ module ActiveRecord
 
     alias_method :validate, :valid?
 
+    # A column that was not selected raises ActiveModel::MissingAttributeError,
+    # instead of being read as +nil+.
+    def read_attribute_for_validation(attribute) # :nodoc:
+      self.class.columns_hash.key?(attribute.to_s) ? send(attribute) : super
+    end
+
     def custom_validation_context? # :nodoc:
       validation_context && [:create, :update].exclude?(validation_context)
     end
