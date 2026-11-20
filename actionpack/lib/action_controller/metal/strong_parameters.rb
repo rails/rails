@@ -1007,6 +1007,7 @@ module ActionController
     #     params.deep_transform_values { |v| v.is_a?(String) ? v.strip.downcase : v }
     #     # => #<ActionController::Parameters {"user"=>{"email"=>"alice@example.com", "profile"=>{"bio"=>"hello world"}}} permitted: false>
     def deep_transform_values(&block)
+      return to_enum(:deep_transform_values) unless block_given?
       new_instance_with_inherited_permitted_status(
         _deep_transform_values_in_object(@parameters, &block)
       )
@@ -1016,6 +1017,7 @@ module ActionController
     # values. This includes the values from the root hash and from all nested
     # hashes and arrays. The keys are unchanged.
     def deep_transform_values!(&block)
+      return to_enum(:deep_transform_values!) unless block_given?
       @parameters = _deep_transform_values_in_object!(@parameters, &block)
       self
     end
