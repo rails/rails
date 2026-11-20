@@ -334,6 +334,7 @@ module ActiveSupport
       @utc_offset = utc_offset
       @tzinfo = tzinfo || TimeZone.find_tzinfo(name)
       @constant_period = constant_period(@tzinfo)
+      @final_period, @final_period_threshold = (final_period(@tzinfo) unless @constant_period)
       @utc = constant_utc_zone?(@constant_period)
 
       ActiveSupport::Ractors.make_shareable(self)
@@ -634,11 +635,11 @@ module ActiveSupport
     end
 
     def period_for_utc(time) # :nodoc:
-      @constant_period || tzinfo.period_for_utc(time)
+      @constant_period || (@final_period_threshold && final_period?(time) ? @final_period : tzinfo.period_for_utc(time))
     end
 
     def period_for_local(time, dst = true) # :nodoc:
-      @constant_period || tzinfo.period_for_local(time, dst) { |periods| periods.last }
+      @constant_period || (@final_period_threshold && final_period?(time) ? @final_period : tzinfo.period_for_local(time, dst) { |periods| periods.last })
     end
 
     def periods_for_local(time) # :nodoc:
@@ -680,13 +681,26 @@ module ActiveSupport
 
     private
       UTC_TIME = ::Time.utc(2000)
-      private_constant :UTC_TIME
+      FAR_FUTURE = ::Time.utc(2200)
+      private_constant :UTC_TIME, :FAR_FUTURE
 
       # A zone without transitions, such as UTC, has a single period for all
       # time. It is kept so that looking it up doesn't build a new one each time.
       def constant_period(tzinfo)
         period = tzinfo.period_for_utc(UTC_TIME)
         period if period.start_transition.nil? && period.end_transition.nil?
+      end
+
+      def final_period(tzinfo)
+        period = tzinfo.period_for_utc(FAR_FUTURE)
+        transition = period.start_transition
+        if period.end_transition.nil? && transition && transition.timestamp_value <= ::Time.now.to_i
+          [period, transition.timestamp_value + 2 * 86400]
+        end
+      end
+
+      def final_period?(time)
+        time.instance_of?(::Time) && time.to_i >= @final_period_threshold
       end
 
       def constant_utc_zone?(period)
