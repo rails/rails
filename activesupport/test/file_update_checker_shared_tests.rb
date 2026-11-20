@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require "fileutils"
+require "pathname"
 
 module FileUpdateCheckerSharedTests
   extend ActiveSupport::Testing::Declarative
@@ -76,6 +77,66 @@ module FileUpdateCheckerSharedTests
   ensure
     FileUtils.remove_entry(local_dir)
     FileUtils.remove_entry(fake_gem_dir)
+  end
+
+  test "should exclude a gem directory itself with a trailing separator" do
+    fake_gem_dir = File.join(tmpdir, "gems")
+    FileUtils.mkdir_p(fake_gem_dir)
+    touched = []
+
+    Gem.stub(:path, [fake_gem_dir + "/"]) do
+      checker = new_checker([], { fake_gem_dir => ["rb"] }) { touched << :called }
+
+      touch(File.join(fake_gem_dir, "foo.rb"))
+      assert_not checker.execute_if_updated
+      assert_empty touched
+    end
+  end
+
+  test "should watch files sharing a gem path prefix" do
+    fake_gem_dir = File.join(tmpdir, "gems")
+    local_file = tmpfile("gems-app.rb")
+    touched = []
+
+    Gem.stub(:path, [fake_gem_dir]) do
+      checker = new_checker([local_file]) { touched << :called }
+
+      touch(local_file)
+      assert checker.execute_if_updated
+      assert_equal [:called], touched
+    end
+  end
+
+  test "should watch directories sharing a gem path prefix" do
+    fake_gem_dir = File.join(tmpdir, "gems")
+    local_dir = File.join(tmpdir, "gems-app")
+    FileUtils.mkdir_p(local_dir)
+    local_file = File.join(local_dir, "foo.rb")
+    touched = []
+
+    Gem.stub(:path, [fake_gem_dir]) do
+      checker = new_checker([], { local_dir => ["rb"] }) { touched << :called }
+
+      touch(local_file)
+      assert checker.execute_if_updated
+      assert_equal [:called], touched
+    end
+  end
+
+  test "should exclude relative directories in gem path" do
+    fake_gem_dir = File.join(tmpdir, "gems")
+    FileUtils.mkdir_p(fake_gem_dir)
+    gem_file = File.join(fake_gem_dir, "foo.rb")
+    touched = []
+    relative_dir = Pathname(fake_gem_dir).relative_path_from(Pathname(Dir.pwd)).to_s
+
+    Gem.stub(:path, [fake_gem_dir]) do
+      checker = new_checker([], { relative_dir => ["rb"] }) { touched << :called }
+
+      touch(gem_file)
+      assert_not checker.execute_if_updated
+      assert_empty touched
+    end
   end
 
   test "should not execute the block if no files change" do
