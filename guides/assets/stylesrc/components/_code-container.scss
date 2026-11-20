@@ -47,8 +47,10 @@ dl dd .interstitial {
     text-align: left !important;
     width: 100%;
     white-space: normal;
+    gap: 10px;
 
     pre {
+      flex-grow: 1;
       margin: 0;
       white-space: pre;
     }
@@ -61,9 +63,8 @@ dl dd .interstitial {
       border-radius: 4px;
       font-size: 0.75em;
       padding: 0.25em 0.5em !important;
-      position: absolute;
-        bottom: 10px;
-        right: 10px;
+      align-self: flex-end;
+      flex-shrink: 0;
       text-transform: uppercase;
       width: auto;
     } // button.clipboard-button
