@@ -95,4 +95,35 @@ class ActiveRecord::Encryption::ExtendedDeterministicQueriesTest < ActiveRecord:
       assert EncryptedBookWithUnencryptedDataOptedIn.where("id > 0").find_by(name: "Dune") # relation
     end
   end
+
+  test "Finds unencrypted records when normalizes is declared before encrypts" do
+    UnencryptedBook.create!(name: "dune")
+    assert EncryptedBookWithNormalizedName.find_by(name: "DUNE") # core
+    assert EncryptedBookWithNormalizedName.where("id > 0").find_by(name: "DUNE") # relation
+  end
+
+  test "Finds unencrypted records when normalizes is declared after encrypts" do
+    UnencryptedBook.create!(name: "dune")
+    assert EncryptedBookWithNormalizedNameReversed.find_by(name: "DUNE") # core
+    assert EncryptedBookWithNormalizedNameReversed.where("id > 0").find_by(name: "DUNE") # relation
+  end
+
+  test "Finds encrypted records with normalizes and encrypts" do
+    EncryptedBookWithNormalizedName.create!(name: "DUNE")
+    assert EncryptedBookWithNormalizedName.find_by(name: "dune") # core
+    assert EncryptedBookWithNormalizedName.where("id > 0").find_by(name: "dune") # relation
+  end
+
+  test "exists? works with normalizes and encrypts" do
+    EncryptedBookWithNormalizedName.create!(name: "DUNE")
+    assert EncryptedBookWithNormalizedName.exists?(name: "Dune")
+  end
+
+  test "find_or_create_by works with normalizes and encrypts" do
+    EncryptedBookWithNormalizedName.find_or_create_by!(name: "DUNE")
+    assert EncryptedBookWithNormalizedName.find_by(name: "dune")
+
+    EncryptedBookWithNormalizedName.find_or_create_by!(name: "Dune")
+    assert_equal 1, EncryptedBookWithNormalizedName.where(name: "dune").count
+  end
 end
