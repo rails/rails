@@ -38,6 +38,7 @@ module ActionDispatch
           requirements_for_missing_keys_check
           offsets
           to_regexp
+          spec.to_s
           @ast = nil if @ast
         end
 
