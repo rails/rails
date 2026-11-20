@@ -67,6 +67,39 @@ class PresenceValidationTest < ActiveRecord::TestCase
     assert_nothing_raised { s.valid? }
   end
 
+  def test_validates_presence_of_belongs_to_with_missing_record
+    repair_validations(Interest) do
+      Interest.clear_validators!
+      Interest.validates_presence_of(:human)
+
+      human = Human.create!(name: "Gordon")
+      assert_predicate Interest.new(human_id: human.id), :valid?
+
+      interest = Interest.new(human_id: nil)
+      assert_predicate interest, :invalid?
+      assert_equal ["can't be blank"], interest.errors[:human]
+
+      interest = Interest.new(human_id: Human.maximum(:id).to_i + 1)
+      assert_predicate interest, :invalid?
+      assert_equal ["can't be blank"], interest.errors[:human]
+    end
+  end
+
+  def test_validates_presence_of_belongs_to_with_allow_nil_and_missing_record
+    repair_validations(Interest) do
+      Interest.clear_validators!
+      Interest.validates_presence_of(:human, allow_nil: true)
+
+      human = Human.create!(name: "Gordon")
+      assert_predicate Interest.new(human_id: nil), :valid?
+      assert_predicate Interest.new(human_id: human.id), :valid?
+
+      interest = Interest.new(human_id: Human.maximum(:id).to_i + 1)
+      assert_predicate interest, :invalid?
+      assert_equal ["can't be blank"], interest.errors[:human]
+    end
+  end
+
   def test_validates_presence_of_virtual_attribute_on_model
     repair_validations(Interest) do
       Interest.attr_accessor(:abbreviation)
