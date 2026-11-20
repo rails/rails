@@ -204,7 +204,26 @@ class ActiveStorage::Blobs::ProxyControllerTest < ActionDispatch::IntegrationTes
     assert_equal blob.byte_size.to_s, response.headers["Content-Length"], "Content-Length header should match blob size"
   end
 
+  test "Content-Length header is passed to the server when streaming" do
+    blob = create_file_blob(filename: "racecar.jpg")
+
+    status, headers = rack_response_for(rails_storage_proxy_url(blob))
+
+    assert_equal 200, status
+    assert_equal blob.byte_size.to_s, headers["content-length"]
+  end
+
   private
+    # Calls the app without the integration session, which computes its own Content-Length,
+    # and reads the streamed body to the end so the request has completed when this returns.
+    def rack_response_for(url, env = {})
+      status, headers, body = Rails.application.call(Rack::MockRequest.env_for(url, env))
+      body.each { }
+      [status, headers]
+    ensure
+      body&.close
+    end
+
     def assert_committed_download_failure_preserves_response(error_class, protocol:)
       blob = create_file_blob(filename: "racecar.jpg")
       mock_download = lambda do |_, &block|
