@@ -1,3 +1,13 @@
+*   Load Action Mailbox's extensions to the Mail gem with `ActionMailbox::InboundEmail`.
+
+    Requiring Action Mailbox no longer loads the Mail gem and its address parser, which made
+    up about 12 ms of booting a new application in development and of every `bin/rails`
+    command (about 40 ms without Bootsnap). Code that uses the extensions, like
+    `Mail::Message#recipients`, outside of Action Mailbox needs to require
+    `action_mailbox/mail_ext`.
+
+    *Lawrence Lin*
+
 *   Reject Mailgun inbound emails whose timestamp is more than 2 minutes ahead
     of local time.
 

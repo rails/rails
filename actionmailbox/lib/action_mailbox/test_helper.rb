@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require "mail"
+require "action_mailbox/mail_ext"
 
 module ActionMailbox
   module TestHelper
