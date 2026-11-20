@@ -96,5 +96,27 @@ module ActionMailbox
       assert_not result.success?
       assert_predicate result, :failure?
     end
+
+    test "refusing to relay over plain HTTP to another host" do
+      ["http://example.com/rails/action_mailbox/relay/inbound_emails", "http://10.0.0.5/inbound", "ftp://example.com/inbound"].each do |url|
+        result = ActionMailbox::Relayer.new(url: url, password: INGRESS_PASSWORD).relay(file_fixture("welcome.eml").read)
+
+        assert_equal "4.7.0", result.status_code, url
+        assert_equal "Refusing to relay to an ingress URL that doesn't use HTTPS", result.message
+        assert_predicate result, :transient_failure?
+      end
+
+      assert_not_requested :any, /.*/
+    end
+
+    test "relaying over plain HTTP to this machine" do
+      ["http://localhost:3000/inbound", "http://app.localhost/inbound", "http://127.0.0.1:3000/inbound", "http://[::1]:3000/inbound"].each do |url|
+        stub_request(:post, url).to_return status: 204
+
+        result = ActionMailbox::Relayer.new(url: url, password: INGRESS_PASSWORD).relay(file_fixture("welcome.eml").read)
+        assert_predicate result, :success?, url
+        assert_requested :post, url, basic_auth: [ "actionmailbox", INGRESS_PASSWORD ]
+      end
+    end
   end
 end
