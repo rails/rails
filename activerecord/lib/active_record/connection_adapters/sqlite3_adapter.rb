@@ -966,6 +966,7 @@ module ActiveRecord
         end
 
         def connect
+          check_deadline!
           @raw_connection = self.class.new_client(@connection_parameters)
         rescue ConnectionNotEstablished => ex
           raise ex.set_pool(@pool)

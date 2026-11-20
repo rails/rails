@@ -86,6 +86,11 @@ module ActiveRecord
   class ConnectionTimeoutError < ConnectionNotEstablished
   end
 
+  # Raised when a query couldn't be executed or timed out early
+  # because the overall unit of work deadline was exceeded.
+  class DeadlineExceededError < ActiveRecordError
+  end
+
   # Raised when a database connection pool is requested but
   # has not been defined.
   class ConnectionNotDefined < ConnectionNotEstablished

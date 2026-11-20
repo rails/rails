@@ -61,7 +61,7 @@ module ActiveRecord
         end
       end
 
-      attr_reader :arel, :name, :prepare, :allow_retry, :allow_async,
+      attr_reader :arel, :name, :prepare, :allow_retry, :allow_async, :deadline,
                   :materialize_transactions, :batch, :pool, :session, :lock_wait,
                   :event_buffer, :error, :finalized
       alias_method :finalized?, :finalized
@@ -76,6 +76,7 @@ module ActiveRecord
         end
 
         @adapter = adapter
+        @deadline = adapter.deadline
         @arel = arel
         @raw_sql = raw_sql
         @name = name

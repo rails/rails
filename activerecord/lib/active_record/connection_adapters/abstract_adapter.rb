@@ -63,7 +63,7 @@ module ActiveRecord
       attr_reader :allow_preconnect # :nodoc:
       attr_accessor :pinned # :nodoc:
       alias :in_use? :owner
-      attr_writer :deadline # :nodoc:
+      attr_accessor :deadline # :nodoc:
 
       def pool=(value)
         return if value.eql?(@pool)

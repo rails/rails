@@ -34,15 +34,15 @@ module ActiveSupport
 
     module Null
       class << self
-        def clamp(maximum, minimum: 0.0, error: Exceeded)
+        def clamp(maximum, minimum: nil, error: nil)
           Float(maximum) # Ensure coerced to Float
         end
 
-        def remaining
+        def remaining(minimum: nil, error: nil)
           Float::INFINITY
         end
 
-        def check!
+        def check!(minimum: nil, error: nil)
           self
         end
 

@@ -1802,7 +1802,7 @@ module ActiveRecord
 
       def test_checkout_deadline
         ConnectionPool.with(deadline: ActiveSupport::Deadline.new(-1)) do
-          assert_raises ActiveRecord::ConnectionTimeoutError, match: /Deadline exceeded/ do
+          assert_raises ActiveRecord::DeadlineExceededError, match: /Deadline exceeded/ do
             @pool.checkout
           end
         end
