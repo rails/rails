@@ -1,4 +1,3 @@
-# :markup: markdown
 # frozen_string_literal: true
 
 require "tzinfo"
@@ -12,7 +11,7 @@ module ActiveSupport
   # The TimeZone class serves as a wrapper around `TZInfo::Timezone` instances.
   # It allows us to do the following:
   #
-  # * Limit the set of zones provided by TZInfo to a meaningful subset of 154
+  # * Limit the set of zones provided by TZInfo to a meaningful subset of 156
   #   zones.
   # * Retrieve and display zones with a friendlier name
   #   (e.g., "Eastern \Time (US & Canada)" instead of "America/New_York").
@@ -46,10 +45,12 @@ module ActiveSupport
       "Tijuana"                      => "America/Tijuana",
       "Mountain Time (US & Canada)"  => "America/Denver",
       "Alberta"                      => "America/Edmonton",
+      "Northwest Territories"        => "America/Inuvik",
       "Arizona"                      => "America/Phoenix",
       "Chihuahua"                    => "America/Chihuahua",
       "Mazatlan"                     => "America/Mazatlan",
       "Central Time (US & Canada)"   => "America/Chicago",
+      "Manitoba"                     => "America/Winnipeg",
       "Saskatchewan"                 => "America/Regina",
       "Guadalajara"                  => "America/Mexico_City",
       "Mexico City"                  => "America/Mexico_City",
@@ -286,6 +287,8 @@ module ActiveSupport
 
         @lazy_zones_map = ActiveSupport::Ractors.make_shareable(@lazy_zones_map.each_pair.to_h)
         @country_zones  = ActiveSupport::Ractors.make_shareable(@country_zones.each_pair.to_h)
+        ActiveSupport::Ractors.make_shareable(@zones)
+        ActiveSupport::Ractors.make_shareable(@zones_map)
         ActiveSupport::Ractors.make_shareable(MAPPING)
       end
 
@@ -330,6 +333,8 @@ module ActiveSupport
       @name = name
       @utc_offset = utc_offset
       @tzinfo = tzinfo || TimeZone.find_tzinfo(name)
+      @constant_period = constant_period(@tzinfo)
+      @utc = constant_utc_zone?(@constant_period)
 
       ActiveSupport::Ractors.make_shareable(self)
     end
@@ -344,6 +349,10 @@ module ActiveSupport
     # Returns the offset of this time zone from UTC in seconds.
     def utc_offset
       @utc_offset || tzinfo&.current_period&.base_utc_offset
+    end
+
+    def utc? # :nodoc:
+      @utc
     end
 
     # Returns a formatted string of the offset from UTC, or an alternative
@@ -465,7 +474,7 @@ module ActiveSupport
       if parts[:offset]
         TimeWithZone.new(time.utc, self)
       else
-        TimeWithZone.new(nil, self, time)
+        TimeWithZone.new(nil, self, time.utc)
       end
 
     rescue Date::Error, KeyError
@@ -586,7 +595,12 @@ module ActiveSupport
 
     # Returns the current date in this time zone.
     def today
-      tzinfo.now.to_date
+      time = time_now.getutc
+      if utc?
+        time.to_date
+      else
+        time.getlocal(tzinfo.period_for(time).observed_utc_offset).to_date
+      end
     end
 
     # Returns the next date in this time zone.
@@ -620,15 +634,31 @@ module ActiveSupport
     end
 
     def period_for_utc(time) # :nodoc:
-      tzinfo.period_for_utc(time)
+      @constant_period || tzinfo.period_for_utc(time)
     end
 
     def period_for_local(time, dst = true) # :nodoc:
-      tzinfo.period_for_local(time, dst) { |periods| periods.last }
+      @constant_period || tzinfo.period_for_local(time, dst) { |periods| periods.last }
     end
 
     def periods_for_local(time) # :nodoc:
       tzinfo.periods_for_local(time)
+    end
+
+    # Returns the length in seconds of the "spring forward" gap that the local
+    # time falls in, or +nil+ if it isn't in one. Not every gap is one hour
+    # long, e.g. Australia/Lord_Howe's DST transition is 30 minutes.
+    def spring_forward_gap_for_local(time) # :nodoc:
+      local = time.to_i
+
+      # The gap spans from the transition's +local_end_at+ to its
+      # +local_start_at+, compared here as wall clock seconds like +time+.
+      transition = tzinfo.transitions_up_to(time + 1.day, time - 1.day).find do |t|
+        t.at.to_i + t.previous_offset.observed_utc_offset <= local &&
+          local < t.at.to_i + t.offset.observed_utc_offset
+      end
+
+      transition.offset.observed_utc_offset - transition.previous_offset.observed_utc_offset if transition
     end
 
     def abbr(time) # :nodoc:
@@ -649,6 +679,22 @@ module ActiveSupport
     end
 
     private
+      UTC_TIME = ::Time.utc(2000)
+      private_constant :UTC_TIME
+
+      # A zone without transitions, such as UTC, has a single period for all
+      # time. It is kept so that looking it up doesn't build a new one each time.
+      def constant_period(tzinfo)
+        period = tzinfo.period_for_utc(UTC_TIME)
+        period if period.start_transition.nil? && period.end_transition.nil?
+      end
+
+      def constant_utc_zone?(period)
+        if period && period.observed_utc_offset == 0
+          period.abbreviation == "UTC" || period.abbreviation == "UCT"
+        end
+      end
+
       def parts_to_time(parts, now)
         raise ArgumentError, "invalid date" if parts.nil?
         if parts.empty?
@@ -660,9 +706,9 @@ module ActiveSupport
           time = Time.at(parts[:seconds] + parts.fetch(:sec_fraction, 0))
         else
           time = Time.new(
-            parts.fetch(:year, now.year),
-            parts.fetch(:mon, now.month),
-            parts.fetch(:mday, parts[:year] || parts[:mon] ? 1 : now.day),
+            parts.fetch(:year) { now.year },
+            parts.fetch(:mon) { now.month },
+            parts.fetch(:mday) { parts[:year] || parts[:mon] ? 1 : now.day },
             parts.fetch(:hour, 0),
             parts.fetch(:min, 0),
             parts.fetch(:sec, 0) + parts.fetch(:sec_fraction, 0),
@@ -673,7 +719,7 @@ module ActiveSupport
         if parts[:offset] || parts[:seconds]
           TimeWithZone.new(time.utc, self)
         else
-          TimeWithZone.new(nil, self, time)
+          TimeWithZone.new(nil, self, time.utc)
         end
       end
 

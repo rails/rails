@@ -130,12 +130,19 @@ class TransactionInstrumentationTest < ActiveRecord::TestCase
   def test_transaction_instrumentation_with_restart_parent_transaction_on_commit
     topic = topics(:fifth)
 
-    assert_notifications_count("transaction.active_record", 1) do
+    events = capture_notifications("transaction.active_record") do
       ActiveRecord::Base.transaction do
         ActiveRecord::Base.transaction(requires_new: true) do
           topic.update(title: "Ruby on Rails")
         end
       end
+    end
+
+    if ractor_proxy?
+      # Proxied nested transactions are always savepoints
+      assert_equal [:commit, :commit], events.map { |event| event.payload[:outcome] }
+    else
+      assert_equal [:commit], events.map { |event| event.payload[:outcome] }
     end
   end
 
@@ -153,8 +160,13 @@ class TransactionInstrumentationTest < ActiveRecord::TestCase
     end
 
     assert_equal 2, events.count
-    restart, real = events
-    assert_equal :restart, restart.payload[:outcome]
+    nested, real = events
+    if ractor_proxy?
+      # Proxied nested transactions are always savepoints
+      assert_equal :rollback, nested.payload[:outcome]
+    else
+      assert_equal :restart, nested.payload[:outcome]
+    end
     assert_equal :rollback, real.payload[:outcome]
   end
 
@@ -199,8 +211,13 @@ class TransactionInstrumentationTest < ActiveRecord::TestCase
     end
 
     assert_equal 3, events.count
-    restart, savepoint, real = events
-    assert_equal :restart, restart.payload[:outcome]
+    nested, savepoint, real = events
+    if ractor_proxy?
+      # Proxied nested transactions are always savepoints
+      assert_equal :rollback, nested.payload[:outcome]
+    else
+      assert_equal :restart, nested.payload[:outcome]
+    end
     assert_equal :commit, savepoint.payload[:outcome]
     assert_equal :commit, real.payload[:outcome]
   end
@@ -235,11 +252,19 @@ class TransactionInstrumentationTest < ActiveRecord::TestCase
   end
 
   def test_reconnecting_after_materialized_transaction_starts_new_event
-    assert_notifications_count("transaction.active_record", 2) do
+    events = capture_notifications("transaction.active_record") do
       Topic.transaction do
         Topic.lease_connection.materialize_transactions
         Topic.lease_connection.reconnect!(restore_transactions: true)
       end
+    end
+
+    if ractor_proxy?
+      # The main-side connection restores its own transactions, so the worker's
+      # transaction continues as a single event.
+      assert_equal [:commit], events.map { |event| event.payload[:outcome] }
+    else
+      assert_equal [:incomplete, :commit], events.map { |event| event.payload[:outcome] }
     end
   end
 

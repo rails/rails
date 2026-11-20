@@ -14,6 +14,16 @@ if SERVICE_CONFIGURATIONS[:s3_public]
       assert_equal "public-read", @service.upload_options[:acl]
     end
 
+    test "public acl options can be disabled via s3_public_uploads_via_acl" do
+      was = ActiveStorage.s3_public_uploads_via_acl
+      ActiveStorage.s3_public_uploads_via_acl = false
+
+      service = ActiveStorage::Service.configure(:s3_public, SERVICE_CONFIGURATIONS)
+      assert_nil service.upload_options[:acl]
+    ensure
+      ActiveStorage.s3_public_uploads_via_acl = was
+    end
+
     test "public URL generation" do
       url = @service.url(@key, filename: ActiveStorage::Filename.new("avatar.png"))
 

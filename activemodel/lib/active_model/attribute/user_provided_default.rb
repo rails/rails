@@ -26,6 +26,10 @@ module ActiveModel
         self.class.new(name, user_provided_value, type, original_attribute)
       end
 
+      def freezable?
+        false
+      end
+
       def dup_or_share # :nodoc:
         # Can't elide dup when the default is a Proc
         # See Attribute#dup_or_share

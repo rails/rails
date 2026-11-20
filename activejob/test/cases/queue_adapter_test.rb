@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require "helper"
+require "active_support/testing/ractors_assertions"
 
 module ActiveJob
   module QueueAdapters
@@ -95,5 +96,18 @@ class QueueAdapterTest < ActiveJob::TestCase
     child_job = Class.new(ActiveJob::Base)
     child_job.queue_adapter = StubFourAdapter.new
     assert_equal "fancy_name", child_job.queue_adapter_name
+  end
+
+  class RactorTest < ActiveSupport::TestCase
+    include ActiveSupport::Testing::Isolation
+    include ActiveSupport::Testing::RactorsAssertions
+
+    test "queue adapter name is readable from a non-main Ractor" do
+      ActiveJob::Base.queue_adapter = :inline
+      assert_equal "inline", on_ractor { ActiveJob::Base.queue_adapter_name }
+
+      ActiveJob::Base.queue_adapter = ActiveJob::QueueAdapters::StubOneAdapter.new
+      assert_equal "stub_one", on_ractor { ActiveJob::Base.queue_adapter_name }
+    end
   end
 end

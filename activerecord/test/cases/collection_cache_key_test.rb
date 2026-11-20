@@ -13,6 +13,8 @@ module ActiveRecord
   class CollectionCacheKeyTest < ActiveRecord::TestCase
     fixtures :developers, :projects, :developers_projects, :topics, :comments, :posts
 
+    skip_under_ractor_proxy :test_insert_all_will_update_cache_key, :test_upsert_all_will_update_cache_key
+
     test "collection_cache_key on model" do
       assert_match(/\Adevelopers\/query-(\h+)-(\d+)-(\d+)\z/, Developer.collection_cache_key)
     end
@@ -250,6 +252,17 @@ module ActiveRecord
       developers = Developer.select("name AS dev_name").order("dev_name DESC").limit(5)
 
       assert_match(/\Adevelopers\/query-(\h+)-(\d+)-(\d+)\z/, developers.cache_key)
+    end
+
+    test "cache_key with a relation having default_order" do
+      developers = Developer.where(salary: 100000).default_order(:name)
+
+      queries = capture_sql do
+        assert_match(/\Adevelopers\/query-(\h+)-(\d+)-(\d+)\z/, developers.cache_key)
+      end
+
+      assert_equal 1, queries.length
+      assert_no_match(/ORDER BY/, queries.first)
     end
 
     test "cache_key should be stable when using collection_cache_versioning" do

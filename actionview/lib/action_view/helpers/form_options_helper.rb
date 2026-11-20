@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+# :markup: rdoc
+
 require "erb"
 require "active_support/core_ext/string/output_safety"
 require "active_support/core_ext/array/extract_options"
@@ -373,16 +375,34 @@ module ActionView
           Array(r).map(&:to_s)
         end
 
-        container.map do |element|
-          html_attributes = option_html_attributes(element)
-          text, value = option_text_and_value(element).map(&:to_s)
+        output = +""
+        container.each do |element|
+          output << "\n" unless output.empty?
 
-          html_attributes[:selected] ||= option_value_selected?(value, selected)
-          html_attributes[:disabled] ||= disabled && option_value_selected?(value, disabled)
-          html_attributes[:value] = value
+          if Array === element && element.any?(Hash)
+            html_attributes = option_html_attributes(element)
+            text, value = option_text_and_value(element).map(&:to_s)
 
-          tag_builder.option(text, **html_attributes)
-        end.join("\n").html_safe
+            html_attributes[:selected] ||= option_value_selected?(value, selected)
+            html_attributes[:disabled] ||= disabled && option_value_selected?(value, disabled)
+            html_attributes[:value] = value
+
+            output << tag_builder.option(text, **html_attributes)
+          else
+            # Same as option_text_and_value, without a pair Array per option.
+            case element
+            when String then text = value = element
+            when Array then text, value = element.first, element.last
+            else text, value = option_text_and_value(element)
+            end
+            value = value.to_s
+            is_selected = option_value_selected?(value, selected)
+            is_disabled = disabled && option_value_selected?(value, disabled)
+
+            append_option_tag(output, text.to_s, value, is_selected, is_disabled)
+          end
+        end
+        output.html_safe
       end
 
       # Returns a string of option tags that have been compiled by iterating over the +collection+ and assigning
@@ -416,7 +436,9 @@ module ActionView
       # should produce the desired results.
       def options_from_collection_for_select(collection, value_method, text_method, selected = nil)
         options = collection.map do |element|
-          [value_for_collection(element, text_method), value_for_collection(element, value_method), option_html_attributes(element)]
+          option = [value_for_collection(element, text_method), value_for_collection(element, value_method)]
+          option << option_html_attributes(element) if Array === element && element.any?(Hash)
+          option
         end
         selected, disabled = extract_selected_and_disabled(selected)
         select_deselect = {
@@ -824,6 +846,19 @@ module ActionView
 
         def option_value_selected?(value, selected)
           Array(selected).include? value
+        end
+
+        # Appends the same markup as <tt>tag.option(text, selected:, disabled:, value:)</tt>
+        # to +output+, without a Hash, a SafeBuffer, and an attribute String per option.
+        def append_option_tag(output, text, value, selected, disabled)
+          value = ERB::Util.unwrapped_html_escape(value)
+          value = value.gsub('"', "&quot;") if value.include?('"')
+
+          output << "<option"
+          output << ' selected="selected"' if selected
+          output << ' disabled="disabled"' if disabled
+          output << ' value="' << value << '">'
+          output << ERB::Util.unwrapped_html_escape(text) << "</option>"
         end
 
         def extract_selected_and_disabled(selected)

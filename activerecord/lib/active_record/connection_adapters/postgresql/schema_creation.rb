@@ -5,8 +5,7 @@ module ActiveRecord
     module PostgreSQL
       class SchemaCreation < SchemaCreation # :nodoc:
         private
-          delegate :quoted_include_columns_for_index, to: :@conn
-          delegate :database_version, to: :@conn
+          delegate :database_version, :supports_index_include?, :supports_nulls_not_distinct?, to: :@conn, private: true
 
           def visit_AddForeignKey(o)
             super.dup.tap do |sql|
@@ -115,6 +114,18 @@ module ActiveRecord
             end
           end
 
+          def add_table_constraints!(statements, o)
+            super
+            statements.concat(o.exclusion_constraints.map { |exc| accept exc })
+            statements.concat(o.unique_constraints.map { |uc| accept uc })
+          end
+
+          def add_index_options!(sql, index)
+            sql << "INCLUDE (#{quoted_include_columns(index.include)})" if supports_index_include? && index.include
+            sql << "NULLS NOT DISTINCT" if supports_nulls_not_distinct? && index.nulls_not_distinct
+            super
+          end
+
           def add_column_options!(sql, options)
             if options[:collation]
               sql << " COLLATE \"#{options[:collation]}\""
@@ -137,7 +148,7 @@ module ActiveRecord
           end
 
           def quoted_include_columns(o)
-            String === o ? o : quoted_include_columns_for_index(o)
+            String === o ? o : Array(o).map { |c| quote_column_name(c) }.join(", ")
           end
 
           # Returns any SQL string to go between CREATE and TABLE. May be nil.

@@ -9,6 +9,8 @@ require "models/student"
 
 module ActiveRecord
   class InstrumentationTest < ActiveRecord::TestCase
+    skip_under_ractor_proxy :test_payload_affected_rows
+
     def setup
       ActiveRecord::Base.schema_cache.add(Book.table_name)
     end

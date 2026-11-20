@@ -1,7 +1,5 @@
 # frozen_string_literal: true
 
-# :markup: markdown
-
 module ActionController
   # See Renderers.add
   def self.add_renderer(key, &block)
@@ -66,7 +64,11 @@ module ActionController
       include Renderers
 
       def _all_renderers # :nodoc:
-        _renderers + Renderers.all
+        if _renderers.empty?
+          Renderers.all
+        else
+          _renderers + Renderers.all
+        end
       end
     end
 

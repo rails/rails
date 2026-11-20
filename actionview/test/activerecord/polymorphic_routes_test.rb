@@ -384,6 +384,24 @@ class PolymorphicRoutesTest < ActionController::TestCase
     end
   end
 
+  def test_symbol_action_with_array
+    with_test_routes do
+      @project.save
+      @task.save
+      assert_equal "/projects/#{@project.id}/tasks/#{@task.id}/edit", polymorphic_path([@project, @task], action: :edit)
+      assert_equal "http://example.com/projects/#{@project.id}/tasks/#{@task.id}/edit", polymorphic_url([@project, @task], action: :edit)
+      assert_equal "/projects/#{@project.id}/tasks/new", polymorphic_path([@project, Task], action: :new)
+    end
+  end
+
+  def test_symbol_action_with_array_and_namespace
+    with_admin_test_routes do
+      assert_equal "/admin/projects/new", polymorphic_path([:admin, @project], action: :new)
+      @project.save
+      assert_equal "http://example.com/admin/projects/#{@project.id}/edit", polymorphic_url([:admin, @project], action: :edit)
+    end
+  end
+
   def test_unsaved_with_array_and_namespace
     with_admin_test_routes do
       assert_url "http://example.com/admin/projects", [:admin, @project]

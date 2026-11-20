@@ -10,13 +10,13 @@ module ConsoleHelpers
     timeout = Time.now + timeout
 
     output = +""
-    until output.include?(expected) || Time.now > timeout
+    until output[expected] || Time.now > timeout
       if IO.select([io], [], [], 0.1)
         output << io.read(1)
       end
     end
 
-    assert_includes output, expected, "#{expected.inspect} expected, but got:\n\n#{output}"
+    assert output[expected], "#{expected.inspect} expected, but got:\n\n#{output}"
   end
 end
 

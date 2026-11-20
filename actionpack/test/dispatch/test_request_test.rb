@@ -84,6 +84,25 @@ class TestRequestTest < ActiveSupport::TestCase
     assert_equal "GoogleBot", req.user_agent
   end
 
+  test "host and port setters take effect after the host was read" do
+    req = ActionDispatch::TestRequest.create
+    assert_equal "test.host", req.host
+
+    req.host = "example.com:8080"
+    assert_equal "example.com", req.host
+    assert_equal 8080, req.port
+    assert_equal "example.com:8080", req.host_with_port
+
+    req.host = "example.com"
+    req.port = 8443
+    assert_equal "example.com", req.host
+    assert_equal 80, req.port
+
+    req.delete_header("HTTP_HOST")
+    req.port = 8443
+    assert_equal 8443, req.port
+  end
+
   test "request_method getter and setter" do
     req = ActionDispatch::TestRequest.create
     req.request_method # to reproduce bug caused by memoization

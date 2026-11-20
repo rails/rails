@@ -66,6 +66,10 @@ module ActiveRecord
               result.last_insert_id
             end
           end
+
+          def raw_intent_last_inserted_id(raw_result, _result)
+            last_inserted_id(raw_result)
+          end
       end
     end
   end

@@ -42,6 +42,9 @@ class FragmentCachingTestController < CachingController
   def some_action; end
 end
 
+# +combined_fragment_cache_key+ generates a URL for the action it is given.
+draw_controller_routes(SharedTestRoutes, FragmentCachingTestController)
+
 class FragmentCachingTest < ActionController::TestCase
   ModelWithKeyAndVersion = Struct.new(:cache_key, :cache_version)
 

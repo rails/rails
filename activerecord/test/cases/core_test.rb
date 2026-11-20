@@ -305,6 +305,43 @@ class CoreTest < ActiveRecord::TestCase
 
         assert_ractor_shareable context
         assert_same context, on_ractor { model.schema_context }
+        assert_not_predicate context, :schema_loaded?
+      end
+
+      def test_schema_context_loads_its_columns_on_a_non_main_ractor
+        model = Class.new(ActiveRecord::Base) do
+          def self.name = "ractor_shared_schema_context_columns"
+          self.table_name = "topics"
+        end
+        context = model.schema_context
+
+        column_names, attributes = ActiveSupport::Ractors.with(unshareable_proc_action: :raise) do
+          on_ractor { [model.column_names, context.attributes] }
+        end
+
+        assert_predicate context, :schema_loaded?
+        assert_same column_names, context.mapped_table.column_names
+        assert_same attributes, context.attributes
+      end
+
+      def test_schema_context_shares_columns_but_keeps_unshareable_attributes_ractor_local
+        model = Class.new(ActiveRecord::Base) do
+          def self.name = "ractor_schema_context_local_attributes"
+          self.table_name = "topics"
+          attribute :approved, default: true
+        end
+        context = model.schema_context
+
+        columns_hash, attributes_id, stable_attributes = ActiveSupport::Ractors.with(unshareable_proc_action: :raise) do
+          on_ractor do
+            attributes = model.schema_context.attributes
+            [model.schema_context.mapped_table.columns_hash, attributes.object_id, attributes.equal?(model.schema_context.attributes)]
+          end
+        end
+
+        assert_same context.mapped_table.columns_hash, columns_hash
+        assert_not_equal context.attributes.object_id, attributes_id
+        assert stable_attributes
       end
 
       def test_find_by_statement_cache_is_ractor_local

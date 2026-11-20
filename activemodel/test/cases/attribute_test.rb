@@ -199,6 +199,23 @@ module ActiveModel
       assert_nil Attribute.uninitialized(:foo, nil).value
     end
 
+    test "uninitialized value! errors do not retain another raise's cause or backtrace" do
+      attribute = Attribute.uninitialized(:foo, @type)
+      capture = lambda do |message|
+        raise ArgumentError, message
+      rescue ArgumentError
+        assert_raises(ActiveModel::MissingAttributeError) { attribute.value! }
+      end
+
+      first = capture.call("first")
+      second = capture.call("second")
+
+      assert_equal "first", first.cause.message
+      assert_equal "second", second.cause.message
+      assert_empty first.backtrace
+      assert_empty second.backtrace
+    end
+
     test "attributes equal other attributes with the same constructor arguments" do
       first = Attribute.from_database(:foo, 1, Type::Integer.new)
       second = Attribute.from_database(:foo, 1, Type::Integer.new)

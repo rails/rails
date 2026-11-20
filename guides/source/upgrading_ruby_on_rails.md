@@ -20,6 +20,7 @@ The best way to be sure that your application still works after upgrading is to 
 
 Rails generally stays close to the latest released Ruby version when it's released:
 
+* Rails 8.2 requires Ruby 3.3.5 or newer.
 * Rails 8.0 and 8.1 require Ruby 3.2.0 or newer.
 * Rails 7.2 requires Ruby 3.1.0 or newer.
 * Rails 7.0 and 7.1 require Ruby 2.7.0 or newer.
@@ -82,6 +83,70 @@ Upgrading from Rails 8.1 to Rails 8.2
 
 For more information on changes made to Rails 8.2 please see the [release notes](8_2_release_notes.html).
 
+### HTML+ERB templates compile through Herb
+
+With the 8.2 framework defaults, ERB templates with the HTML format compile through [Herb](https://github.com/marcoroth/herb), an ERB implementation that parses HTML+ERB. Valid templates render the same output as before. Templates with structural problems, such as an unclosed tag, now fail to compile and report the problem with its template location. All other template formats keep compiling through [Erubi](https://github.com/jeremyevans/erubi).
+
+Run `bin/rails herb:check` to find the templates that fail to compile through Herb. When it reports none, the application is ready for the new default.
+
+To upgrade without migrating your templates right away, keep compiling HTML templates through Erubi:
+
+```ruby
+Rails.application.config.action_view.erb_implementation = :erubi
+```
+
+Applications with a custom ERB implementation should set it through `config.action_view.erb_implementation`, since the framework default replaces an `ActionView::Base.erb_implementation` assignment made in an initializer.
+
+### `:controller` and `:action` may no longer be used as dynamic route segments
+
+Routes such as the "default route" that older applications still carry in
+`config/routes.rb` picked the controller and the action out of the URL at request
+time:
+
+```ruby
+Rails.application.routes.draw do
+  get ":controller(/:action(/:id))"
+end
+```
+
+This has been deprecated since Rails 5.0 and now raises an `ArgumentError` when the
+route is drawn. Replace such a route with the routes your application actually
+serves:
+
+```ruby
+Rails.application.routes.draw do
+  get "photos", to: "photos#index"
+  get "photos/:id", to: "photos#show"
+end
+```
+
+`bin/rails routes` lists what an application currently exposes, and
+`bin/rails unused_routes` reports routes that no longer point at an action, which
+helps when converting a catch-all into explicit routes.
+
+Passing a controller class without an action relied on the same mechanism, so the
+action now has to be given explicitly:
+
+```ruby
+# Before
+get ":action", to: PhotosController
+
+# After
+get "show", to: PhotosController, action: "show"
+```
+
+A `Regexp` for `:controller` or `:action` is rejected for the same reason:
+`get "photos", controller: /photos/, action: "index"` now raises rather than drawing
+a route that can never match.
+
+### Routes to missing controllers are logged on boot when eager loading
+
+When `config.eager_load` is enabled (the default in production), Rails now
+resolves the controller of every route once the routes are loaded, and logs a
+warning naming each route whose controller does not exist. Such routes used to
+go unnoticed until a request matched them. Check the boot log for
+`references a missing controller` and fix or remove the routes it lists.
+
 ### The old Active Record 6.1 marshalling format was removed.
 
 If your application still sets `active_record.marshalling_format_version = 6.1`, which may
@@ -115,10 +180,6 @@ Upgrading from Rails 8.0 to Rails 8.1
 -------------------------------------
 
 For more information on changes made to Rails 8.1 please see the [release notes](8_1_release_notes.html).
-
-### The table columns inside `schema.rb` are now sorted alphabetically.
-
-Active Record now alphabetically sorts table columns in `schema.rb` by default, so dumps are consistent across machines and don’t flip-flop with migration order -- meaning fewer noisy diffs. `structure.sql` can still be leveraged to preserve exact column order. [See #53281 for more details on alphabetizing schema changes.](https://github.com/rails/rails/pull/53281)
 
 Upgrading from Rails 7.2 to Rails 8.0
 -------------------------------------
@@ -563,7 +624,7 @@ In Rails 7 there is no configuration point to set the autoloading mode, `config.
 
 The private API of `ActiveSupport::Dependencies` has been deleted. That includes methods like `hook!`, `unhook!`, `depend_on`, `require_or_load`, `mechanism`, and many others.
 
-A few of highlights:
+A few of the highlights:
 
 * If you used `ActiveSupport::Dependencies.constantize` or `ActiveSupport::Dependencies.safe_constantize`, just change them to `String#constantize` or `String#safe_constantize`.
 
@@ -622,7 +683,7 @@ If you configured this setting after the environments configuration has been pro
 ### `ActionDispatch::Request#content_type` now returns Content-Type header as it is.
 
 Previously, `ActionDispatch::Request#content_type` returned value does NOT contain charset part.
-This behavior changed to returned Content-Type header containing charset part as it is.
+This behavior changed to return the Content-Type header containing charset part as it is.
 
 If you want just MIME type, please use `ActionDispatch::Request#media_type` instead.
 
@@ -926,7 +987,7 @@ get("my_action.csv")
 ```
 
 Previous behavior was returning a `text/csv` response's Content-Type which is inaccurate since a JSON response is being rendered.
-Current behavior correctly returns a `application/json` response's Content-Type.
+Current behavior correctly returns an `application/json` response's Content-Type.
 
 If your application relies on the previous incorrect behavior, you are encouraged to specify
 which formats your action accepts, i.e.
@@ -1051,7 +1112,7 @@ To improve security, Rails embeds the purpose and expiry metadata inside encrypt
 Rails can then thwart attacks that attempt to copy the signed/encrypted value
 of a cookie and use it as the value of another cookie.
 
-This new embed metadata make those cookies incompatible with versions of Rails older than 6.0.
+This new embedded metadata makes those cookies incompatible with versions of Rails older than 6.0.
 
 If you require your cookies to be read by Rails 5.2 and older, or you are still validating your 6.0 deploy and want
 to be able to rollback set
@@ -1377,7 +1438,7 @@ config.autoload_paths << "#{config.root}/lib"
 
 #### Eager loading and autoloading are consistent
 
-In `classic` mode, if `app/models/foo.rb` defines `Bar`, you won't be able to autoload that file, but eager loading will work because it loads files recursively blindly. This can be a source of errors if you test things first eager loading, execution may fail later autoloading.
+In `classic` mode, if `app/models/foo.rb` defines `Bar`, you won't be able to autoload that file, but eager loading will work because it loads files recursively blindly. This can be a source of errors if you test things first with eager loading, execution may fail later with autoloading.
 
 In `zeitwerk` mode both loading modes are consistent, they fail and err in the same files.
 
@@ -1440,7 +1501,7 @@ user.highlights.second.filename # => "town.jpg"
 
 Existing applications can opt in to this new behavior by setting [`config.active_storage.replace_on_assign_to_many`][] to `true`. The old behavior will be deprecated in Rails 7.0 and removed in Rails 7.1.
 
-[`config.active_storage.replace_on_assign_to_many`]: configuring.html#config-active-storage-replace-on-assign-to-many
+[`config.active_storage.replace_on_assign_to_many`]: https://guides.rubyonrails.org/v6.0/configuring.html#configuring-active-storage
 
 ### Custom exception handling applications
 
@@ -2180,7 +2241,7 @@ leaving this line in your helper is not harmful in any way.
 
 ### Cookies serializer
 
-Applications created before Rails 4.1 uses `Marshal` to serialize cookie values into
+Applications created before Rails 4.1 use `Marshal` to serialize cookie values into
 the signed and encrypted cookie jars. If you want to use the new `JSON`-based format
 in your application, you can add an initializer file with the following content:
 
@@ -2514,7 +2575,7 @@ set_callback :save, :around, ->(r, block) { stuff; result = block.call; stuff }
 Upgrading from Rails 3.2 to Rails 4.0
 -------------------------------------
 
-If your application is currently on any version of Rails older than 3.2.x, you should upgrade to Rails 3.2 before attempting one to Rails 4.0.
+If your application is currently on any version of Rails older than 3.2.x, you should upgrade to Rails 3.2 before attempting an upgrade to Rails 4.0.
 
 The following changes are meant for upgrading your application to Rails 4.0.
 
@@ -2683,7 +2744,7 @@ Rails 4.0 no longer supports loading plugins from `vendor/plugins`. You must rep
 
 * To re-enable the old finders, you can use the [activerecord-deprecated_finders gem](https://github.com/rails/activerecord-deprecated_finders).
 
-* Rails 4.0 has changed to default join table for `has_and_belongs_to_many` relations to strip the common prefix off the second table name. Any existing `has_and_belongs_to_many` relationship between models with a common prefix must be specified with the `join_table` option. For example:
+* Rails 4.0 has changed the default join table for `has_and_belongs_to_many` relations to strip the common prefix off the second table name. Any existing `has_and_belongs_to_many` relationship between models with a common prefix must be specified with the `join_table` option. For example:
 
     ```ruby
     class CatalogCategory < ActiveRecord::Base

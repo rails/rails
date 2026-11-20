@@ -1,7 +1,5 @@
 # frozen_string_literal: true
 
-# :markup: markdown
-
 require "action_controller/metal/exceptions"
 
 module ActionDispatch
@@ -59,9 +57,9 @@ module ActionDispatch
       end
 
       def generate(name, options, path_parameters)
-        original_options = options.dup
         path_params = options.delete(:path_params)
         if path_params.is_a?(Hash)
+          original_options = options
           options = path_params.merge(options)
         else
           path_params = nil
@@ -72,11 +70,6 @@ module ActionDispatch
 
         match_route(name, constraints) do |route|
           parameterized_parts = extract_parameterized_parts(route, options, path_parameters)
-
-          # Skip this route unless a name has been provided or it is a standard Rails
-          # route since we can't determine whether an options hash passed to url_for
-          # matches a Rack application or a redirect.
-          next unless name || route.dispatcher?
 
           missing_keys = missing_keys(route, parameterized_parts)
           next if missing_keys && !missing_keys.empty?
@@ -131,21 +124,18 @@ module ActionDispatch
         def extract_parameterized_parts(route, options, recall)
           parameterized_parts = recall.merge(options)
 
-          keys_to_keep = route.parts.reverse_each.drop_while { |part|
-            !(options.key?(part) || route.scope_options.key?(part)) || (options[part].nil? && recall[part].nil?)
-          } | route.required_parts
+          # Keep the prefix through the last supplied part, plus all required parts.
+          parts = route.parts
+          last_kept = parts.rindex { |part|
+            (options.key?(part) || route.scope_options.key?(part)) && !(options[part].nil? && recall[part].nil?)
+          } || -1
+          keys_to_keep = parts.take(last_kept + 1) | route.required_parts
 
           parameterized_parts.delete_if do |bad_key, _|
             !keys_to_keep.include?(bad_key)
           end
 
-          parameterized_parts.each do |k, v|
-            if k == :controller
-              parameterized_parts[k] = v
-            else
-              parameterized_parts[k] = v.to_param
-            end
-          end
+          parameterized_parts.transform_values!(&:to_param)
 
           parameterized_parts.compact!
           parameterized_parts
@@ -159,10 +149,10 @@ module ActionDispatch
           if named_routes.key?(name)
             yield named_routes[name]
           else
-            routes = non_recursive(cache, options)
+            routes = non_recursive(cache, options, dispatchers_only: !name)
 
             supplied_keys = options.each_with_object({}) do |(k, v), h|
-              h[k.to_s] = true if v
+              h[k.is_a?(Symbol) ? k.name : k.to_s] = true if v
             end
 
             hash = routes.group_by { |_, r| r.score(supplied_keys) }
@@ -177,13 +167,14 @@ module ActionDispatch
           end
         end
 
-        def non_recursive(cache, options)
+        def non_recursive(cache, options, dispatchers_only:)
           routes = []
           queue  = [cache]
 
           while queue.any?
             c = queue.shift
             routes.concat(c[:___routes]) if c.key?(:___routes)
+            routes.concat(c[:___non_dispatchers]) if !dispatchers_only && c.key?(:___non_dispatchers)
 
             options.each do |pair|
               queue << c[pair] if c.key?(pair)
@@ -214,21 +205,17 @@ module ActionDispatch
           missing_keys
         end
 
-        def possibles(cache, options, depth = 0)
-          cache.fetch(:___routes) { [] } + options.find_all { |pair|
-            cache.key?(pair)
-          }.flat_map { |pair|
-            possibles(cache[pair], options, depth + 1)
-          }
-        end
-
         def build_cache
           root = { ___routes: [] }
           routes.routes.each_with_index do |route, i|
             leaf = route.required_defaults.inject(root) do |h, tuple|
               h[tuple] ||= {}
             end
-            (leaf[:___routes] ||= []) << [i, route]
+            # Rack applications and redirects are only candidates when a route name is
+            # given, since we can't determine whether an options hash passed to url_for
+            # matches them.
+            bucket = route.dispatcher? ? :___routes : :___non_dispatchers
+            (leaf[bucket] ||= []) << [i, route]
           end
           root
         end

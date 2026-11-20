@@ -24,6 +24,31 @@ module ActiveRecord
     fixtures :authors, :author_addresses, :categories, :categorizations, :cars, :treasures, :price_estimates,
       :binaries, :edges, :essays, :posts, :comments, :topics
 
+    class AliasedSponsor < ActiveRecord::Base
+      self.table_name = "sponsors"
+      alias_attribute :kind, :sponsorable_type
+    end
+
+    class AliasedMember < ActiveRecord::Base
+      self.table_name = "members"
+      has_one :sponsor, as: :sponsorable, foreign_type: :kind, class_name: "ActiveRecord::WhereTest::AliasedSponsor"
+    end
+
+    class AbstractMember < ActiveRecord::Base
+      self.abstract_class = true
+      self.table_name = "members"
+      has_one :sponsor, as: :sponsorable, class_name: "ActiveRecord::WhereTest::AliasedSponsor"
+    end
+
+    class MemberWithInheritedSponsor < AbstractMember
+    end
+
+    class CustomPolymorphicNameMember < AliasedMember
+      def self.polymorphic_name
+        "custom_member"
+      end
+    end
+
     def test_type_casting_nested_joins
       comment = comments(:eager_other_comment1)
       assert_equal [comment], Comment.joins(post: :author).where(authors: { id: "2-foo" })
@@ -116,6 +141,36 @@ module ActiveRecord
       assert_empty Cpk::Book.where([:author_id, :id] => [[1, 4], [3, 2]])
     end
 
+    def test_where_with_tuple_syntax_and_composite_records
+      book_one = Cpk::Book.create!(id: [1, 2])
+      book_two = Cpk::Book.create!(id: [3, 4])
+
+      assert_equal [book_one], Cpk::Book.where([:author_id, :id] => book_one)
+      assert_equal [book_one, book_two].sort, Cpk::Book.where(Cpk::Book.primary_key => [book_one, book_two]).sort
+      assert_equal [book_one, book_two].sort, Cpk::Book.where([:author_id, :id] => [book_one, [3, 4]]).sort
+    end
+
+    def test_where_with_tuple_syntax_and_delegated_composite_records
+      book_one = Cpk::Book.create!(id: [1, 2])
+      book_two = Cpk::Book.create!(id: [3, 4])
+      decorator = Class.new(SimpleDelegator)
+
+      assert_equal [book_one, book_two].sort,
+        Cpk::Book.where([:author_id, :id] => [book_one, book_two].map { |book| decorator.new(book) }).sort
+    end
+
+    def test_where_with_tuple_syntax_and_no_values
+      assert_no_queries do
+        assert_empty Cpk::Book.where([:author_id, :id] => []).to_a
+      end
+    end
+
+    def test_where_not_with_tuple_syntax_and_no_values
+      Cpk::Book.create!(id: [1, 2])
+
+      assert_equal Cpk::Book.all.sort, Cpk::Book.where.not([:author_id, :id] => []).sort
+    end
+
     def test_where_with_tuple_syntax_with_incorrect_arity
       error = assert_raise ArgumentError do
         Cpk::Book.where([:one, :two, :three] => [1, 2, 3])
@@ -167,6 +222,21 @@ module ActiveRecord
       ]
 
       assert_equal [categorization], Categorization.joins(:author).where(key => conditions)
+    end
+
+    def test_where_with_tuple_syntax_referencing_another_table_with_includes
+      categorization = categorizations(:mary_thinking_general)
+
+      key = [:category_id, "authors.name"]
+
+      conditions = [
+        [categorization.category_id, categorization.author.name],
+      ]
+
+      relation = Categorization.includes(:author).where(key => conditions)
+
+      assert_equal %w{authors}, relation.references_values
+      assert_equal [categorization], relation
     end
 
     def test_where_with_nil_cpk_association
@@ -290,6 +360,12 @@ module ActiveRecord
       assert_equal expected.sort_by(&:id), actual.sort_by(&:id)
     end
 
+    def test_polymorphic_array_where_with_nil_and_unscope
+      relation = PriceEstimate.where(estimate_of: [nil, treasures(:diamond)])
+
+      assert_equal relation.to_sql, relation.unscope(where: :estimate_of_id).to_sql
+    end
+
     def test_polymorphic_array_where_multiple_types
       treasure_1 = treasures(:diamond)
       treasure_2 = treasures(:sapphire)
@@ -306,6 +382,39 @@ module ActiveRecord
       actual   = PriceEstimate.where(estimate_of: Treasure.where(id: [1, 2]))
 
       assert_equal expected.to_sql, actual.to_sql
+    end
+
+    def test_inverse_polymorphic_relation_with_an_abstract_declaring_class
+      member = MemberWithInheritedSponsor.create!(name: "Concrete member")
+      member.create_sponsor!
+      other_member = MemberWithInheritedSponsor.create!(name: "Abstract type")
+      AliasedSponsor.create!(sponsorable_id: other_member.id, sponsorable_type: AbstractMember.polymorphic_name)
+
+      assert_equal [member], MemberWithInheritedSponsor.where(sponsor: AliasedSponsor.all).to_a
+    end
+
+    def test_inverse_polymorphic_relation_with_an_inherited_custom_polymorphic_name
+      member = CustomPolymorphicNameMember.create!(name: "Custom polymorphic name")
+      member.create_sponsor!
+      other_member = AliasedMember.create!(name: "Declaring type")
+      other_member.create_sponsor!
+
+      assert_equal [member], CustomPolymorphicNameMember.where(sponsor: AliasedSponsor.all).to_a
+    end
+
+    def test_inverse_polymorphic_relation_with_an_sti_origin
+      expected = HiddenTreasure.where(id: PriceEstimate.where(estimate_of_type: "Treasure").select(:estimate_of_id))
+      actual = HiddenTreasure.where(price_estimates: PriceEstimate.all)
+
+      assert_equal expected.to_sql, actual.to_sql
+    end
+
+    def test_inverse_polymorphic_relation_respects_an_aliased_type_condition
+      member = AliasedMember.create!(name: "Aliased type condition")
+      AliasedSponsor.create!(sponsorable_id: member.id, sponsorable_type: "Other")
+
+      assert_equal [member], AliasedMember.where(sponsor: AliasedSponsor.where(kind: "Other")).to_a
+      assert_equal [member], AliasedMember.where(sponsor: AliasedSponsor.where(sponsorable_type: "Other")).to_a
     end
 
     def test_polymorphic_sti_shallow_where
@@ -397,6 +506,46 @@ module ActiveRecord
       [[], {}, nil, ""].each do |blank|
         assert_equal 4, Edge.where(blank).order("sink_id").to_a.size
       end
+    end
+
+    def test_where_with_empty_string_condition_and_values
+      edges = Edge.where(sink_id: [2, 3])
+      [{}, { sink_id: 1 }, 1].each do |values|
+        assert_equal 2, edges.where("", values).count
+        assert_equal 2, edges.where(["", values]).count
+      end
+    end
+
+    def test_where_with_sanitized_string_condition_and_values
+      [
+        ["sink_id = %s", 2, "sink_id = 2"],
+        ["(sink_id = %s)", 2, "(sink_id = 2)"],
+        ["sink_id = %s OR sink_id = 4", 2, "sink_id = 2 OR sink_id = 4"],
+      ].each do |condition, value, expected|
+        edges = Edge.where(sink_id: [2, 3])
+        expected_sql = edges.where(expected).to_sql
+        [edges.where(condition, value), edges.where([condition, value])].each do |relation|
+          assert_equal expected_sql, relation.to_sql
+          assert_equal [2], relation.pluck(:sink_id)
+        end
+      end
+    end
+
+    def test_where_with_bound_sql_literal_is_grouped
+      condition = Arel.sql("sink_id = ? OR sink_id = ?", 2, 4)
+      edges = Edge.where(sink_id: [3, 4])
+
+      assert_equal edges.where("sink_id = ? OR sink_id = ?", 2, 4).to_sql, edges.where(condition).to_sql
+      assert_equal [4], Edge.where(condition).where(sink_id: [3, 4]).pluck(:sink_id)
+      assert_equal [4], Edge.where(condition).merge(edges).pluck(:sink_id)
+    end
+
+    def test_where_with_sql_literal_and_bind_values
+      condition = Arel.sql("sink_id = ? OR sink_id = ?")
+      edges = Edge.where(sink_id: [3, 4])
+
+      assert_equal edges.where("sink_id = ? OR sink_id = ?", 2, 4).to_sql, edges.where(condition, 2, 4).to_sql
+      assert_equal [4], edges.where(condition, 2, 4).pluck(:sink_id)
     end
 
     def test_where_with_integer_for_string_column
@@ -503,6 +652,13 @@ module ActiveRecord
       params = ProtectedParams.new(name: author.name)
       assert_raises(ActiveModel::ForbiddenAttributesError) { Author.where(params) }
       assert_equal author, Author.where(params.permit!).first
+    end
+
+    def test_merge_where_with_strong_parameters
+      author = authors(:david)
+      params = ProtectedParams.new(name: author.name)
+      assert_raises(ActiveModel::ForbiddenAttributesError) { Author.all.merge(where: [params]) }
+      assert_equal author, Author.all.merge(where: [params.permit!]).first
     end
 
     def test_where_with_large_number

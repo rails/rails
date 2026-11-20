@@ -1,10 +1,8 @@
 # frozen_string_literal: true
 
-# :markup: markdown
-
 require "active_support/callbacks"
 require "active_support/core_ext/module/attribute_accessors_per_thread"
-require "concurrent"
+require "concurrent/executor/thread_pool_executor"
 
 module ActionCable
   module Server
@@ -27,8 +25,8 @@ module ActionCable
         )
       end
 
-      # Stop processing work: any work that has not already started running will be
-      # discarded from the queue
+      # Stop accepting work. Work posted after this is rejected. Work already queued,
+      # including work waiting behind a connection's earlier jobs, still runs.
       def halt
         @executor.shutdown
       end
@@ -49,8 +47,8 @@ module ActionCable
         async_invoke receiver, :instance_exec, *args, connection: connection, &block
       end
 
-      def async_invoke(receiver, method, *args, connection: receiver, &block)
-        @executor.post do
+      def async_invoke(receiver, method, *args, connection: receiver, executor: @executor, &block)
+        executor.post do
           invoke(receiver, method, *args, connection: connection, &block)
         end
       end

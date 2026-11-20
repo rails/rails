@@ -1,4 +1,3 @@
-# :markup: markdown
 # frozen_string_literal: true
 
 class Array
@@ -22,6 +21,12 @@ class Array
   # ["3", "4"]
   # ["5"]
   # ```
+  #: (Integer, ?nil) -> Array[Array[Elem?]]
+  #: (Integer, ?nil) { (Array[Elem?]) -> void } -> Array[Elem?]
+  #: (Integer, false) -> Array[Array[Elem]]
+  #: (Integer, false) { (Array[Elem]) -> void } -> Array[Elem]
+  #: [FillType] (Integer, FillType) -> Array[Array[Elem | FillType]]
+  #: [FillType] (Integer, FillType) { (Array[Elem | FillType]) -> void } -> Array[Elem | FillType]
   def in_groups_of(number, fill_with = nil, &block)
     if number.to_i <= 0
       raise ArgumentError,
@@ -64,6 +69,9 @@ class Array
   # ["4", "5"]
   # ["6", "7"]
   # ```
+  #: (Integer, ?nil) ?{ (Array[Elem?]) -> void } -> Array[Array[Elem?]]
+  #: (Integer, false) ?{ (Array[Elem]) -> void } -> Array[Array[Elem]]
+  #: [FillType] (Integer, FillType) ?{ (Array[Elem | FillType]) -> void } -> Array[Array[Elem | FillType]]
   def in_groups(number, fill_with = nil, &block)
     if number.to_i <= 0
       raise ArgumentError,
@@ -103,6 +111,7 @@ class Array
   # [1, 2, 3, 4, 5].split(3)              # => [[1, 2], [4, 5]]
   # (1..10).to_a.split { |i| i % 3 == 0 } # => [[1, 2], [4, 5], [7, 8], [10]]
   # ```
+  #: (?untyped) ?{ (Elem) -> untyped } -> Array[Array[Elem]]
   def split(value = nil, &block)
     arr = dup
     result = []

@@ -1,7 +1,5 @@
 # frozen_string_literal: true
 
-# :markup: markdown
-
 require "action_dispatch"
 require "action_dispatch/log_subscriber"
 require "action_dispatch/structured_event_subscriber"
@@ -78,6 +76,10 @@ module ActionDispatch
         ActionDispatch::QueryParser.strict_query_string_separator = app.config.action_dispatch.strict_query_string_separator
       end
 
+      unless app.config.action_dispatch.allow_rack_multipart_encoding
+        ActionDispatch::CoreExt::RackMultipartParser.apply
+      end
+
       ActionDispatch.verbose_redirect_logs = app.config.action_dispatch.verbose_redirect_logs
 
       ActiveSupport.on_load(:action_dispatch_request) do
@@ -105,8 +107,8 @@ module ActionDispatch
       ActionDispatch.test_app = app
     end
 
-    initializer "action_dispatch.share_configs" do
-      config.after_initialize do
+    initializer "action_dispatch.ractorize" do
+      ActiveSupport.on_load(:before_ractorize) do
         ActiveSupport::Ractors.make_shareable(ActionDispatch::ExceptionWrapper.rescue_responses)
         ActiveSupport::Ractors.make_shareable(ActionDispatch::ExceptionWrapper.rescue_templates)
         ActiveSupport::Ractors.make_shareable(ActionDispatch::ExceptionWrapper.wrapper_exceptions)

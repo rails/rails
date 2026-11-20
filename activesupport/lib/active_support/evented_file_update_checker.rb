@@ -1,4 +1,3 @@
-# :markup: markdown
 # frozen_string_literal: true
 
 gem "listen", "~> 3.5"

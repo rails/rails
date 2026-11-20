@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require "cases/helper"
+require "models/comment"
 require "models/post"
 
 module ActiveRecord
@@ -31,10 +32,17 @@ module ActiveRecord
     end
 
     test "#order! with Arel::Attribute extracts table reference" do
+      attr = Comment.arel_table[:body]
+      assert relation.order!(attr).equal?(relation)
+      assert_equal [attr], relation.order_values
+      assert_equal ["comments"], relation.references_values
+    end
+
+    test "#order! with Arel::Attribute of its own table does not add a reference" do
       attr = Post.arel_table[:name]
       assert relation.order!(attr).equal?(relation)
       assert_equal [attr], relation.order_values
-      assert_equal ["posts"], relation.references_values
+      assert_empty relation.references_values
     end
 
     test "#default_order!" do
@@ -68,11 +76,17 @@ module ActiveRecord
       assert_equal 5, relation.offset_value
     end
 
-    (Relation::SINGLE_VALUE_METHODS - [:limit, :offset, :lock, :reordering, :reverse_order, :create_with, :skip_query_cache, :strict_loading]).each do |method|
+    (Relation::SINGLE_VALUE_METHODS - [:limit, :offset, :lock, :reordering, :reverse_order, :create_with, :skip_query_cache, :strict_loading, :with_recursive]).each do |method|
       test "##{method}!" do
         assert relation.public_send("#{method}!", :foo).equal?(relation)
         assert_equal :foo, relation.public_send("#{method}_value")
       end
+    end
+
+    test "#with_recursive!" do
+      assert relation.with_recursive!(foo: "bar").equal?(relation)
+      assert_equal [{ foo: "bar" }], relation.with_values
+      assert_equal true, relation.with_recursive_value
     end
 
     test "#from!" do

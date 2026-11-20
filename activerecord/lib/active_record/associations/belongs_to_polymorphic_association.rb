@@ -2,10 +2,11 @@
 
 module ActiveRecord
   module Associations
-    # = Active Record Belongs To Polymorphic Association
+    # Active Record Belongs To Polymorphic Association
+    # ================================================
     class BelongsToPolymorphicAssociation < BelongsToAssociation # :nodoc:
       def klass
-        type = owner.read_attribute(foreign_type)
+        type = owner._read_attribute(foreign_type)
         type.presence && owner.class.polymorphic_class_for(type)
       end
 
@@ -22,16 +23,6 @@ module ActiveRecord
       end
 
       private
-        def replace_keys(record, force: false)
-          super
-
-          target_type = record ? record.class.polymorphic_name : nil
-
-          if force || owner.read_attribute(foreign_type) != target_type
-            owner.write_attribute(foreign_type, target_type)
-          end
-        end
-
         def inverse_reflection_for(record)
           reflection.polymorphic_inverse_of(record.class)
         end
@@ -42,7 +33,7 @@ module ActiveRecord
 
         def stale_state
           if foreign_key = super
-            [foreign_key, owner.read_attribute(foreign_type)]
+            [foreign_key, owner._read_attribute(foreign_type)]
           end
         end
     end

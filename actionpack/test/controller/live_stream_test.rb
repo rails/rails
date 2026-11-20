@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require "abstract_unit"
+require "active_support/core_ext/object/with"
 require "timeout"
 require "concurrent/atomic/count_down_latch"
 require "zeitwerk"
@@ -803,14 +804,78 @@ module ActionController
       buf = response.stream
 
       buf.write "final"
-      buf.close   # enqueues the terminator
-      buf.abort   # clears the queue, dropping the terminator close just enqueued
+      buf.close   # closes the queue after its final chunk
+      buf.abort   # clears that pending chunk without reopening the queue
 
       reader = Thread.new { response.each { } }
 
       assert reader.join(5), "#abort after #close left the reader blocked in each_chunk"
     ensure
       reader&.kill
+    end
+
+    def test_close_with_a_full_buffer_does_not_wait_for_a_reader
+      ActionController::Live::Buffer.with(queue_size: 1) do
+        response = ActionController::Live::Response.new
+        response.request = ActionDispatch::Request.empty
+        buf = response.stream
+        buf.write "final"
+
+        closer = Thread.new { buf.close }
+
+        assert closer.join(1), "#close waited for a reader to drain the full buffer"
+        chunks = []
+        response.each { |chunk| chunks << chunk }
+        assert_equal ["final"], chunks
+      ensure
+        closer&.kill
+      end
+    end
+
+    def test_close_and_abort_finish_when_a_single_slot_buffer_is_full
+      ActionController::Live::Buffer.with(queue_size: 1) do
+        response = ActionController::Live::Response.new
+        response.request = ActionDispatch::Request.empty
+        buf = response.stream
+        buf.write "queued"
+
+        start = Concurrent::CountDownLatch.new
+        closer = Thread.new { start.wait; buf.close }
+        aborter = Thread.new { start.wait; buf.abort }
+        start.count_down
+
+        assert closer.join(1), "#close remained blocked when raced with #abort"
+        assert aborter.join(1), "#abort remained blocked when raced with #close"
+
+        chunks = []
+        reader = Thread.new { response.each { |chunk| chunks << chunk } }
+        assert reader.join(1), "the aborted buffer did not terminate its reader"
+        assert_empty chunks
+      ensure
+        closer&.kill
+        aborter&.kill
+        reader&.kill
+      end
+    end
+
+    def test_write_after_abort_does_not_block_on_the_terminator
+      ActionController::Live::Buffer.with(queue_size: 1) do
+        response = ActionController::Live::Response.new
+        response.request = ActionDispatch::Request.empty
+        buf = response.stream
+        buf.abort
+
+        writer = Thread.new do
+          buf.write "late"
+        rescue => error
+          error
+        end
+
+        assert writer.join(1), "#write blocked after the buffer was aborted"
+        assert_instance_of ActionController::Live::ClientDisconnected, writer.value
+      ensure
+        writer&.kill
+      end
     end
   end
 end

@@ -50,7 +50,7 @@ module ActionView
     end
 
     # A single pass over matches? and sort_key_for: the sort key when the
-    # template matches +requested+, nil otherwise.
+    # template matches `requested`, nil otherwise.
     def rank_for(requested)
       format  = requested.formats_idx[@format]   or return
       locale  = requested.locale_idx[@locale]    or return

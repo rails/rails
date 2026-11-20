@@ -2,7 +2,7 @@
 
 module ActionDispatch
   class ParamBuilder
-    # --
+    #--
     # This implementation is based on Rack::QueryParser,
     # Copyright (C) 2007-2021 Leah Neukirchen <http://leahneukirchen.org/infopage.html>
 
@@ -40,6 +40,8 @@ module ActionDispatch
     end
 
     def from_query_string(qs, separator: nil, encoding_template: nil)
+      return make_params if qs.nil? || qs.empty?
+
       from_pairs QueryParser.each_pair(qs, separator), encoding_template: encoding_template
     end
 

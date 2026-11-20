@@ -2,7 +2,6 @@
 
 require_relative "../helper"
 require "arel/collectors/substitute_binds"
-require "arel/collectors/sql_string"
 
 module Arel
   module Collectors
@@ -21,7 +20,7 @@ module Arel
       end
 
       def compile(node, quoter)
-        collector = Collectors::SubstituteBinds.new(quoter, Collectors::SQLString.new)
+        collector = Collectors::SubstituteBinds.new(quoter)
         @visitor.accept(node, collector).value
       end
 
@@ -41,6 +40,44 @@ module Arel
         end
         sql = compile(ast_with_binds, quoter)
         assert_equal 'SELECT FROM "users" WHERE "users"."age" = "hello" AND "users"."name" = "world"', sql
+      end
+
+      def test_default_collector_buffers_sql
+        collector = Collectors::SubstituteBinds.new(@conn.lease_connection)
+
+        assert_equal "", collector.value
+        assert_same collector, collector << "VALUES ("
+        assert_same collector, collector.add_bind("hello")
+        assert_same collector, collector << ", "
+        assert_same collector, collector.add_binds(["world", "again"])
+        assert_same collector, collector << ")"
+        assert_equal "VALUES ('hello', 'world', 'again')", collector.value
+      end
+
+      def test_default_collectors_have_independent_buffers
+        first = Collectors::SubstituteBinds.new(@conn.lease_connection)
+        second = Collectors::SubstituteBinds.new(@conn.lease_connection)
+
+        (first << "SELECT 1").value.freeze
+
+        assert_equal "SELECT 2", (second << "SELECT 2").value
+      end
+
+      def test_supplied_collector_receives_sql_fragments
+        delegate = Struct.new(:value).new([])
+        def delegate.<<(sql)
+          value << sql
+        end
+
+        collector = Collectors::SubstituteBinds.new(@conn.lease_connection, delegate)
+
+        assert_same collector, collector << "VALUES ("
+        assert_same collector, collector.add_bind("hello")
+        assert_same collector, collector << ", "
+        assert_same collector, collector.add_binds(["world", "again"])
+        assert_same collector, collector << ")"
+        assert_same delegate.value, collector.value
+        assert_equal ["VALUES (", "'hello'", ", ", "'world', 'again'", ")"], collector.value
       end
     end
   end

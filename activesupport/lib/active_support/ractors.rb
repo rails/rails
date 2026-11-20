@@ -1,4 +1,3 @@
-# :markup: markdown
 # frozen_string_literal: true
 
 require "active_support/dependencies/autoload"
@@ -8,6 +7,7 @@ module ActiveSupport
   # unconditionally regardless of the Ruby version.
   module Ractors # :nodoc:
     extend ActiveSupport::Autoload
+    autoload :Cell
     autoload :Logger
 
     class << self
@@ -95,12 +95,27 @@ module ActiveSupport
         end
       end
 
+      if defined?(Ractor)
+        # Returns whether `obj` is Ractor-shareable by delegating to
+        # `Ractor.shareable?`.
+        #
+        # On runtimes without `Ractor` (e.g. JRuby), every object is considered
+        # shareable.
+        def shareable?(obj)
+          Ractor.shareable?(obj)
+        end
+      else
+        def shareable?(obj)
+          true
+        end
+      end
+
       if defined?(Ractor) && RUBY_VERSION >= "4.0"
         def on_main(obj = nil, &block)
           if Ractor.main?
             obj.instance_eval(&block)
           else
-            require "ractor/dispatch"
+            require "ractor/dispatch" unless defined?(Ractor::Dispatch)
             shareable_block = Ractor.shareable_proc(&block)
             Ractor::Dispatch.main.run { obj.instance_eval(&shareable_block) }
           end
@@ -116,15 +131,6 @@ module ActiveSupport
         # `Ractor.make_shareable`, this shim returns `obj` unchanged.
         def make_shareable(...)
           Ractor.make_shareable(...)
-        end
-
-        # Returns whether `obj` is Ractor-shareable by delegating to
-        # `Ractor.shareable?`.
-        #
-        # On Ruby versions without `Ractor.shareable?`, this shim returns `obj`
-        # unchanged.
-        def shareable?(obj)
-          Ractor.shareable?(obj)
         end
 
         # Returns a Ractor-shareable proc by delegating to `Ractor.shareable_proc`.
@@ -162,10 +168,6 @@ module ActiveSupport
         end
 
         def make_shareable(obj, copy: false)
-          obj
-        end
-
-        def shareable?(obj)
           obj
         end
 

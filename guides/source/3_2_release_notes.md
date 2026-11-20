@@ -516,7 +516,7 @@ Active Support
 
 * Added `Array#prepend` as an alias for `Array#unshift` and `Array#append` as an alias for `Array#<<`.
 
-* The definition of a blank string for Ruby 1.9 has been extended to Unicode whitespace. Also, in Ruby 1.8 the ideographic space U`3000 is considered to be whitespace.
+* The definition of a blank string for Ruby 1.9 has been extended to Unicode whitespace. Also, in Ruby 1.8 the ideographic space U+3000 is considered to be whitespace.
 
 * The inflector understands acronyms.
 

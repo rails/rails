@@ -104,6 +104,11 @@ module ControllerLayouts
   class MismatchFormatTest < Rack::TestCase
     testing ControllerLayouts::MismatchFormatController
 
+    draw do
+      get "/controller_layouts/mismatch_format/index", to: "controller_layouts/mismatch_format#index"
+      get "/controller_layouts/mismatch_format/implicit", to: "controller_layouts/mismatch_format#implicit"
+    end
+
     XML_INSTRUCT = %Q(<?xml version="1.0" encoding="UTF-8"?>\n)
 
     test "if XML is selected, an HTML template is not also selected" do

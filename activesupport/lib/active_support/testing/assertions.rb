@@ -1,4 +1,3 @@
-# :markup: markdown
 # frozen_string_literal: true
 
 require "active_support/core_ext/enumerable"
@@ -248,6 +247,7 @@ module ActiveSupport
       #   post :create, params: { status: { incident: true } }
       # end
       # ```
+      #: [TResult] (String | Symbol | ^() -> untyped, ?String?, ?from: top, ?to: top) { () -> TResult } -> TResult
       def assert_changes(expression, message = nil, from: UNTRACKED, to: UNTRACKED, &block)
         exp = _expression_to_callable(expression, block.binding)
 

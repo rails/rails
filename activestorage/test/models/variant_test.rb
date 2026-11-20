@@ -31,6 +31,16 @@ class ActiveStorage::VariantTest < ActiveSupport::TestCase
     assert_equal 67, image.height
   end
 
+  test "resized variation of JPEG blob with a null byte in its filename" do
+    blob = create_file_blob(filename: "race\0car.jpg", fixture: "racecar.jpg")
+    variant = blob.variant(resize_to_limit: [100, 100]).processed
+    assert_match(/race-car\.jpg/, variant.url)
+
+    image = read_image(variant)
+    assert_equal 100, image.width
+    assert_equal 67, image.height
+  end
+
   test "resized and monochrome variation of JPEG blob" do
     blob = create_file_blob(filename: "racecar.jpg")
     variant = blob.variant(resize_to_limit: [100, 100], colourspace: "b-w").processed

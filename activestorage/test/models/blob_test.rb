@@ -273,6 +273,74 @@ class ActiveStorage::BlobTest < ActiveSupport::TestCase
     end
   end
 
+  test "open drops a filename extension the content type does not account for" do
+    blob = create_blob(data: 'Import("/etc/passwd")', filename: "attack.avs", content_type: "video/mp4")
+
+    assert_equal "video/mp4", blob.content_type
+
+    blob.open do |file|
+      assert File.basename(file.path).start_with?("ActiveStorage-#{blob.id}-")
+      assert_equal "", File.extname(file.path)
+    end
+  end
+
+  test "open drops a filename extension Marcel does not recognize" do
+    blob = create_blob(data: 'Import("/etc/passwd")', filename: "attack.avs", content_type: "application/octet-stream")
+
+    blob.open { |file| assert_equal "", File.extname(file.path) }
+  end
+
+  test "open drops a filename extension that denotes a different content type" do
+    blob = create_blob(data: "Hello world!", filename: "hello.jpg", content_type: "video/mp4", identify: false)
+
+    blob.open { |file| assert_equal "", File.extname(file.path) }
+  end
+
+  test "open drops a video extension from an image blob before ImageMagick can delegate it to ffmpeg" do
+    blob = create_blob(data: "#EXTM3U\n#EXTINF:1,\nfile:///etc/hostname\n", filename: "evil.mp4", content_type: "image/png", identify: false)
+
+    blob.open { |file| assert_equal "", File.extname(file.path) }
+  end
+
+  test "open compares the filename extension against the media type alone" do
+    blob = create_file_blob(filename: "icon.svg", content_type: "image/SVG+XML; charset=utf-8", identify: false)
+
+    blob.open { |file| assert_equal ".svg", File.extname(file.path) }
+  end
+
+  test "open copies a local io whose path extension the content type does not account for" do
+    blob = create_blob(data: 'Import("/etc/passwd")', filename: "attack.avs", content_type: "video/mp4")
+
+    Tempfile.open([ "RackMultipart", ".avs" ]) do |io|
+      io.write 'Import("/etc/passwd")'
+      io.rewind
+      blob.local_io = io
+
+      blob.open do |file|
+        assert_not_equal io.path, file.path
+        assert_equal "", File.extname(file.path)
+      end
+    end
+  end
+
+  test "open yields a local io whose path extension the content type accounts for" do
+    blob = create_file_blob(filename: "racecar.jpg", content_type: "image/jpeg")
+
+    Tempfile.open([ "RackMultipart", ".jpg" ], binmode: true) do |io|
+      io.write file_fixture("racecar.jpg").binread
+      io.rewind
+      blob.local_io = io
+
+      blob.open { |file| assert_equal io.path, file.path }
+    end
+  end
+
+  test "open keeps a filename extension the content type accounts for" do
+    create_file_blob(filename: "racecar.jpg", content_type: "image/jpeg").open do |file|
+      assert file.path.end_with?(".jpg")
+    end
+  end
+
   test "open in a custom tmpdir" do
     create_file_blob(filename: "racecar.jpg").open(tmpdir: tmpdir = Dir.mktmpdir) do |file|
       assert_predicate file, :binmode?

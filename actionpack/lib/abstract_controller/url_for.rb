@@ -1,7 +1,5 @@
 # frozen_string_literal: true
 
-# :markup: markdown
-
 module AbstractController
   # # URL For
   #
@@ -25,9 +23,9 @@ module AbstractController
         nil
       end
 
-      def action_methods
-        @action_methods ||= if _routes
-          (super - _routes.named_routes.helper_names).freeze
+      def action_method_symbols # :nodoc:
+        if _routes
+          super - _routes.named_routes.helper_name_symbols
         else
           super
         end

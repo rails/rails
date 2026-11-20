@@ -34,6 +34,20 @@ module ActiveRecord
     self.use_instantiated_fixtures = false
     self.use_transactional_tests = true
 
+    # Schema statements only run on the main Ractor's real connection, never
+    # through a proxied one. Like the adapter-specific test cases below, tests
+    # that emit DDL are left out of a ractor proxy run.
+    def self.skip_under_ractor_proxy(*tests)
+      return unless ractor_proxy?
+
+      if tests.empty?
+        define_singleton_method(:run) { |*| }
+      else
+        excluded = tests.map(&:to_s)
+        define_singleton_method(:runnable_methods) { super() - excluded }
+      end
+    end
+
     def after_teardown
       super
       check_connection_leaks
@@ -42,10 +56,17 @@ module ActiveRecord
     def check_connection_leaks(connection_pools = nil)
       return if in_memory_db?
 
+      # Leak checking is physical-pool maintenance (reaper, owner threads);
+      # inspect the real pools, not the Ractor facades a self-proxy run
+      # resolves by default.
+      connection_pools ||= without_ractor_proxy do
+        ActiveRecord::Base.connection_handler.each_connection_pool.to_a
+      end
+
       # Make sure tests didn't leave a connection owned by some background thread
       # which could lead to some slow wait in a subsequent thread.
       leaked_conn = []
-      (connection_pools || ActiveRecord::Base.connection_handler.each_connection_pool).each do |pool|
+      connection_pools.each do |pool|
         # Ensure all in flights tasks are completed.
         # Otherwise they may still hold a connection.
         if pool.async_executor
@@ -225,7 +246,7 @@ module ActiveRecord
     end
 
     def with_temporary_connection_pool(&block)
-      pool_config = ActiveRecord::Base.connection_pool.pool_config
+      pool_config = without_ractor_proxy { ActiveRecord::Base.connection_pool }.pool_config
       new_pool = ActiveRecord::ConnectionAdapters::ConnectionPool.new(pool_config)
 
       pool_config.stub(:pool, new_pool, &block)
@@ -321,8 +342,11 @@ module ActiveRecord
     end
 
     def clean_up_connection_handler
-      handler = ActiveRecord::Base.connection_handler
-      pool_managers = handler.instance_variable_get(:@connection_name_to_pool_manager)
+      # Physical pool-manager surgery: inspect the real pools, not the Ractor
+      # facades a self-proxy run resolves by default.
+      pool_managers = without_ractor_proxy do
+        ActiveRecord::Base.connection_handler.send(:connection_name_to_pool_manager)
+      end
       removed_pool_configs = []
 
       pool_managers.each do |owner, pool_manager|

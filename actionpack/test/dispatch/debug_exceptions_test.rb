@@ -147,6 +147,11 @@ class DebugExceptionsTest < ActionDispatch::IntegrationTest
   Interceptor = proc { |request, exception| request.set_header("int", exception) }
   BadInterceptor = proc { |request, exception| raise "bad" }
   RoutesApp = Struct.new(:routes).new(SharedTestRoutes)
+
+  # Gives the "displays routes in a table" test below something to find.
+  append_routes(SharedTestRoutes) do
+    get "/debug_exceptions/routing_table(/:id)(.:format)", to: "debug_exceptions#routing_table"
+  end
   ProductionApp  = build_app(Boomer.new(false), RoutesApp)
   DevelopmentApp = build_app(Boomer.new(true), RoutesApp)
   InterceptedApp = build_app(Boomer.new(true), RoutesApp, :default, [Interceptor])
@@ -196,8 +201,8 @@ class DebugExceptionsTest < ActionDispatch::IntegrationTest
     @app = DevelopmentApp
     get "/pass", headers: { "action_dispatch.show_exceptions" => :all }
     routing_table = body[/route_table.*<.table>/m]
-    assert_match "/:controller(/:action)(.:format)", routing_table
-    assert_match ":controller#:action", routing_table
+    assert_match "/debug_exceptions/routing_table(/:id)(.:format)", routing_table
+    assert_match "debug_exceptions#routing_table", routing_table
     assert_no_match "&lt;|&gt;", routing_table, "there should not be escaped HTML in the output"
   end
 

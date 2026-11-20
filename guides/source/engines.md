@@ -236,7 +236,7 @@ It provides the following:
     ```
 
 `--mountable` engines, like above, contain some files that are not present in
-the `--full` option, these are:
+the `--full` option. These are:
 
   * A namespaced `ApplicationController` stub
   * A namespaced `ApplicationHelper` stub
@@ -965,13 +965,11 @@ database by specifying the `DATABASE` option:
 $ bin/rails railties:install:migrations DATABASE=animals
 ```
 
-NOTE: These tasks are provided by
-[`ActiveRecord::Railtie`](https://api.rubyonrails.org/classes/Rails/Railtie.html),
-the Rails component responsible for managing how Active Record integrates into
-an application. When run, it looks through all loaded engines and copies any
-exposed migrations into the host application's `db/migrate` folder, saving you
-from having to run a separate `install:migrations` task for each engine
-individually.
+NOTE: These tasks are provided by `ActiveRecord::Railtie`, the Rails component
+responsible for managing how Active Record integrates into an application.
+When run, it looks through all loaded engines and copies any exposed migrations
+into the host application's `db/migrate` folder, saving you from having to run
+a separate `install:migrations` task for each engine individually.
 
 #### Running Migrations
 
@@ -1341,7 +1339,7 @@ guide, and works precisely the same way as the `config/initializers` directory
 inside an application. The same thing goes if you want to use a standard
 initializer.
 
-For locales, simply place the [locale files in the `config/locales` directory](i18n.html#providing-translations-for-internationalized-strings),
+For locales, simply place the [locale files in the `config/locales` directory](i18n.html#creating-locale-dictionaries),
 just like you would in an application.
 
 Improving the Engine

@@ -4,7 +4,7 @@ module ActiveRecord
   class Migration
     # This class is used by the schema dumper to format versions information.
     #
-    # The class receives the current +connection+ when initialized.
+    # The class receives the current `connection` when initialized.
     class DefaultSchemaVersionsFormatter # :nodoc:
       def initialize(connection)
         @connection = connection

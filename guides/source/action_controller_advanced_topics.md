@@ -44,7 +44,7 @@ method. This token is added to each request and is only known to your server.
 Rails verifies the received token with the token in the session. If an incoming
 request does not have the proper matching token, the server will deny access.
 
-The CSRF token is added automatically when `config.action_controller.default_protect_from_forgery` is set to `true`, which is the default for newly created Rails applications. It can also be manually like this:
+The CSRF token is added automatically when `config.action_controller.default_protect_from_forgery` is set to `true`, which is the default for newly created Rails applications. It can also be enabled manually like this:
 
 ```ruby
 class ApplicationController < ActionController::Base
@@ -112,7 +112,7 @@ class ApplicationController < ActionController::Base
 end
 ```
 
-TIP: Modern browsers includes Safari 17.2+, Chrome 120+, Firefox 121+, Opera 106+. You can use [caniuse.com](https://caniuse.com/) to check for browser versions supporting the features you'd like to use.
+TIP: Modern browsers include Safari 17.2+, Chrome 120+, Firefox 121+, Opera 106+. You can use [caniuse.com](https://caniuse.com/) to check for browser versions supporting the features you'd like to use.
 
 In addition to the default of `:modern`, you can also specify the browser versions manually:
 

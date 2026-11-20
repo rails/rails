@@ -4,6 +4,12 @@ require "cases/helper"
 require "tempfile"
 
 class ActiveRecordSchemaTest < ActiveRecord::TestCase
+  skip_under_ractor_proxy :test_schema_define, :test_schema_define_with_table_name_prefix,
+    :test_schema_subclass, :test_schema_load_with_multiple_indexes_for_column_of_different_names,
+    :test_timestamps_with_implicit_default_on_create_table,
+    :test_timestamps_with_implicit_default_on_change_table,
+    :test_timestamps_with_implicit_default_on_add_timestamps
+
   self.use_transactional_tests = false
 
   setup do

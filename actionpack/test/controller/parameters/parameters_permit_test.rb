@@ -211,6 +211,11 @@ class ParametersPermitTest < ActiveSupport::TestCase
     assert_filtered_out permitted[:preferences][:dubious][0], :b
     assert_filtered_out permitted[:preferences], :injected
     assert_filtered_out permitted, :hacked
+
+    assert_predicate permitted[:preferences], :permitted?
+    assert_predicate permitted[:preferences][:font], :permitted?
+    assert_predicate permitted[:preferences][:dubious][0], :permitted?
+    assert_equal "Source Code Pro", permitted.to_h.dig("preferences", "font", "name")
   end
 
   test "fetch raises ParameterMissing exception" do
@@ -556,6 +561,24 @@ class ParametersPermitTest < ActiveSupport::TestCase
 
     assert_not_predicate params, :permitted?
     assert_not_predicate params[:f], :permitted?
+  end
+
+  test "to_h and to_unsafe_h return copies that do not share nested collections with the parameters" do
+    params = ActionController::Parameters.new(person: { name: "Alice", pets: [{ name: "Bob" }] }).permit!
+
+    [params.to_h, params.to_unsafe_h].each do |hash|
+      hash[:person][:name] = "Eve"
+      hash[:person][:pets].first[:name] = "Mallory"
+    end
+
+    assert_equal({ "person" => { "name" => "Alice", "pets" => [{ "name" => "Bob" }] } }, params.to_unsafe_h)
+  end
+
+  test "to_h and to_unsafe_h return indifferent nested hashes set by transform_values!" do
+    params = ActionController::Parameters.new(person: "Alice").permit!.transform_values! { |name| { name: name } }
+
+    assert_equal "Alice", params.to_h[:person]["name"]
+    assert_equal "Alice", params.to_unsafe_h[:person]["name"]
   end
 
   test "to_h only deep dups Ruby collections" do

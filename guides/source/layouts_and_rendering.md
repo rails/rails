@@ -162,7 +162,7 @@ as described in the next section.
 
 ### Rendering Templates
 
-`render` accepts options to to render a different template within a controller
+`render` accepts options to render a different template within a controller
 action, or set the HTTP response code.
 
 ```ruby#6
@@ -231,7 +231,7 @@ end
 `edit.html.erb` template from the context of the `update` action, meaning
 `@book` will not be set when the `update` action is rendered.
 
-### Template Lookup Hierarcy
+### Template Lookup Hierarchy
 
 When there isn't an explicit call to `render`, Rails follows the controller's
 inheritance chain to find the appropriate template. Consider the below
@@ -265,12 +265,12 @@ If the template is missing from all these locations, an
 ### Inline `render`ing
 
 The `render` method can be used to define the response body within the
-controller itself. This technique can be used to render reponses in a variety of
+controller itself. This technique can be used to render responses in a variety of
 formats such as _plain text_, _JSON_, _XML_ etc.
 
 A key difference when rendering inline is that the response is rendered without
 a [layout](action_view_overview.html#layouts) by default. For HTML and plain
-text responses, you can use the `layout:` option to explicity define a layout
+text responses, you can use the `layout:` option to explicitly define a layout
 template; but, all other formats have
 [custom renderers](https://github.com/rails/rails/blob/main/actionpack/lib/action_controller/metal/renderers.rb#L169)
 which don't incorporate a layout.
@@ -293,7 +293,7 @@ option to render within a layout template:
 # usually: `app/views/layouts/application.html.erb`.
 render html: helpers.tag.strong("Not Found"), layout: true
 
-# Explitly define rendering within the `app/views/layouts/admin.html.erb`
+# Explicitly define rendering within the `app/views/layouts/admin.html.erb`
 # layout template.
 render html: helpers.tag.strong("Not Found"), layout: "admin"
 ```
@@ -326,7 +326,7 @@ render plain: "OK", layout: "plain_text_wrapper"
 
 #### JSON
 
-Use the `json:` option to format JSON reponses. The supplied object will be
+Use the `json:` option to format JSON responses. The supplied object will be
 converted to JSON using `to_json`:
 
 ```ruby
@@ -352,7 +352,7 @@ render body: "raw"
 
 WARNING: There's unlikely to be a practical scenario where this option fits the
 bill. Use one of the alternate rendering options such as JSON or XML to create
-stucturally sound reponses and all the security benefits that come with it.
+structurally sound responses and all the security benefits that come with it.
 
 #### Files
 
@@ -373,11 +373,11 @@ can be disabled using `layout: false`:
 render file: "#{Rails.root}/public/404.html", layout: false
 ```
 
-NOTE: The layout that a static file is inserted into can written using a
+NOTE: The layout that a static file is inserted into can be written using a
 templating language like ERB. However, the file supplied to the `file:` option
 must be static. It will not be processed through a templating engine.
 
-WARNING: Using the `:file` option in combination with users input can lead to
+WARNING: Using the `:file` option in combination with user input can lead to
 security problems since an attacker could use this action to access security
 sensitive files on your file system.
 
@@ -501,7 +501,7 @@ Rails automatically sets this in most cases. For example, rendering an HTML ERB
 template will set the content type to `text/html`, and rendering a JSON object
 will set it to `application/json`.
 
-It can be explicity set if needed:
+It can be explicitly set if needed:
 
 ```ruby
 render template: "feed", content_type: "application/rss"
@@ -786,7 +786,7 @@ render formats: :json
 
 An array can be passed to define fallbacks if the template for a given format
 doesn't exist. The below example will attempt to render the JSON template, but
-fallback to XML if it doesn't exist.
+fall back to XML if it doesn't exist.
 
 ```ruby
 render formats: [:json, :xml]
@@ -963,10 +963,9 @@ module SetRequestVariant
   end
 
   private
-
     def set_request_variant
       # App-specific logic to determine which variant is requested
-      request.variant = # ...
+      request.variant = :mobile if request.user_agent&.include?("Mobile")
     end
 end
 
@@ -1060,7 +1059,7 @@ will fall back to the default `application.html.erb`.
 
 ### Specifying Layouts for Controllers
 
-Explicity define a layout for a controller with the [`layout`][] declaration.
+Explicitly define a layout for a controller with the [`layout`][] declaration.
 
 ```ruby
 class ProductsController < ApplicationController
@@ -1107,7 +1106,7 @@ class ProductsController < ApplicationController
 end
 ```
 
-Now, if the current user is a administrator, they'll get the admin-specific
+Now, if the current user is an administrator, they'll get the admin-specific
 layout when viewing a product.
 
 You can also invoke `layout` with a

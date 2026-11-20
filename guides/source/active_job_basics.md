@@ -355,7 +355,7 @@ Now the queue will be named `production.low_priority` or `staging.low_priority`.
 
 You can control the queue at the job level by passing a block to `queue_as`. The
 block will be executed in the job context (so it can access `self.arguments`),
-and it's return value must be a queue name. For example:
+and its return value must be a queue name. For example:
 
 ```ruby
 class ProcessVideoJob < ApplicationJob
@@ -546,7 +546,7 @@ Solid Queue, the default queue backend, supports bulk enqueuing using
 `enqueue_all`.
 
 [Other backends](#alternate-queuing-backends) like Sidekiq have a `push_bulk`
-method, which the Sidekiq adapter users. internally to push a large number of
+method, which the Sidekiq adapter uses internally to push a large number of
 jobs to Redis and prevent the round trip network latency. GoodJob also supports
 bulk enqueuing with the `GoodJob::Bulk.enqueue` method.
 
@@ -660,7 +660,7 @@ being enqueued based on a condition:
 ```ruby
 class GuestsCleanupJob < ApplicationJob
   before_enqueue do |job|
-    throw :abort if ENV.fetch("DISABLE_GUESTS_CLEANUP_JOB", true)
+    throw :abort if ENV["DISABLE_GUESTS_CLEANUP_JOB"] == "true"
   end
 
   def perform(guest)
@@ -749,7 +749,6 @@ class ProcessImportJob < ApplicationJob
         step.advance!
       end
     end
-
   end
 end
 ```
@@ -931,7 +930,7 @@ default: &default
 The configuration in `config/queue.yml` is optional. If no configuration is
 provided, Solid Queue will run with one dispatcher and one worker with default
 settings. Below are some of the configuration options you can set along with
-their default values`:
+their default values:
 
 | **Option**                           | **Description**                                                                                     | **Default Value**                             |
 | ------------------------------------ | --------------------------------------------------------------------------------------------------- | --------------------------------------------- |
@@ -973,7 +972,7 @@ production:
 With the above configuration, no jobs will be taken from the `default` queue
 while the `critical` queue has jobs waiting, and no jobs will be taken from
 `low` while either `critical` or `default` has jobs waiting. Solid Queue has
-strict ordering (unlike other queuing backend which may allow relative weights
+strict ordering (unlike other queuing backends which may allow relative weights
 so that lower priority queues still receive a proportional share of processing
 time). It is possible for lower queues to be starved if higher queues are
 consistently busy.
@@ -1113,7 +1112,7 @@ simple throughput limiting, constraining the number of worker threads per queue
 is more efficient.
 
 WARNING: Concurrency controls are not compatible with bulk enqueuing via
-`perform_all_later`. Since concurrency-controlled jobs need to be enqueued
+`perform_all_later`, since concurrency-controlled jobs need to be enqueued
 one-by-one to respect the configured limits.
 
 ### Error handling
@@ -1319,7 +1318,7 @@ queue. You'll need to drain the old queue before switching, or run both backends
 in parallel temporarily to let existing jobs complete.
 
 NOTE: The early releases of Active Job had adapters built-in, but a decision was
-later made to let queueing backends providers manage the adapter themselves. Any
+later made to let queueing backend providers manage the adapter themselves. Any
 backend can be used with Active Job regardless of whether the adapter is built
 in or not.
 

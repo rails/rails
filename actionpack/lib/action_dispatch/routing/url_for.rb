@@ -1,7 +1,5 @@
 # frozen_string_literal: true
 
-# :markup: markdown
-
 module ActionDispatch
   module Routing
     # # Action Dispatch Routing UrlFor
@@ -225,7 +223,7 @@ module ActionDispatch
 
       protected
         def optimize_routes_generation?
-          _routes.optimize_routes_generation? && default_url_options.empty?
+          _routes.optimize_routes_generation? && RouteSet.optimizable_default_url_options?(default_url_options)
         end
 
       private

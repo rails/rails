@@ -4,12 +4,15 @@
 # used by all associations.
 #
 # The hierarchy is defined as follows:
-#  Association
-#    - SingularAssociation
-#      - BelongsToAssociation
-#      - HasOneAssociation
-#    - CollectionAssociation
-#      - HasManyAssociation
+#
+# ```
+# Association
+#   - SingularAssociation
+#     - BelongsToAssociation
+#     - HasOneAssociation
+#   - CollectionAssociation
+#     - HasManyAssociation
+# ```
 
 module ActiveRecord::Associations::Builder # :nodoc:
   class Association # :nodoc:
@@ -30,10 +33,12 @@ module ActiveRecord::Associations::Builder # :nodoc:
       end
 
       reflection = create_reflection(model, name, scope, options, &block)
-      define_accessors(model, reflection)
+      ActiveSupport::CodeGenerator.batch(model.generated_association_methods, __FILE__, __LINE__) do |mixin|
+        define_accessors(model, reflection, mixin)
+        define_change_tracking_methods(model, reflection, mixin)
+      end
       define_callbacks(model, reflection)
       define_validations(model, reflection)
-      define_change_tracking_methods(model, reflection)
       reflection
     end
 
@@ -89,42 +94,43 @@ module ActiveRecord::Associations::Builder # :nodoc:
 
     # Defines the setter and getter methods for the association
     # class Post < ActiveRecord::Base
-    #   has_many :comments
+    #
+    # ```
+    # has_many :comments
+    # ```
+    #
     # end
     #
     # Post.first.comments and Post.first.comments= methods are defined by this method...
-    def self.define_accessors(model, reflection)
-      mixin = model.generated_association_methods
+    def self.define_accessors(model, reflection, mixin)
       name = reflection.name
-      define_readers(mixin, name)
-      define_writers(mixin, name)
-    end
 
-    def self.define_readers(mixin, name)
-      mixin.class_eval <<-CODE, __FILE__, __LINE__ + 1
-        def #{name}
-          association = association(:#{name})
-          deprecated_associations_api_guard(association, __method__)
-          association.reader
-        end
-      CODE
-    end
+      mixin.define_cached_method(name, namespace: :association_reader) do |batch|
+        batch << <<~RUBY
+          def #{name}
+            association = association(:#{name})
+            deprecated_associations_api_guard(association, :#{name})
+            association.reader
+          end
+        RUBY
+      end
 
-    def self.define_writers(mixin, name)
-      mixin.class_eval <<-CODE, __FILE__, __LINE__ + 1
-        def #{name}=(value)
-          association = association(:#{name})
-          deprecated_associations_api_guard(association, __method__)
-          association.writer(value)
-        end
-      CODE
+      mixin.define_cached_method(:"#{name}=", namespace: :association_writer) do |batch|
+        batch << <<~RUBY
+          def #{name}=(value)
+            association = association(:#{name})
+            deprecated_associations_api_guard(association, :#{name}=)
+            association.writer(value)
+          end
+        RUBY
+      end
     end
 
     def self.define_validations(model, reflection)
       # noop
     end
 
-    def self.define_change_tracking_methods(model, reflection)
+    def self.define_change_tracking_methods(model, reflection, mixin)
       # noop
     end
 
@@ -176,7 +182,7 @@ module ActiveRecord::Associations::Builder # :nodoc:
     end
 
     private_class_method :build_scope, :macro, :valid_options, :validate_options, :define_extensions,
-      :define_callbacks, :define_accessors, :define_readers, :define_writers, :define_validations,
+      :define_callbacks, :define_accessors, :define_validations,
       :define_change_tracking_methods, :valid_dependent_options, :check_dependent_options,
       :add_destroy_callbacks, :add_after_commit_jobs_callback
   end

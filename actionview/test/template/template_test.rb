@@ -82,9 +82,37 @@ class TestERBTemplate < ActiveSupport::TestCase
     super
   end
 
+  def test_render_instruments_render_template_when_subscribed
+    @template = new_template
+    events = []
+    callback = ->(name, _start, _finish, _id, payload) { events << [name, payload] }
+
+    ActiveSupport::Notifications.subscribed(callback, "!render_template.action_view") do
+      assert_equal "Hello", render
+    end
+
+    assert_equal [["!render_template.action_view", { virtual_path: "hello", identifier: "hello template" }]], events
+  end
+
   def test_basic_template
     @template = new_template
     assert_equal "Hello", render
+  end
+
+  def test_method_name_predicate_matches_every_method_name
+    identifiers = ["hello template", "/app/views/Foo-Bar/\u00FCber.html.erb", "virtual/template", "1/2.erb"]
+    identifiers << (1..).lazy.map { |i| "template #{i}" }.find { |identifier| identifier.hash.negative? }
+
+    identifiers.each do |identifier|
+      method_name = ActionView::Template.new("", identifier, ERBHandler, format: :html, locals: []).method_name
+      assert ActionView::Template.method_name?(method_name), "expected #{method_name.inspect} to be a template method name"
+    end
+  end
+
+  def test_method_name_predicate_does_not_match_other_methods
+    ["_run_process_action_callbacks", "__send__", "_render_template", "render", "", nil].each do |name|
+      assert_not ActionView::Template.method_name?(name), "expected #{name.inspect} not to be a template method name"
+    end
   end
 
   def test_render_with_a_different_compiled_method_container_raises
@@ -360,6 +388,16 @@ class TestERBTemplate < ActiveSupport::TestCase
     assert_equal "<p>caf\u{E9} \u{FC}</p>", render
   end
 
+  def test_strict_locals_with_non_ascii_default_values_and_ascii_only_body
+    # \xC3\xA9 = U+00E9 (e with acute)
+    source = "<%# locals: (label: \"caf\xC3\xA9\") -%>\n<p><%= label %></p>"
+    assert_equal Encoding::ASCII_8BIT, source.encoding
+
+    @template = new_template(source)
+    assert_equal Encoding::UTF_8, render.encoding
+    assert_equal "<p>caf\u{E9}</p>", render
+  end
+
   def test_error_when_template_isnt_valid_utf8
     e = assert_raises ActionView::Template::Error do
       @template = new_template("hello \xFCmlat", virtual_path: nil)
@@ -495,5 +533,70 @@ class TestERBTemplate < ActiveSupport::TestCase
     expected = spot_highlight(source, highlight, snippet: compiled)
 
     assert_equal expected, new_template(source).translate_location(nil, spot)
+  end
+
+  def test_html_templates_use_erb_implementation_by_default
+    @template = new_template("<p><%= hello %>", format: :html)
+
+    assert_equal "<p>Hello", render
+  end
+
+  def test_herb_compiles_html_templates
+    previous = ActionView::Template::Handlers::ERB.erb_implementation
+    ActionView::Base.erb_implementation = :herb
+    @template = new_template("<div><%= hello %>", format: :html)
+
+    exception = assert_raises(ActionView::SyntaxErrorInTemplate) { render }
+
+    assert_includes exception.cause.message, "Opening tag `<div>` at (1:1) doesn't have a matching closing tag"
+  ensure
+    ActionView::Base.erb_implementation = previous
+  end
+
+  def test_herb_syntax_error_is_located_in_the_template
+    previous = ActionView::Template::Handlers::ERB.erb_implementation
+    ActionView::Base.erb_implementation = :herb
+    @template = new_template("<p>one</p>\n<% end %>\n<p>three</p>\n", format: :html)
+
+    exception = assert_raises(ActionView::SyntaxErrorInTemplate) { render }
+    location = exception.backtrace_locations.first
+
+    assert_equal "2", exception.line_number
+    assert_equal "hello template", location.path
+    assert_equal 2, location.lineno
+  ensure
+    ActionView::Base.erb_implementation = previous
+  end
+
+  def test_herb_compiles_other_formats_through_erubi
+    previous = ActionView::Template::Handlers::ERB.erb_implementation
+    ActionView::Base.erb_implementation = :herb
+    @template = new_template("<div><%= hello %>", format: :text)
+
+    assert_equal "<div>Hello", render
+  ensure
+    ActionView::Base.erb_implementation = previous
+  end
+
+  def test_erb_implementation_accepts_symbols
+    previous = ActionView::Template::Handlers::ERB.erb_implementation
+
+    ActionView::Base.erb_implementation = :herb
+
+    assert_equal ActionView::Template::Handlers::ERB::Herb, ActionView::Template::Handlers::ERB.erb_implementation
+
+    ActionView::Base.erb_implementation = :erubi
+
+    assert_equal ActionView::Template::Handlers::ERB::Erubi, ActionView::Template::Handlers::ERB.erb_implementation
+  ensure
+    ActionView::Base.erb_implementation = previous
+  end
+
+  def test_erb_implementation_rejects_unknown_symbols
+    error = assert_raises(ArgumentError) do
+      ActionView::Base.erb_implementation = :haml
+    end
+
+    assert_includes error.message, ":haml"
   end
 end

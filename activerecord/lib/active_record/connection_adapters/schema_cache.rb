@@ -223,7 +223,8 @@ module ActiveRecord
       end
     end
 
-    # = Active Record Connection Adapters Schema Cache
+    # Active Record Connection Adapters Schema Cache
+    # ==============================================
     class SchemaCache
       def self._load_from(filename) # :nodoc:
         return unless File.file?(filename)
@@ -299,7 +300,7 @@ module ActiveRecord
       def init_from_schema_json(coder, references)
         @columns          = coder["columns"].transform_values { |columns| columns.map { |i| references[i] } }
         @columns_hash     = @columns.transform_values { |columns| columns.index_by(&:name) }
-        @primary_keys     = coder["primary_keys"]
+        @primary_keys     = coder["primary_keys"].dup
         @data_sources     = coder["data_sources"].index_with { true }
         @indexes          = (coder["indexes"] || {}).transform_values { |indexes| indexes.map { |i| references[i] } }
         @version          = coder["version"]
@@ -336,7 +337,7 @@ module ActiveRecord
         end
       end
 
-      # Add internal cache for table with +table_name+.
+      # Add internal cache for table with `table_name`.
       def add(pool, table_name)
         pool.with_connection do
           if data_source_exists?(pool, table_name)
@@ -398,7 +399,7 @@ module ActiveRecord
         [@columns, @columns_hash, @primary_keys, @data_sources].sum(&:size)
       end
 
-      # Clear out internal caches for the data source +name+.
+      # Clear out internal caches for the data source `name`.
       def clear_data_source_cache!(_connection, name)
         @columns.delete name
         @columns_hash.delete name

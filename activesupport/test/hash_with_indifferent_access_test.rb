@@ -205,6 +205,28 @@ class HashWithIndifferentAccessTest < ActiveSupport::TestCase
     assert_equal "bar", hash.fetch(:bar) { |key| key }
   end
 
+  def test_indifferent_fetch_with_falsy_defaults
+    hash = HashWithIndifferentAccess.new(foo: 1)
+
+    assert_nil hash.fetch(:bar, nil)
+    assert_equal false, hash.fetch(:bar, false)
+    assert_equal 1, hash.fetch(:foo, nil)
+  end
+
+  def test_indifferent_fetch_missing_key_raises_key_error
+    hash = HashWithIndifferentAccess.new(foo: 1)
+
+    error = assert_raise(KeyError) { hash.fetch(:bar) }
+    assert_equal "bar", error.key
+    assert_same hash, error.receiver
+  end
+
+  def test_indifferent_fetch_does_not_call_block_for_present_key
+    hash = HashWithIndifferentAccess.new(foo: 1)
+
+    assert_equal 1, hash.fetch(:foo) { flunk "block called for present key" }
+  end
+
   def test_indifferent_values_at_with_missing_key
     hash = HashWithIndifferentAccess.new
     hash[:a] = "x"

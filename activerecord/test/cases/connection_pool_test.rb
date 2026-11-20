@@ -50,6 +50,18 @@ module ActiveRecord
         @pools&.each(&:disconnect!)
       end
 
+      def test_disconnect_terminates_existing_leases
+        lease = @pool.send(:connection_lease)
+        assert_not_predicate lease, :terminated?
+
+        @pool.disconnect
+
+        assert_predicate lease, :terminated?
+        replacement = @pool.send(:connection_lease)
+        assert_not_same lease, replacement
+        assert_not_predicate replacement, :terminated?
+      end
+
       def test_checkout_after_close
         connection = pool.lease_connection
         assert_predicate connection, :in_use?
@@ -201,6 +213,66 @@ module ActiveRecord
         assert_equal 1, active_connections(@pool).size
       ensure
         @pool.connections.each { |conn| conn.close if conn.in_use? }
+      end
+
+      def test_reap_removes_connection_when_reset_fails
+        ready = Concurrent::CountDownLatch.new
+        child = new_thread do
+          2.times { @pool.checkout.connect! }
+          ready.count_down
+          stop_thread
+        end
+        pass_to(child) until ready.wait(0)
+
+        child.terminate
+        child.join
+
+        failing, other = active_connections(@pool)
+        failing.define_singleton_method(:reset!) { raise ActiveRecord::StatementInvalid, "reset failed" }
+
+        assert_error_reported(ActiveRecord::StatementInvalid) do
+          @pool.reap
+        end
+
+        assert_not_includes @pool.connections, failing
+        assert_not_predicate failing, :active?
+        assert_includes @pool.connections, other
+        assert_empty active_connections(@pool)
+      end
+
+      def test_reap_continues_when_disconnecting_a_connection_whose_reset_failed_raises
+        ready = Concurrent::CountDownLatch.new
+        child = new_thread do
+          2.times { @pool.checkout.connect! }
+          ready.count_down
+          stop_thread
+        end
+        pass_to(child) until ready.wait(0)
+
+        child.terminate
+        child.join
+
+        failing, other = active_connections(@pool)
+        failing.define_singleton_method(:reset!) { raise ActiveRecord::StatementInvalid, "reset failed" }
+        failing.define_singleton_method(:disconnect!) { raise ActiveRecord::ConnectionNotEstablished, "disconnect failed" }
+
+        assert_error_reported(ActiveRecord::ConnectionNotEstablished) do
+          @pool.reap
+        end
+
+        assert_not_includes @pool.connections, failing
+        assert_includes @pool.connections, other
+        assert_empty active_connections(@pool)
+      end
+
+      def test_bulk_connection_creation_reports_connection_errors
+        @pool.define_singleton_method(:try_to_checkout_new_connection) do
+          raise ActiveRecord::ConnectionNotEstablished, "replacement failed"
+        end
+
+        assert_error_reported(ActiveRecord::ConnectionNotEstablished) do
+          @pool.send(:bulk_make_new_connections, 1)
+        end
       end
 
       def test_inactive_are_returned_from_dead_thread
@@ -1052,7 +1124,7 @@ module ActiveRecord
 
       def test_connection_pool_stat
         Thread.report_on_exception, original_report_on_exception = false, Thread.report_on_exception
-        with_single_connection_pool do |pool|
+        with_single_connection_pool(reaping_frequency: nil) do |pool|
           pool.with_connection do |connection|
             stats = pool.stat
             assert_equal({ size: 1, connections: 1, busy: 1, dead: 0, idle: 0, waiting: 0, checkout_timeout: 0.2 }, stats)
@@ -1142,9 +1214,12 @@ module ActiveRecord
 
         assert_not_predicate @pool, :connected?
         @pool.pin_connection!(true)
-        assert_predicate @pool, :connected?
+        # Pinning only fixes the connection identity; nothing connects until
+        # the pinned connection is actually checked out and verified.
+        assert_not_predicate @pool, :connected?
 
         pin_connection = @pool.checkout
+        assert_predicate @pool, :connected?
 
         @pool.disconnect
         assert_not_predicate @pool, :connected?
@@ -1163,37 +1238,23 @@ module ActiveRecord
         assert_equal ActiveSupport::Concurrency::NullLock, @pool.lease_connection.lock
       end
 
-      def test_pin_connection_opens_a_transaction
-        assert_instance_of NullTransaction, @pool.lease_connection.current_transaction
+      def test_pin_connection_does_not_open_a_transaction
         @pool.pin_connection!(true)
-        assert_instance_of RealTransaction, @pool.lease_connection.current_transaction
+        assert_instance_of NullTransaction, @pool.lease_connection.current_transaction
         @pool.unpin_connection!
-        assert_instance_of NullTransaction, @pool.lease_connection.current_transaction
-      end
-
-      def test_unpin_connection_returns_whether_transaction_has_been_rolledback
-        @pool.pin_connection!(true)
-        assert_equal true, @pool.unpin_connection!
-
-        @pool.pin_connection!(true)
-        @pool.lease_connection.commit_transaction
-        assert_equal false, @pool.unpin_connection!
-
-        @pool.pin_connection!(true)
-        @pool.lease_connection.rollback_transaction
-        assert_equal false, @pool.unpin_connection!
       end
 
       def test_pin_connection_nesting
-        assert_instance_of NullTransaction, @pool.lease_connection.current_transaction
         @pool.pin_connection!(true)
-        assert_instance_of RealTransaction, @pool.lease_connection.current_transaction
+        pinned_connection = @pool.checkout
         @pool.pin_connection!(true)
-        assert_instance_of SavepointTransaction, @pool.lease_connection.current_transaction
+        assert_same pinned_connection, @pool.checkout
+
         @pool.unpin_connection!
-        assert_instance_of RealTransaction, @pool.lease_connection.current_transaction
+        # The outer pin still holds the connection.
+        assert_same pinned_connection, @pool.checkout
+
         @pool.unpin_connection!
-        assert_instance_of NullTransaction, @pool.lease_connection.current_transaction
 
         assert_raises(RuntimeError, match: /There isn't a pinned connection/) do
           @pool.unpin_connection!
@@ -1232,6 +1293,46 @@ module ActiveRecord
 
         @pool.unpin_connection!
         assert_equal ActiveSupport::Concurrency::NullLock, @pool.lease_connection.lock
+      end
+
+      def test_pin_connection_nesting_keeps_lock
+        assert_equal ActiveSupport::Concurrency::NullLock, @pool.lease_connection.lock
+
+        @pool.pin_connection!(true)
+        actual_lock = @pool.lease_connection.lock
+        assert_not_equal ActiveSupport::Concurrency::NullLock, actual_lock
+
+        @pool.pin_connection!(true)
+        assert_same actual_lock, @pool.lease_connection.lock
+
+        @pool.unpin_connection!
+        assert_same actual_lock, @pool.lease_connection.lock
+
+        @pool.unpin_connection!
+        assert_equal ActiveSupport::Concurrency::NullLock, @pool.lease_connection.lock
+      end
+
+      def test_pin_connection_installs_the_lock_before_another_thread_can_check_the_connection_out
+        connection = @pool.lease_connection
+        pool = @pool
+        checked_out = nil
+
+        # Another thread checks out a connection while the pin is installing
+        # the lock, as a background thread may during a test's setup.
+        connection.singleton_class.prepend(Module.new do
+          define_method(:lock_thread=) do |context|
+            if context && checked_out.nil?
+              Thread.new { pool.with_connection { |conn| checked_out = conn } }.join
+            end
+            super(context)
+          end
+        end)
+
+        @pool.pin_connection!(true)
+
+        assert_not_same connection, checked_out
+      ensure
+        @pool.unpin_connection!
       end
 
       def test_inspect_does_not_show_secrets
@@ -1375,6 +1476,41 @@ module ActiveRecord
         ActiveSupport::IsolatedExecutionState.isolation_level = @previous_isolation_level
       end
 
+      def test_reap_continues_when_creating_a_replacement_connection_fails
+        ready = Concurrent::CountDownLatch.new
+        @pool.instance_variable_set(:@max_connections, 2)
+        child = new_thread do
+          2.times { @pool.checkout.connect! }
+          ready.count_down
+          stop_thread
+        end
+        pass_to(child) until ready.wait(0)
+
+        waiter = new_thread { @pool.with_connection { } }
+        pass_to(waiter) until @pool.num_waiting_in_queue == 1
+
+        child.terminate
+        child.join
+        failing, other = active_connections(@pool)
+        failing.define_singleton_method(:reset!) { raise ActiveRecord::StatementInvalid, "reset failed" }
+        @pool.define_singleton_method(:try_to_checkout_new_connection) do
+          raise ActiveRecord::ConnectionNotEstablished, "replacement failed"
+        end
+
+        assert_error_reported(ActiveRecord::ConnectionNotEstablished) do
+          @pool.reap
+        end
+
+        assert waiter.join(2), "waiter was stranded after replacement failed"
+        assert_not_includes @pool.connections, failing
+        assert_not_predicate failing, :active?
+        assert_includes @pool.connections, other
+        assert_empty active_connections(@pool)
+      ensure
+        waiter&.kill
+        child&.kill
+      end
+
       def test_lock_thread_allow_fiber_reentrency
         connection = @pool.checkout
         connection.lock_thread = ActiveSupport::IsolatedExecutionState.context
@@ -1464,6 +1600,55 @@ module ActiveRecord
         end
       end
 
+      def test_connection_leased_while_waiting_for_disconnect_can_be_released
+        with_single_connection_pool(checkout_timeout: 1.0) do |pool|
+          pool.lease_connection # drain the only available connection
+          released = nil
+
+          waiting_thread = new_thread do
+            pool.lease_connection
+            released = pool.release_connection
+          end
+
+          # wait for waiting_thread to get in queue
+          pass_to(waiting_thread) until pool.num_waiting_in_queue == 1
+
+          pool.disconnect
+
+          assert waiting_thread.join(2), "waiting_thread got stuck"
+          assert released
+          assert_empty active_connections(pool)
+        ensure
+          waiting_thread&.kill
+        end
+      end
+
+      def test_with_connection_waiting_for_disconnect_keeps_its_connection
+        with_single_connection_pool(checkout_timeout: 1.0) do |pool|
+          pool.lease_connection # drain the only available connection
+          active = nested = nil
+
+          waiting_thread = new_thread do
+            pool.with_connection do |connection|
+              active = pool.active_connection?.equal?(connection)
+              pool.with_connection { |nested_connection| nested = nested_connection.equal?(connection) }
+            end
+          end
+
+          # wait for waiting_thread to get in queue
+          pass_to(waiting_thread) until pool.num_waiting_in_queue == 1
+
+          pool.disconnect
+
+          assert waiting_thread.join(2), "waiting_thread got stuck"
+          assert active, "the connection yielded by with_connection is not the active connection"
+          assert nested, "a nested with_connection did not reuse the connection"
+          assert_empty active_connections(pool)
+        ensure
+          waiting_thread&.kill
+        end
+      end
+
       def test_full_pool_blocks
         cs = @pool.size.times.map { @pool.checkout }
         t = new_thread { @pool.checkout }
@@ -1474,6 +1659,39 @@ module ActiveRecord
         connection = cs.first
         connection.close
         assert_equal connection, t.join.value
+      end
+
+      def test_checkout_wait_is_instrumented_when_the_pool_is_full
+        events = []
+        subscriber = ActiveSupport::Notifications.subscribe("checkout_wait.active_record") { |event| events << event }
+
+        cs = @pool.size.times.map { @pool.checkout }
+        assert_empty events
+
+        t = new_thread { @pool.checkout }
+        pass_to(t) until @pool.num_waiting_in_queue == 1
+        cs.first.close
+        t.join
+
+        assert_equal 1, events.size
+        assert_same @pool, events.first.payload[:connection_pool]
+        assert_equal @pool.checkout_timeout, events.first.payload[:checkout_timeout]
+      ensure
+        ActiveSupport::Notifications.unsubscribe(subscriber)
+      end
+
+      def test_checkout_wait_is_instrumented_when_the_checkout_times_out
+        events = []
+        subscriber = ActiveSupport::Notifications.subscribe("checkout_wait.active_record") { |event| events << event }
+
+        @pool.checkout_timeout = 0.001
+        @pool.size.times { @pool.checkout }
+        assert_raises(ConnectionTimeoutError) { @pool.checkout }
+
+        assert_equal 1, events.size
+        assert_equal ConnectionTimeoutError.name, events.first.payload[:exception].first
+      ensure
+        ActiveSupport::Notifications.unsubscribe(subscriber)
       end
 
       def test_full_pool_blocking_shares_load_interlock
@@ -1572,7 +1790,7 @@ module ActiveRecord
         end
 
         # this should wake up the waiting threads one by one in order
-        conns.each { |conn| @pool.checkin(conn); sleep 0.01 }
+        conns.each { |conn| @pool.checkin(conn); sleep 0.1 }
 
         dispose_held_connections.set
         threads.each(&:join)

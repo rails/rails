@@ -3,22 +3,7 @@
 require "cases/helper"
 require "models/default"
 require "support/schema_dumping_helper"
-require "active_support/core_ext/object/with"
-
-module PGSchemaHelper
-  def with_schema_search_path(schema_search_path)
-    @connection.schema_search_path = schema_search_path
-    @connection.schema_cache.clear!
-    yield if block_given?
-  ensure
-    @connection.schema_search_path = "'$user', public"
-    @connection.schema_cache.clear!
-  end
-
-  def with_dump_schemas(value, &block)
-    ActiveRecord.with(dump_schemas: value, &block)
-  end
-end
+require "support/pg_schema_helper"
 
 class SchemaTest < ActiveRecord::PostgreSQLTestCase
   include PGSchemaHelper
@@ -72,6 +57,14 @@ class SchemaTest < ActiveRecord::PostgreSQLTestCase
 
   class Thing5 < ActiveRecord::Base
     self.table_name = "things"
+  end
+
+  class SchemaMigration1 < ActiveRecord::Base
+    self.table_name = "test_schema.schema_migrations"
+  end
+
+  class SchemaMigration2 < ActiveRecord::Base
+    self.table_name = "test_schema2.schema_migrations"
   end
 
   class Song < ActiveRecord::Base
@@ -269,6 +262,35 @@ class SchemaTest < ActiveRecord::PostgreSQLTestCase
     with_schema_search_path("PUBLIC") do
       assert_not(@connection.data_source_exists?(TABLE_NAME), "data_source exists but should not be found")
     end
+  end
+
+  def test_empty_all_tables_empties_a_table_shadowed_by_a_same_named_one_on_the_search_path
+    Thing1.create!(id: 1)
+    Thing2.create!(id: 1)
+
+    with_schema_search_path("#{SCHEMA_NAME}, #{SCHEMA2_NAME}") do
+      @connection.empty_all_tables
+    end
+
+    assert_equal 0, Thing1.count
+    assert_equal 0, Thing2.count
+  end
+
+  def test_empty_all_tables_keeps_internal_tables_in_every_schema_on_the_search_path
+    [SCHEMA_NAME, SCHEMA2_NAME].each do |schema|
+      @connection.create_table "#{schema}.#{@connection.pool.schema_migration.table_name}", id: false do |t|
+        t.string :version
+      end
+    end
+    SchemaMigration1.create!(version: "1")
+    SchemaMigration2.create!(version: "1")
+
+    with_schema_search_path("#{SCHEMA_NAME}, #{SCHEMA2_NAME}") do
+      @connection.empty_all_tables
+    end
+
+    assert_equal 1, SchemaMigration1.count
+    assert_equal 1, SchemaMigration2.count
   end
 
   def test_data_source_exists_wrong_schema
@@ -634,6 +656,18 @@ class SchemaTest < ActiveRecord::PostgreSQLTestCase
     @connection.execute('DROP SCHEMA IF EXISTS "Test_CamelSchema" CASCADE')
   end
 
+  def test_reset_pk_sequence_with_a_schema_qualified_name_on_the_search_path
+    @connection.create_table("public.widgets_on_search_path")
+    widget = Class.new(ActiveRecord::Base) { self.table_name = "public.widgets_on_search_path" }
+    widget.create!(id: 100)
+
+    @connection.reset_pk_sequence!(widget.table_name)
+
+    assert_equal 101, widget.create!.id
+  ensure
+    @connection.drop_table("public.widgets_on_search_path", if_exists: true)
+  end
+
   def test_set_pk_sequence
     table_name = "#{SCHEMA_NAME}.#{PK_TABLE_NAME}"
     _, sequence_name = @connection.pk_and_sequence_for table_name
@@ -827,6 +861,77 @@ class SchemaIndexOpclassTest < ActiveRecord::PostgreSQLTestCase
   ensure
     @connection.drop_schema("test_schema")
   end
+end
+
+class SchemaIndexDefinitionRoundTripTest < ActiveRecord::PostgreSQLTestCase
+  include SchemaDumpingHelper
+
+  setup do
+    @connection = ActiveRecord::Base.lease_connection
+    @connection.create_table "trains" do |t|
+      t.string :name
+      t.string :position
+      t.integer "a,b"
+    end
+  end
+
+  teardown do
+    @connection.drop_table "trains", if_exists: true
+  end
+
+  def test_expression_containing_a_where_clause_is_dumped
+    assert_index_round_trip "CREATE INDEX trains_index ON trains (coalesce(name, ') WHERE ('))"
+
+    index = @connection.indexes("trains").first
+    assert_equal "COALESCE(name, ') WHERE ('::character varying)", index.columns
+    assert_nil index.where
+  end
+
+  def test_expression_containing_an_include_clause_is_dumped
+    assert_index_round_trip "CREATE INDEX trains_index ON trains (coalesce(name, ') INCLUDE (x'))"
+  end
+
+  def test_collation_is_dumped
+    assert_index_round_trip 'CREATE INDEX trains_index ON trains (name COLLATE "C" DESC)'
+  end
+
+  def test_included_columns_are_read_from_the_catalog
+    skip unless @connection.supports_index_include?
+
+    assert_index_round_trip 'CREATE INDEX trains_index ON trains (name) INCLUDE (name, "a,b")'
+  end
+
+  def test_storage_parameters_do_not_break_the_index_definition
+    skip unless @connection.supports_index_include?
+
+    @connection.execute "CREATE INDEX trains_include ON trains (name DESC) INCLUDE (position) WITH (fillfactor = 70)"
+    @connection.execute "CREATE INDEX trains_expression ON trains (lower(name)) WITH (fillfactor = 70) WHERE position IS NOT NULL"
+
+    indexes = @connection.indexes("trains").index_by(&:name)
+    include_index, expression_index = indexes.values_at("trains_include", "trains_expression")
+    assert_equal ["name"], include_index.columns
+    assert_equal :desc, include_index.orders
+    assert_equal ["position"], include_index.include
+    assert_equal "lower((name)::text)", expression_index.columns
+    assert_equal '("position" IS NOT NULL)', expression_index.where
+  end
+
+  private
+    def assert_index_round_trip(sql)
+      @connection.execute sql
+      definition = index_definition("trains_index")
+
+      line = dump_table_schema("trains")[/^\s*t\.index (.*)$/, 1]
+      @connection.remove_index "trains", name: "trains_index"
+      @connection.instance_eval("add_index 'trains', #{line}", __FILE__, __LINE__)
+
+      assert_equal definition, index_definition("trains_index")
+      line
+    end
+
+    def index_definition(name)
+      @connection.select_value("SELECT pg_get_indexdef(#{@connection.quote(name)}::regclass)")
+    end
 end
 
 class SchemaIndexNullsOrderTest < ActiveRecord::PostgreSQLTestCase
@@ -1041,8 +1146,6 @@ class SchemaCreateTableOptionsTest < ActiveRecord::PostgreSQLTestCase
   end
 
   def test_list_partition_options_is_dumped
-    skip("current adapter doesn't support native partitioning") unless supports_native_partitioning?
-
     options = "PARTITION BY LIST (kind)"
 
     @connection.create_table "trains", id: false, options: options do |t|
@@ -1056,8 +1159,6 @@ class SchemaCreateTableOptionsTest < ActiveRecord::PostgreSQLTestCase
   end
 
   def test_range_partition_options_is_dumped
-    skip("current adapter doesn't support native partitioning") unless supports_native_partitioning?
-
     options = "PARTITION BY RANGE (created_at)"
 
     @connection.create_table "trains", id: false, options: options do |t|
@@ -1180,11 +1281,14 @@ class DumpSchemasTest < ActiveRecord::PostgreSQLTestCase
       assert_includes output, 'create_schema "test_schema"'
       assert_not_includes output, 'create_schema "public"'
       assert_includes output, 'create_enum "test_schema.test_enum_in_test_schema"'
-      assert_includes output, 'create_enum "public.test_enum_in_public"'
+      assert_includes output, 'create_enum "test_enum_in_public"'
+      assert_not_includes output, 'create_enum "public.test_enum_in_public"'
       assert_includes output, 'create_table "test_schema.test_table"'
-      assert_includes output, 'create_table "public.authors"'
+      assert_includes output, 'create_table "authors"'
+      assert_not_includes output, 'create_table "public.authors"'
       assert_includes output, 'add_foreign_key "test_schema.test_table2", "test_schema.test_table"'
-      assert_includes output, 'add_foreign_key "public.authors", "public.author_addresses"'
+      assert_includes output, 'add_foreign_key "authors", "author_addresses"'
+      assert_not_includes output, 'add_foreign_key "public.authors", "public.author_addresses"'
     end
   end
 
@@ -1212,11 +1316,14 @@ class DumpSchemasTest < ActiveRecord::PostgreSQLTestCase
         assert_includes output, 'create_schema "test_schema2"'
         assert_not_includes output, 'create_schema "public"'
         assert_includes output, 'create_enum "test_schema.test_enum_in_test_schema"'
-        assert_not_includes output, 'create_enum "public.test_enum_in_public"'
+        assert_not_includes output, "test_enum_in_public"
         assert_includes output, 'create_table "test_schema.test_table"'
-        assert_not_includes output, 'create_table "public.authors"'
+        assert_includes output, 'create_table "referenced_table"'
+        assert_not_includes output, 'create_table "test_schema2.referenced_table"'
+        assert_not_includes output, 'create_table "authors"'
         assert_includes output, 'add_foreign_key "test_schema.test_table2", "test_schema.test_table"'
-        assert_not_includes output, 'add_foreign_key "public.authors", "public.author_addresses"'
+        assert_includes output, 'add_foreign_key "test_schema.cross_schema_fk_table", "test_schema2.referenced_table"'
+        assert_not_includes output, "author_addresses"
       end
     end
   end

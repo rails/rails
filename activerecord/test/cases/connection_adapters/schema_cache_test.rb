@@ -144,6 +144,38 @@ module ActiveRecord
         assert_equal 3, @cache.columns_hash("courses").size
       end
 
+      def test_connection_columns_record_their_slot_in_the_table
+        columns = @connection.columns("courses")
+        assert_equal (0...columns.size).to_a, columns.map(&:slot)
+      end
+
+      def test_columns_record_their_slot_in_the_table
+        columns = @cache.columns("courses")
+        assert_equal (0...columns.size).to_a, columns.map(&:slot)
+        assert_equal columns.map(&:slot), @cache.columns_hash("courses").values.map(&:slot)
+      end
+
+      def test_add_all_records_column_slots
+        cache = add_all_to_new_cache
+        columns = cache.columns(@pool, "courses")
+        assert_equal (0...columns.size).to_a, columns.map(&:slot)
+      end
+
+      def test_column_slots_survive_dump_and_load
+        cache = add_all_to_new_cache
+
+        ["yml", "dump", "json"].each do |ext|
+          tempfile = Tempfile.new(["schema_cache-", ".#{ext}"])
+          cache.dump_to(tempfile.path)
+
+          loaded = load_bound_reflection(tempfile.path)
+          columns = loaded.columns("courses")
+          assert_equal (0...columns.size).to_a, columns.map(&:slot), "column slots lost for .#{ext}"
+        ensure
+          tempfile&.unlink
+        end
+      end
+
       def test_columns_hash_for_non_existent_table
         assert_raises ActiveRecord::StatementInvalid do
           @cache.columns_hash("omgponies")
@@ -163,7 +195,7 @@ module ActiveRecord
       end
 
       def test_add_all_caches_a_composite_primary_key
-        @connection.create_table(:schema_cache_composite_pks, primary_key: [:one, :two], force: true) do |t|
+        main_ractor_connection(@connection).create_table(:schema_cache_composite_pks, primary_key: [:one, :two], force: true) do |t|
           t.integer :one
           t.integer :two
         end
@@ -329,7 +361,9 @@ module ActiveRecord
             assert_not_nil ActiveRecord::Base.connection_pool.schema_reflection.instance_variable_get(:@cache)
 
             # assert cache is still empty on new connection (precondition for the
-            # following to show it is loading because of the config change)
+            # following to show it is loading because of the config change).
+            # Establishing with an equal config reuses the pool, so drop it first.
+            ActiveRecord::Base.remove_connection
             ActiveRecord::Base.establish_connection(new_config)
 
             assert File.exist?(tempfile)
@@ -337,6 +371,7 @@ module ActiveRecord
 
             # cache is loaded upon connection when lazily loading is on
             ActiveRecord.with(lazily_load_schema_cache: true) do
+              ActiveRecord::Base.remove_connection
               ActiveRecord::Base.establish_connection(new_config)
               ActiveRecord::Base.connection_pool.lease_connection.verify!
 

@@ -318,6 +318,19 @@ class AppGeneratorTest < Rails::Generators::TestCase
     end
   end
 
+  def test_app_update_preserves_skip_kamal
+    run_generator [ destination_root, "--skip-kamal" ]
+
+    FileUtils.cd(destination_root) do
+      run_app_update
+
+      assert_file "config/environments/production.rb" do |content|
+        assert_match(/^  config\.assume_ssl = true$/, content)
+        assert_match(/^  config\.force_ssl = true$/, content)
+      end
+    end
+  end
+
   def test_app_update_preserves_skip_thruster
     run_generator [ destination_root, "--skip-thruster" ]
 
@@ -577,6 +590,13 @@ class AppGeneratorTest < Rails::Generators::TestCase
       assert_match(/#\s+require\s+["']active_storage\/engine["']/, content)
       assert_match(/#\s+require\s+["']action_mailer\/railtie["']/, content)
     end
+  end
+
+  def test_system_test_gems_are_not_required_on_boot
+    run_generator
+
+    assert_gem "capybara", /require: false/
+    assert_gem "selenium-webdriver", /require: false/
   end
 
   def test_generator_if_skip_system_test_is_given

@@ -6,7 +6,7 @@ require "active_support/core_ext/hash"
 module ActiveJob
   # Raised when an exception is raised during job arguments deserialization.
   #
-  # Wraps the original exception raised as +cause+.
+  # Wraps the original exception raised as `cause`.
   class DeserializationError < StandardError
     def initialize # :nodoc:
       super("Error while trying to deserialize arguments: #{$!.message}")
@@ -20,9 +20,11 @@ module ActiveJob
     # Jobs whose arguments may legitimately reference deleted records can
     # discard this error:
     #
-    #   class SearchIndexingJob < ApplicationJob
-    #     discard_on ActiveJob::DeserializationError::RecordNotFound
-    #   end
+    # ```
+    # class SearchIndexingJob < ApplicationJob
+    #   discard_on ActiveJob::DeserializationError::RecordNotFound
+    # end
+    # ```
     #
     # Unlike its parent class, it isn't raised for other errors that may occur
     # while deserializing arguments, such as transient database connectivity
@@ -36,7 +38,7 @@ module ActiveJob
   # currently support String, Integer, Float, NilClass, TrueClass, FalseClass,
   # BigDecimal, Symbol, Date, Time, DateTime, ActiveSupport::TimeWithZone,
   # ActiveSupport::Duration, Hash, ActiveSupport::HashWithIndifferentAccess,
-  # Array, Range, or GlobalID::Identification instances, although this can be
+  # Array, Range, Module, Class, or GlobalID::Identification instances, although this can be
   # extended by adding custom serializers.
   # Raised if you set the key for a Hash something else than a string or
   # a symbol. Also raised when trying to serialize an object which can't be
@@ -122,7 +124,7 @@ module ActiveJob
         RUBY2_KEYWORDS_KEY, RUBY2_KEYWORDS_KEY.to_sym,
         Serializers::OBJECT_SERIALIZER_KEY, Serializers::OBJECT_SERIALIZER_KEY.to_sym,
         WITH_INDIFFERENT_ACCESS_KEY, WITH_INDIFFERENT_ACCESS_KEY.to_sym,
-      ].to_set
+      ].to_set.freeze
       private_constant :RESERVED_KEYS, :GLOBALID_KEY,
         :SYMBOL_KEYS_KEY, :RUBY2_KEYWORDS_KEY, :WITH_INDIFFERENT_ACCESS_KEY
 
@@ -158,9 +160,11 @@ module ActiveJob
       end
 
       def serialize_hash(argument)
-        argument.each_with_object({}) do |(key, value), hash|
+        hash = {}
+        argument.each do |key, value|
           hash[serialize_hash_key(key)] = serialize_argument(value)
         end
+        hash
       end
 
       def deserialize_hash(serialized_hash)

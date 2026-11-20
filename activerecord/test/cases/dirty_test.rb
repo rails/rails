@@ -968,7 +968,7 @@ class DirtyTest < ActiveRecord::TestCase
     end
   end
 
-  if current_adapter?(:PostgreSQLAdapter) && supports_identity_columns?
+  if current_adapter?(:PostgreSQLAdapter)
     test "partial insert off with changed composite identity primary key attribute" do
       klass = Class.new(ActiveRecord::Base) do
         self.table_name = "cpk_postgresql_identity_table"

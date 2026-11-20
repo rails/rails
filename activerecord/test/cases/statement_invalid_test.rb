@@ -9,7 +9,7 @@ module ActiveRecord
 
     def setup
       super
-      @connection = ActiveRecord::Base.connection_pool.send(:new_connection)
+      @connection = without_ractor_proxy { ActiveRecord::Base.connection_pool }.send(:new_connection)
       @connection.connect!
     end
 

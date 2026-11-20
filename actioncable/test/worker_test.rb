@@ -14,6 +14,11 @@ class WorkerTest < ActionCable::TestCase
       @last_action = [ :process, message ]
     end
 
+    def record(log, entry, delay = 0)
+      sleep delay
+      log << entry
+    end
+
     def connection
       self
     end
@@ -37,6 +42,19 @@ class WorkerTest < ActionCable::TestCase
   test "invoke" do
     @worker.invoke @receiver, :run, connection: @receiver.connection
     assert_equal :run, @receiver.last_action
+  end
+
+  test "work queued behind a serialized job still runs after halt" do
+    serial = Concurrent::SerializedExecutionDelegator.new(@worker.executor)
+    log = Concurrent::Array.new
+
+    @worker.async_invoke @receiver, :record, log, :running, 0.1, executor: serial
+    @worker.async_invoke @receiver, :record, log, :queued, executor: serial
+    @worker.halt
+
+    assert_not @worker.async_invoke(@receiver, :record, log, :posted_after_halt, executor: serial)
+    assert @worker.executor.wait_for_termination(2)
+    assert_equal [ :running, :queued ], log
   end
 
   test "invoke with arguments" do

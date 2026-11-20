@@ -669,4 +669,50 @@ module Notifications
       end
     end
   end
+  class SilencedSubscribersTest < TestCase
+    class SilenceableSubscriber
+      attr_accessor :silenced
+      attr_reader :events
+
+      def initialize
+        @silenced = true
+        @events = []
+      end
+
+      def call(event)
+        @events << event
+      end
+
+      def silenced?(name)
+        @silenced
+      end
+    end
+
+    def test_silenced_subscribers_are_skipped_without_affecting_the_others
+      silenceable = SilenceableSubscriber.new
+      @notifier.subscribe("silence.me", silenceable)
+
+      ActiveSupport::Notifications.instrument("silence.me")
+      assert_empty silenceable.events
+      assert_equal 1, @events.count { |event| event.name == "silence.me" }
+
+      silenceable.silenced = false
+      ActiveSupport::Notifications.instrument("silence.me")
+      assert_equal ["silence.me"], silenceable.events.map(&:name)
+      assert_equal 2, @events.count { |event| event.name == "silence.me" }
+    end
+
+    def test_nobody_is_listening_when_every_subscriber_is_silenced
+      notifier = ActiveSupport::Notifications::Fanout.new
+      silenceable = SilenceableSubscriber.new
+      notifier.subscribe("silence.me", silenceable)
+
+      assert_not notifier.listening?("silence.me")
+      assert_empty notifier.listeners_for("silence.me")
+
+      silenceable.silenced = false
+      assert notifier.listening?("silence.me")
+      assert_equal 1, notifier.listeners_for("silence.me").size
+    end
+  end
 end

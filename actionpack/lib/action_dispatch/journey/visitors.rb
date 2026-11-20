@@ -1,7 +1,5 @@
 # frozen_string_literal: true
 
-# :markup: markdown
-
 module ActionDispatch
   # :stopdoc:
   module Journey
@@ -22,34 +20,47 @@ module ActionDispatch
       end
 
       def initialize(parts)
-        @parts      = parts
-        @children   = []
-        @parameters = []
+        @parts      = join_adjacent_literals(parts)
+        @parameters = @parts.grep(Parameter)
+      end
 
-        parts.each_with_index do |object, i|
-          case object
+      def evaluate(hash)
+        buffer = +""
+        add_to(buffer, hash)
+        buffer
+      end
+
+      # Appends this format's expansion to +buffer+ - or nothing at all when
+      # a parameter is missing, which is how an optional group whose
+      # parameter is absent drops out of the generated path. Building into a
+      # shared buffer avoids the intermediate arrays and strings a
+      # join-based evaluation allocates on every generated URL.
+      protected def add_to(buffer, hash)
+        return if @parameters.any? { |parameter| hash[parameter.name].nil? }
+
+        @parts.each do |part|
+          case part
+          when String
+            buffer << part
           when Journey::Format
-            @children << i
-          when Parameter
-            @parameters << i
+            part.add_to(buffer, hash)
+          else
+            buffer << part.escape(hash[part.name])
           end
         end
       end
 
-      def evaluate(hash)
-        parts = @parts.dup
-
-        @parameters.each do |index|
-          param = parts[index]
-          value = hash[param.name]
-          return "" if value.nil?
-          parts[index] = param.escape value
+      private
+        # Joins adjacent literals, so "/", "posts", "/" is appended as one "/posts/".
+        def join_adjacent_literals(parts)
+          parts.each_with_object([]) do |part, joined|
+            if String === part && String === joined.last
+              joined[-1] = -(joined.last + part)
+            else
+              joined << part
+            end
+          end
         end
-
-        @children.each { |index| parts[index] = parts[index].evaluate(hash) }
-
-        parts.join
-      end
     end
 
     module Visitors # :nodoc:
@@ -148,12 +159,7 @@ module ActionDispatch
         end
 
         def visit_SYMBOL(n)
-          symbol = n.to_sym
-          if symbol == :controller
-            [Journey::Format.required_path(symbol)]
-          else
-            [Journey::Format.required_segment(symbol)]
-          end
+          [Journey::Format.required_segment(n.to_sym)]
         end
       end
 

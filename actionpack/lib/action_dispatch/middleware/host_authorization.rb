@@ -1,7 +1,5 @@
 # frozen_string_literal: true
 
-# :markup: markdown
-
 module ActionDispatch
   # # Action Dispatch HostAuthorization
   #
@@ -11,7 +9,9 @@ module ActionDispatch
   #
   # Requests can opt-out of Host Authorization with `exclude`:
   #
-  #     config.host_authorization = { exclude: ->(request) { request.path =~ /healthcheck/ } }
+  #     config.host_authorization = {
+  #       exclude: ->(request) { request.path.start_with?("/healthcheck") }
+  #     }
   #
   # When a request comes to an unauthorized host, the `response_app` application
   # will be executed and rendered. If no `response_app` is given, a default one
@@ -139,7 +139,7 @@ module ActionDispatch
       request = Request.new(env)
       hosts = blocked_hosts(request)
 
-      if hosts.empty? || excluded?(request)
+      if hosts.nil? || excluded?(request)
         mark_as_authorized(request)
         @app.call(env)
       else
@@ -150,13 +150,13 @@ module ActionDispatch
 
     private
       def blocked_hosts(request)
-        hosts = []
+        hosts = nil
 
         origin_host = request.get_header("HTTP_HOST")
-        hosts << origin_host unless @permissions.allows?(origin_host)
+        (hosts ||= []) << origin_host unless @permissions.allows?(origin_host)
 
         forwarded_host = request.x_forwarded_host&.split(/,\s?/)&.last
-        hosts << forwarded_host unless forwarded_host.blank? || @permissions.allows?(forwarded_host)
+        (hosts ||= []) << forwarded_host unless forwarded_host.blank? || @permissions.allows?(forwarded_host)
 
         hosts
       end

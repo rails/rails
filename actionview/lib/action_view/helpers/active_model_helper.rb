@@ -8,7 +8,8 @@ module ActionView
     module ActiveModelHelper
     end
 
-    # = Active \Model Instance Tag \Helpers
+    # Active \Model Instance Tag \Helpers
+    # ===================================
     module ActiveModelInstanceTag
       def object
         @active_model_object ||= begin

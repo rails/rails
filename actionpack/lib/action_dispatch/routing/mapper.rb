@@ -1,7 +1,5 @@
 # frozen_string_literal: true
 
-# :markup: markdown
-
 require "active_support/core_ext/hash/slice"
 require "active_support/core_ext/enumerable"
 require "active_support/core_ext/array/extract_options"
@@ -143,7 +141,7 @@ module ActionDispatch
 
           options = ast.wildcard_options.merge!(options)
 
-          options = normalize_options!(options, ast.path_params, scope_params[:module])
+          options = normalize_options!(options, ast, scope_params[:module])
 
           split_options = constraints(options, ast.path_params)
 
@@ -167,10 +165,6 @@ module ActionDispatch
           @requirements = formats[:requirements].merge Hash[requirements]
           @conditions = Hash[conditions]
           @defaults = formats[:defaults].merge(@defaults).merge(normalize_defaults(options))
-
-          if ast.path_params.include?(:action) && !@requirements.key?(:action)
-            @defaults[:action] ||= "index"
-          end
 
           @required_defaults = (split_options[:required_defaults] || []).map(&:first)
 
@@ -209,18 +203,22 @@ module ActionDispatch
             object.is_a?(String) ? -object : object
           end
 
-          def normalize_options!(options, path_params, modyoule)
-            if path_params.include?(:controller)
-              raise ArgumentError, ":controller segment is not allowed within a namespace block" if modyoule
+          def normalize_options!(options, ast, modyoule)
+            path_params = ast.path_params
 
-              # Add a default constraint for :controller path segments that matches namespaced
-              # controllers with default routes like :controller/:action/:id(.:format), e.g:
-              # GET /admin/products/show/1
-              # # > { controller: 'admin/products', action: 'show', id: '1' }
-              options[:controller] ||= /.+?/
+            if path_params.include?(:controller)
+              raise ArgumentError, dynamic_segment_error(:controller, ast)
             end
 
-            if to.respond_to?(:action) || to.respond_to?(:call)
+            if path_params.include?(:action)
+              raise ArgumentError, dynamic_segment_error(:action, ast)
+            end
+
+            if to.respond_to?(:action)
+              # A bare controller class, e.g. `to: PhotosController`. The action used to
+              # come from a dynamic :action segment, so it has to be given explicitly now.
+              options.merge!(check_part(:action, default_action, {}) { |part| part.to_s })
+            elsif to.respond_to?(:call)
               options
             else
               if to.nil?
@@ -239,15 +237,22 @@ module ActionDispatch
                 raise ArgumentError, ":to must respond to `action` or `call`, or it must be a String that includes '#', or the controller should be implicit"
               end
 
-              controller = add_controller_module(controller, modyoule)
+              # A Regexp controller is rejected by +check_controller_and_action+; skip
+              # the module prefixing so it gets there with a useful error message.
+              controller = add_controller_module(controller, modyoule) unless Regexp === controller
 
-              options.merge! check_controller_and_action(path_params, controller, action)
+              options.merge! check_controller_and_action(controller, action)
             end
+          end
+
+          def dynamic_segment_error(name, ast)
+            "Using a dynamic :#{name} segment in a route is not supported: #{ast.root}. " \
+              'Specify the controller and action explicitly, e.g. `get "/photos/:id", to: "photos#show"`.'
           end
 
           def split_constraints(path_params, constraints)
             constraints.partition do |key, requirement|
-              path_params.include?(key) || key == :controller
+              path_params.include?(key)
             end
           end
 
@@ -259,9 +264,10 @@ module ActionDispatch
             when Regexp
               { requirements: { format: formatted },
                 defaults:     { format: nil } }
-            when String
-              { requirements: { format: Regexp.compile(formatted) },
-                defaults:     { format: formatted } }
+            when String, Symbol
+              format = formatted.to_s
+              { requirements: { format: Regexp.compile(format) },
+                defaults:     { format: format } }
             else
               { requirements: {}, defaults: {} }
             end
@@ -293,14 +299,14 @@ module ActionDispatch
             elsif to.respond_to?(:call)
               Constraints.new(to, blocks, Constraints::CALL)
             elsif blocks.any?
-              Constraints.new(dispatcher(defaults.key?(:controller)), blocks, Constraints::SERVE)
+              Constraints.new(dispatcher, blocks, Constraints::SERVE)
             else
-              dispatcher(defaults.key?(:controller))
+              dispatcher
             end
           end
 
-          def check_controller_and_action(path_params, controller, action)
-            hash = check_part(:controller, controller, path_params, {}) do |part|
+          def check_controller_and_action(controller, action)
+            hash = check_part(:controller, controller, {}) do |part|
               translate_controller(part) {
                 message = +"'#{part}' is not a supported controller name. This can lead to potential routing problems."
                 message << " See https://guides.rubyonrails.org/routing.html#specifying-a-controller-to-use"
@@ -309,25 +315,23 @@ module ActionDispatch
               }
             end
 
-            check_part(:action, action, path_params, hash) { |part|
-              part.is_a?(Regexp) ? part : part.to_s
-            }
+            check_part(:action, action, hash) { |part| part.to_s }
           end
 
-          def check_part(name, part, path_params, hash)
-            if part
-              hash[name] = yield(part)
-            else
-              unless path_params.include?(name)
-                message = "Missing :#{name} key on routes definition, please check your routes."
-                raise ArgumentError, message
-              end
+          def check_part(name, part, hash)
+            case part
+            when nil
+              raise ArgumentError, "Missing :#{name} key on routes definition, please check your routes."
+            when Regexp
+              raise ArgumentError, "Using a Regexp for :#{name} is not supported, please specify a literal :#{name}."
             end
+
+            hash[name] = yield(part)
             hash
           end
 
           def add_controller_module(controller, modyoule)
-            if modyoule && !controller.is_a?(Regexp)
+            if modyoule
               if controller&.start_with?("/")
                 -controller[1..-1]
               else
@@ -339,7 +343,6 @@ module ActionDispatch
           end
 
           def translate_controller(controller)
-            return controller if Regexp === controller
             return controller.to_s if /\A[a-z_0-9][a-z_0-9\/]*\z/.match?(controller)
 
             yield
@@ -366,8 +369,8 @@ module ActionDispatch
             end
           end
 
-          def dispatcher(raise_on_name_error)
-            Routing::RouteSet::Dispatcher.new raise_on_name_error
+          def dispatcher
+            Routing::RouteSet::Dispatcher.new
           end
 
           def route_source_location
@@ -416,25 +419,25 @@ module ActionDispatch
         #
         # If you want to expose your action to both GET and POST, use:
         #
-        #     # sets :controller, :action, and :id in params
-        #     match ':controller/:action/:id', via: [:get, :post]
+        #     # sets :id in params
+        #     match 'photos/:id', to: 'photos#show', via: [:get, :post]
         #
-        # Note that `:controller`, `:action`, and `:id` are interpreted as URL query
-        # parameters and thus available through `params` in an action.
+        # Note that `:id` is interpreted as a URL query parameter and thus available
+        # through `params` in an action.
         #
         # If you want to expose your action to GET, use `get` in the router:
         #
         # Instead of:
         #
-        #     match ":controller/:action/:id"
+        #     match "photos/:id", to: "photos#show"
         #
         # Do:
         #
-        #     get ":controller/:action/:id"
+        #     get "photos/:id", to: "photos#show"
         #
-        # Two of these symbols are special, `:controller` maps to the controller and
-        # `:action` to the controller's action. A pattern can also map wildcard segments
-        # (globs) to params:
+        # `:controller` and `:action` may not be used as dynamic segments — the
+        # controller and the action a route dispatches to are fixed when the route is
+        # drawn. A pattern can also map wildcard segments (globs) to params:
         #
         #     get 'songs/*category/:title', to: 'songs#show'
         #
@@ -473,45 +476,8 @@ module ActionDispatch
         # :action
         # :   The route's action.
         #
-        # :param
-        # :   Overrides the default resource identifier `:id` (name of the dynamic
-        #     segment used to generate the routes). You can access that segment from
-        #     your controller using `params[<:param>]`. In your router:
-        #
-        #         resources :users, param: :name
-        #
-        #     The `users` resource here will have the following routes generated for it:
-        #
-        #         GET       /users(.:format)
-        #         POST      /users(.:format)
-        #         GET       /users/new(.:format)
-        #         GET       /users/:name/edit(.:format)
-        #         GET       /users/:name(.:format)
-        #         PATCH/PUT /users/:name(.:format)
-        #         DELETE    /users/:name(.:format)
-        #
-        #     You can override `ActiveRecord::Base#to_param` of a related model to
-        #     construct a URL:
-        #
-        #         class User < ActiveRecord::Base
-        #           def to_param
-        #             name
-        #           end
-        #         end
-        #
-        #         user = User.find_by(name: 'Phusion')
-        #         user_path(user)  # => "/users/Phusion"
-        #
         # :path
         # :   The path prefix for the routes.
-        #
-        # :module
-        # :   The namespace for :controller.
-        #
-        #         match 'path', to: 'c#a', module: 'sekret', controller: 'posts', via: :get
-        #         # => Sekret::PostsController
-        #
-        #     See `Scoping#namespace` for its scope equivalent.
         #
         # :as
         # :   The name used to generate routing helpers.
@@ -1191,7 +1157,7 @@ module ActionDispatch
         # Allows you to set default parameters for a route, such as this:
         #
         #     defaults id: 'home' do
-        #       match 'scoped_pages/(:id)', to: 'pages#show'
+        #       get 'scoped_pages/(:id)', to: 'pages#show'
         #     end
         #
         # Using this, the `:id` parameter here will default to 'home'.
@@ -1661,7 +1627,33 @@ module ActionDispatch
         #     disable it by supplying `false`.
         #
         # :param
-        # :   Allows you to override the default param name of `:id` in the URL.
+        # :   Overrides the default resource identifier `:id` (name of the dynamic
+        #     segment used to generate the routes). You can access that segment from
+        #     your controller using `params[<:param>]`. In your router:
+        #
+        #         resources :users, param: :name
+        #
+        #     The `users` resource here will have the following routes generated for it:
+        #
+        #         GET       /users(.:format)
+        #         POST      /users(.:format)
+        #         GET       /users/new(.:format)
+        #         GET       /users/:name/edit(.:format)
+        #         GET       /users/:name(.:format)
+        #         PATCH/PUT /users/:name(.:format)
+        #         DELETE    /users/:name(.:format)
+        #
+        #     You can override `ActiveRecord::Base#to_param` of a related model to
+        #     construct a URL:
+        #
+        #         class User < ActiveRecord::Base
+        #           def to_param
+        #             name
+        #           end
+        #         end
+        #
+        #         user = User.find_by(name: 'Phusion')
+        #         user_path(user)  # => "/users/Phusion"
         #
         #
         # ### Examples
@@ -1715,6 +1707,7 @@ module ActionDispatch
         # This will enable Rails to recognize paths such as `/photos/search` with GET,
         # and route to the search action of `PhotosController`. It will also create the
         # `search_photos_url` and `search_photos_path` route helpers.
+        #: [T] () { () -> T } -> T
         def collection(&block)
           unless resource_scope?
             raise ArgumentError, "can't use collection outside resource(s) scope"
@@ -1736,6 +1729,7 @@ module ActionDispatch
         # This will recognize `/photos/1/preview` with GET, and route to the preview
         # action of `PhotosController`. It will also create the `preview_photo_url` and
         # `preview_photo_path` helpers.
+        #: [T] () { () -> T } -> T
         def member(&block)
           unless resource_scope?
             raise ArgumentError, "can't use member outside resource(s) scope"
@@ -1798,6 +1792,7 @@ module ActionDispatch
           @scope = @scope.parent
         end
 
+        #: () -> bool?
         def shallow?
           !parent_resource.singleton? && @scope[:shallow]
         end
@@ -2268,7 +2263,7 @@ module ActionDispatch
         # through the concern:
         #
         #     concern :commentable do |options|
-        #       resources :comments, options
+        #       resources :comments, **options
         #     end
         #
         #     resources :posts, concerns: :commentable

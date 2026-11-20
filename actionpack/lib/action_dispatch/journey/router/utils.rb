@@ -1,7 +1,5 @@
 # frozen_string_literal: true
 
-# :markup: markdown
-
 module ActionDispatch
   module Journey # :nodoc:
     class Router # :nodoc:
@@ -19,8 +17,10 @@ module ActionDispatch
         def self.normalize_path(path)
           return "/".dup unless path
 
-          # Fast path for the overwhelming majority of paths that don't need to be normalized
-          if path == "/" || (path.start_with?("/") && !path.end_with?("/") && !path.match?(%r{%|//}))
+          # Fast path for the overwhelming majority of paths that don't need
+          # to be normalized. Callers may mutate the result (the route mapper
+          # does), so the input is still copied.
+          if normalized_path?(path)
             return path.dup
           end
 
@@ -35,6 +35,17 @@ module ActionDispatch
           end
 
           path.force_encoding(encoding)
+        end
+
+        # Whether normalize_path's fast path applies: the path is already in
+        # normalized form and would come back unchanged, apart from the copy,
+        # so hot paths can skip the call and the copy entirely. Conservative
+        # by design: a path with percent escapes is reported as not normalized
+        # even when they are already uppercase.
+        def self.normalized_path?(path)
+          return false unless path
+
+          path == "/" || (path.start_with?("/") && !path.end_with?("/") && !path.match?(%r{%|//}))
         end
 
         # URI path and fragment escaping https://tools.ietf.org/html/rfc3986
@@ -67,6 +78,8 @@ module ActionDispatch
 
           private
             def escape(component, pattern)
+              return component unless component.match?(pattern)
+
               component.gsub(pattern) { |unsafe| percent_encode(unsafe) }.force_encoding(US_ASCII)
             end
 

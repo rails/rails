@@ -7,11 +7,19 @@ class SchemaDumperTest < ActiveRecord::TestCase
   include SchemaDumpingHelper
   self.use_transactional_tests = false
 
+  skip_under_ractor_proxy :test_schema_dump_with_table_name_prefix_and_suffix,
+    :test_schema_dump_with_table_name_prefix_and_suffix_regexp_escape,
+    :test_schema_dump_with_table_name_prefix_and_schema_ignored_tables,
+    :test_schema_dump_with_a_single_regexp_in_schema_ignored_tables,
+    :test_schema_dump_with_table_name_prefix_and_ignoring_tables
+
   setup do
     @schema_migration = ActiveRecord::Base.connection_pool.schema_migration
-    @schema_migration.create_table
 
-    ARUnit2Model.connection_pool.schema_migration.create_table
+    without_ractor_proxy do
+      ActiveRecord::Base.connection_pool.schema_migration.create_table
+      ARUnit2Model.connection_pool.schema_migration.create_table
+    end
   end
 
   def standard_dump
@@ -1042,7 +1050,9 @@ class SchemaDumperDefaultsTest < ActiveRecord::TestCase
 
   setup do
     @connection = ActiveRecord::Base.lease_connection
-    @connection.create_table :dump_defaults, force: true do |t|
+    # Schema statements never run through a Ractor proxy.
+    ddl_connection = main_ractor_connection(@connection)
+    ddl_connection.create_table :dump_defaults, force: true do |t|
       t.string   :string_with_default,   default: "Hello!"
       t.date     :date_with_default,     default: "2014-06-05"
       t.datetime :datetime_with_default, default: "2014-06-05 07:17:04"
@@ -1061,7 +1071,7 @@ class SchemaDumperDefaultsTest < ActiveRecord::TestCase
     end
 
     if current_adapter?(:PostgreSQLAdapter)
-      @connection.create_table :infinity_defaults, force: true do |t|
+      ddl_connection.create_table :infinity_defaults, force: true do |t|
         t.float    :float_with_inf_default,    default: Float::INFINITY
         t.float    :float_with_nan_default,    default: Float::NAN
         t.datetime :beginning_of_time,         default: "-infinity"

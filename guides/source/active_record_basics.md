@@ -436,7 +436,7 @@ end
 book.save
 ```
 
-The resulting SQL statement from both `book.save` and `Book.create` look
+The resulting SQL statement from both `book.save` and `Book.create` looks
 something like this:
 
 ```sql
@@ -496,7 +496,7 @@ book = Book.find_by(title: "Metaprogramming Ruby 2")
 book = Book.find(42)
 ```
 
-The above resulting in this SQL:
+The above results in this SQL:
 
 ```sql
 -- Book.find_by(title: "Metaprogramming Ruby 2")
@@ -574,7 +574,7 @@ DELETE FROM "books" WHERE "books"."id" = ?  [["id", 104]]
 ```
 
 If you'd like to delete several records in bulk, you may use `destroy_by`
-or `destroy_all` method:
+or `destroy_all` methods:
 
 ```ruby
 # Find and delete all books by Douglas Adams.

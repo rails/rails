@@ -1,7 +1,5 @@
 # frozen_string_literal: true
 
-# :markup: markdown
-
 json_min_version = "2.10.0"
 
 begin
@@ -50,6 +48,7 @@ module ActiveRecord
         "sqlite3_integer" => "ActiveRecord::ConnectionAdapters::SQLite3Adapter::SQLite3Integer",
 
         "postgresql_column" => "ActiveRecord::ConnectionAdapters::PostgreSQL::Column",
+        "postgresql_index_definition" => "ActiveRecord::ConnectionAdapters::PostgreSQL::IndexDefinition",
         "postgresql_type_metadata" => "ActiveRecord::ConnectionAdapters::PostgreSQL::TypeMetadata",
 
         "postgresql_array" => "ActiveRecord::ConnectionAdapters::PostgreSQL::OID::Array",
@@ -118,7 +117,7 @@ module ActiveRecord
 
         def load(data)
           objects = []
-          JSON.parse(data).each do |object|
+          JSON.parse(data, freeze: true).each do |object|
             klass = class_for(object.fetch("_type"))
             instance = klass.allocate
             instance.init_from_schema_json(object, objects)

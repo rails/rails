@@ -43,7 +43,7 @@ module ActiveRecord
         def initialize(label, association, value)
           super(<<~MSG)
             Unable to set #{association.name} to #{value} because the association has a
-            custom primary key (#{association.join_primary_key}) that does not match the
+            custom primary key (#{association.association_primary_key}) that does not match the
             associated table's primary key (#{association.klass.primary_key}).
 
             To fix this, change your fixture from
@@ -56,7 +56,7 @@ module ActiveRecord
             #{label}:
               #{association.foreign_key}: **value**
 
-            where **value** is the #{association.join_primary_key} value for the
+            where **value** is the #{association.association_primary_key} value for the
             associated #{association.klass.name} record.
           MSG
         end
@@ -151,15 +151,15 @@ module ActiveRecord
             case association.macro
             when :belongs_to
               # Do not replace association name with association foreign key if they are named the same
-              fk_name = association.join_foreign_key
+              fk_name = association.foreign_key
 
               if association.name.to_s != fk_name && value = @row.delete(association.name.to_s)
                 if association.polymorphic?
                   if value.sub!(/\s*\(([^)]*)\)\s*$/, "")
                     # support polymorphic belongs_to as "label (Type)"
-                    @row[association.join_foreign_type] = $1
+                    @row[association.foreign_type] = $1
                   end
-                elsif association.join_primary_key != association.klass.primary_key
+                elsif association.association_route(origin_class: reflection_class).reference_destination_key.name != association.klass.primary_key
                   raise PrimaryKeyError.new(@label, association, value)
                 end
 

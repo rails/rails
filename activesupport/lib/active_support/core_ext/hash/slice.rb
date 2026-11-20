@@ -1,4 +1,3 @@
-# :markup: markdown
 # frozen_string_literal: true
 
 class Hash
@@ -27,6 +26,10 @@ class Hash
   # hash                  # => {:c=>3, :d=>4}
   # ```
   def extract!(*keys)
-    keys.each_with_object(self.class.new) { |key, result| result[key] = delete(key) if has_key?(key) }
+    result = self.class.new
+    keys.each do |key|
+      result[key] = delete(key) if has_key?(key)
+    end
+    result
   end
 end

@@ -263,11 +263,11 @@ module ActionDispatch
             draw { resources :posts }
 
             on_ractor(@set.url_helpers) do |helpers|
-              [helpers.posts_path, helpers.post_path(7)]
+              [helpers.posts_path, helpers.post_path(7), helpers.post_path(7, page: 2)]
             end
           end
 
-          assert_equal(["/posts", "/posts/7"], results)
+          assert_equal(["/posts", "/posts/7", "/posts/7?page=2"], results)
         end
       end
 

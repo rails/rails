@@ -1227,3 +1227,34 @@ class FormTagHelperTest < ActionView::TestCase
       ActionView::Helpers::ContentExfiltrationPreventionHelper.prepend_content_exfiltration_prevention = old_value
     end
 end
+
+class FormTagHelperIncludedAloneTest < ActiveSupport::TestCase
+  include ActionView::Helpers::FormTagHelper
+  include Rails::Dom::Testing::Assertions::DomAssertions
+
+  attr_accessor :output_buffer
+
+  def protect_against_forgery?
+    true
+  end
+
+  def form_authenticity_token(**)
+    "secret"
+  end
+
+  def request_forgery_protection_token
+    :authenticity_token
+  end
+
+  def test_form_tag_with_a_method_other_than_get
+    expected = <<~HTML.delete("\n")
+      <form action="/posts" accept-charset="UTF-8" method="post">
+      <input type="hidden" name="utf8" value="&#x2713;" autocomplete="off" />
+      <input type="hidden" name="_method" value="patch" autocomplete="off" />
+      <input type="hidden" name="authenticity_token" value="secret" autocomplete="off" />
+      </form>
+    HTML
+
+    assert_dom_equal expected, form_tag("/posts", method: :patch) { "" }
+  end
+end

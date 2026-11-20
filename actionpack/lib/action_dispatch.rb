@@ -22,8 +22,6 @@
 # SOFTWARE.
 #++
 
-# :markup: markdown
-
 require "active_support"
 require "active_support/rails"
 require "active_support/core_ext/module/attribute_accessors"
@@ -91,6 +89,12 @@ module ActionDispatch
   autoload :Journey
   autoload :MiddlewareStack, "action_dispatch/middleware/stack"
   autoload :Routing
+
+  module CoreExt # :nodoc:
+    extend ActiveSupport::Autoload
+
+    autoload :RackMultipartParser
+  end
 
   module Http
     extend ActiveSupport::Autoload

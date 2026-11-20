@@ -21,6 +21,30 @@ class ActiveStorage::FilenameTest < ActiveSupport::TestCase
     assert_equal "", ActiveStorage::Filename.new("racecar").extension_without_delimiter
   end
 
+  test "base and extension use the sanitized filename" do
+    filename = ActiveStorage::Filename.new("race\0car.j\0pg")
+
+    assert_equal "race-car", filename.base
+    assert_equal ".j-pg", filename.extension_with_delimiter
+    assert_equal "j-pg", filename.extension
+  end
+
+  test "base and extension transcode invalid UTF-8" do
+    filename = ActiveStorage::Filename.new((+"caf\xFF.photo\xFF").force_encoding(Encoding::UTF_8))
+
+    assert_equal "caf�", filename.base
+    assert_equal ".photo�", filename.extension_with_delimiter
+    assert_equal "photo�", filename.extension
+  end
+
+  test "base and extension preserve Unicode" do
+    filename = ActiveStorage::Filename.new("café.写真")
+
+    assert_equal "café", filename.base
+    assert_equal ".写真", filename.extension_with_delimiter
+    assert_equal "写真", filename.extension
+  end
+
   test "sanitize" do
     "%$|:;/<>?*\"\t\r\n\\\u{0000}".each_char do |character|
       filename = ActiveStorage::Filename.new("foo#{character}bar.pdf")

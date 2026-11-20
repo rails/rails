@@ -534,7 +534,7 @@ The `:cache_hits` key is only included if the collection is rendered with `cache
 | `:job`       | Job object                             |
 | `:error`     | The error that caused the discard      |
 
-Jobs using [Continuation][] also emit the following events.
+Jobs using [`Continuation`][] also emit the following events.
 
 #### `interrupt.active_job`
 
@@ -708,6 +708,18 @@ transaction can be found in the `:outcome` key.
 In practice, you cannot do much with the transaction object, but it may still be
 helpful for tracing database activity. For example, by tracking
 `transaction.uuid`.
+
+#### `checkout_wait.active_record`
+
+This event is emitted when a connection checkout has to wait because every
+connection in the pool is in use. Its duration is the time spent waiting. If no
+connection is returned within `checkout_timeout`, the event carries the
+`ActiveRecord::ConnectionTimeoutError` in its `:exception` key.
+
+| Key                  | Value                                                |
+| -------------------- | ---------------------------------------------------- |
+| `:connection_pool`   | The connection pool                                  |
+| `:checkout_timeout`  | Seconds the checkout waits before raising            |
 
 #### `deprecated_association.active_record`
 

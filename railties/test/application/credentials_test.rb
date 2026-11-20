@@ -37,4 +37,16 @@ class Rails::CredentialsTest < ActiveSupport::TestCase
       assert_equal "revealed", Rails.application.credentials.mystery
     end
   end
+
+  test "reads credentials using environment variable key with fallback" do
+    write_credentials_override(:production, with_key: false)
+
+    keys = "#{credentials_key.reverse},#{credentials_key}"
+
+    switch_env("RAILS_MASTER_KEY", keys) do
+      app("production")
+
+      assert_equal "revealed", Rails.application.credentials.mystery
+    end
+  end
 end

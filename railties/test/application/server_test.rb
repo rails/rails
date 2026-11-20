@@ -29,7 +29,7 @@ module ApplicationTests
 
       Bundler.with_original_env do
         pid = Process.spawn("bin/rails server -b localhost -P tmp/dummy.pid", chdir: app_path, in: replica, out: replica, err: replica)
-        assert_output("Listening", primary, 100)
+        assert_output("Use Ctrl-C to stop", primary, 100)
 
         rails("restart")
 

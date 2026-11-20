@@ -20,6 +20,11 @@ class ToParamTest < ActiveSupport::TestCase
     assert_nil nil.to_param
   end
 
+  def test_symbol
+    assert_equal "foo", :foo.to_param
+    assert_same :foo.name, :foo.to_param
+  end
+
   def test_boolean
     assert_equal true, true.to_param
     assert_equal false, false.to_param

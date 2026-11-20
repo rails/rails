@@ -19,7 +19,7 @@ class JsonAttributeTest < ActiveRecord::TestCase
   def setup
     super
     @connection.drop_table("json_data_type", if_exists: true)
-    @connection.create_table("json_data_type") do |t|
+    main_ractor_connection(@connection).create_table("json_data_type") do |t|
       t.string "payload"
       t.string "settings"
     end

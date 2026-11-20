@@ -1,7 +1,5 @@
 # frozen_string_literal: true
 
-# :markup: markdown
-
 require "active_support/inspect_backport"
 require "active_support/rescuable"
 

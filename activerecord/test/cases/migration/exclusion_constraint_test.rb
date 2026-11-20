@@ -202,6 +202,20 @@ if ActiveRecord::Base.lease_connection.supports_exclusion_constraints?
           assert_equal 0, @connection.exclusion_constraints("invoices").size
         end
 
+        def test_exclusion_constraints_are_combined_in_bulk_change_table
+          @connection.add_exclusion_constraint :invoices, "daterange(start_date, end_date) WITH &&", using: :gist, name: "invoices_date_overlap"
+
+          assert_queries_count(1) do
+            @connection.change_table(:invoices, bulk: true) do |t|
+              t.integer :amount
+              t.exclusion_constraint "daterange(start_date, end_date) WITH &&", using: :gist, name: "invoices_date_overlap_2"
+              t.remove_exclusion_constraint name: "invoices_date_overlap"
+            end
+          end
+
+          assert_equal ["invoices_date_overlap_2"], @connection.exclusion_constraints("invoices").map(&:name)
+        end
+
         def test_remove_non_existing_exclusion_constraint
           assert_raises(ArgumentError) do
             @connection.remove_exclusion_constraint :invoices, name: "nonexistent"

@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require "cases/helper"
+require "active_support/core_ext/object/with"
 require "support/deprecated_associations_test_helpers"
 require "models/developer"
 require "models/computer"
@@ -128,6 +129,33 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     Client.destroyed_client_ids.clear
   end
 
+  def test_ids_methods_for_associations_whose_names_singularize_to_the_same_word
+    contact = Person.create!(first_name: "Contact")
+    agent = Person.create!(first_name: "Agent", primary_contact_id: contact.id)
+
+    with_people = Class.new(ActiveRecord::Base) do
+      def self.name; "PersonWithPeople"; end
+      self.table_name = "people"
+      has_many :people, class_name: "Person", foreign_key: :primary_contact_id, inverse_of: false
+    end
+    with_persons = Class.new(ActiveRecord::Base) do
+      def self.name; "PersonWithPersons"; end
+      self.table_name = "people"
+      has_many :persons, class_name: "Person", foreign_key: :primary_contact_id, inverse_of: false
+    end
+
+    assert_equal [agent.id], with_people.find(contact.id).person_ids
+    assert_equal [agent.id], with_persons.find(contact.id).person_ids
+
+    record = with_persons.find(contact.id)
+    record.person_ids = []
+    assert_empty record.reload.person_ids
+
+    record = with_people.find(contact.id)
+    record.person_ids = [agent.id]
+    assert_equal [agent.id], record.reload.person_ids
+  end
+
   def test_sti_subselect_count
     tag = Tag.first
     len = Post.tagged_with(tag.id).limit(10).size
@@ -190,6 +218,50 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     author.posts_with_aliased_author_id.create!(title: "New Post", body: "Body")
     post = author.posts_with_aliased_author_id.reload.first
     assert_same author, post.author
+  end
+
+  class AliasedKeyComment < ActiveRecord::Base
+    self.table_name = "comments"
+    self.inheritance_column = nil
+
+    alias_attribute :post_key, :post_id
+  end
+
+  class RemappedKeyComment < AliasedKeyComment
+    alias_attribute :post_key, :author_id
+  end
+
+  class AliasedKeyPost < ActiveRecord::Base
+    self.table_name = "posts"
+    self.inheritance_column = nil
+
+    alias_attribute :comment_key, :id
+    has_many :keyed_comments,
+      class_name: "HasManyAssociationsTest::AliasedKeyComment",
+      foreign_key: :post_key,
+      primary_key: :comment_key,
+      inverse_of: false
+  end
+
+  class RemappedKeyPost < AliasedKeyPost
+    alias_attribute :comment_key, :author_id
+  end
+
+  def test_has_many_access_paths_resolve_aliases_for_each_concrete_class
+    owner = RemappedKeyPost.create!(id: 9_000_401, author_id: 9_000_402, title: "Aliased keys", body: "Aliased keys")
+    comment = AliasedKeyComment.create!(post_id: owner.author_id, body: "Aliased key comment")
+
+    assert_equal [comment], owner.keyed_comments.to_a
+    joined = RemappedKeyPost.where(id: owner.id).joins(:keyed_comments)
+    assert_predicate joined, :exists?, joined.to_sql
+    assert_equal [comment], RemappedKeyPost.eager_load(:keyed_comments).find(owner.id).keyed_comments
+
+    assert_equal owner.author_id, owner.keyed_comments.build.post_id
+
+    remapped = RemappedKeyComment.new(post_id: -1, body: "Remapped key comment")
+    owner.keyed_comments << remapped
+    assert_equal owner.author_id, remapped.author_id
+    assert_equal(-1, remapped.post_id)
   end
 
   def test_has_many_build_with_options
@@ -296,6 +368,22 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
 
     bulb = car.awesome_bulbs.unscope(where: :frickinawesome).create!
     assert_equal false, bulb.frickinawesome
+  end
+
+  def test_association_unscope_with_hash_in_array_removes_default_scope_condition
+    post = PostWithWhereDefaultScope.create!(author: authors(:david), title: "title", body: "body")
+    CommentOnPostWithWhereDefaultScope.create!(body: "active", post: post)
+    CommentOnPostWithWhereDefaultScope.create!(body: "deleted", post: post, deleted_at: Time.now)
+
+    assert_equal 2, post.comments_unscoped_by_hash_in_array.count
+  end
+
+  def test_association_unscope_with_arel_attribute_in_array_removes_default_scope_condition
+    post = PostWithWhereDefaultScope.create!(author: authors(:david), title: "title", body: "body")
+    CommentOnPostWithWhereDefaultScope.create!(body: "active", post: post)
+    CommentOnPostWithWhereDefaultScope.create!(body: "deleted", post: post, deleted_at: Time.now)
+
+    assert_equal 2, post.comments_unscoped_by_arel_attribute_in_array.count
   end
 
   def test_build_from_association_should_respect_scope
@@ -696,6 +784,21 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     # arbitrary database order.
     assert_equal [6, 5, 4, 2, 1], author.posts_with_default_order.to_a.map(&:id)
     assert_equal [6, 5, 4, 2, 1], author.posts_with_default_order.reload.map(&:id)
+  end
+
+  def test_default_order_is_applied_when_the_association_is_preloaded
+    id = authors(:david).id
+    expected = [1, 2, 4, 5, 6]
+
+    assert_equal expected, Author.preload(:posts_with_ascending_default_order).find(id).posts_with_ascending_default_order.map(&:id)
+  end
+
+  def test_default_order_option_overrides_default_order_in_scope_when_the_association_is_preloaded
+    author = authors(:david)
+    expected = [1, 2, 4, 5, 6]
+
+    assert_equal expected, author.posts_with_default_order_overriding_scope.map(&:id)
+    assert_equal expected, Author.preload(:posts_with_default_order_overriding_scope).find(author.id).posts_with_default_order_overriding_scope.map(&:id)
   end
 
   def test_default_order_keeps_using_the_statement_cache
@@ -1379,6 +1482,18 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     blog_post.reload
 
     assert_equal 1, blog_post.comments.size
+  end
+
+  def test_loading_has_many_without_selecting_the_owner_key
+    firm = Firm.select(:id).find(companies(:first_firm).id)
+
+    assert_equal Client.where(firm_name: nil).order(:id).to_a, firm.clients_using_primary_key.order(:id).to_a
+  end
+
+  def test_size_without_selecting_the_cached_counter
+    topic = Topic.select(:id).find(topics(:first).id)
+
+    assert_no_queries { assert_equal 0, topic.replies.size }
   end
 
   def test_has_many_without_counter_cache_option
@@ -2070,6 +2185,26 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     assert_not_empty firm.errors
 
     assert_equal "Cannot delete record because dependent client companies exist", firm.errors[:base].first
+    assert RestrictedWithErrorFirm.exists?(name: "restrict")
+    assert firm.companies.exists?(name: "child")
+  ensure
+    I18n.backend.reload!
+  end
+
+  def test_restrict_with_error_exposes_association_name_without_downcasing
+    I18n.backend = I18n::Backend::Simple.new
+    I18n.backend.store_translations "de",
+      activerecord: {
+        attributes: { restricted_with_error_firm: { companies: "Firmen" } },
+        errors: { messages: { restrict_dependent_destroy: { has_many: "Datensatz kann nicht gelöscht werden, da abhängige %{association_name} existieren" } } }
+      }
+    firm = RestrictedWithErrorFirm.create!(name: "restrict")
+    firm.companies.create(name: "child")
+
+    I18n.with_locale(:de) do
+      firm.destroy
+      assert_equal "Datensatz kann nicht gelöscht werden, da abhängige Firmen existieren", firm.errors[:base].first
+    end
     assert RestrictedWithErrorFirm.exists?(name: "restrict")
     assert firm.companies.exists?(name: "child")
   ensure
@@ -2928,6 +3063,21 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     assert_equal [bulb1, bulb2], Car.eager_load(:all_bulbs).find(car.id).all_bulbs.sort_by(&:id)
   end
 
+  test "can unscope the default scope of the associated model when joined under an alias" do
+    car = Car.create!
+    Bulb.create! name: "other", car: car
+
+    assert_equal [car], Car.joins(:all_bulbs).where(all_bulbs: { name: "other" }).to_a
+  end
+
+  test "unscoping the default scope of an aliased join keeps it on another join of the same table" do
+    car = Car.create!
+    Bulb.create! name: "defaulty", car: car
+    Bulb.create! name: "other",    car: car
+
+    assert_equal 2, Car.joins(:bulbs, :all_bulbs).where(id: car.id).count
+  end
+
   test "can unscope and where the default scope of the associated model" do
     car = Car.create!
     bulb1 = Bulb.create! name: "defaulty", car: car
@@ -2944,6 +3094,110 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
 
     assert_equal [bulb1], car.bulbs
     assert_equal [bulb2], car.old_bulbs
+  end
+
+  test "the association scope can't unscope the foreign key" do
+    car = Car.create!
+    bulb = Bulb.create! name: "defaulty", car: car
+    Bulb.create! name: "defaulty", car: Car.create!
+
+    assert_equal [bulb], car.bulbs_unscoping_car_id
+    assert_equal 1, car.bulbs_unscoping_car_id.count
+    assert_equal [bulb], Car.preload(:bulbs_unscoping_car_id).find(car.id).bulbs_unscoping_car_id
+    assert_equal [bulb], Car.eager_load(:bulbs_unscoping_car_id).find(car.id).bulbs_unscoping_car_id
+    assert_equal car.id, car.bulbs_unscoping_car_id.build.car_id
+  end
+
+  test "unscoping the where clause in the association scope keeps the foreign key" do
+    car = Car.create!
+    bulb1 = Bulb.create! name: "defaulty", car: car
+    bulb2 = Bulb.create! name: "other",    car: car
+    other_bulb = Bulb.create! name: "other", car: Car.create!
+
+    assert_equal [bulb1, bulb2], car.all_bulbs2.sort_by(&:id)
+
+    car.all_bulbs2.update_all(name: "updated")
+    assert_equal "other", other_bulb.reload.name
+  end
+
+  test "the association scope removing the foreign key is deprecated when association_scope_keeps_owner_conditions is false" do
+    car = Car.create!
+    bulb = Bulb.create! name: "defaulty", car: car
+    Bulb.create! name: "defaulty", car: Car.create!
+    message = /conditions tying the records to the owner on `bulbs.car_id` of the `Car#bulbs_unscoping_car_id` association/
+
+    ActiveRecord.with(association_scope_keeps_owner_conditions: false) do
+      assert_deprecated(message, ActiveRecord.deprecator) do
+        assert_equal Bulb.all.sort_by(&:id), car.bulbs_unscoping_car_id.sort_by(&:id)
+      end
+      assert_not_deprecated(ActiveRecord.deprecator) do
+        assert_equal [bulb], Car.preload(:bulbs_unscoping_car_id).find(car.id).bulbs_unscoping_car_id
+        assert_equal [bulb], Car.eager_load(:bulbs_unscoping_car_id).find(car.id).bulbs_unscoping_car_id
+      end
+    end
+  end
+
+  test "the association scope can't replace the polymorphic type" do
+    post = TaggedPost.create!(title: "Tagged", body: "Post")
+    Tagging.create!(taggable: post).update_columns(taggable_type: "TaggedPost")
+    Tagging.create!(taggable: post)
+
+    assert_empty post.taggings
+    assert_empty TaggedPost.preload(:taggings).find(post.id).taggings
+    assert_empty TaggedPost.eager_load(:taggings).find(post.id).taggings
+    assert_empty TaggedPost.joins(:taggings).where(id: post.id)
+  end
+
+  test "the association scope can't remove the polymorphic type" do
+    post = posts(:welcome)
+    Tagging.create!(taggable: post).update_columns(taggable_type: "Other")
+    expected = post.taggings.sort_by(&:id)
+
+    assert_equal expected, post.taggings_unscoping_type.sort_by(&:id)
+    assert_equal expected, Post.preload(:taggings_unscoping_type).find(post.id).taggings_unscoping_type.sort_by(&:id)
+    assert_equal expected, Post.eager_load(:taggings_unscoping_type).find(post.id).taggings_unscoping_type.sort_by(&:id)
+  end
+
+  test "the association scope replacing the polymorphic type is deprecated when association_scope_keeps_owner_conditions is false" do
+    post = TaggedPost.create!(title: "Tagged", body: "Post")
+    Tagging.create!(taggable: post).update_columns(taggable_type: "TaggedPost")
+    Tagging.create!(taggable: post)
+    tagging = Tagging.find_by!(taggable_type: "TaggedPost")
+    message = /conditions tying the records to the owner on `taggings.taggable_type` of the `TaggedPost#taggings` association/
+
+    ActiveRecord.with(association_scope_keeps_owner_conditions: false) do
+      assert_deprecated(message, ActiveRecord.deprecator) do
+        assert_equal [tagging], post.taggings.to_a
+      end
+      assert_deprecated(message, ActiveRecord.deprecator) do
+        assert_equal [tagging], TaggedPost.preload(:taggings).find(post.id).taggings
+      end
+      assert_deprecated(message, ActiveRecord.deprecator) do
+        assert_equal [tagging], TaggedPost.eager_load(:taggings).find(post.id).taggings
+      end
+      assert_deprecated(message, ActiveRecord.deprecator) do
+        assert_equal [post], TaggedPost.joins(:taggings).where(id: post.id).to_a
+      end
+    end
+  end
+
+  test "the association scope removing the polymorphic type is deprecated when association_scope_keeps_owner_conditions is false" do
+    post = posts(:welcome)
+    Tagging.create!(taggable: post).update_columns(taggable_type: "Other")
+    expected = Tagging.where(taggable_id: post.id).sort_by(&:id)
+    message = /conditions tying the records to the owner on `taggings.taggable_type` of the `Post#taggings_unscoping_type` association/
+
+    ActiveRecord.with(association_scope_keeps_owner_conditions: false) do
+      assert_deprecated(message, ActiveRecord.deprecator) do
+        assert_equal expected, post.taggings_unscoping_type.sort_by(&:id)
+      end
+      assert_deprecated(message, ActiveRecord.deprecator) do
+        assert_equal expected, Post.preload(:taggings_unscoping_type).find(post.id).taggings_unscoping_type.sort_by(&:id)
+      end
+      assert_deprecated(message, ActiveRecord.deprecator) do
+        assert_equal expected, Post.eager_load(:taggings_unscoping_type).find(post.id).taggings_unscoping_type.sort_by(&:id)
+      end
+    end
   end
 
   test "unscopes the default scope of associated model when used with include" do

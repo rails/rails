@@ -498,8 +498,11 @@ class ValidationsTest < ActiveModel::TestCase
     topic.validate
 
     assert_equal ["can't be blank"], topic.errors[:title]
+    assert topic.errors.added?(:title, :blank)
+    assert_equal({ title: [{ error: :blank }] }, topic.errors.details)
 
     assert topic.validate(:custom_context)
+    assert_empty topic.errors
   end
 
   def test_validations_some_with_except

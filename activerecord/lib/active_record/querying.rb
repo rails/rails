@@ -37,26 +37,30 @@ module ActiveRecord
 
     # Executes a custom SQL query against your database and returns all the results. The results will
     # be returned as an array, with the requested columns encapsulated as attributes of the model you call
-    # this method from. For example, if you call <tt>Product.find_by_sql</tt>, then the results will be returned in
-    # a +Product+ object with the attributes you specified in the SQL query.
+    # this method from. For example, if you call `Product.find_by_sql`, then the results will be returned in
+    # a `Product` object with the attributes you specified in the SQL query.
     #
     # If you call a complicated SQL query which spans multiple tables, the columns specified by the
     # SELECT will be attributes of the model, whether or not they are columns of the corresponding
     # table.
     #
-    # The +sql+ parameter is a full SQL query as a string. It will be called as is; there will be
+    # The `sql` parameter is a full SQL query as a string. It will be called as is; there will be
     # no database agnostic conversions performed. This should be a last resort because using
     # database-specific terms will lock you into using that particular database engine, or require you to
     # change your call if you switch engines.
     #
-    #   # A simple SQL query spanning multiple tables
-    #   Post.find_by_sql "SELECT p.title, c.author FROM posts p, comments c WHERE p.id = c.post_id"
-    #   # => [#<Post:0x36bff9c @attributes={"title"=>"Ruby Meetup", "author"=>"Quentin"}>, ...]
+    # ```
+    # # A simple SQL query spanning multiple tables
+    # Post.find_by_sql "SELECT p.title, c.author FROM posts p, comments c WHERE p.id = c.post_id"
+    # # => [#<Post:0x36bff9c @attributes={"title"=>"Ruby Meetup", "author"=>"Quentin"}>, ...]
+    # ```
     #
     # You can use the same string replacement techniques as you can with ActiveRecord::QueryMethods#where :
     #
-    #   Post.find_by_sql ["SELECT title FROM posts WHERE author = ? AND created > ?", author_id, start_date]
-    #   Post.find_by_sql ["SELECT body FROM comments WHERE author = :user_id OR approved_by = :user_id", { :user_id => user_id }]
+    # ```
+    # Post.find_by_sql ["SELECT title FROM posts WHERE author = ? AND created > ?", author_id, start_date]
+    # Post.find_by_sql ["SELECT body FROM comments WHERE author = :user_id OR approved_by = :user_id", { :user_id => user_id }]
+    # ```
     #
     # Note that building your own SQL query string from user input {may expose your application to
     # injection attacks}[https://guides.rubyonrails.org/security.html#sql-injection].
@@ -70,7 +74,7 @@ module ActiveRecord
     # Same as #find_by_sql but perform the query asynchronously and returns an ActiveRecord::Promise.
     def async_find_by_sql(sql, binds = [], preparable: nil, allow_retry: false, &block)
       with_connection do |c|
-        _query_by_sql(c, sql, binds, preparable: preparable, allow_retry: allow_retry, async: true)
+        _async_select_all(c, _sql_for_find(sql), "#{name} Load", binds, preparable: preparable, allow_retry: allow_retry)
       end.then do |result|
         _load_from_sql(result, &block)
       end
@@ -80,14 +84,14 @@ module ActiveRecord
       connection.select_all(_sql_for_find(sql), "#{name} Load", binds, preparable: preparable, async: async, allow_retry: allow_retry)
     end
 
+    def _async_select_all(connection, arel, name, binds = [], **kwargs) # :nodoc:
+      async = !connection.current_transaction.joinable?
+      FutureResult.wrap(connection.select_all(arel, name, binds, async: async, **kwargs))
+    end
+
+    #: (ActiveRecord::Result) ?{ (ActiveRecord::Base) -> void } -> Array[ActiveRecord::Base]
     def _load_from_sql(result_set, &block) # :nodoc:
       return [] if result_set.empty?
-
-      column_types = result_set.column_types
-
-      unless column_types.empty?
-        column_types = column_types.reject { |k, _| attribute_types.key?(k) }
-      end
 
       message_bus = ActiveSupport::Notifications.instrumenter
 
@@ -98,10 +102,21 @@ module ActiveRecord
 
       message_bus.instrument("instantiation.active_record", payload) do
         if result_set.includes_column?(inheritance_column)
-          result_set.indexed_rows.map { |record| instantiate(record, column_types, &block) }
+          # Each row is laid out for the class its type names, so subclasses
+          # with attributes of their own don't need their rows re-laid.
+          classes = Hash.new do |h, type|
+            h[type] = discriminate_class_for_record(inheritance_column => type)
+          end
+          column_map_for = ->(type) { classes[type].attributes_builder.indexes }
+
+          result_set.map_rows_by(inheritance_column, column_map_for) { |row, indexes, type|
+            instantiate_instance_of(classes[type], row, indexes, &block)
+          }
         else
           # Instantiate a homogeneous set
-          result_set.indexed_rows.map { |record| instantiate_instance_of(self, record, column_types, &block) }
+          result_set.map_rows(attributes_builder.indexes) { |row, indexes|
+            instantiate_instance_of(self, row, indexes, &block)
+          }
         end
       end
     end
@@ -112,12 +127,14 @@ module ActiveRecord
     # as it could lock you into a specific database engine or require a code change to switch
     # database engines.
     #
-    #   Product.count_by_sql "SELECT COUNT(*) FROM sales s, customers c WHERE s.customer_id = c.id"
-    #   # => 12
+    # ```
+    # Product.count_by_sql "SELECT COUNT(*) FROM sales s, customers c WHERE s.customer_id = c.id"
+    # # => 12
+    # ```
     #
-    # ==== Parameters
+    # #### Parameters
     #
-    # * +sql+ - An SQL statement which should return a count query from the database, see the example above.
+    # * `sql` - An SQL statement which should return a count query from the database, see the example above.
     def count_by_sql(sql)
       with_connection do |c|
         c.select_value(_sql_for_find(sql), "#{name} Count").to_i
@@ -127,7 +144,9 @@ module ActiveRecord
     # Same as #count_by_sql but perform the query asynchronously and returns an ActiveRecord::Promise.
     def async_count_by_sql(sql)
       with_connection do |c|
-        c.select_value(_sql_for_find(sql), "#{name} Count", async: true).then(&:to_i)
+        _async_select_all(c, _sql_for_find(sql), "#{name} Count").then do |result|
+          result.rows.first&.first.to_i
+        end
       end
     end
 
