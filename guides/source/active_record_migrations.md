@@ -728,12 +728,14 @@ operations (`add_index`, `remove_index`) to control how DDL statements are
 executed. This enables online schema changes without blocking reads or writes:
 
 ```ruby
-add_column :users, :name, :string, algorithm: :instant, lock: :none
+add_column :users, :name, :string, algorithm: :instant
 add_index :users, :email, algorithm: :inplace, lock: :none
 ```
 
 The MySQL `algorithm` option accepts `:default`, `:copy`, `:inplace`, or `:instant`.
 The `lock` option accepts `:default`, `:none`, `:shared`, or `:exclusive`.
+MySQL only allows `lock: :default` (or no `lock` option) together with
+`algorithm: :instant`; any other value raises an error.
 See the [MySQL documentation on Online DDL](https://dev.mysql.com/doc/refman/en/innodb-online-ddl-operations.html)
 for details on which algorithms and lock modes are supported for each operation.
 
