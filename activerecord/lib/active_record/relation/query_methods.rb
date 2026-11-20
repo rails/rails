@@ -849,7 +849,9 @@ module ActiveRecord
     # ```
     def in_order_of(column, values, filter: true)
       model.disallow_raw_sql!([column], permit: model.adapter_class.column_name_with_order_matcher)
-      return spawn.none! if values.empty?
+      if values.empty?
+        return filter ? spawn.none! : spawn
+      end
 
       spawn._in_order_of!(column, values, filter)
     end
@@ -872,7 +874,9 @@ module ActiveRecord
         if arel_column.is_a?(PredicateBuilder::ComparisonAttribute)
           values = comparison_values_for_in_order_of(values, arel_column)
         end
-        return none! if values.empty?
+        if values.empty?
+          return filter ? none! : self
+        end
       end
 
       _references!(column_references([arel_column]))

@@ -1,3 +1,18 @@
+*   Return all records from `in_order_of` with `filter: false` when no values are left.
+
+    An empty `values` list, or one where every value is dropped because the column
+    cannot represent it, returned no records even with `filter: false`, which is
+    documented to include all results. The relation is now returned unordered, as
+    `Enumerable#in_order_of` does.
+
+    ```ruby
+    Post.in_order_of(:status, [], filter: false).count
+    # Before: 0
+    # After: Post.count
+    ```
+
+    *Carlos Daniel Pohlod*
+
 *   Log source location when scoped order is ignored in batching.
 
     *fatkodima*
