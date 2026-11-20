@@ -42,7 +42,7 @@ module ActiveSupport
           Float::INFINITY
         end
 
-        def check!
+        def check!(minimum: 0.0, error: Exceeded)
           self
         end
 

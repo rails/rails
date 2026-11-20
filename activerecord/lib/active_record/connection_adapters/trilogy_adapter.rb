@@ -129,7 +129,7 @@ module ActiveRecord
           config = @config
           if config[:connect_timeout]
             config = config.dup
-            config[:connect_timeout] = @deadline.clamp(config[:connect_timeout], minimum: 0.05, error: ConnectionTimeoutError)
+            config[:connect_timeout] = @deadline.clamp(config[:connect_timeout], error: DeadlineExceededError)
           end
           @raw_connection = self.class.new_client(config)
         rescue ConnectionNotEstablished => ex

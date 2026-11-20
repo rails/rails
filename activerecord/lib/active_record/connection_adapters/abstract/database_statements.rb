@@ -734,6 +734,8 @@ module ActiveRecord
       # Final wrapper around the subclass-specific `perform_query`. Delivers the outcome
       # back to the calling intent.
       def execute_intent(intent) # :nodoc:
+        check_deadline!(intent)
+
         if intent.materialize_transactions
           # These can raise locally (e.g., ReadOnlyError). Validate before BEGIN.
           intent.processed_sql
@@ -931,6 +933,15 @@ module ActiveRecord
 
         def affected_rows(raw_result)
           raise NotImplementedError
+        end
+
+        # Since not all clients support deadlines or adaptive timeouts,
+        # for these the best we can do is check the deadline before attempting a blocking
+        # call.
+        # For adapters that have proper deadline support, this can be redefined as an empty method.
+        def check_deadline!(intent = nil)
+          deadline = intent ? intent.deadline : @deadline
+          deadline.check!(error: DeadlineExceededError)
         end
 
         def internal_build_intent(sql, name = "SQL", binds = [], prepare: false, allow_retry: false, materialize_transactions: true, &block)
