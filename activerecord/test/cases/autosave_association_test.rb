@@ -31,6 +31,12 @@ require "models/eye"
 require "models/electron"
 require "models/molecule"
 require "models/member"
+require "models/membership"
+require "models/club"
+require "models/rating"
+require "models/user"
+require "models/family"
+require "models/family_tree"
 require "models/member_detail"
 require "models/organization"
 require "models/guitar"
@@ -1184,6 +1190,51 @@ class TestDefaultAutosaveAssociationOnNewRecord < ActiveRecord::TestCase
     post.save!
 
     assert_equal 1, post.categories.reload.length
+  end
+
+  FamilyLoadingMiddleAndThroughRecordsBeforeSave = Class.new(Family) do
+    before_save do
+      family_trees.map(&:member) + members
+    end
+  end
+
+  def test_autosave_new_record_with_hmt_and_middle_record_built_by_parent
+    family = FamilyLoadingMiddleAndThroughRecordsBeforeSave.new
+    family_tree = family.family_trees.build
+    family_tree.build_member
+    family.save!
+    family.reload
+
+    assert_equal 1, family.family_trees.size
+    assert_equal 1, family.members.size
+  end
+
+  MemberWithRequiredName = Class.new(Member) do
+    validates :name, presence: true
+  end
+
+  def test_autosave_new_record_leaves_records_reached_through_hmt_to_their_parents
+    member = MemberWithRequiredName.create!(name: "Groucho")
+    member.name = nil
+    club = Club.new
+    club.memberships.build(member: member)
+
+    assert_equal [member], club.members.to_a
+    assert_predicate club, :valid?
+  end
+
+  AuthorWithAutosavedRatings = Class.new(Author) do
+    has_many :autosaved_ratings, through: :comments, source: :ratings, autosave: true
+  end
+
+  def test_autosave_new_record_with_nested_hmt_read_before_save
+    author = AuthorWithAutosavedRatings.new(name: "Josh")
+    author.posts.build(title: "Title", body: "Body").comments.build(body: "Comment").ratings.build(value: 1)
+    assert_equal 1, author.autosaved_ratings.size
+
+    assert_difference -> { Rating.count }, 1 do
+      author.save!
+    end
   end
 end
 
