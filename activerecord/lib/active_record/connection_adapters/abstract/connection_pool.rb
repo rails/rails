@@ -829,7 +829,9 @@ module ActiveRecord
         end
 
         removed_connections.each do |conn|
-          conn.disconnect!
+          ActiveSupport.error_reporter.handle(source: "active_record.connection_pool") do
+            conn.disconnect!
+          end
         end
       end
 
