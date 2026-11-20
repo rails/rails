@@ -287,6 +287,41 @@ module ActionDispatch
       end
     end
 
+    test "#wrapped_causes wraps each cause of the chain once" do
+      wrappers = 0
+      counting_wrapper = Class.new(ExceptionWrapper) do
+        define_method(:initialize) do |backtrace_cleaner, exception|
+          wrappers += 1
+          super(backtrace_cleaner, exception)
+        end
+      end
+
+      wrapper = counting_wrapper.new(nil, exception_with_causes(8))
+
+      assert_equal (0...8).map { |level| "level #{level}" }.reverse, wrapper.wrapped_causes.map { |cause| cause.exception.message }
+      assert_equal 9, wrappers
+    end
+
+    test "#wrapped_causes is empty without a cause" do
+      assert_empty ExceptionWrapper.new(nil, exception_with_causes(0)).wrapped_causes
+    end
+
+    test "#wrapped_causes wraps the cause of a SyntaxError" do
+      exception = begin
+        begin
+          raise TestError
+        rescue TestError
+          eval "class Foo; yield; end"
+        end
+      rescue SyntaxError => ex
+        ex
+      end
+
+      wrapper = ExceptionWrapper.new(nil, exception)
+
+      assert_equal [TestError], wrapper.wrapped_causes.map { |cause| cause.exception.class }
+    end
+
     test "#application_trace returns traces only from the application" do
       exception = begin index; rescue TestError => ex; ex; end
       wrapper = ExceptionWrapper.new(@cleaner, TopErrorProxy.new(exception, 1))
@@ -465,6 +500,22 @@ module ActionDispatch
     end
 
     private
+      def exception_with_causes(depth)
+        raise_with_causes(depth)
+      rescue TestError => error
+        error
+      end
+
+      def raise_with_causes(depth)
+        raise TestError, "level #{depth}" if depth == 0
+
+        begin
+          raise_with_causes(depth - 1)
+        rescue TestError
+          raise TestError, "level #{depth}"
+        end
+      end
+
       def render_template_error(templates)
         view_paths = ActionView::PathSet.new([ActionView::FixtureResolver.new(templates)])
         ActionView::Base.with_empty_template_cache.with_view_paths(view_paths).render(template: "tests/show")
