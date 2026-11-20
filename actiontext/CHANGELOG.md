@@ -1,3 +1,22 @@
+*   Generate the `has_rich_text` methods in a module so they can be overridden with `super`.
+
+    `has_rich_text :content` defined `content`, `content=` and `content?` directly on the
+    model, so overriding one of them in the same class replaced the generated implementation
+    with no way to call back into it.
+
+    They are now defined in the model's `GeneratedAssociationMethods` module, matching
+    `has_one_attached` and `has_many_attached`:
+
+        class Message < ApplicationRecord
+          has_rich_text :content
+
+          def content=(body)
+            super(body&.strip)
+          end
+        end
+
+    *Felipe Felix*
+
 *   Add alternative text to Action Text attachments.
 
     Attachments could only be described by their caption, which is always shown
