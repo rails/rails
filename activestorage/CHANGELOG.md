@@ -1,3 +1,11 @@
+*   Stream single byte ranges from `ActiveStorage::Blobs::ProxyController` instead of loading them into memory.
+
+    A single range is now streamed in chunks of at most 5 megabytes rather than being refused
+    with `416 Range Not Satisfiable` when it reaches `ActiveStorage.streaming_chunk_max_size`,
+    so open-ended requests like `bytes=1000-` work on large files.
+
+    *Andrew Fader*
+
 *   Preserve committed proxy responses when a storage error interrupts a
     streamed download.
 
