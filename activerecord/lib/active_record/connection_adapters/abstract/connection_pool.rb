@@ -206,12 +206,13 @@ module ActiveRecord
 
       class LeaseRegistry < ActiveSupport::WeakKeyMap # :nodoc:
         def initialize
+          super
           @terminated_flag = Concurrent::AtomicBoolean.new(false)
-          @mutex = Mutex.new
+          @lease_lock = Mutex.new
         end
 
         def lease(context)
-          @mutex.synchronize do
+          @lease_lock.synchronize do
             fetch_or_store(context) do
               Lease.new(@terminated_flag)
             end
@@ -219,7 +220,7 @@ module ActiveRecord
         end
 
         def clear
-          @mutex.synchronize do
+          @lease_lock.synchronize do
             result = super
             old_flag = @terminated_flag
             @terminated_flag = Concurrent::AtomicBoolean.new(false)
