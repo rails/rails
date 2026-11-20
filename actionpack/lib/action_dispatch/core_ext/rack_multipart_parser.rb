@@ -49,6 +49,23 @@ module ActionDispatch
             end
           end
         end
+
+        def get_filename(head)
+          filename = super
+
+          if filename.is_a?(String) && !filename.frozen?
+            case filename.encoding
+            when Encoding::UTF_8, Encoding::BINARY
+              # noop
+            when Encoding::US_ASCII
+              filename.force_encoding(Encoding::UTF_8)
+            else
+              filename.force_encoding(Encoding::BINARY)
+            end
+          end
+
+          filename
+        end
       end
     end
   end

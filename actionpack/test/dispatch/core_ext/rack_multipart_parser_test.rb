@@ -24,4 +24,20 @@ class RackMultipartParserTest < ActiveSupport::TestCase
     assert_equal Encoding::BINARY, params.keys.first.encoding
     assert_equal Encoding::BINARY, params.values.first.encoding
   end
+
+  test "ignore multipart filename encoding" do
+    body = "--AaB03x\r\ncontent-disposition: form-data; name=\"file\"; filename*=ISO-8859-1''%DF%80.txt\r\ncontent-type: application/octet-stream\r\n\r\ncontents\r\n--AaB03x--\r\n".b
+    params = Rack::Multipart.parse_multipart({
+      "REQUEST_METHOD" => "POST",
+      "rack.input" => StringIO.new(body),
+      "CONTENT_LENGTH" => body.bytesize.to_s,
+      "CONTENT_TYPE" => "multipart/form-data; boundary=AaB03x"
+    })
+
+    if params["file"].is_a?(Hash)
+      assert_equal Encoding::BINARY, params["file"][:filename].encoding
+    else
+      pass # no longer parsed on newer versions of rack
+    end
+  end
 end
