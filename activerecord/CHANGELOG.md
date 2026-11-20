@@ -1,3 +1,11 @@
+*   Deprecate `where.not` with only values that cannot be cast.
+
+    `Author.where.not(id: [2**64, 2**64 + 1])` generates `NOT IN (NULL)`, which
+    matches no row. `Author.where.not(id: 2**64)` matches every row. In a future
+    version of Rails, the list form will also match every row.
+
+    *Bruno Costanzo*
+
 *   Log source location when scoped order is ignored in batching.
 
     *fatkodima*
