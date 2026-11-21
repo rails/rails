@@ -24,8 +24,8 @@ class ActiveStorage::Service::MirrorServiceTest < ActiveSupport::TestCase
   end
 
   test "uploading to all services" do
-    old_service = ActiveStorage::Blob.service
-    ActiveStorage::Blob.service = @service
+    service = ActiveStorage::Blob.services.fetch(:mirror)
+    assert_not_equal service, ActiveStorage::Blob.service
 
     key      = SecureRandom.base58(24)
     data     = "Something else entirely!"
@@ -33,18 +33,26 @@ class ActiveStorage::Service::MirrorServiceTest < ActiveSupport::TestCase
     checksum = OpenSSL::Digest::MD5.base64digest(data)
 
     assert_performed_jobs 1, only: ActiveStorage::MirrorJob do
-      @service.upload key, io.tap(&:read), checksum: checksum
+      service.upload key, io.tap(&:read), checksum: checksum
     end
 
     assert_predicate io, :eof?
 
-    assert_equal data, @service.primary.download(key)
-    @service.mirrors.each do |mirror|
+    assert_equal data, service.primary.download(key)
+    service.mirrors.each do |mirror|
       assert_equal data, mirror.download(key)
     end
   ensure
-    @service.delete key
-    ActiveStorage::Blob.service = old_service
+    service.delete key
+  end
+
+  test "enqueuing the mirror job with the name of the service" do
+    key      = SecureRandom.base58(24)
+    checksum = OpenSSL::Digest::MD5.base64digest("Something else entirely!")
+
+    assert_enqueued_with job: ActiveStorage::MirrorJob, args: [key, { checksum: checksum, service_name: :mirror }] do
+      @service.mirror_later key, checksum: checksum
+    end
   end
 
   test "downloading from primary service" do
