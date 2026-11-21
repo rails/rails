@@ -2048,7 +2048,7 @@ module ActiveRecord
       def setup
         @previous_isolation_level = ActiveSupport::IsolatedExecutionState.isolation_level
 
-        ActiveSupport::IsolatedExecutionState.isolation_level = :fiber
+        change_isolation_level(:fiber)
         @connection_test_model_class = FiberConnectionTestModel
 
         super
@@ -2056,10 +2056,26 @@ module ActiveRecord
 
       def teardown
         super
-        ActiveSupport::IsolatedExecutionState.isolation_level = @previous_isolation_level
+        change_isolation_level(@previous_isolation_level)
       end
 
       private
+        def change_isolation_level(isolation_level)
+          without_pool_maintenance(ConnectionPool::Reaper.pools) do
+            ActiveSupport::IsolatedExecutionState.isolation_level = isolation_level
+          end
+        end
+
+        def without_pool_maintenance(pools, &block)
+          pool, *other_pools = pools
+          return yield unless pool
+
+          pool.reaper_lock do
+            wait_for_pool_maintenance(pool)
+            without_pool_maintenance(other_pools, &block)
+          end
+        end
+
         def new_thread(*args, &block)
           ThreadlikeFiber.new(*args, &block)
         end
