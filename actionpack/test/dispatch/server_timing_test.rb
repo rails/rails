@@ -134,13 +134,11 @@ class ServerTimingTest < ActionDispatch::IntegrationTest
     }
     app = ActionDispatch::ServerTiming.new(stub_app)
 
-    _status, headers, = app.call(Rack::MockRequest.env_for("/"))
+    headers, partials = call_and_capture(app, "render_partial.action_view")
     duration = server_timing_duration(headers[@header_name], "render_partial.action_view")
 
-    wall_clock_ms = (outer_sleep + inner_sleep) * 1000
-    # Inclusive sum would be ~1.5–2× wall clock; exclusive stays near wall clock.
-    assert_in_delta wall_clock_ms, duration, wall_clock_ms * 0.5
-    assert_operator duration, :<, wall_clock_ms * 1.5
+    outer = partials.max_by(&:duration)
+    assert_in_delta outer.duration, duration, 0.01
   end
 
   test "sibling events of the same name still accumulate" do
@@ -158,11 +156,11 @@ class ServerTimingTest < ActionDispatch::IntegrationTest
     }
     app = ActionDispatch::ServerTiming.new(stub_app)
 
-    _status, headers, = app.call(Rack::MockRequest.env_for("/"))
+    headers, partials = call_and_capture(app, "render_partial.action_view")
     duration = server_timing_duration(headers[@header_name], "render_partial.action_view")
 
-    wall_clock_ms = (first_sleep + second_sleep) * 1000
-    assert_in_delta wall_clock_ms, duration, wall_clock_ms * 0.5
+    assert_equal 2, partials.size
+    assert_in_delta partials.sum(&:duration), duration, 0.01
   end
 
   test "nested events of a different name are not subtracted" do
@@ -178,13 +176,13 @@ class ServerTimingTest < ActionDispatch::IntegrationTest
     }
     app = ActionDispatch::ServerTiming.new(stub_app)
 
-    _status, headers, = app.call(Rack::MockRequest.env_for("/"))
+    headers, events = call_and_capture(app, /\A(render_partial\.action_view|sql\.active_record)\z/)
     partial_duration = server_timing_duration(headers[@header_name], "render_partial.action_view")
     sql_duration = server_timing_duration(headers[@header_name], "sql.active_record")
 
-    assert_operator partial_duration, :>, sql_duration
-    assert_in_delta 40, partial_duration, 20
-    assert_in_delta 20, sql_duration, 15
+    partial, sql = events.partition { |event| event.name == "render_partial.action_view" }.map(&:sole)
+    assert_in_delta partial.duration, partial_duration, 0.01
+    assert_in_delta sql.duration, sql_duration, 0.01
   end
 
   private
@@ -204,6 +202,14 @@ class ServerTimingTest < ActionDispatch::IntegrationTest
 
         yield
       end
+    end
+
+    def call_and_capture(app, pattern)
+      events = []
+      headers = ActiveSupport::Notifications.subscribed(->(event) { events << event }, pattern) do
+        app.call(Rack::MockRequest.env_for("/"))[1]
+      end
+      [headers, events]
     end
 
     def server_timing_duration(header, name)
