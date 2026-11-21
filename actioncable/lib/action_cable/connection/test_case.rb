@@ -134,7 +134,12 @@ module ActionCable
     class TestServer
       attr_reader :streams, :config, :timers
 
+      # Broadcasts go through the server given to the test case. With the default,
+      # ActionCable.server, the ActionCable::TestHelper assertions see them.
+      delegate :broadcast, to: :@server
+
       def initialize(server)
+        @server = server
         @streams = Hash.new { |h, k| h[k] = [] }
         @config = server.config
         @timers = []
