@@ -1,3 +1,14 @@
+*   Fix `Cache-Control` header of files served by `DiskController`
+
+    Matches `Cache-Control` lifetime of files served by the `DiskController`
+    with the lifetime of the redirect response by
+    `ActiveStorage::Blobs::RedirectController`. This fixes an issue with
+    Safari-based browsers purging the blob from its cache before the
+
+    Fixes #57950.
+
+    *Matthias Link*
+
 *   Preserve committed proxy responses when a storage error interrupts a
     streamed download.
 

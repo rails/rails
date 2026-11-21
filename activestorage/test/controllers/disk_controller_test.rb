@@ -11,6 +11,7 @@ class ActiveStorage::DiskControllerTest < ActionDispatch::IntegrationTest
     assert_response :ok
     assert_equal "inline; filename=\"hello.jpg\"; filename*=UTF-8''hello.jpg", response.headers["Content-Disposition"]
     assert_equal "image/jpeg", response.headers["Content-Type"]
+    assert_equal "max-age=300, private, must-revalidate", response.headers["Cache-Control"]
     assert_equal "Hello world!", response.body
   end
 
