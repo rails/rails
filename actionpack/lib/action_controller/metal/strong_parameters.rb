@@ -1638,7 +1638,7 @@ module ActionController
   #           # It's mandatory to specify the nested attributes that should be permitted.
   #           # If you use `permit` with just the key that points to the nested attributes hash,
   #           # it will return an empty hash.
-  #           params.expect(person: [ :name, :age, pets_attributes: [ :id, :name, :category ] ])
+  #           params.expect(person: [ :name, :age, pets_attributes: [[ :id, :name, :category ]] ])
   #         end
   #     end
   #
