@@ -29,7 +29,7 @@ class ActionText::ModelTest < ActiveSupport::TestCase
   test "with blank content" do
     assert_difference("ActionText::RichText.count" => 1) do
       message = Message.create!(subject: "Greetings", content: "")
-      assert_not message.content.nil?
+      assert_not_nil message.content
       assert_predicate message.content, :blank?
       assert_predicate message.content, :empty?
       assert_not message.content?
