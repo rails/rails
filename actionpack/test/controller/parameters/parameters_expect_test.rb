@@ -85,6 +85,18 @@ class ParametersExpectTest < ActiveSupport::TestCase
     end
   end
 
+  test "key to explicit array: returns nested attributes keyed by index" do
+    params = ActionController::Parameters.new(
+      person: { name: "Ann", pets_attributes: { "0" => { name: "Rex", category: "dog" }, "1" => { id: "7", name: "Tom", category: "cat" } } }
+    )
+    permitted = params.expect(person: [ :name, pets_attributes: [[ :id, :name, :category ]] ])
+
+    assert_equal(
+      { "name" => "Ann", "pets_attributes" => { "0" => { "name" => "Rex", "category" => "dog" }, "1" => { "id" => "7", "name" => "Tom", "category" => "cat" } } },
+      permitted.to_h
+    )
+  end
+
   test "key to mixed array: returns permitted params" do
     permitted = @params.expect(person: [ :age, name: [:first, :last] ])
 
