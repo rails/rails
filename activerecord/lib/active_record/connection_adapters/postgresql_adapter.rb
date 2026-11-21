@@ -967,6 +967,7 @@ module ActiveRecord
         EXCLUSION_VIOLATION   = "23P01"
         SERIALIZATION_FAILURE = "40001"
         DEADLOCK_DETECTED     = "40P01"
+        SYNTAX_ERROR          = "42601"
         DUPLICATE_DATABASE    = "42P04"
         LOCK_NOT_AVAILABLE    = "55P03"
         QUERY_CANCELED        = "57014"
@@ -1021,12 +1022,42 @@ module ActiveRecord
             LockWaitTimeout.new(message, sql: sql, binds: binds, connection_pool: @pool)
           when QUERY_CANCELED
             QueryCanceled.new(message, sql: sql, binds: binds, connection_pool: @pool)
+          when SYNTAX_ERROR
+            hint = bind_parameter_syntax_hint(exception, sql)
+            super(exception, message: hint ? "#{message.chomp}\n#{hint}\n" : message, sql: sql, binds: binds)
           else
             if connection_terminating_severity?(exception.result)
               ConnectionFailed.new(exception, connection_pool: @pool)
             else
               super
             end
+          end
+        end
+
+        BIND_PARAMETER_KEYWORD = /(?<![\w.$"])(DATE|TIME|TIMESTAMPTZ|TIMESTAMP(?:\s+WITH(?:OUT)?\s+TIME\s+ZONE)?|INTERVAL|JSONB|IS(?:\s+NOT)?)\s+\z/i
+        private_constant :BIND_PARAMETER_KEYWORD
+
+        # PostgreSQL accepts only a literal, not a bind parameter, after a type
+        # name (DATE '2026-01-01') or after IS. Only the keyword right before the
+        # parameter PostgreSQL points at counts; a string or block comment would
+        # leave its closing quote in between, and a line comment is ruled out.
+        def bind_parameter_syntax_hint(exception, sql)
+          param = exception.message[/syntax error at or near "(\$\d+)"/, 1]
+          position = exception.result.error_field(PG::PG_DIAG_STATEMENT_POSITION).to_i
+          return unless param && position > 0 && sql.is_a?(String) && sql[position - 1, param.size] == param
+
+          before = sql[0, position - 1]
+          return unless (match = BIND_PARAMETER_KEYWORD.match(before))
+          # Conservative: a "--" inside quoted text on that line also suppresses the hint.
+          return if before[(before.rindex("\n", match.begin(1)) || -1) + 1...match.begin(1)].include?("--")
+
+          keyword = match[1].downcase.gsub(/\s+/, " ")
+          if keyword.start_with?("is")
+            "Hint: #{keyword.upcase} takes only NULL, TRUE, FALSE or UNKNOWN, not #{param}. Write the literal, " \
+              "compare with IS #{"NOT " unless keyword == "is not"}DISTINCT FROM #{param}, or interpolate the value with sanitize_sql_array."
+          else
+            "Hint: #{param} cannot follow #{keyword} as a typed literal. Cast it instead, as in " \
+              "CAST(#{param} AS #{keyword}) or #{param}::#{keyword}, or interpolate the value with sanitize_sql_array."
           end
         end
 
