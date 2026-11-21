@@ -2037,6 +2037,11 @@ class RelationTest < ActiveRecord::TestCase
     assert_not_predicate scope, :eager_loading?
   end
 
+  def test_order_doesnt_trigger_eager_loading_when_ordering_using_an_sql_literal_with_a_direction
+    scope = Post.includes(:comments).order(Arel.sql("1.0 * posts.tags_count").desc)
+    assert_not_predicate scope, :eager_loading?
+  end
+
   def test_automatically_added_where_references
     scope = Post.where(comments: { body: "Bla" })
     assert_equal ["comments"], scope.references_values

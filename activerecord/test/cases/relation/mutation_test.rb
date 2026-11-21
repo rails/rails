@@ -45,6 +45,13 @@ module ActiveRecord
       assert_empty relation.references_values
     end
 
+    test "#order! with an SQL literal ordering does not add a reference" do
+      node = Arel.sql("authors.name").desc
+      assert relation.order!(node).equal?(relation)
+      assert_equal [node], relation.order_values
+      assert_empty relation.references_values
+    end
+
     test "#default_order!" do
       assert relation.default_order!("name ASC").equal?(relation)
       assert_equal ["name ASC"], relation.default_order_values
