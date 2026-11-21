@@ -232,13 +232,14 @@ module ActiveRecord
 
       module ExecutorHooks # :nodoc:
         class << self
-          def run
+          def run(executor)
             outer = ConnectionPool.used_pools
             ConnectionPool.used_pools = outer&.dup
+            ConnectionPool.deadline = executor.deadline
             outer
           end
 
-          def complete(outer)
+          def complete(executor, outer)
             kept = nil
 
             ConnectionPool.each_used_pool do |pool|
@@ -256,13 +257,14 @@ module ActiveRecord
             ConnectionPool.used_pools = outer || inner&.without_pools
 
             kept&.each { |pool| ConnectionPool.used_pools.add(pool) }
+            ConnectionPool.deadline = nil
           end
         end
       end
 
       class << self
         def install_executor_hooks(executor = ActiveSupport::Executor)
-          executor.register_hook(ExecutorHooks)
+          executor.register_hook(ExecutorHooks, instance: true)
         end
 
         def used_pools # :nodoc:
@@ -275,6 +277,18 @@ module ActiveRecord
 
         def used_pools=(used_pools) # :nodoc:
           ActiveSupport::IsolatedExecutionState[:active_record_used_pools] = used_pools
+        end
+
+        def deadline # :nodoc:
+          ActiveSupport::IsolatedExecutionState[:active_record_deadline] || ActiveSupport::Deadline::Null
+        end
+
+        def deadline=(deadline) # :nodoc:
+          if deadline.nil?
+            ActiveSupport::IsolatedExecutionState.delete(:active_record_deadline)
+          else
+            ActiveSupport::IsolatedExecutionState[:active_record_deadline] = deadline
+          end
         end
 
         def each_used_pool # :nodoc:
@@ -989,6 +1003,10 @@ module ActiveRecord
           lease
         end
 
+        def deadline # :nodoc:
+          ActiveSupport::IsolatedExecutionState[:active_record_deadline] || ActiveSupport::Deadline::Null
+        end
+
         def build_async_executor
           case ActiveRecord.async_query_executor
           when :multi_thread_pool
@@ -1229,11 +1247,14 @@ module ActiveRecord
         # Raises:
         #
         # - ActiveRecord::ConnectionTimeoutError if a connection could not be acquired
+        # - ActiveRecord::DeadlineExceededError if a connection could not be acquired before the deadline is exceeded
         #
         #--
         # Implementation detail: the connection returned by +acquire_connection+
         # will already be "+connection.lease+ -ed" to the current thread.
-        def acquire_connection(checkout_timeout)
+        def acquire_connection(max_checkout_timeout)
+          checkout_timeout = deadline.clamp(max_checkout_timeout, error: DeadlineExceededError)
+
           # NOTE: we rely on <tt>@available.poll</tt> and +try_to_checkout_new_connection+ to
           # +conn.lease+ the returned connection (and to do this in a +synchronized+
           # section). This is not the cleanest implementation, as ideally we would
@@ -1355,6 +1376,7 @@ module ActiveRecord
         end
 
         def checkout_and_verify(c)
+          c.deadline = deadline
           c.clean!
         rescue Exception
           remove c

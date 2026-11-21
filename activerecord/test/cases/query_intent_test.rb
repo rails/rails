@@ -203,6 +203,14 @@ module ActiveRecord
       assert_predicate intent, :finalized?
     end
 
+    test "exceeded deadline is checked before querying" do
+      @connection.deadline = ActiveSupport::Deadline.new(-1)
+      intent = build_intent(@connection, allow_retry: true)
+      assert_raises ActiveRecord::DeadlineExceededError do
+        intent.execute!
+      end
+    end
+
     test "exhausted retries make the final failure available" do
       connection = @connection
       intent = build_intent(connection, allow_retry: true)

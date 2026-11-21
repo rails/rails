@@ -6,6 +6,7 @@ require "active_record/connection_adapters/abstract/schema_creation"
 require "active_support/concurrency/null_lock"
 require "active_support/concurrency/load_interlock_aware_monitor"
 require "active_support/concurrency/thread_monitor"
+require "active_support/deadline"
 require "arel/collectors/bind"
 require "arel/collectors/composite"
 require "arel/collectors/sql_string"
@@ -62,6 +63,7 @@ module ActiveRecord
       attr_reader :allow_preconnect # :nodoc:
       attr_accessor :pinned # :nodoc:
       alias :in_use? :owner
+      attr_accessor :deadline # :nodoc:
 
       def pool=(value)
         return if value.eql?(@pool)
@@ -243,6 +245,7 @@ module ActiveRecord
 
         @owner = nil
         @pinned = false
+        @deadline = ActiveSupport::Deadline::Null
         @pool = ActiveRecord::ConnectionAdapters::NullPool.new
         @idle_since = Process.clock_gettime(Process::CLOCK_MONOTONIC)
         @allow_preconnect = false

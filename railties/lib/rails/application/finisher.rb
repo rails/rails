@@ -118,6 +118,8 @@ module Rails
       end
 
       initializer :configure_executor_for_concurrency do |app|
+        app.executor.default_timeout = app.config.executor_timeout
+
         if config.allow_concurrency == false
           # User has explicitly opted out of concurrent request
           # handling: presumably their code is not threadsafe

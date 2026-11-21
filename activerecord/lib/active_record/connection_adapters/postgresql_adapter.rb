@@ -1149,6 +1149,7 @@ module ActiveRecord
         # Connects to a PostgreSQL server and sets up the adapter depending on the
         # connected server's characteristics.
         def connect
+          check_deadline!
           @raw_connection = self.class.new_client(@connection_parameters)
         rescue ConnectionNotEstablished => ex
           raise ex.set_pool(@pool)

@@ -127,7 +127,7 @@ module Rails
 
       @executor          = Class.new(ActiveSupport::Executor).set_temporary_name("ActiveSupport::Executor(#{inspect})")
       @reloader          = Class.new(ActiveSupport::Reloader).set_temporary_name("ActiveSupport::Reloader(#{inspect})")
-      @reloader.executor = @executor
+      @reloader.executor = ActiveSupport.executor = @executor
 
       @autoloaders = Rails::Autoloaders.new
 
