@@ -6,13 +6,12 @@ module ActiveModel
   class AttributeSet # :nodoc:
     class Builder # :nodoc:
       class TypeTable # :nodoc:
-        attr_reader :types, :type_keys_lut, :type_keys
+        attr_reader :types, :type_keys_lut
 
         #: (Array[String], Hash[String, Type::Value]) -> void
         def initialize(names, types)
           @types = names.map { |name| types[name] }.freeze
           @type_keys_lut = names.map { |name| types.key?(name) }.freeze
-          @type_keys = types.keys.freeze
           freeze
         end
       end
@@ -20,8 +19,6 @@ module ActiveModel
       # What a LazyIndexedAttributeSet looks up about the model's attributes, by
       # their index in the builder's #indexes.
       class Context # :nodoc:
-        attr_reader :type_keys
-
         # +names+ are the attribute names by index, +type_table+ their
         # TypeTable, and +defaults+ the default attributes by index that
         # attributes a row doesn't have fall back to.
@@ -30,7 +27,6 @@ module ActiveModel
           @names = names
           @types = type_table.types
           @type_keys_lut = type_table.type_keys_lut
-          @type_keys = type_table.type_keys
           @defaults = defaults
           freeze
         end

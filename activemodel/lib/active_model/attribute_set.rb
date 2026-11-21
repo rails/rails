@@ -341,8 +341,7 @@ module ActiveModel
 
     #: () -> Array[String]
     def keys
-      keys = row_keys | @ctx.type_keys
-      keys.keep_if do |name|
+      row_keys.keep_if do |name|
         index = index_for_name(name)
         if attribute = lookup(index)
           attribute.initialized?
@@ -484,7 +483,6 @@ module ActiveModel
       def materialize
         unless @materialized
           row_keys.each { |key| self[key] }
-          @ctx.type_keys.each { |key| self[key] }
           @materialized = true
         end
       end
