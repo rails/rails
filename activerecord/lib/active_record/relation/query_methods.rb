@@ -2493,7 +2493,10 @@ module ActiveRecord
         references = nil
 
         columns.each do |column|
-          column = column.expr if column.is_a?(Arel::Nodes::Ordering)
+          if column.is_a?(Arel::Nodes::Ordering)
+            column = column.expr
+            next unless column.is_a?(Arel::Attribute)
+          end
 
           table_name =
             case column
