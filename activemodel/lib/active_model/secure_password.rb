@@ -8,6 +8,10 @@ module ActiveModel
   module SecurePassword
     extend ActiveSupport::Concern
 
+    # BCrypt, the default algorithm, ignores everything after the first 72
+    # bytes of a password.
+    MAX_PASSWORD_LENGTH_ALLOWED = BCryptPassword::MAX_PASSWORD_LENGTH_ALLOWED
+
     DEFAULT_RESET_TOKEN_EXPIRES_IN = 15.minutes
 
     class << self
