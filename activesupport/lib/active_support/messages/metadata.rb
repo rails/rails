@@ -100,7 +100,7 @@ module ActiveSupport
 
         def pick_expiry(expires_at, expires_in)
           expiry = if expires_at
-            expires_at.utc
+            expires_at.getutc
           elsif expires_in
             Time.now.utc.advance(seconds: expires_in)
           end
