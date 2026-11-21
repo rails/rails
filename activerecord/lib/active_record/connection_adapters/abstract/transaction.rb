@@ -299,7 +299,7 @@ module ActiveRecord
         if @run_commit_callbacks
           if records
             if ActiveRecord.before_committed_on_all_records
-              ite = unique_records
+              ite = ActiveRecord::TouchLater.order_records(unique_records)
 
               instances_to_run_callbacks_on = records.each_with_object({}) do |record, candidates|
                 candidates[record] = record
@@ -309,7 +309,7 @@ module ActiveRecord
                 record.before_committed! if should_run_callbacks
               end
             else
-              records.uniq.each(&:before_committed!)
+              ActiveRecord::TouchLater.order_records(records.uniq).each(&:before_committed!)
             end
           end
 
