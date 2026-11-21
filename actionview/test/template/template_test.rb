@@ -541,6 +541,27 @@ class TestERBTemplate < ActiveSupport::TestCase
     assert_equal "<p>Hello", render
   end
 
+  def test_syntax_error_reported_past_the_template_uses_its_last_line
+    @template = new_template("<p>one</p>\n<% end %>\n<p>three</p>\n")
+
+    exception = assert_raises(ActionView::SyntaxErrorInTemplate) { silence_warnings { render } }
+
+    assert_equal "3", exception.line_number
+    assert_equal 3, exception.backtrace_locations.first.lineno
+    assert_includes exception.source_extract, "3: <p>three</p>"
+    assert_includes exception.message, "the end of the template"
+  end
+
+  def test_syntax_error_reported_inside_the_template_keeps_its_line
+    @template = new_template("<p>one</p>\n<%= 1 + * 2 %>\n<p>three</p>\n")
+
+    exception = assert_raises(ActionView::SyntaxErrorInTemplate) { silence_warnings { render } }
+
+    assert_equal "2", exception.line_number
+    assert_equal 2, exception.backtrace_locations.first.lineno
+    assert_not_includes exception.message, "the end of the template"
+  end
+
   def test_herb_compiles_html_templates
     previous = ActionView::Template::Handlers::ERB.erb_implementation
     ActionView::Base.erb_implementation = :herb
