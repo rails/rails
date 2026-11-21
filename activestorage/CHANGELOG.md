@@ -1,3 +1,11 @@
+*   Skip blobs that are already analyzed in `ActiveStorage::AnalyzeJob`.
+
+    A blob enqueued more than once, e.g. when attached to several records in one commit, is
+    downloaded and analyzed only once. Calling `analyze_later` on an analyzed blob no longer
+    re-analyzes it; call `ActiveStorage::Blob#analyze` instead.
+
+    *Andrew Fader*
+
 *   Preserve committed proxy responses when a storage error interrupts a
     streamed download.
 
