@@ -236,7 +236,10 @@ module ActiveRecord
       # Replace this collection with `other_array`. This will perform a diff
       # and delete/add only records that have changed.
       def replace(other_array)
-        other_array.each { |val| raise_on_type_mismatch!(val) }
+        other_array.each do |record|
+          raise_on_type_mismatch!(record)
+          validate_query_constraints!(record)
+        end
         original_target = skip_strict_loading { load_target }.dup
 
         if owner.new_record?
@@ -429,6 +432,7 @@ module ActiveRecord
           common_records = intersection(new_target, original_target)
           common_records.each do |record|
             skip_callbacks = true
+            assign_query_constraints(record)
             replace_on_target(record, skip_callbacks, replace: true)
           end
         end
@@ -438,6 +442,7 @@ module ActiveRecord
 
           records.each do |record|
             raise_on_type_mismatch!(record)
+            assign_query_constraints(record)
             add_to_target(record) do
               unless owner.new_record?
                 result &&= insert_record(record, true, raise) {
