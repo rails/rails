@@ -97,6 +97,34 @@ Rails.application.config.action_view.erb_implementation = :erubi
 
 Applications with a custom ERB implementation should set it through `config.action_view.erb_implementation`, since the framework default replaces an `ActionView::Base.erb_implementation` assignment made in an initializer.
 
+### HTML elements must close in the branch that opens them
+
+Herb pairs HTML tags within each branch of a conditional, block or loop, not
+across them. A template that opens an element in one branch and closes it in
+another, or in a later loop iteration, compiled through Erubi, but it fails to
+compile through Herb even when the HTML it renders is balanced. For example, this
+template fails to compile:
+
+```erb
+<% if open %>
+  <ul>
+<% else %>
+  </ul>
+<% end %>
+```
+
+Rendering it raises `ActionView::SyntaxErrorInTemplate`, caused by:
+
+```
+Opening tag `<ul>` at (2:3) doesn't have a matching closing tag `</ul>` in the same scope. (and 1 more error)
+```
+
+`bin/rails herb:check` lists these templates. Restructure them so that each
+element opens and closes in the same branch, for example by rendering a nested
+list through a partial that renders itself instead of tracking open tags in a
+loop. Until then, keep compiling HTML templates through Erubi with
+`config.action_view.erb_implementation = :erubi`.
+
 ### `:controller` and `:action` may no longer be used as dynamic route segments
 
 Routes such as the "default route" that older applications still carry in
