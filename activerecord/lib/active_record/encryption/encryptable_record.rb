@@ -56,7 +56,9 @@ module ActiveRecord
 
         # Returns the list of deterministic encryptable attributes in the model class.
         def deterministic_encrypted_attributes
-          @deterministic_encrypted_attributes ||= encrypted_attributes&.find_all do |attribute_name|
+          return unless encrypted_attributes
+
+          @deterministic_encrypted_attributes ||= encrypted_attributes.find_all do |attribute_name|
             type_for_attribute(attribute_name).deterministic?
           end
         end
