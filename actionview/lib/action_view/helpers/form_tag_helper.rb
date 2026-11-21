@@ -277,7 +277,8 @@ module ActionView
       # # => <input class="ip-input" id="ip" maxlength="15" name="ip" size="20" type="text" value="0.0.0.0" />
       # ```
       def text_field_tag(name, value = nil, options = {})
-        tag :input, { "type" => "text", "name" => name, "id" => sanitize_to_id(name), "value" => value }.update(options.stringify_keys)
+        options = options.stringify_keys
+        tag :input, { "type" => "text", "name" => name, "id" => (sanitize_to_id(name) unless options.key?("id")), "value" => value }.update(options)
       end
 
       # Creates a label element. Accepts a block.
@@ -1184,7 +1185,9 @@ module ActionView
 
         # see http://www.w3.org/TR/html4/types.html#type-name
         def sanitize_to_id(name)
-          name.to_s.delete("]").tr("^-a-zA-Z0-9:.", "_")
+          id = name.to_s.delete("]")
+          id.tr!("^-a-zA-Z0-9:.", "_")
+          id
         end
 
         def set_default_disable_with(value, tag_options)
