@@ -26,29 +26,29 @@ module ActionDispatch
 
           return if filename
 
-          if name.is_a?(String) && !name.frozen?
-            case name.encoding
-            when Encoding::UTF_8, Encoding::BINARY
-              # noop
-            when Encoding::US_ASCII
-              name.force_encoding(Encoding::UTF_8) # Might as well tag ASCII as UTF-8 to avoid converstion issues.
-            else
-              name.force_encoding(Encoding::BINARY)
-            end
-          end
-
-
-          if body.is_a?(String) && !body.frozen?
-            case body.encoding
-            when Encoding::UTF_8, Encoding::BINARY
-              # noop
-            when Encoding::US_ASCII
-              body.force_encoding(Encoding::UTF_8) # Might as well tag ASCII as UTF-8 to avoid converstion issues.
-            else
-              body.force_encoding(Encoding::BINARY)
-            end
-          end
+          _rails_restrict_encoding(name)
+          _rails_restrict_encoding(body)
         end
+
+        def get_filename(head)
+          _rails_restrict_encoding(super)
+        end
+
+        private
+          def _rails_restrict_encoding(string)
+            if string.is_a?(String) && !string.frozen?
+              case string.encoding
+              when Encoding::UTF_8, Encoding::BINARY
+                # noop
+              when Encoding::US_ASCII
+                # Might as well tag ASCII as UTF-8 to avoid converstion issues.
+                string.force_encoding(Encoding::UTF_8)
+              else
+                string.force_encoding(Encoding::BINARY)
+              end
+            end
+            string
+          end
       end
     end
   end
