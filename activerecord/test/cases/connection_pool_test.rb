@@ -425,6 +425,26 @@ module ActiveRecord
         @pool.checkin active_conn
       end
 
+      def test_flush_continues_when_connection_disconnect_fails
+        failing = @pool.checkout
+        other = @pool.checkout
+        other.connect!
+        @pool.checkin failing
+        @pool.checkin other
+
+        def failing.seconds_idle
+          1000
+        end
+        failing.define_singleton_method(:disconnect!) { raise ActiveRecord::ConnectionNotEstablished, "disconnect failed" }
+
+        assert_error_reported(ActiveRecord::ConnectionNotEstablished) do
+          @pool.flush(0)
+        end
+
+        assert_empty @pool.connections
+        assert_not_predicate other, :connected?
+      end
+
       def test_automatic_activation
         assert_not_predicate @pool, :activated?
 
