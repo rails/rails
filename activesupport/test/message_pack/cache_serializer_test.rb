@@ -38,6 +38,19 @@ class MessagePackCacheSerializerTest < ActiveSupport::TestCase
     end
   end
 
+  test "raises a cache deserialization error for a missing namespaced class" do
+    ["ActiveSupport::DoesNotActuallyExist", "DoesNotActuallyExist::Nested"].each do |name|
+      klass = Class.new(DefinesFromMsgpackExt)
+      klass.define_singleton_method(:name) { name }
+
+      dumped = dump(klass.new("foo"))
+      assert_not_nil dumped
+      assert_raises ActiveSupport::Cache::DeserializationError, match: name do
+        load(dumped)
+      end
+    end
+  end
+
   private
     def serializer
       ActiveSupport::MessagePack::CacheSerializer
