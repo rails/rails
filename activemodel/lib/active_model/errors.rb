@@ -517,6 +517,8 @@ module ActiveModel
     # ```
     #: (Symbol | String, ?untyped) -> Array[untyped]
     def messages_for(attribute, type = nil)
+      return [] if @errors.empty?
+
       where(attribute, type).map(&:message)
     end
 
