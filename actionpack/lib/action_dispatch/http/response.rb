@@ -512,6 +512,9 @@ module ActionDispatch # :nodoc:
     def parsed_content_type_header
       raw = get_header(CONTENT_TYPE)
       return NullContentTypeHeader unless raw
+      # Only a String is memoized. Any other value, such as a Mime::Type, is
+      # parsed on each read.
+      return parse_content_type(raw) unless String === raw
 
       # The memo key is a frozen copy, so changing the header in place misses it.
       # It is stored only once parsing succeeds, and the encoding is compared
