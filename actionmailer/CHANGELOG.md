@@ -1,4 +1,9 @@
+*   Support css background-image attributes with cid: on mail preview
+
+    *Alexey Vasiliev*
+
 *   Action Mailer no longer have a hard dependency on Active Job.
+
 
     If using Action Mailer standalone, as in outside Rails, and depend on the
     `deliver_later` feature, you may need to add Active Job in your Gemfile.
