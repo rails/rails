@@ -193,6 +193,14 @@ class InnerJoinAssociationTest < ActiveRecord::TestCase
     assert_not_empty scope.where("comments.type" => "SubSpecialComment")
   end
 
+  def test_find_with_sti_join_keeps_type_condition_when_association_scope_has_a_type_condition
+    post = posts(:sti_comments)
+    expected = post.special_comments_except_sub.map(&:id).sort
+
+    assert_equal expected, Post.joins(:special_comments_except_sub).where(id: post.id).pluck("comments.id").sort
+    assert_equal expected, Post.eager_load(:special_comments_except_sub).find(post.id).special_comments_except_sub.map(&:id).sort
+  end
+
   def test_join_polymorphic_has_one_declared_on_an_abstract_class
     item = items(:dvd)
     tagging = taggings(:godfather)
