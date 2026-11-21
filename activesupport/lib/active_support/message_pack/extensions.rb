@@ -281,7 +281,7 @@ module ActiveSupport
       def load_class(name)
         Object.const_get(name)
       rescue NameError => error
-        if error.name.to_s == name
+        if name.split("::").include?(error.name.to_s)
           raise MissingClassError, "Missing class: #{name}"
         else
           raise
