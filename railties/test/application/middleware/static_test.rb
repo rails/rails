@@ -46,6 +46,28 @@ module ApplicationTests
       assert_equal "public, max-age=60",     last_response.headers["Cache-Control"]
     end
 
+    test "callable headers resolve per path and are not stringified" do
+      app_file "public/robots.txt", "User-agent: *\nDisallow:"
+      app_file "public/assets/app.js", "console.log(1)"
+      add_to_config <<-CONFIG
+        config.public_file_server.headers = {
+          "Cache-Control" => ->(path, _) {
+            path.start_with?("/assets/") ? "public, max-age=31536000" : "public, max-age=86400"
+          }
+        }
+      CONFIG
+
+      require "#{app_path}/config/environment"
+
+      get "/robots.txt"
+      assert_equal "public, max-age=86400", last_response.headers["Cache-Control"]
+      assert_not_includes last_response.headers["Cache-Control"].to_s, "Proc"
+
+      get "/assets/app.js"
+      assert_equal "public, max-age=31536000", last_response.headers["Cache-Control"]
+      assert_not_includes last_response.headers["Cache-Control"].to_s, "Proc"
+    end
+
     test "public_file_server.index_name defaults to 'index'" do
       app_file "public/index.html", "/index.html"
 
