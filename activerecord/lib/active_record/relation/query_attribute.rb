@@ -42,10 +42,14 @@ module ActiveRecord
       end
 
       def infinite?
+        return false if value_before_type_cast.is_a?(StatementCache::Substitute)
+
         infinity?(value_before_type_cast) || serializable? && infinity?(value_for_database)
       end
 
       def unboundable?
+        return if value_before_type_cast.is_a?(StatementCache::Substitute)
+
         unless defined?(@_unboundable)
           serializable? { |value| @_unboundable = value <=> 0 } && @_unboundable = nil
         end
