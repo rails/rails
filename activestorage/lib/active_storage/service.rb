@@ -79,6 +79,12 @@ module ActiveStorage
       raise NotImplementedError
     end
 
+    # The service where a file must be uploaded before it can be downloaded.
+    # MirrorService uses its primary for this and mirrors the file separately.
+    def primary_service # :nodoc:
+      self
+    end
+
     # Update metadata for the file identified by `key` in the service.
     def update_metadata(key, **metadata)
       instrument :update_metadata, key: key, **metadata do

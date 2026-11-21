@@ -311,7 +311,7 @@ class ActiveStorage::Blob < ActiveStorage::Record
     self.identified   = true
   end
 
-  def upload_without_unfurling(io) # :nodoc:
+  def upload_without_unfurling(io, service: self.service) # :nodoc:
     service.upload key, io, checksum: checksum, **service_metadata
   end
 

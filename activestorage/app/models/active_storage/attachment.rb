@@ -31,8 +31,8 @@ class ActiveStorage::Attachment < ActiveStorage::Record
   # so create_variants knows to skip them.
   attr_accessor :immediate_variants_processed
 
-  # Set to true for fresh uploads (io provided), false for existing blobs.
-  # Used to determine whether to run :upload callbacks in after_create_commit.
+  # Set for fresh uploads whose caller runs the :upload callbacks.
+  # Attachments to existing blobs run those callbacks in after_create_commit.
   attr_accessor :pending_upload
 
   ##
@@ -66,6 +66,13 @@ class ActiveStorage::Attachment < ActiveStorage::Record
     preview_image_attachment: { blob: { variant_records: { image_attachment: :blob } } }
   }) }
 
+  class << self
+    def analyze_lazily?(record_class, name) # :nodoc:
+      reflection = record_class.reflect_on_attachment(name)
+      (reflection&.options&.fetch(:analyze, nil) || ActiveStorage.analyze) == :lazily
+    end
+  end
+
   # Called by Attached::Changes::CreateOne to handle the upload workflow for
   # fresh uploads. Processes immediate variants and analyzes from the local io
   # (avoiding a download round-trip), uploads the blob, then runs the :upload
@@ -89,6 +96,10 @@ class ActiveStorage::Attachment < ActiveStorage::Record
     run_upload_callbacks
   ensure
     blob.local_io = nil
+  end
+
+  def run_upload_callbacks # :nodoc:
+    run_callbacks(:upload)
   end
 
   # Synchronously deletes the attachment and [purges the blob](rdoc-ref:ActiveStorage::Blob#purge).
@@ -179,10 +190,6 @@ class ActiveStorage::Attachment < ActiveStorage::Record
   end
 
   private
-    def run_upload_callbacks
-      run_callbacks(:upload)
-    end
-
     def analyze_blob_later
       blob.analyze_later unless blob.analyzed? || skip_later_analysis?
     end
@@ -195,11 +202,7 @@ class ActiveStorage::Attachment < ActiveStorage::Record
     end
 
     def skip_later_analysis?
-      (analyze_option || ActiveStorage.analyze) == :lazily
-    end
-
-    def analyze_option
-      record.attachment_reflections[name]&.options&.fetch(:analyze, nil)
+      self.class.analyze_lazily?(record.class, name)
     end
 
     def mirror_blob_later
