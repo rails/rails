@@ -20,6 +20,12 @@ class ActiveStorage::ReflectionTest < ActiveSupport::TestCase
     assert_equal :immediately, reflection.options[:analyze]
   end
 
+  test "reflecting on an attachment with a prefix" do
+    assert_equal "avatars", PrefixedUser.reflect_on_attachment(:avatar_with_prefix).prefix
+    assert_instance_of Proc, PrefixedUser.reflect_on_attachment(:highlights_with_prefix).prefix
+    assert_nil User.reflect_on_attachment(:avatar).prefix
+  end
+
   test "reflection on a singular attachment with the same name as an attachment on another model" do
     reflection = Group.reflect_on_attachment(:avatar)
     assert_equal Group, reflection.active_record

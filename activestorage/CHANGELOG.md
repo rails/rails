@@ -1,3 +1,44 @@
+*   Allow configuring a key prefix for blobs.
+
+    A global prefix applies to every blob key:
+
+    ```ruby
+    config.active_storage.blob_prefix = "active_storage"
+    # => active_storage/<random_key>
+    ```
+
+    `has_one_attached` and `has_many_attached` accept a `:prefix` option, which
+    can be a string or a proc called with the record (and the attachable, if it
+    accepts a second argument) when the record is saved. It is appended after
+    the global prefix:
+
+    ```ruby
+    class User < ApplicationRecord
+      belongs_to :tenant
+      has_one_attached :avatar, prefix: ->(user) { user.tenant_id }
+    end
+    # => active_storage/42/<random_key>
+    ```
+
+    Blobs created by direct uploads aren't attached yet, so they use
+    `config.active_storage.direct_upload_prefix` instead, which subclasses of
+    `ActiveStorage::DirectUploadsController` can override per request:
+
+    ```ruby
+    class DirectUploadsController < ActiveStorage::DirectUploadsController
+      private
+        def direct_upload_prefix
+          [ super, Current.account.id ]
+        end
+    end
+    ```
+
+    Variants and preview images are now stored under the same prefix as their
+    blob. This also applies to blobs created with a custom `key:` containing a
+    `/`: their new variants are stored next to them, instead of at the top level.
+
+    *Gonzalo Rodríguez-Baltanás Díaz*
+
 *   Preserve committed proxy responses when a storage error interrupts a
     streamed download.
 
