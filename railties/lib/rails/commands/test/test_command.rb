@@ -77,9 +77,12 @@ module Rails
         end
 
         def run_prepare_task
-          Rails::Command::RakeCommand.perform("test:prepare", [], {})
-        rescue UnrecognizedCommandError => error
-          raise unless error.name == "test:prepare"
+          return unless Rails::Command::RakeCommand.task_defined?("test:prepare")
+
+          # A subprocess keeps prepare tasks that depend on :environment from booting
+          # the app ahead of test_helper.rb and the coverage tools it starts.
+          # Kernel.system: a bare system is the Thor command behind `bin/rails test:system`.
+          Kernel.system("rake", "test:prepare") || exit(false)
         end
     end
   end

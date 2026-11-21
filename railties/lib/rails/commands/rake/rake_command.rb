@@ -16,6 +16,10 @@ module Rails
           end
         end
 
+        def task_defined?(task)
+          with_rake { |rake| !!rake.lookup(task) }
+        end
+
         def perform(task, args, config)
           with_rake(task, *args) do |rake|
             if unrecognized_task = (rake.top_level_tasks - ["default"]).find { |task| !rake.lookup(task[/[^\[]+/]) }
