@@ -34,8 +34,8 @@ module ActionText
         end
       end
 
-      def from_node(node)
-        new(node)
+      def from_node(node, attachables_by_sgid = {})
+        new(node, attachables_by_sgid)
       end
 
       def attachment_selector
@@ -49,13 +49,14 @@ module ActionText
 
     attr_reader :node
 
-    def initialize(node)
+    def initialize(node, attachables_by_sgid = {})
       @node = node
+      @attachables_by_sgid = attachables_by_sgid
     end
 
     def attachments
       @attachments ||= node.css(ActionText::AttachmentGallery.attachment_selector).map do |node|
-        ActionText::Attachment.from_node(node).with_full_attributes
+        ActionText::Attachment.from_node(node, @attachables_by_sgid[node["sgid"]]).with_full_attributes
       end
     end
 
