@@ -1114,6 +1114,31 @@ module ActiveRecord
       ensure
         connection&.disconnect!
       end
+
+      test "disconnect and recover when the thread is killed during #configure_connection" do
+        connection = without_ractor_proxy { ActiveRecord::Base.connection_pool }.send(:new_connection)
+
+        configuring = Thread::Queue.new
+        calls = 0
+        connection.singleton_class.define_method(:configure_connection) do
+          calls += 1
+          if calls == 1
+            configuring << true
+            sleep
+          end
+          super()
+        end
+
+        thread = Thread.new { connection.exec_query("SELECT 1") }
+        assert configuring.pop(timeout: 5)
+        thread.kill.join
+
+        assert_equal [[1]], connection.exec_query("SELECT 1").rows
+        assert_equal 2, calls
+      ensure
+        thread&.kill&.join
+        connection&.disconnect!
+      end
     end
 
     unless in_memory_db?
