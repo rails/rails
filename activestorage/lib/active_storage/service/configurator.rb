@@ -2,10 +2,17 @@
 
 module ActiveStorage
   class Service::Configurator # :nodoc:
+    URL_SERVICES = { "disk" => "Disk", "s3" => "S3", "gcs" => "GCS" }.freeze
+
     attr_reader :configurations
 
     def self.build(service_name, configurations)
       new(configurations).build(service_name)
+    end
+
+    # Converts a URL, such as the value of +STORAGE_URL+, into a service configuration.
+    def self.configuration_from_url(url)
+      new({}).configuration_from_url(url)
     end
 
     def initialize(configurations)
@@ -17,6 +24,14 @@ module ActiveStorage
       resolve(config.fetch(:service)).build(
         **config, configurator: self, name: service_name
       )
+    end
+
+    def configuration_from_url(url)
+      service = URL_SERVICES.fetch(url[%r{\A([^:/]+)://}, 1]) do
+        raise ArgumentError, "STORAGE_URL must start with one of #{URL_SERVICES.keys.map { |scheme| "#{scheme}://" }.join(", ")}"
+      end
+
+      { service: service, **resolve(service).service_config_from_url(url) }
     end
 
     def inspect # :nodoc:

@@ -1,3 +1,16 @@
+*   Allow configuring a service with the `STORAGE_URL` environment variable.
+
+    ```
+    disk:///path/to/storage
+    s3://access_key_id:secret_access_key@us-east-1/your-bucket
+    gcs://path/to/gcs.keyfile@your_project/your-bucket
+    ```
+
+    The URL replaces the service chosen by `config.active_storage.service`, and
+    `config/storage.yml` is no longer required when it is set.
+
+    *zzak*, *Islam Elsayed*
+
 *   Preserve committed proxy responses when a storage error interrupts a
     streamed download.
 
