@@ -440,8 +440,9 @@ module ActionController
         # them, when given an array) and uses it verbatim for the WWW-Authenticate
         # response header. Any scheme name can be required. When no `scheme` is
         # given, `"Token"`, `"Bearer"`, and `"DPoP"` are accepted. The request's
-        # authentication scheme is yielded as a downcased symbol in an optional
-        # third argument to `login_procedure`.
+        # authentication scheme is yielded as a downcased symbol in a third argument
+        # to `login_procedure`, which a block may leave out. A lambda or a method
+        # gets it only when it requires a third positional argument or takes a splat.
         #
         # See ActionController::HttpAuthentication::Token for example usage.
         def authenticate_or_request_with_http_token(realm = "Application", message = nil, content_type = nil, scheme: nil, &login_procedure)
@@ -480,7 +481,8 @@ module ActionController
       #         authenticate(controller) { |token, options, scheme| ... }
       #
       #     The third argument contains the downcased authentication scheme from the
-      #     request, e.g. `:token`, `:bearer`, or `:dpop`.
+      #     request, e.g. `:token`, `:bearer`, or `:dpop`. Lambdas and methods get it
+      #     only when they require three positional arguments or take a splat.
       #
       def authenticate(controller, scheme: nil, &login_procedure)
         request = controller.request
@@ -495,7 +497,11 @@ module ActionController
         end
 
         unless token.blank?
-          login_procedure.call(token, options, request_scheme)
+          if takes_scheme?(login_procedure)
+            login_procedure.call(token, options, request_scheme)
+          else
+            login_procedure.call(token, options)
+          end
         end
       end
 
@@ -590,6 +596,20 @@ module ActionController
         def parse_token_and_options(authorization_request)
           params = token_params_from authorization_request
           [params.shift[1], Hash[params].with_indifferent_access]
+        end
+
+        # Lambdas and methods get the scheme only when they require a third positional
+        # argument or take a splat, so those written for two arguments, optional ones
+        # included, are called as before.
+        def takes_scheme?(login_procedure)
+          return true unless login_procedure.lambda?
+
+          required = 0
+          login_procedure.parameters.each do |type, _|
+            return true if type == :rest
+            required += 1 if type == :req
+          end
+          required > 2
         end
 
         def normalize_schemes(schemes)

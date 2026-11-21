@@ -325,7 +325,9 @@
 
     Any scheme name can be required. Without `scheme:`, `Token`, `Bearer`, and
     `DPoP` are accepted. The request's scheme is yielded to the authentication
-    block as a downcased symbol in an optional third argument.
+    block as a downcased symbol in an optional third argument. Lambdas and
+    methods get it only when they require three positional arguments or take a
+    splat, so those taking just the token and options keep working.
 
     *Chad Cole*
 
