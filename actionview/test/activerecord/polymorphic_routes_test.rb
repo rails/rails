@@ -314,6 +314,21 @@ class PolymorphicRoutesTest < ActionController::TestCase
     end
   end
 
+  def test_helpers_prefixed_with_edit_and_new_go_through_overridden_polymorphic_path_and_url
+    with_test_routes do
+      @project.save
+      actions = []
+      define_singleton_method(:polymorphic_path) { |record, options = {}| actions << options[:action]; super(record, options) }
+      define_singleton_method(:polymorphic_url) { |record, options = {}| actions << options[:action]; super(record, options) }
+
+      assert_equal "/projects/#{@project.id}/edit", edit_polymorphic_path(@project)
+      assert_equal "http://example.com/projects/#{@project.id}/edit", edit_polymorphic_url(@project)
+      assert_equal "/projects/#{@project.id}/tasks/new", new_polymorphic_path([@project, :task])
+      assert_equal "http://example.com/projects/new", new_polymorphic_url(Project)
+      assert_equal %w[edit edit new new], actions
+    end
+  end
+
   def test_url_helper_with_url_options
     with_test_routes do
       @project.save
