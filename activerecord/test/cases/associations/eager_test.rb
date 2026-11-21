@@ -1433,6 +1433,28 @@ class EagerAssociationTest < ActiveRecord::TestCase
     assert_equal expected, Author.preload(:ordered_categorized_posts_by_default_desc).find(author.id).ordered_categorized_posts_by_default_desc
   end
 
+  def test_preload_has_many_through_with_conditions_on_the_through_table_and_order_on_the_source_table
+    author = Author.create!(name: "Preload Test")
+    [categories(:technology), categories(:cooking), categories(:general)].each do |category|
+      Categorization.create!(author: author, post: posts(:welcome), category: category, special: true)
+    end
+    expected = [categories(:cooking), categories(:general), categories(:technology)]
+
+    assert_equal expected, author.special_categories_by_name.to_a
+    assert_equal expected, Author.preload(:special_categories_by_name).find(author.id).special_categories_by_name
+  end
+
+  def test_preload_has_many_through_with_conditions_on_the_through_and_source_tables_and_order_on_the_source_table
+    author = Author.create!(name: "Preload Test")
+    [categories(:technology), categories(:cooking), categories(:general)].each do |category|
+      Categorization.create!(author: author, post: posts(:welcome), category: category, special: true)
+    end
+    expected = [categories(:cooking), categories(:technology)]
+
+    assert_equal expected, author.special_categories_except_general_by_name.to_a
+    assert_equal expected, Author.preload(:special_categories_except_general_by_name).find(author.id).special_categories_except_general_by_name
+  end
+
   def test_preload_has_many_through_with_source_type_ignores_other_types_in_loaded_through_records
     tag = tags(:general)
     expected = tag.tagged_posts.sort_by(&:id)

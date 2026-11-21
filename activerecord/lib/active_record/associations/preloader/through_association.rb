@@ -203,11 +203,10 @@ module ActiveRecord
                 scope.includes!(includes ? { source => includes } : source)
               end
 
-              if values[:references] && !values[:references].empty?
-                scope.references_values |= values[:references]
-              else
-                scope.references!((source_type_reflection || source_reflection).table_name)
-              end
+              # The scope's conditions and order can be on the source table
+              # without referencing it, so the source table is always joined.
+              scope.references_values |= values[:references] if values[:references]
+              scope.references!((source_type_reflection || source_reflection).table_name)
 
               if preload = values[:preload]
                 scope.preload!(source_reflection.name => preload)
