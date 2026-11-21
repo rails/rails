@@ -428,12 +428,11 @@ module ActionView
       #
       # +selected+ can also be a hash, specifying both <tt>:selected</tt> and/or <tt>:disabled</tt> values as required.
       #
-      # Be sure to specify the same class as the +value_method+ when specifying selected or disabled options.
-      # Failure to do this will produce undesired results. Example:
-      #   options_from_collection_for_select(@people, 'id', 'name', '1')
-      # Will not select a person with the id of 1 because 1 (an Integer) is not the same as '1' (a string)
+      # The selected and disabled values are compared with the option values as strings, so they do not need to be
+      # of the same class as the values returned by +value_method+. Both of these select the person with an id of 1:
+      #
       #   options_from_collection_for_select(@people, 'id', 'name', 1)
-      # should produce the desired results.
+      #   options_from_collection_for_select(@people, 'id', 'name', '1')
       def options_from_collection_for_select(collection, value_method, text_method, selected = nil)
         options = collection.map do |element|
           option = [value_for_collection(element, text_method), value_for_collection(element, value_method)]
