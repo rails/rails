@@ -202,6 +202,16 @@ class ResponseTest < ActiveSupport::TestCase
     assert_nil @response.content_type
   end
 
+  test "a Content-Type header set to a Mime::Type is read and committed" do
+    @response.headers["Content-Type"] = Mime[:json]
+
+    assert_equal "application/json", @response.media_type
+    assert_equal "utf-8", @response.charset
+
+    _status, headers, _body = @response.to_a
+    assert_equal "application/json", headers["Content-Type"].to_s
+  end
+
   test "media type and charset follow changes to the Content-Type header" do
     @response.headers["Content-Type"] = +"text/csv; charset=iso-8859-1"
     assert_equal "text/csv", @response.media_type
