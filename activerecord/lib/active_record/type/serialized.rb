@@ -70,6 +70,11 @@ module ActiveRecord
         true
       end
 
+      def freezable_default?(value)
+        # The coder may load even a nil default as a container.
+        false
+      end
+
       private
         # Prevent Ruby 4.0 "delegator does not forward private method" warning.
         # Kernel#inspect calls instance_variables_to_inspect which, without this,

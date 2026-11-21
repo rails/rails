@@ -116,6 +116,60 @@ class SerializedAttributeTest < ActiveRecord::TestCase
     assert_equal({ key: "value" }, t.content)
   end
 
+  def test_serialized_column_default_is_unchanged_on_a_new_record_until_read
+    coder = Class.new do
+      def self.load(value) = value.blank? ? [] : JSON.parse(value)
+      def self.dump(value) = JSON.dump(value)
+    end
+    klass = Class.new(ActiveRecord::Base) do
+      self.table_name = "admin_users"
+      serialize :preferences, coder: coder
+    end
+
+    user = klass.new
+    assert_not_predicate user, :changed?
+    user.save!(validate: false)
+    assert_equal "", user.reload.preferences_before_type_cast
+
+    user = klass.new
+    assert_equal [], user.preferences
+    assert_predicate user, :changed?
+  end
+
+  def test_mutable_column_defaults_are_not_shared_between_new_records
+    main_ractor_connection(ActiveRecord::Base.lease_connection).create_table(:serialized_defaults, force: true) do |t|
+      t.string :settings, default: '{"theme":{"mode":"light"}}'
+      t.string :options
+    end
+    nested_coder = Class.new do
+      def self.load(value) = value.nil? ? { "theme" => { "mode" => "light" } } : JSON.parse(value)
+      def self.dump(value) = JSON.dump(value)
+    end
+    json_decorator = ActiveSupport::Delegation::DelegateClass(ActiveModel::Type::Value).new(ActiveRecord::Type::Json.new)
+    model = Class.new(ActiveRecord::Base) { self.table_name = "serialized_defaults" }
+
+    [
+      [:settings, Class.new(model) { serialize :settings, coder: JSON }],
+      [:settings, Class.new(model) { serialize :settings, coder: JSON; normalizes :settings, with: ->(settings) { settings } }],
+      [:settings, Class.new(model) { attribute :settings, :json }],
+      [:settings, Class.new(model) { attribute :settings, json_decorator }],
+      [:options, Class.new(model) { serialize :options, coder: nested_coder }],
+      [:options, Class.new(model) { serialize :options, coder: nested_coder; encrypts :options }],
+    ].each do |name, klass|
+      klass.new.public_send(name)["theme"]["mode"] = "dark"
+      assert_equal "light", klass.new.public_send(name)["theme"]["mode"]
+      assert_not_predicate klass.new, :changed?
+    end
+
+    duck_type = Object.new
+    def duck_type.deserialize(value) = value
+    assert_nil Class.new(model) { attribute :options, duck_type }.new.options
+    assert_nil Class.new(model) { attribute :options, duck_type; encrypts :options }.new.options
+    assert_nil Class.new(model) { attribute :options, duck_type; normalizes :options, with: ->(options) { options } }.new.options
+  ensure
+    main_ractor_connection(ActiveRecord::Base.lease_connection).drop_table(:serialized_defaults, if_exists: true)
+  end
+
   def test_serialized_attribute_on_custom_attribute_with_default
     klass = Class.new(ActiveRecord::Base) do
       self.table_name = Topic.table_name
