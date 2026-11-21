@@ -196,6 +196,8 @@ class Author < ActiveRecord::Base
 
   has_many :special_categories_with_conditions, -> { where(categorizations: { special: true }) }, through: :categorizations, source: :category
   has_many :nonspecial_categories_with_conditions, -> { where(categorizations: { special: false }) }, through: :categorizations, source: :category
+  has_many :special_categories_by_name, -> { where(categorizations: { special: true }).order(:name) }, through: :categorizations, source: :category
+  has_many :special_categories_except_general_by_name, -> { where(categorizations: { special: true }).where.not(name: "General").order(:name) }, through: :categorizations, source: :category
 
   has_many :categories_like_general, -> { where(name: "General") }, through: :categorizations, source: :category, class_name: "Category"
 
