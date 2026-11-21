@@ -198,6 +198,25 @@ class CodeStatisticsCalculatorTest < ActiveSupport::TestCase
     assert_equal 4, @code_statistics_calculator.code_lines
   end
 
+  test "calculate TypeScript LOCs and methods" do
+    code = <<-'CODE'
+      /*
+       * function commented(): void {}
+       */
+      // Returns the given number unchanged.
+
+      function foo(x: number): number {
+        return x;
+      }
+    CODE
+
+    @code_statistics_calculator.add_by_io(StringIO.new(code), :ts)
+
+    assert_equal 8, @code_statistics_calculator.lines
+    assert_equal 3, @code_statistics_calculator.code_lines
+    assert_equal 1, @code_statistics_calculator.methods
+  end
+
   test "skip JS comments" do
     code = <<-'CODE'
       /*
