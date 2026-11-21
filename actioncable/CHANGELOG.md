@@ -1,3 +1,11 @@
+*   Skip a periodic timer tick while the previous tick is still waiting or running.
+
+    A connection runs its work one job at a time, so a timer callback that took
+    longer than its interval queued ticks without limit, and the connection's
+    commands and close waited behind them.
+
+    *Bruno Costanzo*
+
 *   Filter parameters from the message logged when a command can't be handled.
 
     When a channel action raised, the error log included the raw WebSocket message,
