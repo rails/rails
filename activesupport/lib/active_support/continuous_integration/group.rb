@@ -36,7 +36,7 @@ module ActiveSupport
       end
 
       def run
-        previous_trap = Signal.trap("INT") { abort @ci.colorize("\n❌ #{@running.keys.join(', ')} interrupted", :error) }
+        previous_trap = Signal.trap("INT") { abort @ci.colorize("\n❌ #{@running.values.join(', ')} interrupted", :error) }
 
         queue = Queue.new
         @tasks.each { |task| queue << task }
@@ -80,10 +80,11 @@ module ActiveSupport
         end
 
         def execute_step(title, command)
-          @mutex.synchronize { @running[title] = Time.now.to_f }
+          started = Time.now.to_f
+          @mutex.synchronize { @running[Thread.current] = title }
           success, log_path = capture_output(command)
           @mutex.synchronize do
-            started = @running.delete(title)
+            @running.delete(Thread.current)
             clear_progress
 
             @ci.report_step(title, command) do
@@ -173,7 +174,7 @@ module ActiveSupport
           if @running.any?
             print "\n\n" unless @progress_visible
             elapsed = format_elapsed_brief(Time.now.to_f - @start_time)
-            print "\r\e[K#{@ci.colorize("#{@name} (#{elapsed}) - #{@running.keys.join(' | ')}...", :progress)}"
+            print "\r\e[K#{@ci.colorize("#{@name} (#{elapsed}) - #{@running.values.join(' | ')}...", :progress)}"
             @progress_visible = true
             $stdout.flush
           end
