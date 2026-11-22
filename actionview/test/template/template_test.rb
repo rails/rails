@@ -260,6 +260,28 @@ class TestERBTemplate < ActiveSupport::TestCase
     assert_equal "Hello", render
   end
 
+  def test_strict_locals_default_with_safe_navigation_accepts_a_render_block
+    @template = new_template("<%# locals: (name: nil, message: name&.upcase) -%>\n<%= message %>")
+
+    assert_silent do
+      assert_equal "HELLO", @template.render(@context, { name: "Hello" }) { "content" }
+    end
+    assert_includes @context.method(@template.method_name).parameters, [:block, :_]
+  end
+
+  def test_strict_locals_can_explicitly_accept_the_render_block_with_safe_navigation
+    @template = new_template("<%# locals: (name: nil, message: name&.upcase, &_) -%>\n<%= message %> <%= _.call %>")
+
+    assert_equal "HELLO content", @template.render(@context, { name: "Hello" }) { "content" }
+  end
+
+  def test_strict_locals_detects_an_explicit_render_block_with_non_utf8_defaults
+    source = "<%# locals: (label: '\u{30bd}', &_) -%>\n<%= label %> <%= _.call %>".encode(Encoding::Windows_31J)
+    @template = new_template(source)
+
+    assert_equal "\u{30bd} content", @template.render(@context, {}) { "content" }
+  end
+
   def test_locals_with_parentheses
     @template = new_template("<%# locals: (message: '(Hello)') -%>\n<%= message %>")
     assert_equal "(Hello)", render

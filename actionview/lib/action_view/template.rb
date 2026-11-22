@@ -190,6 +190,7 @@ module ActionView
       autoload :RawFile
       autoload :Renderable
       autoload :Sources
+      autoload :StrictLocalsParser
       autoload :Text
       autoload :Types
     end
@@ -544,16 +545,9 @@ module ActionView
         source = encode!
         code = @handler.call(self, source)
 
-        method_arguments =
-          if set_strict_locals
-            if set_strict_locals.include?("&")
-              "local_assigns, output_buffer, #{set_strict_locals}"
-            else
-              "local_assigns, output_buffer, #{set_strict_locals}, &_"
-            end
-          else
-            "local_assigns, output_buffer, &_"
-          end
+        method_arguments = +"local_assigns, output_buffer"
+        method_arguments << ", #{set_strict_locals}" if set_strict_locals
+        method_arguments << ", &_" unless method_arguments.include?("&") && StrictLocalsParser.block_parameter?(method_arguments)
 
         # Make sure that the resulting String to be eval'd is in the
         # encoding of the code
