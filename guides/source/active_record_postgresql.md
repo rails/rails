@@ -311,7 +311,7 @@ irb> article.status_archived?
 => false
 
 irb> article.status = "deleted"
-ArgumentError: 'deleted' is not a valid status
+ArgumentError: "deleted" is not a valid status. Valid values are: "draft", "published", "archived"
 ```
 
 To rename the enum you can use `rename_enum` along with updating any model
