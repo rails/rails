@@ -130,7 +130,8 @@ module ActiveSupport
           keys_to_names = names.index_by { |name| normalize_key(name, options) }
 
           local_entries = local_cache.read_multi_entries(keys_to_names.keys)
-          results = local_entries.each_with_object({}) do |(key, value), result|
+          results = {} if options[:force]
+          results ||= local_entries.each_with_object({}) do |(key, value), result|
             # If we recorded a miss in the local cache, `#fetch_multi` will forward
             # that key to the real store, and the entry will be replaced
             # local_cache.delete_entry(key)
