@@ -82,7 +82,13 @@ module ActiveRecord::Associations::Builder # :nodoc:
 
     def self.define_callbacks(model, reflection)
       if dependent = reflection.options[:dependent]
-        check_dependent_options(dependent, model)
+        unless dependent.is_a?(Symbol) || dependent.is_a?(Proc)
+          raise ArgumentError, "The :dependent option must be a Symbol or a Proc, but is #{dependent.inspect}"
+        end
+
+        # A Proc is only resolved at runtime, so its result is validated then
+        # and every callback it might need is installed.
+        check_dependent_options(dependent, model) unless dependent.is_a?(Proc)
         add_destroy_callbacks(model, reflection)
         add_after_commit_jobs_callback(model, dependent)
       end
@@ -138,13 +144,22 @@ module ActiveRecord::Associations::Builder # :nodoc:
       raise NotImplementedError
     end
 
-    def self.check_dependent_options(dependent, model)
+    # A Proc may resolve to :destroy_async at runtime.
+    def self.async_dependent?(dependent)
+      dependent == :destroy_async || dependent.is_a?(Proc)
+    end
+
+    def self.check_dependent_options(dependent, model, from_proc: false)
       if dependent == :destroy_async && !model.destroy_association_async_job
         err_message = "A valid destroy_association_async_job is required to use `dependent: :destroy_async` on associations"
         raise ActiveRecord::ConfigurationError, err_message
       end
       unless valid_dependent_options.include?(dependent)
-        raise ArgumentError, "The :dependent option must be one of #{valid_dependent_options}, but is :#{dependent}"
+        if from_proc
+          raise ArgumentError, "The :dependent Proc must return one of #{valid_dependent_options} or nil, but returned #{dependent.inspect}"
+        else
+          raise ArgumentError, "The :dependent option must be one of #{valid_dependent_options}, but is :#{dependent}"
+        end
       end
     end
 
@@ -162,7 +177,7 @@ module ActiveRecord::Associations::Builder # :nodoc:
     end
 
     def self.add_after_commit_jobs_callback(model, dependent)
-      if dependent == :destroy_async
+      if async_dependent?(dependent)
         mixin = model.generated_association_methods
 
         unless mixin.method_defined?(:_after_commit_jobs)
@@ -183,7 +198,7 @@ module ActiveRecord::Associations::Builder # :nodoc:
 
     private_class_method :build_scope, :macro, :valid_options, :validate_options, :define_extensions,
       :define_callbacks, :define_accessors, :define_validations,
-      :define_change_tracking_methods, :valid_dependent_options, :check_dependent_options,
+      :define_change_tracking_methods, :valid_dependent_options, :async_dependent?,
       :add_destroy_callbacks, :add_after_commit_jobs_callback
   end
 end

@@ -65,6 +65,64 @@ class DestroyAssociationAsyncTest < ActiveRecord::TestCase
       dependent: :destroy_async
   end
 
+  class CallableDependentBook < ActiveRecord::Base
+    self.table_name = "books"
+    has_many :essays, class_name: "EssayDestroyAsync", foreign_key: "book_id",
+      dependent: -> { :destroy_async if name == "async" }
+  end
+
+  class CallableDependentSoftDeleteParent < ActiveRecord::Base
+    self.table_name = "destroy_async_parent_soft_deletes"
+    has_one :dl_keyed_has_one, foreign_key: "destroy_async_parent_soft_delete_id",
+      dependent: -> { :destroy_async }, ensuring_owner_was: :deleted?
+
+    def destroy
+      update(deleted: true)
+      run_callbacks(:destroy)
+    end
+  end
+
+  test "has_many with a Proc :dependent enqueues a job only when it returns :destroy_async" do
+    sync_book = CallableDependentBook.create!(name: "sync")
+    async_book = CallableDependentBook.create!(name: "async")
+    kept = EssayDestroyAsync.create!(name: "kept", book_id: sync_book.id)
+    EssayDestroyAsync.create!(name: "gone", book_id: async_book.id)
+
+    assert_no_enqueued_jobs(only: ActiveRecord::DestroyAssociationAsyncJob) { sync_book.destroy }
+    assert_enqueued_jobs(1, only: ActiveRecord::DestroyAssociationAsyncJob) { async_book.destroy }
+
+    assert_difference -> { EssayDestroyAsync.count }, -1 do
+      perform_enqueued_jobs only: ActiveRecord::DestroyAssociationAsyncJob
+    end
+    assert EssayDestroyAsync.exists?(kept.id)
+  ensure
+    EssayDestroyAsync.delete_all
+    CallableDependentBook.delete_all
+  end
+
+  test "has_one with a Proc :dependent passes ensuring_owner_was to the job" do
+    parent = CallableDependentSoftDeleteParent.create!
+    parent.dl_keyed_has_one = DlKeyedHasOne.create!
+    parent.save!
+
+    parent.run_callbacks(:destroy)
+    parent.run_callbacks(:commit)
+
+    assert_no_difference -> { DlKeyedHasOne.count } do
+      assert_raises ActiveRecord::DestroyAssociationAsyncError do
+        perform_enqueued_jobs only: ActiveRecord::DestroyAssociationAsyncJob
+      end
+    end
+
+    parent.destroy
+    assert_difference -> { DlKeyedHasOne.count }, -1 do
+      perform_enqueued_jobs only: ActiveRecord::DestroyAssociationAsyncJob
+    end
+  ensure
+    DlKeyedHasOne.delete_all
+    CallableDependentSoftDeleteParent.delete_all
+  end
+
   test "destroying a record destroys the has_many :through records using a job" do
     tag = Tag.create!(name: "Der be treasure")
     tag2 = Tag.create!(name: "Der be rum")

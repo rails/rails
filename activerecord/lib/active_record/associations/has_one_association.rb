@@ -8,7 +8,7 @@ module ActiveRecord
       include ForeignAssociation
 
       def handle_dependency
-        case options[:dependent]
+        case dependent = dependent_option
         when :restrict_with_exception
           raise ActiveRecord::DeleteRestrictionError.new(reflection.name) if load_target
 
@@ -19,12 +19,12 @@ module ActiveRecord
             throw(:abort)
           end
 
-        else
-          delete
+        when :delete, :destroy, :destroy_async, :nullify
+          delete(dependent)
         end
       end
 
-      def delete(method = options[:dependent])
+      def delete(method = dependent_option)
         if load_target
           case method
           when :delete
@@ -68,6 +68,10 @@ module ActiveRecord
       end
 
       private
+        def dependent_builder
+          Builder::HasOne
+        end
+
         def reference_key_changed_for_save?(record)
           # Through reflections have no single route to take the key from.
           if reflection.through_reflection?
@@ -92,7 +96,7 @@ module ActiveRecord
             save &&= owner.persisted?
 
             transaction_if(save) do
-              remove_target!(options[:dependent]) if target && !target.destroyed? && assigning_another_record
+              remove_target!(dependent_option) if target && !target.destroyed? && assigning_another_record
 
               if record
                 set_owner_attributes(record)

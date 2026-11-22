@@ -2629,6 +2629,26 @@ Controls what happens to the associated object when its owner is destroyed:
 * `:restrict_with_error` causes an error to be added to the owner if there is
     an associated object
 
+The option also accepts a proc. A proc without arguments is evaluated in the
+context of the owner, and a proc with one argument receives the owner. It must
+return one of the values above, or `nil` to leave the associated objects
+untouched:
+
+```ruby
+class User < ApplicationRecord
+  has_many :projects, dependent: -> { admin? ? nil : :destroy }
+  has_one :profile, dependent: ->(user) { user.guest? ? :destroy : :nullify }
+end
+```
+
+The proc is called every time the option is used, not only when the owner is
+destroyed: `has_many` also calls it for `collection.delete`,
+`collection.delete_all` and `collection=`, and `has_one` calls it when the
+associated object is replaced. The proc is not told which of these operations is
+being performed. Its return value is validated when the proc is called rather
+than when the class is loaded, so an invalid value raises an `ArgumentError` at
+that point.
+
 WARNING: You should not specify this option on a `belongs_to` association that
 is connected with a `has_many` association on the other class. Doing so can lead
 to orphaned records in your database because destroying the parent object may

@@ -23,9 +23,10 @@ module ActiveRecord
       end
 
       def handle_dependency
-        return unless load_target
+        dependent = dependent_option
+        return unless dependent && load_target
 
-        case options[:dependent]
+        case dependent
         when :destroy
           raise ActiveRecord::Rollback unless target.destroy
         when :destroy_async
@@ -52,8 +53,8 @@ module ActiveRecord
             association_primary_key_column: destroy_association_async_columns(destination_key),
             ensuring_owner_was_method: options.fetch(:ensuring_owner_was, nil)
           )
-        else
-          target.public_send(options[:dependent])
+        when :delete
+          target.delete
         end
       end
 
@@ -113,6 +114,10 @@ module ActiveRecord
       end
 
       private
+        def dependent_builder
+          Builder::BelongsTo
+        end
+
         # Prefer the target's persisted values, falling back to the owner for
         # values unavailable after a partial select.
         def destroy_association_async_id(route)
