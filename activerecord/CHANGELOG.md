@@ -1,3 +1,12 @@
+*   Fix `save` and `destroy` returning a truthy value when a `before_commit`
+    callback rolls the transaction back with `ActiveRecord::Rollback`.
+
+    The rollback was swallowed after the persistence call had captured its
+    return status, so `save` returned `true` and `destroy!` did not raise
+    although nothing was committed.
+
+    *Andy Wang*
+
 *   Return all records from `in_order_of` with `filter: false` when no values are left.
 
     An empty `values` list, or one where every value is dropped because the column
