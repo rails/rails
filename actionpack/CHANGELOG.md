@@ -1,3 +1,18 @@
+*   Deprecate passing a blank `password:` to `http_basic_authenticate_with`.
+
+    A blank password, such as the result of `ENV["PASSWORD"].to_s` when the
+    variable is not set, lets any request that sends the configured name with
+    an empty password authenticate.
+
+    ```ruby
+    http_basic_authenticate_with name: "admin", password: ENV["PASSWORD"].to_s
+    # DEPRECATION WARNING: Passing a blank `password:` to `http_basic_authenticate_with` is deprecated ...
+    ```
+
+    This will raise an `ArgumentError` in Rails 8.3, as passing `nil` already does.
+
+    *Jesse Waites*
+
 *   Patch Rack to prevent submitting requested parameters encoded in arbitrary encodings.
 
     This is a part of the HTTP specification that has little to no legitimate use
