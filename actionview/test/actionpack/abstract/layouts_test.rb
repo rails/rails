@@ -351,6 +351,16 @@ module AbstractControllerTests
         assert_equal "Overwrite Hello proc!", controller.response_body
       end
 
+      test "when a subclass overrides a proc layout, use the subclass's layout" do
+        controller_class = Class.new(WithProc) do
+          layout proc { "hello_override" }
+        end
+
+        controller = controller_class.new
+        controller.process(:index)
+        assert_equal "With Override Hello proc!", controller.response_body
+      end
+
       test "when layout is specified as a proc and the proc returns nil, use inherited layout" do
         controller = WithProcReturningNil.new
         controller.process(:index)
