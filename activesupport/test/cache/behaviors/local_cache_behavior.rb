@@ -247,6 +247,22 @@ module LocalCacheBehavior
     end
   end
 
+  def test_local_cache_of_fetch_multi_with_forced_cache_miss
+    cached_key = SecureRandom.uuid
+    other_key = SecureRandom.uuid
+
+    @cache.with_local_cache do
+      @cache.write(cached_key, "cached")
+
+      results = @cache.fetch_multi(cached_key, other_key, force: true) { "forced" }
+      expected = { cached_key => "forced", other_key => "forced" }
+      assert_equal expected, results
+
+      assert_equal expected, @cache.read_multi(cached_key, other_key)
+      assert_equal expected, @peek.read_multi(cached_key, other_key)
+    end
+  end
+
   def test_local_cache_of_fetch_multi_preserves_order
     first_key = SecureRandom.uuid
     cached_key = SecureRandom.uuid
