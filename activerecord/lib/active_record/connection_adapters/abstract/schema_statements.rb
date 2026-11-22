@@ -1420,7 +1420,7 @@ module ActiveRecord
         return unless supports_check_constraints?
 
         options = check_constraint_options(table_name, expression, options)
-        return if if_not_exists && check_constraint_exists?(table_name, **options)
+        return if if_not_exists && check_constraint_exists?(table_name, **options.slice(:name))
 
         at = build_alter_table_definition(table_name)
         at.add_check_constraint(expression, **options)
@@ -1450,7 +1450,7 @@ module ActiveRecord
       def remove_check_constraint(table_name, expression = nil, if_exists: false, **options)
         return unless supports_check_constraints?
 
-        return if if_exists && !check_constraint_exists?(table_name, expression: expression, **options)
+        return if if_exists && !check_constraint_exists?(table_name, expression: expression, **options.slice(:name))
 
         at = build_alter_table_definition(table_name)
         at.remove_check_constraint(expression, **options)

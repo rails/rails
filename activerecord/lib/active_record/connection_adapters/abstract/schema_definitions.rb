@@ -816,7 +816,7 @@ module ActiveRecord
       def remove_check_constraint(expression = nil, **options)
         conn = @td.conn
         return unless conn.supports_check_constraints?
-        drop_check_constraint(conn.send(:check_constraint_for!, name, expression: expression, **options).name)
+        drop_check_constraint(conn.send(:check_constraint_for!, name, expression: expression, **options.slice(:name)).name)
       end
 
       def drop_check_constraint(constraint_name)
