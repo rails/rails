@@ -461,15 +461,18 @@ module ActiveRecord
       self.class.with_connection do |connection|
         connection.pool.with_pool_transaction_isolation_level(ActiveRecord.default_transaction_isolation_level, connection.transaction_open?) do
           status = nil
+          transaction = nil
           ensure_finalize = !connection.transaction_open?
 
           implicit_persistence_transaction(connection) do
+            transaction = connection.current_transaction
             add_to_transaction(ensure_finalize || has_transactional_callbacks?)
             remember_transaction_record_state
 
             status = yield
             raise ActiveRecord::Rollback unless status
           end
+          status = nil if status && transaction.state&.rolledback?
           @_last_transaction_return_status = status
           status
         end
