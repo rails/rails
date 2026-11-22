@@ -172,7 +172,7 @@ module ActiveSupport
         end
 
         text = message.to_s
-        return true if text.valid_encoding? && @ignored.match?(text)
+        return true if text.valid_encoding? && Encoding.compatible?(@ignored, text) && @ignored.match?(text)
       end
 
       @logger.add(severity, message, progname, &block)

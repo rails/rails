@@ -103,6 +103,14 @@ module ActiveSupport
       assert_includes @io.string.b, "PASSES"
     end
 
+    def test_ignore_forwards_messages_with_an_incompatible_encoding
+      @logger.ignore(/IGNORÉ/)
+
+      @logger.error("PASSES \xE9".b)
+
+      assert_includes @io.string.b, "PASSES"
+    end
+
     def test_ignore_matches_non_string_messages
       @logger.ignore(/IGNORED/)
 
