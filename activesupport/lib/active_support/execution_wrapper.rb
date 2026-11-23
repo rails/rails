@@ -163,8 +163,8 @@ module ActiveSupport
     # Where possible, prefer `wrap`.
     def complete!
       complete
-      @deadline.close
     ensure
+      @deadline.close
       IsolatedExecutionState.delete(self.class.active_key)
     end
 

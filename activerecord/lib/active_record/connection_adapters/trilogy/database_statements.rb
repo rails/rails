@@ -27,43 +27,48 @@ module ActiveRecord
             end
           end
 
-          def perform_query(raw_connection, intent)
-            read_timeout_was, write_timeout_was = raw_connection.read_timeout, raw_connection.write_timeout
+          def with_deadline(raw_connection, deadline)
+            read_timeout_was = raw_connection.read_timeout
+            write_timeout_was = raw_connection.write_timeout
 
             # Trilogy use 0.0 as "No Timeout"
-            raw_connection.read_timeout = clamp_timeout(intent.deadline, read_timeout_was)
-            raw_connection.write_timeout = clamp_timeout(intent.deadline, write_timeout_was)
+            raw_connection.read_timeout = clamp_timeout(deadline, read_timeout_was)
+            raw_connection.write_timeout = clamp_timeout(deadline, write_timeout_was)
 
-            reset_multi_statement = if intent.batch && !@config[:multi_statement]
-              raw_connection.set_server_option(::Trilogy::SET_SERVER_MULTI_STATEMENTS_ON)
-              true
-            end
-
-            # Make sure we carry over any changes to ActiveRecord.default_timezone that have been
-            # made since we established the connection
-            if default_timezone == :local
-              raw_connection.query_flags |= ::Trilogy::QUERY_FLAGS_LOCAL_TIMEZONE
-            else
-              raw_connection.query_flags &= ~::Trilogy::QUERY_FLAGS_LOCAL_TIMEZONE
-            end
-
-            result = raw_connection.query(intent.processed_sql)
-            while raw_connection.more_results_exist?
-              raw_connection.next_result
-            end
-            verified!
-
-            intent.notification_payload[:affected_rows] = result.affected_rows
-            intent.notification_payload[:row_count] = result.count
-            result
+            yield raw_connection
           ensure
-            if raw_connection
-              raw_connection.read_timeout = read_timeout_was
-              raw_connection.write_timeout = write_timeout_was
-            end
+            raw_connection.read_timeout = read_timeout_was
+            raw_connection.write_timeout = write_timeout_was
+          end
 
-            if reset_multi_statement && active?
-              raw_connection.set_server_option(::Trilogy::SET_SERVER_MULTI_STATEMENTS_OFF)
+          def perform_query(raw_connection, intent)
+            with_deadline(raw_connection, intent.deadline) do
+              reset_multi_statement = if intent.batch && !@config[:multi_statement]
+                raw_connection.set_server_option(::Trilogy::SET_SERVER_MULTI_STATEMENTS_ON)
+                true
+              end
+
+              # Make sure we carry over any changes to ActiveRecord.default_timezone that have been
+              # made since we established the connection
+              if default_timezone == :local
+                raw_connection.query_flags |= ::Trilogy::QUERY_FLAGS_LOCAL_TIMEZONE
+              else
+                raw_connection.query_flags &= ~::Trilogy::QUERY_FLAGS_LOCAL_TIMEZONE
+              end
+
+              result = raw_connection.query(intent.processed_sql)
+              while raw_connection.more_results_exist?
+                raw_connection.next_result
+              end
+              verified!
+
+              intent.notification_payload[:affected_rows] = result.affected_rows
+              intent.notification_payload[:row_count] = result.count
+              result
+            ensure
+              if reset_multi_statement && active?
+                raw_connection.set_server_option(::Trilogy::SET_SERVER_MULTI_STATEMENTS_OFF)
+              end
             end
           end
 

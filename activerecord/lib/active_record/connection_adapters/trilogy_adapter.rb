@@ -107,9 +107,20 @@ module ActiveRecord
       TYPE_MAP = Type::TypeMap.new.tap { |m| initialize_type_map(m) }
 
       def active?
-        connected? && @lock.synchronize { @raw_connection&.ping; verified! } || false
-      rescue ::Trilogy::Error
-        false
+        @lock.synchronize do
+          if connected?
+            # ping either raises or return true
+            begin
+              with_deadline(@raw_connection, @deadline, &:ping)
+            rescue ::Trilogy::Error
+              false
+            else
+              verified!
+            end
+          else
+            false
+          end
+        end
       end
 
       def discard!
@@ -130,7 +141,7 @@ module ActiveRecord
 
           connect_timeout_was = config.fetch(:connect_timeout, 5) || config[:write_timeout] # From trilogy source
 
-          connect_timeout = @deadline.clamp(connect_timeout || Float::INFINITY, error: DeadlineExceededError)
+          connect_timeout = @deadline.clamp(connect_timeout_was || Float::INFINITY, error: DeadlineExceededError)
           connect_timeout = nil if connect_timeout.infinite?
           if connect_timeout_was != connect_timeout
             config = config.merge(connect_timeout: connect_timeout)

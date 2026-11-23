@@ -1276,6 +1276,7 @@ module ActiveRecord
             end
           end
         rescue ConnectionTimeoutError => ex
+          deadline.check!(error: DeadlineExceededError) # raise DeadlineExceededError instead if it applies.
           raise ex.set_pool(self)
         end
 
