@@ -3892,7 +3892,14 @@ Directs ActiveStorage::Attachments to touch its corresponding record when update
 Determines whether the S3 service sets the `public-read` ACL on uploads for services configured with
 `public: true`. Bucket owner enforced is now both the default and the recommended S3 object ownership setting,
 and rejects any request that specifies an ACL. Set this to `false` for such buckets, then grant public read
-access through a bucket policy. The default is true.
+access through a bucket policy.
+
+The default value depends on the `config.load_defaults` target version:
+
+| Starting with version | The default value is |
+| --------------------- | -------------------- |
+| (original)            | `true`               |
+| 8.2                   | `false`              |
 
 #### `config.active_storage.routes_prefix`
 
