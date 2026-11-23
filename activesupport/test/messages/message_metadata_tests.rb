@@ -67,6 +67,16 @@ module MessageMetadataTests
       end
     end
 
+    test ":expires_at is not converted to UTC in place" do
+      each_scenario do |data, codec|
+        expires_at = Time.new(2999, 1, 2, 10, 0, 0, "+09:00")
+        assert_roundtrip data, codec, { expires_at: expires_at }
+
+        assert_not_predicate expires_at, :utc?
+        assert_equal 9 * 3600, expires_at.utc_offset
+      end
+    end
+
     test "messages do not expire by default" do
       each_scenario do |data, codec|
         message = encode(data, codec, purpose: "x")
