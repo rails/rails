@@ -211,6 +211,17 @@ module ActiveRecord
       end
     end
 
+    test "deadline is ignored when specified" do
+      # Intented for queries we should always run, e.g. ROLLBACK
+      @connection.deadline = ActiveSupport::Deadline.new(-1)
+      intent = build_intent(@connection, allow_retry: true, ignore_deadline: true)
+
+      intent.execute!
+      intent.cast_result
+
+      assert_predicate intent, :finalized?
+    end
+
     test "exhausted retries make the final failure available" do
       connection = @connection
       intent = build_intent(connection, allow_retry: true)
@@ -301,12 +312,13 @@ module ActiveRecord
     end
 
     private
-      def build_intent(connection, allow_retry: false, materialize_transactions: false)
+      def build_intent(connection, allow_retry: false, materialize_transactions: false, ignore_deadline: false)
         ActiveRecord::ConnectionAdapters::QueryIntent.new(
           adapter: connection,
           raw_sql: "SELECT 1",
           name: "SQL",
           allow_retry: allow_retry,
+          ignore_deadline: ignore_deadline,
           materialize_transactions: materialize_transactions
         )
       end
