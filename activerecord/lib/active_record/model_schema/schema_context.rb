@@ -147,17 +147,19 @@ module ActiveRecord
       # with adapters that don't set it) go after the last column. The
       # indexes are Integers rather than columns, so they can be shared
       # between Ractors.
+      #
+      # The model hands out the slots (see
+      # ModelSchema::ClassMethods#attribute_slots_for), so every schema
+      # context of a model lays an attribute out at the same slot, even when
+      # their tables order the columns differently. The generated readers
+      # are compiled once per model with those slots.
       #: (Hash[String, ActiveModel::Attribute]) -> ActiveModel::IndexedRow::Mutable
       def index_default_attributes(attributes) # :nodoc:
         columns_hash = mapped_table.columns_hash
-        last_slot = columns_hash.each_value.filter_map(&:slot).max || -1
-        indexes = attributes.each_key.to_h do |name|
-          column = columns_hash[name]
-          [name, column&.slot || (last_slot += 1)]
-        end.freeze
+        indexes = model_class.attribute_slots_for(attributes.keys) { |name| columns_hash[name]&.slot }
         indexes = inherited_indexes(indexes)
 
-        row = ActiveModel::IndexedRow.unset_row(last_slot + 1)
+        row = ActiveModel::IndexedRow.unset_row(ActiveModel::IndexedRow.max_slot(indexes) + 1)
         attributes.each { |name, attribute| row[indexes[name]] = attribute }
         ActiveModel::IndexedRow::Mutable.new(indexes, row)
       end
