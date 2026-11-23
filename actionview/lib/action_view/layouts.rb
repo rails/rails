@@ -361,6 +361,7 @@ module ActionView
             RUBY
           when Proc
             layout_proc = ActiveSupport::Ractors.try_shareable_proc(_layout)
+            silence_redefinition_of_method(:_layout_from_proc)
             define_method :_layout_from_proc, layout_proc
             private :_layout_from_proc
             <<-RUBY
