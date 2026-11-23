@@ -304,7 +304,8 @@ module ActiveRecord
     # end
     # ```
     def connected_to?(role:, shard: ActiveRecord::Base.default_shard)
-      current_role == role.to_sym && current_shard == shard.to_sym
+      shard = shard.to_sym unless shard.is_a? Integer
+      current_role == role.to_sym && current_shard == shard
     end
 
     # Clears the query cache for all connections associated with the current thread.

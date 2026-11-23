@@ -152,6 +152,8 @@ module ActiveRecord
 
           IntegerKeysBase.connected_to(shard: 1) do
             assert_includes IntegerKeysBase.lease_connection.select_value("SELECT file FROM pragma_database_list;"), "primary_shard_one.sqlite3"
+            assert IntegerKeysBase.connected_to?(role: :writing, shard: 1)
+            assert_not IntegerKeysBase.connected_to?(role: :writing, shard: 0)
           end
 
           IntegerKeysBase.connected_to(role: :reading, shard: 1) do
