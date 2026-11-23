@@ -131,6 +131,7 @@ module ActiveModel
   # not need to call `*_will_change!` on Active Record models.
   #
   # ```
+  # person.rollback!
   # person.name_will_change!
   # person.name_change # => ["Bill", "Bill"]
   # person.name << 'y'
