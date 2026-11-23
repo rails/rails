@@ -380,6 +380,32 @@ class HasOneThroughAssociationsTest < ActiveRecord::TestCase
     end
   end
 
+  def test_has_one_through_configuration_errors_refer_to_has_one
+    model = Class.new(ActiveRecord::Base) do
+      set_temporary_name "invalid_member_detail"
+      self.table_name = "member_details"
+
+      has_one :defined_too_early, through: :member, source: :member_type
+      belongs_to :member
+      has_one :missing_source, through: :member, source: :nonexistent
+      has_one :pointless_source_type, through: :member, source: :member_type, source_type: "MemberType"
+      has_one :polymorphic_source, through: :member, source: :admittable
+    end
+    record = model.new
+
+    error = assert_raises(ActiveRecord::HasManyThroughOrderError) { record.defined_too_early }
+    assert_match(/\ACannot have a has_one :through association/, error.message)
+
+    error = assert_raises(ActiveRecord::HasManyThroughSourceAssociationNotFoundError) { record.missing_source }
+    assert_match(/Try 'has_one :missing_source, :through => :member, :source => <name>'/, error.message)
+
+    error = assert_raises(ActiveRecord::HasManyThroughAssociationPointlessSourceTypeError) { record.pointless_source_type }
+    assert_match(/\ACannot have a has_one :through association/, error.message)
+
+    error = assert_raises(ActiveRecord::HasManyThroughAssociationPolymorphicSourceError) { record.polymorphic_source }
+    assert_match(/\ACannot have a has_one :through association .+ to 'has_one :through' definition\.\z/, error.message)
+  end
+
   def test_has_one_through_belongs_to_should_update_when_the_through_foreign_key_changes
     minivan = minivans(:cool_first)
 
