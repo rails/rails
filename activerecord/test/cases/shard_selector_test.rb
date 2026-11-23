@@ -43,6 +43,15 @@ module ActiveRecord
       assert_equal [200, {}, ["body"]], middleware.call("REQUEST_METHOD" => "GET")
     end
 
+    def test_middleware_can_handle_integer_shards
+      middleware = ActiveRecord::Middleware::ShardSelector.new(lambda { |env|
+        assert ActiveRecord::Base.connected_to?(role: :writing, shard: 1)
+        [200, {}, ["body"]]
+      }, ->(*) { 1 })
+
+      assert_equal [200, {}, ["body"]], middleware.call("REQUEST_METHOD" => "GET")
+    end
+
     def test_thread_sharing_the_execution_state_keeps_the_shard_after_the_middleware_returns
       state_shared = Concurrent::CountDownLatch.new
       middleware_returned = Concurrent::CountDownLatch.new

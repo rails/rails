@@ -74,8 +74,9 @@ module ActiveRecord
 
         def set_shard(shard, &block)
           klass = options[:class_name]&.constantize || ActiveRecord::Base
+          shard = shard.to_sym unless shard.is_a? Integer
 
-          klass.connected_to(shard: shard.to_sym) do
+          klass.connected_to(shard: shard) do
             klass.prohibit_shard_swapping(options.fetch(:lock, true), &block)
           end
         end
