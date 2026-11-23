@@ -1,3 +1,15 @@
+*   Raise `ActiveSupport::EncryptedFile::InvalidKeyLengthError` when reading
+    with a key of the wrong length, not only when writing.
+
+    A key that lost its last character could still decrypt the file if that
+    character was a `0`, so `EncryptedFile#read` and `EncryptedConfiguration`
+    accepted it while `#write` raised. Reading now raises
+    `InvalidKeyLengthError` for all keys of the wrong length, including keys
+    that are two or more characters short, which used to raise OpenSSL's
+    `ArgumentError`. With comma-separated keys, each key is checked.
+
+    *Dennis Paagman*
+
 *   Don't show the encryption key in `ActiveSupport::EncryptedFile#inspect`.
 
     Previously the key, read from the key file or environment variable, was
