@@ -31,9 +31,10 @@ module ActiveRecord
         when :destroy_async
           association_class = scope.model
           primary_key_column = association_class.query_constraints_list || Array(association_class.primary_key)
-          batch_size = owner.class.destroy_association_async_batch_size || scope.count
+          relation = scope.except(:order, :default_order)
+          batch_size = owner.class.destroy_association_async_batch_size || relation.count
 
-          scope.in_batches(of: batch_size, cursor: primary_key_column) do |batch|
+          relation.in_batches(of: batch_size, cursor: primary_key_column) do |batch|
             batch_ids = batch.pluck(*primary_key_column)
 
             enqueue_destroy_association(
