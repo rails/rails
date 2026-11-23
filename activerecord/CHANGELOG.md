@@ -1,3 +1,11 @@
+*   Fix `encrypts` in a subclass adding the attribute to its parent class.
+
+    The subclass reused the parent's `encrypted_attributes` set, so the parent
+    reported attributes it doesn't encrypt and raised `NoMethodError` in
+    `decrypt`, `encrypted_attribute?` and `deterministic_encrypted_attributes`.
+
+    *Carlos Daniel Pohlod*
+
 *   Ignore `validate:` and `enforced:` when `remove_foreign_key` looks up the
     foreign key to remove.
 

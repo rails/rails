@@ -130,6 +130,42 @@ class ActiveRecord::Encryption::EncryptableRecordTest < ActiveRecord::Encryption
     assert_not_equal EncryptedAuthor.encrypted_attributes, EncryptedPost.encrypted_attributes
   end
 
+  test "encrypts in a subclass does not add the attribute to the parent class" do
+    parent = Class.new(Post) do
+      def self.name = "EncryptedParentPost"
+      encrypts :title
+    end
+    child = Class.new(parent) do
+      def self.name = "EncryptedChildPost"
+      encrypts :body
+    end
+
+    assert_equal Set[:title], parent.encrypted_attributes
+    assert_equal Set[:title, :body], child.encrypted_attributes
+
+    assert_empty parent.deterministic_encrypted_attributes
+
+    post = parent.create!(title: "The Starfleet is here!", body: "take cover!")
+    assert_not post.encrypted_attribute?(:body)
+    assert_nothing_raised { post.decrypt }
+    assert_equal "take cover!", post.body
+  end
+
+  test "encrypts in a parent class reaches subclasses that already encrypt their own attributes" do
+    parent = Class.new(Post) do
+      def self.name = "EncryptedParentPost"
+    end
+    child = Class.new(parent) do
+      def self.name = "EncryptedChildPost"
+      encrypts :body
+    end
+
+    parent.encrypts :title
+
+    assert_equal Set[:title], parent.encrypted_attributes
+    assert_equal Set[:body, :title], child.encrypted_attributes
+  end
+
   test "deterministic_encrypted_attributes returns the list of deterministic encrypted attributes in a model (each record class holds their own list)" do
     assert_equal [:name], EncryptedBook.deterministic_encrypted_attributes
     assert_not_equal EncryptedPost.deterministic_encrypted_attributes, EncryptedBook.deterministic_encrypted_attributes
