@@ -202,7 +202,7 @@ module ActionView
       # ```
       # relative_time_in_words(3.minutes.from_now) # => "in 3 minutes"
       # relative_time_in_words(3.minutes.ago) # => "3 minutes ago"
-      # relative_time_in_words(10.seconds.ago, include_seconds: true) # => "less than 10 seconds ago"
+      # relative_time_in_words(10.seconds.ago, include_seconds: true) # => "less than 20 seconds ago"
       # ```
       #
       # See also #time_ago_in_words
