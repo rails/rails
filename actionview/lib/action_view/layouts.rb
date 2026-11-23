@@ -308,6 +308,7 @@ module ActionView
               end
             RUBY
           when Proc
+            silence_redefinition_of_method(:_layout_from_proc)
             define_method :_layout_from_proc, &_layout
             private :_layout_from_proc
             <<-RUBY
