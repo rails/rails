@@ -357,6 +357,22 @@ class DestroyAssociationAsyncTest < ActiveRecord::TestCase
     BookDestroyAsync.delete_all
   end
 
+  test "has_many with an ordered scope" do
+    book = BookDestroyAsyncWithOrderedEssays.create!(name: "Arr, matey!")
+    book.essays.create!(name: "Der be treasure")
+
+    ActiveRecord.with(error_on_ignored_order: true) do
+      book.destroy
+    end
+
+    assert_difference -> { EssayDestroyAsync.count }, -1 do
+      perform_enqueued_jobs only: ActiveRecord::DestroyAssociationAsyncJob
+    end
+  ensure
+    EssayDestroyAsync.delete_all
+    BookDestroyAsyncWithOrderedEssays.delete_all
+  end
+
   test "has_many with STI parent class destroys all children class records" do
     book = BookDestroyAsync.create!
     LongEssayDestroyAsync.create!(book: book)

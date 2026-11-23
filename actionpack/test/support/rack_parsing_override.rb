@@ -13,6 +13,9 @@
 # you're here because you're adding new code/tests to Rails, though, you
 # probably need to work out how to ensure you're using the Rails query
 # parser instead.
+
+ActionDispatch::CoreExt::RackMultipartParser.apply
+
 module RackParsingOverride
   UnexpectedCall = Class.new(Exception)
 

@@ -38,6 +38,16 @@ module AdapterHelper
     end
   end
 
+  def supports_virtual_columns_in_primary_key?
+    return false unless supports_virtual_columns?
+
+    if current_adapter?(:Mysql2Adapter, :TrilogyAdapter)
+      !ActiveRecord::Base.lease_connection.mariadb?
+    else
+      current_adapter?(:PostgreSQLAdapter)
+    end
+  end
+
   def supports_non_unique_constraint_name?
     if current_adapter?(:Mysql2Adapter, :TrilogyAdapter)
       conn = ActiveRecord::Base.lease_connection

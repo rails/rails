@@ -6,7 +6,6 @@ module ActiveModel
       extend ActiveSupport::Concern
 
       included do
-        include ActiveModel::Dirty
         include ActiveModel::Validations::Callbacks
 
         class_attribute :normalized_attributes, default: Set.new.freeze

@@ -3,7 +3,6 @@
 require "cases/helper"
 require "models/reply"
 require "active_support/testing/ractors_assertions"
-require "active_support/core_ext/object/with"
 
 module ActiveRecord
   class PredicateBuilderTest < ActiveRecord::TestCase

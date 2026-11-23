@@ -50,6 +50,18 @@ module ActiveRecord
         @pools&.each(&:disconnect!)
       end
 
+      def test_disconnect_terminates_existing_leases
+        lease = @pool.send(:connection_lease)
+        assert_not_predicate lease, :terminated?
+
+        @pool.disconnect
+
+        assert_predicate lease, :terminated?
+        replacement = @pool.send(:connection_lease)
+        assert_not_same lease, replacement
+        assert_not_predicate replacement, :terminated?
+      end
+
       def test_checkout_after_close
         connection = pool.lease_connection
         assert_predicate connection, :in_use?
@@ -201,6 +213,66 @@ module ActiveRecord
         assert_equal 1, active_connections(@pool).size
       ensure
         @pool.connections.each { |conn| conn.close if conn.in_use? }
+      end
+
+      def test_reap_removes_connection_when_reset_fails
+        ready = Concurrent::CountDownLatch.new
+        child = new_thread do
+          2.times { @pool.checkout.connect! }
+          ready.count_down
+          stop_thread
+        end
+        pass_to(child) until ready.wait(0)
+
+        child.terminate
+        child.join
+
+        failing, other = active_connections(@pool)
+        failing.define_singleton_method(:reset!) { raise ActiveRecord::StatementInvalid, "reset failed" }
+
+        assert_error_reported(ActiveRecord::StatementInvalid) do
+          @pool.reap
+        end
+
+        assert_not_includes @pool.connections, failing
+        assert_not_predicate failing, :active?
+        assert_includes @pool.connections, other
+        assert_empty active_connections(@pool)
+      end
+
+      def test_reap_continues_when_disconnecting_a_connection_whose_reset_failed_raises
+        ready = Concurrent::CountDownLatch.new
+        child = new_thread do
+          2.times { @pool.checkout.connect! }
+          ready.count_down
+          stop_thread
+        end
+        pass_to(child) until ready.wait(0)
+
+        child.terminate
+        child.join
+
+        failing, other = active_connections(@pool)
+        failing.define_singleton_method(:reset!) { raise ActiveRecord::StatementInvalid, "reset failed" }
+        failing.define_singleton_method(:disconnect!) { raise ActiveRecord::ConnectionNotEstablished, "disconnect failed" }
+
+        assert_error_reported(ActiveRecord::ConnectionNotEstablished) do
+          @pool.reap
+        end
+
+        assert_not_includes @pool.connections, failing
+        assert_includes @pool.connections, other
+        assert_empty active_connections(@pool)
+      end
+
+      def test_bulk_connection_creation_reports_connection_errors
+        @pool.define_singleton_method(:try_to_checkout_new_connection) do
+          raise ActiveRecord::ConnectionNotEstablished, "replacement failed"
+        end
+
+        assert_error_reported(ActiveRecord::ConnectionNotEstablished) do
+          @pool.send(:bulk_make_new_connections, 1)
+        end
       end
 
       def test_inactive_are_returned_from_dead_thread
@@ -1404,6 +1476,41 @@ module ActiveRecord
         ActiveSupport::IsolatedExecutionState.isolation_level = @previous_isolation_level
       end
 
+      def test_reap_continues_when_creating_a_replacement_connection_fails
+        ready = Concurrent::CountDownLatch.new
+        @pool.instance_variable_set(:@max_connections, 2)
+        child = new_thread do
+          2.times { @pool.checkout.connect! }
+          ready.count_down
+          stop_thread
+        end
+        pass_to(child) until ready.wait(0)
+
+        waiter = new_thread { @pool.with_connection { } }
+        pass_to(waiter) until @pool.num_waiting_in_queue == 1
+
+        child.terminate
+        child.join
+        failing, other = active_connections(@pool)
+        failing.define_singleton_method(:reset!) { raise ActiveRecord::StatementInvalid, "reset failed" }
+        @pool.define_singleton_method(:try_to_checkout_new_connection) do
+          raise ActiveRecord::ConnectionNotEstablished, "replacement failed"
+        end
+
+        assert_error_reported(ActiveRecord::ConnectionNotEstablished) do
+          @pool.reap
+        end
+
+        assert waiter.join(2), "waiter was stranded after replacement failed"
+        assert_not_includes @pool.connections, failing
+        assert_not_predicate failing, :active?
+        assert_includes @pool.connections, other
+        assert_empty active_connections(@pool)
+      ensure
+        waiter&.kill
+        child&.kill
+      end
+
       def test_lock_thread_allow_fiber_reentrency
         connection = @pool.checkout
         connection.lock_thread = ActiveSupport::IsolatedExecutionState.context
@@ -1490,6 +1597,55 @@ module ActiveRecord
           end
 
           assert_equal 0, pool.num_waiting_in_queue
+        end
+      end
+
+      def test_connection_leased_while_waiting_for_disconnect_can_be_released
+        with_single_connection_pool(checkout_timeout: 1.0) do |pool|
+          pool.lease_connection # drain the only available connection
+          released = nil
+
+          waiting_thread = new_thread do
+            pool.lease_connection
+            released = pool.release_connection
+          end
+
+          # wait for waiting_thread to get in queue
+          pass_to(waiting_thread) until pool.num_waiting_in_queue == 1
+
+          pool.disconnect
+
+          assert waiting_thread.join(2), "waiting_thread got stuck"
+          assert released
+          assert_empty active_connections(pool)
+        ensure
+          waiting_thread&.kill
+        end
+      end
+
+      def test_with_connection_waiting_for_disconnect_keeps_its_connection
+        with_single_connection_pool(checkout_timeout: 1.0) do |pool|
+          pool.lease_connection # drain the only available connection
+          active = nested = nil
+
+          waiting_thread = new_thread do
+            pool.with_connection do |connection|
+              active = pool.active_connection?.equal?(connection)
+              pool.with_connection { |nested_connection| nested = nested_connection.equal?(connection) }
+            end
+          end
+
+          # wait for waiting_thread to get in queue
+          pass_to(waiting_thread) until pool.num_waiting_in_queue == 1
+
+          pool.disconnect
+
+          assert waiting_thread.join(2), "waiting_thread got stuck"
+          assert active, "the connection yielded by with_connection is not the active connection"
+          assert nested, "a nested with_connection did not reuse the connection"
+          assert_empty active_connections(pool)
+        ensure
+          waiting_thread&.kill
         end
       end
 

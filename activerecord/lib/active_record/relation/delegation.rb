@@ -76,11 +76,17 @@ module ActiveRecord
           return if method_defined?(method)
 
           if /\A[a-zA-Z_]\w*[!?]?\z/.match?(method) && !::ActiveSupport::Delegation::RESERVED_METHOD_NAMES.include?(method.to_s)
-            module_eval <<-RUBY, __FILE__, __LINE__ + 1
-              def #{method}(...)
-                scoping { model.#{method}(...) }
+            # Models often share scope and class method names, so share the
+            # generated code between them.
+            ActiveSupport::CodeGenerator.batch(self, __FILE__, __LINE__) do |owner|
+              owner.define_cached_method(method, namespace: :relation_delegation) do |batch|
+                batch << <<~RUBY
+                  def #{method}(...)
+                    scoping { model.#{method}(...) }
+                  end
+                RUBY
               end
-            RUBY
+            end
           else
             define_method(method) do |*args, **kwargs, &block|
               scoping { model.public_send(method, *args, **kwargs, &block) }

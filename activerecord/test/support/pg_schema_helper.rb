@@ -1,7 +1,5 @@
 # frozen_string_literal: true
 
-require "active_support/core_ext/object/with"
-
 module PGSchemaHelper
   def with_schema_search_path(schema_search_path)
     @connection.schema_search_path = schema_search_path

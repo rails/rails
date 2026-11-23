@@ -48,7 +48,7 @@ ActiveRecord::Schema.define do
     t.index :var_binary
   end
 
-  create_table :key_tests, force: true, options: "CHARSET=utf8 ENGINE=MyISAM" do |t|
+  create_table :key_tests, force: true, options: "CHARSET=utf8mb3 ENGINE=MyISAM" do |t|
     t.string :awesome
     t.string :pizza
     t.string :snacks

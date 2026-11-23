@@ -1,7 +1,5 @@
 # frozen_string_literal: true
 
-require "active_support/core_ext/object/with"
-
 module CacheLoggingBehavior
   def test_fetch_logging
     assert_logs(/Cache read: #{key_pattern("foo")}/) do

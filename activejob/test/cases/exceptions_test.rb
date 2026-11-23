@@ -6,7 +6,6 @@ require "jobs/retries_job"
 require "jobs/after_discard_retry_job"
 require "models/person"
 require "minitest/mock"
-require "active_support/core_ext/object/with"
 require "active_support/testing/ractors_assertions"
 
 class ExceptionsTest < ActiveSupport::TestCase

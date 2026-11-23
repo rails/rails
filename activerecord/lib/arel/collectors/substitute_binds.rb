@@ -5,9 +5,10 @@ module Arel # :nodoc: all
     class SubstituteBinds
       attr_accessor :preparable, :retryable
 
-      def initialize(quoter, delegate_collector)
+      def initialize(quoter, delegate_collector = (buffer = +""))
         @quoter = quoter
         @delegate = delegate_collector
+        @sql = buffer
       end
 
       def <<(str)
@@ -25,7 +26,7 @@ module Arel # :nodoc: all
       end
 
       def value
-        delegate.value
+        @sql || delegate.value
       end
 
       private

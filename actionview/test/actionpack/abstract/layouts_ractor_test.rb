@@ -2,7 +2,6 @@
 
 require "abstract_unit"
 require "active_support/testing/ractors_assertions"
-require "active_support/core_ext/object/with"
 
 class LayoutsRactorTest < ActiveSupport::TestCase
   include ActiveSupport::Testing::RactorsAssertions

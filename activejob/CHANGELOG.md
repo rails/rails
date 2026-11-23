@@ -1,3 +1,7 @@
+*   Remove the job from the execution context after `perform_now`.
+
+    *Azmi Muwahid*
+
 *   Fix `ActiveJob::Core#serialize` converting the given `scheduled_at` to UTC in place.
 
     `MyJob.set(wait_until: time).perform_later` used `Time#utc`, which changes

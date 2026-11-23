@@ -34,6 +34,12 @@ class FieldOrderedValuesTest < ActiveRecord::TestCase
     assert_empty(posts)
   end
 
+  def test_in_order_of_empty_with_filter_false
+    posts = Post.order(:title).in_order_of(:id, [], filter: false)
+
+    assert_equal(Post.order(:title).ids, posts.ids)
+  end
+
   def test_in_order_of_does_not_modify_receiver
     relation = Post.joins(:author).load
     order = [2, 1]
@@ -177,10 +183,10 @@ class FieldOrderedValuesTest < ActiveRecord::TestCase
 
   def test_in_order_of_with_only_unrepresentable_values_does_not_build_empty_case
     Book.destroy_all
-    Book.create!(nullable_status: :single)
-    Book.create!(nullable_status: nil)
+    single = Book.create!(nullable_status: :single)
+    unset = Book.create!(nullable_status: nil)
 
-    assert_empty(Book.in_order_of(:nullable_status, [:bogus], filter: false).ids)
+    assert_equal([single.id, unset.id].sort, Book.in_order_of(:nullable_status, [:bogus], filter: false).ids.sort)
     assert_empty(Book.in_order_of(:nullable_status, [:bogus]).ids)
   end
 

@@ -3,7 +3,6 @@
 require "abstract_unit"
 require "controller/fake_models"
 
-require "active_support/core_ext/object/with"
 require "active_support/testing/ractors_assertions"
 
 class FormHelperTest < ActionView::TestCase

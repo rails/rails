@@ -1,3 +1,27 @@
+*   Ignore `validate:` and `enforced:` when `remove_foreign_key` looks up the
+    foreign key to remove.
+
+    These options were compared with the current state of the foreign key. Once a
+    foreign key added with `validate: false` had been validated,
+    `remove_foreign_key ..., validate: false` raised `ArgumentError`.
+
+    *Yasuo Honda*
+
+*   Return all records from `in_order_of` with `filter: false` when no values are left.
+
+    An empty `values` list, or one where every value is dropped because the column
+    cannot represent it, returned no records even with `filter: false`, which is
+    documented to include all results. The relation is now returned unordered, as
+    `Enumerable#in_order_of` does.
+
+    ```ruby
+    Post.in_order_of(:status, [], filter: false).count
+    # Before: 0
+    # After: Post.count
+    ```
+
+    *Carlos Daniel Pohlod*
+
 *   Log source location when scoped order is ignored in batching.
 
     *fatkodima*

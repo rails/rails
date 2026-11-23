@@ -801,7 +801,7 @@ module ActiveRecord
         conn = @td.conn
         return unless conn.use_foreign_keys?
         to_table ||= options[:to_table]
-        drop_foreign_key(conn.send(:foreign_key_for!, name, to_table: to_table, **options).name)
+        drop_foreign_key(conn.send(:foreign_key_for!, name, to_table: to_table, **options.except(:validate, :enforced)).name)
       end
 
       def drop_foreign_key(name)

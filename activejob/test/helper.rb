@@ -3,6 +3,7 @@
 require_relative "../../tools/strict_warnings"
 require "active_job"
 require "support/job_buffer"
+require "active_support/core_ext/object/with"
 
 GlobalID.app = "aj"
 

@@ -76,6 +76,10 @@ module ActionDispatch
         ActionDispatch::QueryParser.strict_query_string_separator = app.config.action_dispatch.strict_query_string_separator
       end
 
+      unless app.config.action_dispatch.allow_rack_multipart_encoding
+        ActionDispatch::CoreExt::RackMultipartParser.apply
+      end
+
       ActionDispatch.verbose_redirect_logs = app.config.action_dispatch.verbose_redirect_logs
 
       ActiveSupport.on_load(:action_dispatch_request) do

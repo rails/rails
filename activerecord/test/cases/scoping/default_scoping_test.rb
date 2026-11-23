@@ -10,7 +10,6 @@ require "models/cat"
 require "models/mentor"
 require "concurrent/atomic/cyclic_barrier"
 require "active_support/testing/ractors_assertions"
-require "active_support/core_ext/object/with"
 
 class DefaultScopingTest < ActiveRecord::TestCase
   include ActiveSupport::Testing::RactorsAssertions

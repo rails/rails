@@ -325,8 +325,8 @@ See [Adding a Nonce](security.html#adding-a-nonce) in the Security Guide
 
 #### `config.content_security_policy_report_only`
 
-See [Reporting Violations](security.html#reporting-violations) in the Security
-Guide
+See the [Security guide](security.html#adding-a-csp-to-legacy-content) for more
+information.
 
 #### `config.credentials.content_path`
 
@@ -2515,6 +2515,17 @@ Specifies server specific X-Sendfile header. This is useful for accelerated file
 Sets the HTTP Auth salt value. Defaults
 to `'http authentication'`.
 
+#### `config.action_dispatch.allow_rack_multipart_encoding`
+
+Sets whether Rack arbitrary string encoding in multipart form-data.
+Defaults to `false`.
+
+If set to `false` Rack is patched to only allow UTF-8 and binary strings in multipart form-data.
+
+| Starting with version | The default value is |
+| --------------------- | -------------------- |
+| (original)            | `false`              |
+
 #### `config.action_dispatch.signed_cookie_salt`
 
 Sets the signed cookies salt value.
@@ -2572,9 +2583,9 @@ The default value depends on the `config.load_defaults` target version:
 
 #### `config.action_dispatch.perform_deep_munge`
 
-Configures whether `deep_munge` method should be performed on the parameters.
-See [Security Guide](security.html#unsafe-query-generation) for more
-information. It defaults to `true`.
+Configures whether `deep_munge` method should be performed on the request parameters. This method automatically filters an array parameter to remove `nil` objects, which may be used to add undesireable `IS NULL` clauses to a SQL query.
+
+See [CVE-2012-2660](https://groups.google.com/g/rubyonrails-security/c/8SA-M3as7A8/m/Mr9fi9X4kNgJ), [CVE-2012-2694](https://groups.google.com/g/rubyonrails-security/c/jILZ34tAHF4/m/7x0hLH-o0-IJ), and [CVE-2013-0155](https://groups.google.com/g/rubyonrails-security/c/c7jT-EeN9eI/m/L0u4e87zYGMJ) for further information.
 
 #### `config.action_dispatch.rescue_responses`
 

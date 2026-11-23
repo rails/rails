@@ -2,7 +2,6 @@
 
 require "cases/helper"
 require "support/schema_dumping_helper"
-require "active_support/core_ext/object/with"
 
 class PostgresqlExtensionSchemaDumpTest < ActiveRecord::PostgreSQLTestCase
   include SchemaDumpingHelper

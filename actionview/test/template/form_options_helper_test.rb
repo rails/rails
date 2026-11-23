@@ -2,7 +2,6 @@
 
 require "abstract_unit"
 require "active_support/core_ext/enumerable"
-require "active_support/core_ext/object/with"
 
 class Map < Hash
   def category

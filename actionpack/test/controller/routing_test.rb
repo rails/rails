@@ -4,7 +4,6 @@ require "abstract_unit"
 require "controller/fake_controllers"
 require "active_support/core_ext/object/with_options"
 require "active_support/core_ext/object/json"
-require "active_support/core_ext/object/with"
 
 class MilestonesController < ActionController::Base
   def index() head :ok end

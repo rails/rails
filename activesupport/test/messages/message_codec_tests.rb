@@ -1,7 +1,6 @@
 # frozen_string_literal: true
 
 require "json"
-require "active_support/core_ext/object/with"
 
 module MessageCodecTests
   extend ActiveSupport::Concern

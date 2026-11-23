@@ -189,8 +189,8 @@ module ActionView
       # highlight('You searched for: rails', 'rails', highlighter: '<mark title="\1">\1</mark>')
       # # => "You searched for: <mark title=\"rails\">rails</mark>"
       #
-      # highlight('You searched for: rails', 'rails') { |match| link_to(search_path(q: match)) }
-      # # => "You searched for: <a href=\"search?q=rails\">rails</a>"
+      # highlight('You searched for: rails', 'rails') { |match| link_to(match, search_path(q: match)) }
+      # # => "You searched for: <a href=\"/search?q=rails\">rails</a>"
       #
       # highlight('<a href="javascript:alert(\'no!\')">ruby</a> on rails', 'rails', sanitize: false)
       # # => "<a href=\"javascript:alert('no!')\">ruby</a> on <mark>rails</mark>"

@@ -1,3 +1,16 @@
+*   Harden generated GitHub Actions workflows
+
+    Generated `ci.yml` pins versions of actions (except ruby/setup-ruby) to
+    mitigate repointed git tag attacks. Pins use dependabot-friendly format so
+    the sha and version comment will be kept up-to-date by the existing
+    `dependabot.yml` config. ruby/setup-ruby is not pinned so latest ruby
+    releases are available without having to re-pin and update `ci.yml` which
+    may hinder critical ruby security patches. Sets
+    `persist-credentials: false` for checkout actions to mitigate later steps
+    reading GitHub tokens from filesystem.
+
+    *Eliot Sykes*
+
 *   Detect Kamal in `bin/rails app:update`.
 
     The update command didn't pass `skip_kamal`, so it rendered config files
@@ -398,7 +411,7 @@
 
     *Trevor Turk*
 
-*   Update the `.node-version` file conditionally generated for new applications to 22.21.1
+*   Update the `.node-version` file conditionally generated for new applications to 26.13.1
 
     *Taketo Takashima*
 

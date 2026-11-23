@@ -134,7 +134,7 @@ module ActiveSupport
           options = names.extract_options!
           options = merged_options(options)
 
-          results = read_multi_entries_from_local_cache(names, options)
+          results = options[:force] ? {} : read_multi_entries_from_local_cache(names, options)
 
           if results.size < names.size
             results.merge!(super(*(names - results.keys), options, &block))
