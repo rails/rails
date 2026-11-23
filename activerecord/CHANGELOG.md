@@ -1,3 +1,12 @@
+*   Ignore `validate:` and `enforced:` when `remove_foreign_key` looks up the
+    foreign key to remove.
+
+    These options were compared with the current state of the foreign key. Once a
+    foreign key added with `validate: false` had been validated,
+    `remove_foreign_key ..., validate: false` raised `ArgumentError`.
+
+    *Yasuo Honda*
+
 *   Return all records from `in_order_of` with `filter: false` when no values are left.
 
     An empty `values` list, or one where every value is dropped because the column

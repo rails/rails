@@ -536,6 +536,24 @@ if ActiveRecord::Base.lease_connection.supports_foreign_keys?
             assert_not_predicate fk, :validated?
           end
 
+          def test_remove_foreign_key_ignores_validate_of_existing_foreign_key
+            @connection.add_foreign_key :astronauts, :rockets, column: "rocket_id", validate: false
+            @connection.validate_foreign_key :astronauts, :rockets
+
+            @connection.remove_foreign_key :astronauts, :rockets, column: "rocket_id", validate: false
+
+            assert_empty @connection.foreign_keys("astronauts")
+          end
+
+          def test_remove_foreign_key_with_if_exists_ignores_validate_of_existing_foreign_key
+            @connection.add_foreign_key :astronauts, :rockets, column: "rocket_id", validate: false
+            @connection.validate_foreign_key :astronauts, :rockets
+
+            @connection.remove_foreign_key :astronauts, :rockets, column: "rocket_id", validate: false, if_exists: true
+
+            assert_empty @connection.foreign_keys("astronauts")
+          end
+
           def test_validate_foreign_key_infers_column
             @connection.add_foreign_key :astronauts, :rockets, validate: false
             assert_not_predicate @connection.foreign_keys("astronauts").first, :validated?
@@ -891,6 +909,29 @@ if ActiveRecord::Base.lease_connection.supports_foreign_keys?
             assert_match(/enforced/, error.message)
           end
 
+          def test_remove_foreign_key_ignores_enforced_of_existing_foreign_key
+            @connection.add_foreign_key :astronauts, :rockets, column: "rocket_id", enforced: false
+            @connection.change_foreign_key :astronauts, :rockets, enforced: true
+
+            @connection.remove_foreign_key :astronauts, :rockets, column: "rocket_id", enforced: false
+
+            assert_empty @connection.foreign_keys("astronauts")
+          end
+
+          class AddNotEnforcedForeignKeyMigration < ActiveRecord::Migration::Current
+            def change
+              add_foreign_key :astronauts, :rockets, column: "rocket_id", enforced: false
+            end
+          end
+
+          def test_add_not_enforced_foreign_key_is_reversible_after_change_foreign_key
+            migration = AddNotEnforcedForeignKeyMigration.new
+            silence_stream($stdout) { migration.migrate(:up) }
+            @connection.change_foreign_key :astronauts, :rockets, enforced: true
+
+            silence_stream($stdout) { migration.migrate(:down) }
+            assert_empty @connection.foreign_keys("astronauts")
+          end
         end
 
         def test_enforced_option_raises_on_unsupported_database
