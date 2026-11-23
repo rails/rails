@@ -1470,6 +1470,13 @@ module ActiveRecord
         execute_alter_table(at)
       end
 
+      # Changes an existing check constraint on a table. Currently only the PostgreSQL
+      # adapter (version 19+) implements this; see
+      # PostgreSQL::SchemaStatements#change_check_constraint for details.
+      def change_check_constraint(table_name, **options)
+        raise NotImplementedError, "change_check_constraint is not implemented"
+      end
+
       # Checks to see if a check constraint exists on a table for a given check constraint definition.
       #
       #   check_constraint_exists?(:products, name: "price_check")

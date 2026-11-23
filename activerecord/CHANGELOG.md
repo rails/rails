@@ -1,3 +1,18 @@
+*   Add `change_check_constraint` to change a check constraint between `ENFORCED`
+    and `NOT ENFORCED` on PostgreSQL 19+.
+
+    ```ruby
+    change_check_constraint :products, name: "price_check", enforced: false
+    # => ALTER TABLE "products" ALTER CONSTRAINT "price_check" NOT ENFORCED
+
+    change_check_constraint :products, name: "price_check", enforced: true
+    # => ALTER TABLE "products" ALTER CONSTRAINT "price_check" ENFORCED
+    ```
+
+    Changing a constraint to `ENFORCED` checks all existing rows.
+
+    *Yasuo Honda*
+
 *   Add `enforced:` option to `add_check_constraint` for PostgreSQL 18+.
 
     When `enforced: false` is passed, the constraint is created as `NOT ENFORCED`,
