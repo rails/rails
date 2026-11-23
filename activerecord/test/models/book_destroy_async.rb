@@ -22,3 +22,9 @@ class BookDestroyAsyncWithScopedTags < ActiveRecord::Base
   has_many :taggings, as: :taggable, class_name: "Tagging"
   has_many :tags, -> { where name: "Der be rum" }, through: :taggings, dependent: :destroy_async
 end
+
+class BookDestroyAsyncWithOrderedEssays < ActiveRecord::Base
+  self.table_name = "books"
+
+  has_many :essays, -> { order(:name) }, dependent: :destroy_async, class_name: "EssayDestroyAsync", foreign_key: "book_id"
+end
