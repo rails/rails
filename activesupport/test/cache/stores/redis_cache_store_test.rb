@@ -103,7 +103,7 @@ module ActiveSupport::Cache::RedisCacheStoreTests
       end
 
       @cache.clear
-      assert_equal [["flushdb"], ["flushdb"]], fake_connection.commands
+      assert_equal [["flushdb"]] * REDIS_URLS.size, fake_connection.commands
     end
 
     test "stats collects INFO from each HashRing node" do

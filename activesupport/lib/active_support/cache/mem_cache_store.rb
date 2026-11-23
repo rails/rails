@@ -357,6 +357,10 @@ module ActiveSupport
             raise Deadline::Exceeded, error.message
           end
 
+          if error.is_a?(ConnectionPool::TimeoutError)
+            ActiveSupport.deadline.check! # Translate checkout timeout errors into Deadline::Exceeded.
+          end
+
           fallback
         end
     end

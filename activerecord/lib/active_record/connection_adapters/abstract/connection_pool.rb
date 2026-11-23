@@ -231,10 +231,11 @@ module ActiveRecord
       end
 
       module ExecutorHooks # :nodoc:
+        State = Struct.new(:used_pools, :deadline)
         class << self
           def run(executor)
-            outer = ConnectionPool.used_pools
-            ConnectionPool.used_pools = outer&.dup
+            outer = State.new(ConnectionPool.used_pools, ConnectionPool.deadline)
+            ConnectionPool.used_pools = outer.used_pools&.dup
             ConnectionPool.deadline = executor.deadline
             outer
           end
@@ -254,10 +255,10 @@ module ActiveRecord
             end
 
             inner = ConnectionPool.used_pools
-            ConnectionPool.used_pools = outer || inner&.without_pools
+            ConnectionPool.used_pools = outer.used_pools || inner&.without_pools
 
             kept&.each { |pool| ConnectionPool.used_pools.add(pool) }
-            ConnectionPool.deadline = nil
+            ConnectionPool.deadline = outer.deadline
           end
         end
       end
