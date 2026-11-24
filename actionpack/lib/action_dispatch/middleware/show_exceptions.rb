@@ -87,7 +87,7 @@ module ActionDispatch
       # intended error page. Neutralize the poisoned body so the exceptions app
       # can render normally.
       def fallback_to_octet_stream_when_invalid_multipart(request)
-        return unless request.get_header("action_dispatch.request.request_parameters_error") && request.media_type == "multipart/form-data"
+        return unless request.get_header(ActionDispatch::Request::REQUEST_PARAMETERS_ERROR) && request.media_type == "multipart/form-data"
 
         request.request_parameters = {}
         request.set_header "CONTENT_TYPE", "application/octet-stream"
