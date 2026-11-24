@@ -68,7 +68,7 @@ module ActiveRecord
         # Aborts a transaction.
         def exec_rollback_db_transaction # :nodoc:
           cancel_any_running_query
-          query_command("ROLLBACK", "TRANSACTION", allow_retry: false, materialize_transactions: true, ignore_deadline: true)
+          query_command("ROLLBACK", "TRANSACTION", allow_retry: false, materialize_transactions: true)
         end
 
         def exec_restart_db_transaction # :nodoc:
@@ -176,6 +176,8 @@ module ActiveRecord
           end
 
           def perform_query(raw_connection, intent)
+            check_deadline!(intent)
+
             if fatal = consume_notice_receiver_fatal_error
               raise fatal
             end

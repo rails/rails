@@ -20,9 +20,9 @@ module ActiveRecord
 
           def clamp_timeout(deadline, timeout)
             if timeout > 0.0
-              deadline.clamp(timeout, error: ::Trilogy::TimeoutError)
+              deadline.clamp(timeout, error: DeadlineExceededError)
             else
-              new_timeout = deadline.clamp(Float::INFINITY, error: ::Trilogy::TimeoutError)
+              new_timeout = deadline.clamp(Float::INFINITY, error: DeadlineExceededError)
               new_timeout.finite? ? new_timeout : timeout
             end
           end

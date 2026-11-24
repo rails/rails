@@ -1155,7 +1155,12 @@ module ActiveRecord
       end
 
       def downgrade_connection_after_error(exception) # :nodoc:
-        unless retryable_query_error?(exception)
+        if exception.is_a?(ActiveRecord::DeadlineExceededError)
+          # If we reached a deadline we can't be sure which state the connection
+          # is in, e.g. we might fail to issue a `ROLLBACK` or any other type
+          # of statement that has a stateful effect on the connection.
+          disconnect!
+        elsif !retryable_query_error?(exception)
           # Barring a known-retryable error inside the query (regardless of
           # whether we were in a _position_ to retry it), we should infer that
           # there's likely a real problem with the connection.

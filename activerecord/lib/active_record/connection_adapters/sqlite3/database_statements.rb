@@ -41,7 +41,7 @@ module ActiveRecord
         def exec_rollback_db_transaction # :nodoc:
           return if connected? && !@raw_connection.transaction_active?
 
-          query_command("ROLLBACK TRANSACTION", "TRANSACTION", allow_retry: true, materialize_transactions: false, ignore_deadline: true)
+          query_command("ROLLBACK TRANSACTION", "TRANSACTION", allow_retry: true, materialize_transactions: false)
         end
 
         def exec_rollback_to_savepoint(name = current_savepoint_name) # :nodoc:
@@ -110,6 +110,8 @@ module ActiveRecord
           end
 
           def perform_query(raw_connection, intent)
+            check_deadline!(intent)
+
             total_changes_before_query = raw_connection.total_changes
             affected_rows = nil
 

@@ -366,7 +366,7 @@ module ActiveRecord
       end
 
       def exec_rollback_db_transaction # :nodoc:
-        query_command("ROLLBACK", "TRANSACTION", allow_retry: false, materialize_transactions: true, ignore_deadline: true)
+        query_command("ROLLBACK", "TRANSACTION", allow_retry: false, materialize_transactions: true)
       end
 
       def exec_restart_db_transaction # :nodoc:

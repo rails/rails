@@ -143,8 +143,8 @@ module ActiveRecord
         intent.cast_result
       end
 
-      def query_command(sql, name = nil, allow_retry: false, materialize_transactions: true, ignore_deadline: false) # :nodoc:
-        intent = internal_build_intent(sql, name, allow_retry: allow_retry, materialize_transactions: materialize_transactions, ignore_deadline: ignore_deadline)
+      def query_command(sql, name = nil, allow_retry: false, materialize_transactions: true) # :nodoc:
+        intent = internal_build_intent(sql, name, allow_retry: allow_retry, materialize_transactions: materialize_transactions)
         intent.execute!
         intent.finish
       end
@@ -734,8 +734,6 @@ module ActiveRecord
       # Final wrapper around the subclass-specific `perform_query`. Delivers the outcome
       # back to the calling intent.
       def execute_intent(intent) # :nodoc:
-        check_deadline!(intent)
-
         if intent.materialize_transactions
           # These can raise locally (e.g., ReadOnlyError). Validate before BEGIN.
           intent.processed_sql
@@ -944,7 +942,7 @@ module ActiveRecord
           deadline.check!(error: DeadlineExceededError)
         end
 
-        def internal_build_intent(sql, name = "SQL", binds = [], prepare: false, allow_retry: false, ignore_deadline: false, materialize_transactions: true, &block)
+        def internal_build_intent(sql, name = "SQL", binds = [], prepare: false, allow_retry: false, materialize_transactions: true, &block)
           QueryIntent.new(
             adapter: self,
             raw_sql: sql,
@@ -952,7 +950,6 @@ module ActiveRecord
             binds: binds,
             prepare: prepare,
             allow_retry: allow_retry,
-            ignore_deadline: ignore_deadline,
             materialize_transactions: materialize_transactions
           )
         end

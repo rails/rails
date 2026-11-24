@@ -33,6 +33,8 @@ module ActiveRecord
           end
 
           def perform_query(raw_connection, intent)
+            check_deadline!(intent)
+
             reset_multi_statement = if intent.batch && !multi_statements_enabled?
               raw_connection.set_server_option(::Mysql2::Client::OPTION_MULTI_STATEMENTS_ON)
               true

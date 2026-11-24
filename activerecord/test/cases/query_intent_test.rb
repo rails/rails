@@ -204,23 +204,29 @@ module ActiveRecord
     end
 
     test "exceeded deadline is checked before querying" do
-      ActiveSupport.stub(:deadline, ActiveSupport::Deadline.new(-1)) do
+      deadline = ActiveSupport::Deadline.new(-1)
+      ActiveSupport.stub(:deadline, deadline) do
         intent = build_intent(@connection, allow_retry: true)
+        assert_same deadline, intent.deadline
+        intent.execute!
         assert_raises ActiveRecord::DeadlineExceededError do
-          intent.execute!
+          intent.cast_result
         end
       end
     end
 
-    test "deadline is ignored when specified" do
+    test "an exceeded deadline closes the connnection" do
       # Intented for queries we should always run, e.g. ROLLBACK
+      @connection.verify!
+      assert_predicate @connection, :verified?
+
       ActiveSupport.stub(:deadline, ActiveSupport::Deadline.new(-1)) do
-        intent = build_intent(@connection, allow_retry: true, ignore_deadline: true)
+        intent = build_intent(@connection, allow_retry: true)
 
         intent.execute!
-        intent.cast_result
 
-        assert_predicate intent, :finalized?
+        assert_not_predicate @connection, :verified?
+        assert_not_predicate @connection, :active?
       end
     end
 
@@ -314,13 +320,12 @@ module ActiveRecord
     end
 
     private
-      def build_intent(connection, allow_retry: false, materialize_transactions: false, ignore_deadline: false)
+      def build_intent(connection, allow_retry: false, materialize_transactions: false)
         ActiveRecord::ConnectionAdapters::QueryIntent.new(
           adapter: connection,
           raw_sql: "SELECT 1",
           name: "SQL",
           allow_retry: allow_retry,
-          ignore_deadline: ignore_deadline,
           materialize_transactions: materialize_transactions
         )
       end

@@ -70,13 +70,13 @@ module ActiveRecord
                     :retry_budget
 
       def initialize(adapter:, arel: nil, raw_sql: nil, processed_sql: nil, name: "SQL", binds: [], prepare: false, allow_async: false,
-                     allow_retry: false, ignore_deadline: false, materialize_transactions: true, batch: false)
+                     allow_retry: false, materialize_transactions: true, batch: false)
         if arel.nil? && raw_sql.nil? && processed_sql.nil?
           raise ArgumentError, "One of arel, raw_sql, or processed_sql must be provided"
         end
 
         @adapter = adapter
-        @deadline = ignore_deadline ? ActiveSupport::Deadline::Null : ActiveSupport.deadline
+        @deadline = ActiveSupport.deadline
         @arel = arel
         @raw_sql = raw_sql
         @name = name
