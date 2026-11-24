@@ -537,6 +537,32 @@ module ActionController
       get :thread_locals
     end
 
+    def test_thread_locals_do_not_get_copied_when_live_streaming_copy_thread_locals_is_false
+      @controller.tc = self
+      Thread.current[:setting] = "aaron"
+
+      @controller.class.with(live_streaming_copy_thread_locals: false) do
+        get :no_thread_locals
+      end
+
+      assert_equal "helloworld", response.body
+      assert_stream_closed
+    ensure
+      Thread.current[:setting] = nil
+    end
+
+    def test_isolated_state_get_copied_when_live_streaming_copy_thread_locals_is_false
+      @controller.tc = self
+      CurrentState.id = "isolated_state"
+
+      @controller.class.with(live_streaming_copy_thread_locals: false) do
+        get :isolated_state
+      end
+
+      assert_equal "isolated_state".inspect, response.body
+      assert_stream_closed
+    end
+
     def test_isolated_state_get_copied
       @controller.tc = self
       CurrentState.id = "isolated_state"

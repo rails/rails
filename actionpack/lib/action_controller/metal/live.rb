@@ -89,14 +89,36 @@ module ActionController
   # - `:active_record_prohibit_shard_swapping` - Shard swapping restrictions
   #
   # By default, no keys are excluded to maintain backward compatibility.
+  #
+  # ## Streaming and Thread Locals
+  #
+  # By default, every thread (or fiber) local variable set with `Thread.current[]=`
+  # in the parent thread is also assigned to the streaming thread. Only the references
+  # are copied, so any mutable object stored there ends up shared between both threads.
+  #
+  # You can disable this behavior with the
+  # `config.action_controller.live_streaming_copy_thread_locals` configuration:
+  #
+  #     # config/application.rb
+  #     config.action_controller.live_streaming_copy_thread_locals = false
+  #
+  # When disabled, the streaming thread starts with its own thread locals and only
+  # inherits the `ActiveSupport::IsolatedExecutionState` (which backs
+  # `ActiveSupport::CurrentAttributes`). Code that needs to propagate state to the
+  # streaming thread should use `ActiveSupport::CurrentAttributes` or
+  # `ActiveSupport::IsolatedExecutionState` instead of `Thread.current`.
   module Live
     extend ActiveSupport::Concern
 
     @live_streaming_excluded_keys = []
     singleton_class.attr_accessor :live_streaming_excluded_keys
 
+    @live_streaming_copy_thread_locals = true
+    singleton_class.attr_accessor :live_streaming_copy_thread_locals
+
     included do
       class_attribute :live_streaming_excluded_keys, instance_accessor: false, default: Live.live_streaming_excluded_keys
+      class_attribute :live_streaming_copy_thread_locals, instance_accessor: false, default: Live.live_streaming_copy_thread_locals
     end
 
     module ClassMethods
@@ -316,7 +338,7 @@ module ActionController
 
     def process(name)
       t1 = Thread.current
-      locals = t1.keys.map { |key| [key, t1[key]] }
+      locals = self.class.live_streaming_copy_thread_locals ? t1.keys.map { |key| [key, t1[key]] } : []
 
       # The IsolatedExecutionState context may be a Fiber, not a Thread
       context = ActiveSupport::IsolatedExecutionState.context

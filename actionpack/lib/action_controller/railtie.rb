@@ -39,6 +39,16 @@ module ActionController
       end
     end
 
+    initializer "action_controller.live_streaming_copy_thread_locals" do |app|
+      copy_thread_locals = app.config.action_controller.live_streaming_copy_thread_locals
+
+      unless copy_thread_locals.nil?
+        ActiveSupport.on_load(:action_controller_live) do
+          ActionController::Live.live_streaming_copy_thread_locals = copy_thread_locals
+        end
+      end
+    end
+
     initializer "action_controller.parameters_config" do |app|
       options = app.config.action_controller
 
@@ -90,6 +100,7 @@ module ActionController
           :always_permitted_parameters,
           :wrap_parameters_by_default,
           :live_streaming_excluded_keys,
+          :live_streaming_copy_thread_locals,
           :rescue_from_event_backtrace
         )
 

@@ -63,6 +63,7 @@ Below are the default values associated with each target version. In cases of co
 - [`ActiveSupport.raise_on_invalid_time_zone_parse`](#activesupport-raise-on-invalid-time-zone-parse): `true`
 - [`config.action_controller.default_protect_from_forgery_with`](#config-action-controller-default-protect-from-forgery-with): `:exception`
 - [`config.action_controller.forgery_protection_verification_strategy`](#config-action-controller-forgery-protection-verification-strategy): `:header_only`
+- [`config.action_controller.live_streaming_copy_thread_locals`](#config-action-controller-live-streaming-copy-thread-locals): `false`
 - [`config.action_controller.rescue_from_event_backtrace`](#config-action-controller-rescue-from-event-backtrace): `:array`
 - [`config.action_dispatch.default_headers`](#config-action-dispatch-default-headers): `{ "X-Frame-Options" => "SAMEORIGIN", "X-Content-Type-Options" => "nosniff", "X-Permitted-Cross-Domain-Policies" => "none", "Referrer-Policy" => "strict-origin-when-cross-origin" }`
 - [`config.action_dispatch.strict_accept_header`](#config-action-dispatch-strict-accept-header): `true`
@@ -2335,6 +2336,24 @@ The default value depends on the `config.load_defaults` target version:
 
 Determines whether controller context for query tags will be automatically
 updated via an `around_filter`. The default value is `true`.
+
+#### `config.action_controller.live_streaming_copy_thread_locals`
+
+Determines whether thread locals (values set with `Thread.current[]=`) of the
+request thread are copied to the thread that runs `ActionController::Live`
+actions. Only references are copied, so mutable objects end up shared between
+both threads.
+
+When `false`, the streaming thread only inherits the
+`ActiveSupport::IsolatedExecutionState` (which backs
+`ActiveSupport::CurrentAttributes`).
+
+The default value depends on the `config.load_defaults` target version:
+
+| Starting with version | The default value is |
+| --------------------- | -------------------- |
+| (original)            | `true`               |
+| 8.2                   | `false`              |
 
 #### `config.action_controller.wrap_parameters_by_default`
 
