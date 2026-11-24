@@ -13,6 +13,7 @@ module Rails
 
           BASE_PACKAGES = %w( curl libjemalloc2 libvips ).freeze
           BUILD_PACKAGES = %w( gcc g++ make git ).freeze
+          APT_INSTALL_PACKAGES_REGEXP = /(?<=apt-get install --no-install-recommends -y )[^\s\\&;|#<>]+(?:[ \t]+[^\s\\&;|#<>]+)*/
 
           class_option :to, required: true,
             desc: "The database system to switch to."
@@ -49,7 +50,9 @@ module Rails
             return unless File.exist?(dockerfile_path)
 
             gsub_file("Dockerfile", all_docker_bases_regex, docker_base_packages(database.base_package))
-            gsub_file("Dockerfile", all_docker_builds_regex, docker_build_packages(database.build_package))
+            gsub_file("Dockerfile", APT_INSTALL_PACKAGES_REGEXP) do |packages|
+              docker_build_packages(packages)
+            end
           end
 
           def edit_devcontainer_files
@@ -76,16 +79,13 @@ module Rails
               end.join("\s")
             end
 
-            def all_docker_builds
-              Database.all.map { |database| docker_build_packages(database.build_package) }.uniq
-            end
+            def docker_build_packages(package_list)
+              packages = package_list.split
+              return package_list unless BUILD_PACKAGES.all? { |package| packages.include?(package) }
 
-            def docker_build_packages(database_package)
-              if database_package
-                [database_package].concat(BUILD_PACKAGES).sort
-              else
-                BUILD_PACKAGES
-              end.join("\s")
+              packages -= Database.all.filter_map(&:build_package)
+              packages << database.build_package if database.build_package
+              packages.sort.join(" ")
             end
 
             def all_database_gems_regex
@@ -95,10 +95,6 @@ module Rails
 
             def all_docker_bases_regex
               /(\b#{all_docker_bases.join('\b|\b')}\b)/
-            end
-
-            def all_docker_builds_regex
-              /(\b#{all_docker_builds.map { |packages| Regexp.escape(packages) }.join('\b|\b')}\b)/
             end
 
             def gem_entry_regex_for(gem_name)

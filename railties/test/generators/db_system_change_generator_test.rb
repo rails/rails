@@ -47,7 +47,7 @@ module Rails
             end
 
             assert_file("Dockerfile") do |content|
-              assert_match "g++ gcc git libpq-dev make", content
+              assert_match "g++ gcc git libpq-dev libyaml-dev make pkg-config", content
               assert_match "curl libjemalloc2 libvips postgresql-client", content
             end
 
@@ -90,7 +90,7 @@ module Rails
             end
 
             assert_file("Dockerfile") do |content|
-              assert_match "default-libmysqlclient-dev g++ gcc git make", content
+              assert_match "default-libmysqlclient-dev g++ gcc git libyaml-dev make pkg-config", content
               assert_match "curl default-mysql-client libjemalloc2 libvips", content
             end
 
@@ -132,7 +132,7 @@ module Rails
             end
 
             assert_file("Dockerfile") do |content|
-              assert_match "gcc g++ make git", content
+              assert_match "g++ gcc git libyaml-dev make pkg-config", content
               assert_match "curl libjemalloc2 libvips sqlite3", content
             end
 
@@ -155,7 +155,7 @@ module Rails
             end
 
             assert_file("Dockerfile") do |content|
-              assert_match "gcc g++ make git", content
+              assert_match "g++ gcc git libyaml-dev make pkg-config", content
               assert_match "curl default-mysql-client libjemalloc2 libvips", content
               assert_no_match "default-libmysqlclient-dev", content
             end
@@ -198,6 +198,27 @@ module Rails
             assert_file("Gemfile") do |content|
               assert_match "# Use mysql2 as the database for Active Record", content
               assert_match 'gem "mysql2", "~> 0.5"', content
+            end
+          end
+
+          test "change database build packages with additional Dockerfile packages" do
+            dockerfile = File.join(destination_root, "Dockerfile")
+            content = File.read(dockerfile).sub("make pkg-config", "make node-gyp pkg-config python-is-python3")
+            File.write(dockerfile, content)
+
+            run_generator ["--to", "mysql"]
+            run_generator ["--to", "postgresql", "--force"]
+
+            assert_file("Dockerfile") do |content|
+              assert_match "g++ gcc git libpq-dev libyaml-dev make node-gyp pkg-config python-is-python3", content
+              assert_no_match "default-libmysqlclient-dev", content
+            end
+
+            run_generator ["--to", "sqlite3", "--force"]
+
+            assert_file("Dockerfile") do |content|
+              assert_match "g++ gcc git libyaml-dev make node-gyp pkg-config python-is-python3", content
+              assert_no_match "libpq-dev", content
             end
           end
 
