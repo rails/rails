@@ -38,5 +38,23 @@ module ActionMailbox
         ActionMailbox.storage_service = app.config.action_mailbox.storage_service
       end
     end
+
+    config.after_initialize do |app|
+      if Rails.env.local?
+        app.routes.prepend do
+          scope "rails/conductor/action_mailbox/", module: "rails/conductor/action_mailbox" do
+            get  "inbound_emails", to: "inbound_emails#index", as: :rails_conductor_inbound_emails, internal: true
+            post "inbound_emails", to: "inbound_emails#create", internal: true
+            get  "inbound_emails/new", to: "inbound_emails#new", as: :new_rails_conductor_inbound_email, internal: true
+            get  "inbound_emails/:id", to: "inbound_emails#show", as: :rails_conductor_inbound_email, internal: true
+            get  "inbound_emails/sources/new", to: "inbound_emails/sources#new", as: :new_rails_conductor_inbound_email_source, internal: true
+            post "inbound_emails/sources", to: "inbound_emails/sources#create", as: :rails_conductor_inbound_email_sources, internal: true
+
+            post ":inbound_email_id/reroute", to: "reroutes#create", as: :rails_conductor_inbound_email_reroute, internal: true
+            post ":inbound_email_id/incinerate", to: "incinerates#create", as: :rails_conductor_inbound_email_incinerate, internal: true
+          end
+        end
+      end
+    end
   end
 end
