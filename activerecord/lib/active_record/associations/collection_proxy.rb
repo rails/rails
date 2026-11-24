@@ -47,6 +47,10 @@ module ActiveRecord
       end
 
       def load_target
+        if @association.violates_strict_loading?(n_plus_one: true)
+          Base.strict_loading_violation!(owner: @association.owner.class, reflection: @association.reflection)
+        end
+
         @association.load_target
       end
 

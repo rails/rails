@@ -1423,7 +1423,9 @@ default. Defaults to `false`.
 
 Sets the mode in which strict loading is reported. Defaults to `:all`. It can be
 changed to `:n_plus_one_only` to only report when loading associations that will
-lead to an N + 1 query.
+lead to an N + 1 query. In `:n_plus_one_only` mode, records loaded together by a
+query that returns more than one record report when lazily loading their
+`has_many` associations.
 
 #### `config.active_record.index_nested_attribute_errors`
 

@@ -792,6 +792,25 @@ module ActiveRecord
     # user.comments.first.ratings.to_a
     # # => ActiveRecord::StrictLoadingViolationError
     # ```
+    #
+    # Records that are in `:n_plus_one_only` mode when a query loads more than
+    # one of them (for example, with `strict_loading_by_default` and
+    # `strict_loading_mode = :n_plus_one_only`) also raise when lazily loading
+    # a `has_many` association, since doing so for each record leads to an
+    # n plus one query. Lazily loading `belongs_to` and `has_one` associations
+    # does not raise:
+    #
+    # ```
+    # User.strict_loading_by_default = true
+    # User.strict_loading_mode = :n_plus_one_only
+    #
+    # User.first.comments.to_a # => [#<Comment:0x00...]
+    #
+    # users = User.all.to_a
+    # users.first.address.city # => "Tatooine"
+    # users.first.comments.to_a
+    # # => ActiveRecord::StrictLoadingViolationError
+    # ```
     def strict_loading!(value = true, mode: :all)
       unless [:all, :n_plus_one_only].include?(mode)
         raise ArgumentError, "The :mode option must be one of [:all, :n_plus_one_only] but #{mode.inspect} was provided."
@@ -811,6 +830,14 @@ module ActiveRecord
     # Returns `true` if the record uses strict_loading with `:all` mode enabled.
     def strict_loading_all?
       @strict_loading_mode == :all
+    end
+
+    def loaded_in_collection! # :nodoc:
+      @loaded_in_collection = true
+    end
+
+    def loaded_in_collection? # :nodoc:
+      @loaded_in_collection
     end
 
     # Prevents records from being written to the database:
