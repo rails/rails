@@ -45,9 +45,6 @@ class PostgresqlHstoreTest < ActiveRecord::PostgreSQLTestCase
     assert_not @connection.extension_enabled?("hstore")
     @connection.enable_extension "hstore"
     assert @connection.extension_enabled?("hstore")
-  ensure
-    # Restore column(s) dropped by `drop extension hstore cascade;`
-    load_schema
   end
 
   def test_column
