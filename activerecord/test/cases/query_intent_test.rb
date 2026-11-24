@@ -204,22 +204,24 @@ module ActiveRecord
     end
 
     test "exceeded deadline is checked before querying" do
-      @connection.deadline = ActiveSupport::Deadline.new(-1)
-      intent = build_intent(@connection, allow_retry: true)
-      assert_raises ActiveRecord::DeadlineExceededError do
-        intent.execute!
+      ActiveSupport.stub(:deadline, ActiveSupport::Deadline.new(-1)) do
+        intent = build_intent(@connection, allow_retry: true)
+        assert_raises ActiveRecord::DeadlineExceededError do
+          intent.execute!
+        end
       end
     end
 
     test "deadline is ignored when specified" do
       # Intented for queries we should always run, e.g. ROLLBACK
-      @connection.deadline = ActiveSupport::Deadline.new(-1)
-      intent = build_intent(@connection, allow_retry: true, ignore_deadline: true)
+      ActiveSupport.stub(:deadline, ActiveSupport::Deadline.new(-1)) do
+        intent = build_intent(@connection, allow_retry: true, ignore_deadline: true)
 
-      intent.execute!
-      intent.cast_result
+        intent.execute!
+        intent.cast_result
 
-      assert_predicate intent, :finalized?
+        assert_predicate intent, :finalized?
+      end
     end
 
     test "exhausted retries make the final failure available" do

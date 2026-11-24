@@ -63,7 +63,6 @@ module ActiveRecord
       attr_reader :allow_preconnect # :nodoc:
       attr_accessor :pinned # :nodoc:
       alias :in_use? :owner
-      attr_accessor :deadline # :nodoc:
 
       def pool=(value)
         return if value.eql?(@pool)
@@ -245,7 +244,6 @@ module ActiveRecord
 
         @owner = nil
         @pinned = false
-        @deadline = ActiveSupport::Deadline::Null
         @pool = ActiveRecord::ConnectionAdapters::NullPool.new
         @idle_since = Process.clock_gettime(Process::CLOCK_MONOTONIC)
         @allow_preconnect = false

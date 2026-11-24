@@ -1801,7 +1801,7 @@ module ActiveRecord
       end
 
       def test_checkout_deadline
-        ConnectionPool.with(deadline: ActiveSupport::Deadline.new(-1)) do
+        ActiveSupport.stub(:deadline, ActiveSupport::Deadline.new(-1)) do
           assert_raises ActiveRecord::DeadlineExceededError, match: /Deadline exceeded/ do
             @pool.checkout
           end

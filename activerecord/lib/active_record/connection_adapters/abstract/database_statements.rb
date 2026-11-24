@@ -940,7 +940,7 @@ module ActiveRecord
         # call.
         # For adapters that have proper deadline support, this can be redefined as an empty method.
         def check_deadline!(intent = nil)
-          deadline = intent ? intent.deadline : @deadline
+          deadline = intent ? intent.deadline : ActiveSupport.deadline
           deadline.check!(error: DeadlineExceededError)
         end
 

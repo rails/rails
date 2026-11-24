@@ -111,7 +111,7 @@ module ActiveRecord
           if connected?
             # ping either raises or return true
             begin
-              with_deadline(@raw_connection, @deadline, &:ping)
+              with_deadline(@raw_connection, &:ping)
             rescue ::Trilogy::Error
               false
             else
@@ -141,7 +141,8 @@ module ActiveRecord
 
           connect_timeout_was = config.fetch(:connect_timeout, 5) || config[:write_timeout] # From trilogy source
 
-          connect_timeout = @deadline.clamp(connect_timeout_was || Float::INFINITY, error: DeadlineExceededError)
+          deadline = ActiveSupport.deadline
+          connect_timeout = deadline.clamp(connect_timeout_was || Float::INFINITY, error: DeadlineExceededError)
           connect_timeout = nil if connect_timeout.infinite?
           if connect_timeout_was != connect_timeout
             config = config.merge(connect_timeout: connect_timeout)
@@ -149,6 +150,7 @@ module ActiveRecord
 
           @raw_connection = self.class.new_client(config)
         rescue ConnectionNotEstablished => ex
+          deadline.check!(error: DeadlineExceededError)
           raise ex.set_pool(@pool)
         end
 

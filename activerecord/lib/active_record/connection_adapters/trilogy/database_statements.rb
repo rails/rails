@@ -27,7 +27,7 @@ module ActiveRecord
             end
           end
 
-          def with_deadline(raw_connection, deadline)
+          def with_deadline(raw_connection, deadline = ActiveSupport.deadline)
             read_timeout_was = raw_connection.read_timeout
             write_timeout_was = raw_connection.write_timeout
 

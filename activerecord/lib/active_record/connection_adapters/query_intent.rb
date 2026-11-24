@@ -76,7 +76,7 @@ module ActiveRecord
         end
 
         @adapter = adapter
-        @deadline = ignore_deadline ? ActiveSupport::Deadline::Null : adapter.deadline
+        @deadline = ignore_deadline ? ActiveSupport::Deadline::Null : ActiveSupport.deadline
         @arel = arel
         @raw_sql = raw_sql
         @name = name
