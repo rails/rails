@@ -77,6 +77,15 @@ module ActionController
           def http_basic_authenticate_with(name:, password:, realm: nil, message: nil, content_type: nil, **options)
             raise ArgumentError, "Expected name: to be a String, got #{name.class}" unless name.is_a?(String)
             raise ArgumentError, "Expected password: to be a String, got #{password.class}" unless password.is_a?(String)
+
+            if password.blank?
+              ActionController.deprecator.warn(<<~MSG.squish)
+                Passing a blank `password:` to `http_basic_authenticate_with` is deprecated and will raise
+                an ArgumentError in Rails 8.3. A blank password lets any request that sends the configured
+                name with an empty password authenticate.
+              MSG
+            end
+
             before_action(options) { http_basic_authenticate_or_request_with name: name, password: password, realm: realm, message: message, content_type: content_type }
           end
         end

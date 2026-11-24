@@ -190,6 +190,33 @@ class HttpBasicAuthenticationTest < ActionController::TestCase
     assert_response :unauthorized
   end
 
+  test "class method raises when the password is not a String" do
+    error = assert_raises(ArgumentError) do
+      Class.new(ActionController::Base) do
+        http_basic_authenticate_with name: "David", password: nil
+      end
+    end
+    assert_equal "Expected password: to be a String, got NilClass", error.message
+  end
+
+  test "class method deprecates a blank password" do
+    ["", " "].each do |password|
+      assert_deprecated("Passing a blank `password:` to `http_basic_authenticate_with` is deprecated", ActionController.deprecator) do
+        Class.new(ActionController::Base) do
+          http_basic_authenticate_with name: "David", password: password
+        end
+      end
+    end
+  end
+
+  test "class method does not deprecate a present password" do
+    assert_not_deprecated(ActionController.deprecator) do
+      Class.new(ActionController::Base) do
+        http_basic_authenticate_with name: "David", password: "Goliath"
+      end
+    end
+  end
+
   test "authentication request with wrong scheme" do
     header = "Bearer " + encode_credentials("David", "Goliath").split(" ", 2)[1]
     @request.env["HTTP_AUTHORIZATION"] = header
