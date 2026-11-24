@@ -133,7 +133,11 @@ module ActiveJob
         when nil, true, false, String, Integer, Float
           argument
         when Array
-          argument.map { |arg| deserialize_argument(arg) }
+          if all_global_ids?(argument)
+            deserialize_global_ids(argument)
+          else
+            argument.map { |arg| deserialize_argument(arg) }
+          end
         when Hash
           if serialized_global_id?(argument)
             deserialize_global_id argument
@@ -147,12 +151,36 @@ module ActiveJob
         end
       end
 
-      def serialized_global_id?(hash)
-        hash.size == 1 && hash.include?(GLOBALID_KEY)
+      def all_global_ids?(argument)
+        argument.size > 1 && argument.all? { |arg| serialized_global_id?(arg) }
+      end
+
+      def serialized_global_id?(argument)
+        Hash === argument && argument.size == 1 && argument.include?(GLOBALID_KEY)
       end
 
       def deserialize_global_id(hash)
         GlobalID::Locator.fetch hash[GLOBALID_KEY]
+      end
+
+      def deserialize_global_ids(hashes)
+        gids = hashes.map { |hash| GlobalID.parse(hash[GLOBALID_KEY]) }
+
+        if locatable_together?(gids)
+          records = GlobalID::Locator.locate_many(gids, ignore_missing: true)
+
+          if records.size != gids.size || records.include?(nil)
+            raise GlobalID::Locator::RecordNotFound, "Couldn't find all records for #{gids.join(", ")}"
+          end
+
+          records
+        else
+          hashes.map { |hash| deserialize_global_id(hash) }
+        end
+      end
+
+      def locatable_together?(gids)
+        gids.all? && gids.map(&:app).uniq.one?
       end
 
       def custom_serialized?(hash)

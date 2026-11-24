@@ -1,3 +1,11 @@
+*   Locate an Array of records passed to a job with one query per model.
+
+    `MyJob.perform_later(users)` used to run one query per record when the
+    job was performed. If a record appears more than once in the Array, each
+    position now gets the same instance.
+
+    *Bruno Costanzo*
+
 *   Remove the job from the execution context after `perform_now`.
 
     *Azmi Muwahid*
