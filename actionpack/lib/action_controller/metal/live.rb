@@ -415,10 +415,14 @@ module ActionController
       # data from the response bodies. Nobody should call this method except in Rails
       # internals. Seriously!
       def new_controller_thread(&block) # :nodoc:
+        event_reporter = ActiveSupport.event_reporter
+        event_context = event_reporter.context
+        event_tags = ActiveSupport::TagStack.tags
+
         ActionController::Live.live_thread_pool_executor.post do
           t2 = Thread.current
           t2.abort_on_exception = true
-          yield
+          event_reporter.with_context_and_tags(event_context, event_tags, &block)
         end
       end
 

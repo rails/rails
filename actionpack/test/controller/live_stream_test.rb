@@ -136,6 +136,14 @@ module ActionController
         render plain: "zomg"
       end
 
+      def event_reporter_state
+        context = ActiveSupport.event_reporter.context
+        tags = ActiveSupport::TagStack.tags
+        ActiveSupport.event_reporter.set_context(set_in_action: true)
+        response.stream.write({ context: context, tags: tags }.to_json)
+        response.stream.close
+      end
+
       def write_lines
         response.stream.writeln "hello\n"
         response.stream.writeln "world"
@@ -380,6 +388,21 @@ module ActionController
       get :basic_stream
       assert_equal "helloworld", @response.body
       assert_equal "text/event-stream", @response.headers["Content-Type"]
+    end
+
+    def test_event_reporter_context_and_tags_are_those_of_the_request
+      reporter = ActiveSupport.event_reporter
+
+      reporter.set_context(user_id: "alice")
+      reporter.tagged(:export) { get :event_reporter_state }
+      assert_equal({ "context" => { "user_id" => "alice" }, "tags" => { "export" => true } }, JSON.parse(@response.body))
+
+      reporter.clear_context
+      reporter.set_context(user_id: "bob")
+      get :event_reporter_state
+      assert_equal({ "context" => { "user_id" => "bob" }, "tags" => {} }, JSON.parse(@response.body))
+    ensure
+      reporter.clear_context
     end
 
     def test_write_lines_to_stream

@@ -26,6 +26,19 @@ module ActiveSupport
         end
       end
 
+      # Runs the block with exactly the given tags, instead of adding them to
+      # the current ones.
+      def with_exact_tags(tags) # :nodoc:
+        existing_tags = Fiber[FIBER_KEY]
+
+        begin
+          Fiber[FIBER_KEY] = tags
+          yield
+        ensure
+          Fiber[FIBER_KEY] = existing_tags
+        end
+      end
+
       private
         def resolve_tags(args, kwargs)
           tags = args.each_with_object({}) do |arg, tags|
@@ -622,6 +635,18 @@ module ActiveSupport
     # Returns the current context data.
     def context
       context_store.context
+    end
+
+    # Runs the block with the given context and tags, and clears the context
+    # afterwards. A new thread copies the context and tags of the thread that
+    # created it, so work handed to a reused thread, like an
+    # ActionController::Live action, must set them again.
+    def with_context_and_tags(context, tags, &block) # :nodoc:
+      clear_context
+      set_context(context)
+      TagStack.with_exact_tags(tags, &block)
+    ensure
+      clear_context
     end
 
     def reload_payload_filter # :nodoc:
