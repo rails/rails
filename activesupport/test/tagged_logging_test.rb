@@ -122,6 +122,16 @@ class TaggedLoggingTest < ActiveSupport::TestCase
     assert_equal "[OMG] Cool story\n[BCX] Funky time\n", @output.string
   end
 
+  test "cloned formatter does not share thread key even after access" do
+    @logger.tagged("TAG1") { }
+
+    other_logger = ActiveSupport::TaggedLogging.new(@logger)
+    other_logger.push_tags("TAG2")
+
+    assert_equal [], @logger.formatter.current_tags
+    assert_equal ["TAG2"], other_logger.formatter.current_tags
+  end
+
   test "cleans up the taggings on flush" do
     @logger.tagged("BCX") do
       Thread.new do
@@ -263,5 +273,73 @@ class TaggedLoggingWithoutBlockTest < ActiveSupport::TestCase
     @logger.formatter.freeze
     @logger.info "frozen"
     assert_equal "frozen\n", @output.string
+  end
+
+  test "keeps block-scoped tags in their own thread when using a tagged logger without block" do
+    logger = @logger.tagged("BASE_TAG")
+    logger.tagged("BCX") do
+      Thread.new do
+        logger.info "Dull story"
+        logger.tagged("OMG") { logger.info "Cool story" }
+      end.join
+      logger.info "Funky time"
+    end
+    assert_equal "[BASE_TAG] Dull story\n[BASE_TAG] [OMG] Cool story\n[BASE_TAG] [BCX] Funky time\n", @output.string
+  end
+
+  test "concurrent threads tagging a logger without block do not leak tags" do
+    logger = @logger.tagged("BASE")
+
+    t1 = Thread.new do
+      logger.tagged("T1") do
+        sleep 0.05
+        logger.info "thread 1"
+      end
+    end
+
+    t2 = Thread.new do
+      sleep 0.02
+      logger.tagged("T2") do
+        logger.info "thread 2"
+      end
+    end
+
+    [t1, t2].each(&:join)
+
+    assert_includes @output.string, "[BASE] [T1] thread 1\n"
+    assert_includes @output.string, "[BASE] [T2] thread 2\n"
+    assert_not_includes @output.string, "[T1] [T2]"
+    assert_not_includes @output.string, "[T2] [T1]"
+  end
+
+  test "push and pop tags directly on logger with local tags" do
+    logger = @logger.tagged("BASE")
+    assert_equal ["A", "B"], logger.push_tags("A", "B")
+    logger.info "a"
+    assert_equal ["B"], logger.pop_tags
+    logger.info "b"
+    assert_equal [], logger.clear_tags!
+    logger.info "c"
+
+    assert_equal "[BASE] [A] [B] a\n[BASE] [A] b\n[BASE] c\n", @output.string
+  end
+
+  test "flush clears dynamic tags but preserves local tags" do
+    logger = @logger.tagged("BASE")
+    logger.tagged("DYNAMIC") do
+      logger.flush
+      logger.info "after flush"
+    end
+    assert_equal "[BASE] after flush\n", @output.string
+  end
+
+  test "cloned logger with local tags isolates dynamic tags" do
+    logger1 = @logger.tagged("A")
+    logger2 = logger1.clone
+
+    logger2.push_tags("B")
+
+    assert_equal ["A"], logger1.formatter.current_tags
+    assert_equal ["A", "B"], logger2.formatter.current_tags
   end
 end
