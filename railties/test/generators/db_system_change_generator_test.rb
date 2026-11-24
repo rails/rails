@@ -243,6 +243,28 @@ module Rails
             end
           end
 
+          test "change database runtime packages without libvips" do
+            dockerfile = File.join(destination_root, "Dockerfile")
+            content = File.read(dockerfile).sub("curl libjemalloc2 libvips sqlite3", "curl libjemalloc2 sqlite3")
+            File.write(dockerfile, content)
+
+            run_generator ["--to", "postgresql"]
+
+            assert_file("Dockerfile") do |content|
+              assert_match "curl libjemalloc2 postgresql-client", content
+              assert_no_match "libvips", content
+              assert_no_match "sqlite3", content
+            end
+
+            run_generator ["--to", "mysql", "--force"]
+
+            assert_file("Dockerfile") do |content|
+              assert_match "curl default-mysql-client libjemalloc2", content
+              assert_no_match "libvips", content
+              assert_no_match "postgresql-client", content
+            end
+          end
+
           test "change from db with devcontainer service to one without" do
             copy_minimal_devcontainer_compose_file
 
