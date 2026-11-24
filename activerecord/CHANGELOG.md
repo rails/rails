@@ -1,3 +1,14 @@
+*   Find the existing check constraint by its name alone in `add_check_constraint`
+    with `if_not_exists: true` and in `remove_check_constraint`.
+
+    The `validate:` option was compared with the validated state of the existing
+    constraint. Once a constraint added with `validate: false` had been validated,
+    `add_check_constraint ..., validate: false, if_not_exists: true` tried to add
+    it again, and `remove_check_constraint ..., validate: false` raised or, with
+    `if_exists: true`, did nothing.
+
+    *Yasuo Honda*
+
 *   Ignore `validate:` and `enforced:` when `remove_foreign_key` looks up the
     foreign key to remove.
 

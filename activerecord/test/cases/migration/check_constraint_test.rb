@@ -190,6 +190,40 @@ if ActiveRecord::Base.lease_connection.supports_check_constraints?
             assert @connection.check_constraint_exists?(:trades, name: "quantity_check", validate: true)
           end
 
+          def test_add_check_constraint_with_if_not_exists_ignores_validate_of_existing_constraint
+            @connection.add_check_constraint :trades, "quantity > 0", name: "quantity_check", validate: false
+
+            assert_nothing_raised do
+              @connection.add_check_constraint :trades, "quantity > 0", name: "quantity_check", validate: true, if_not_exists: true
+            end
+            assert_not_predicate @connection.check_constraints("trades").first, :validated?
+
+            @connection.validate_check_constraint :trades, name: "quantity_check"
+
+            assert_nothing_raised do
+              @connection.add_check_constraint :trades, "quantity > 0", name: "quantity_check", validate: false, if_not_exists: true
+            end
+            assert_predicate @connection.check_constraints("trades").first, :validated?
+          end
+
+          def test_remove_check_constraint_ignores_validate_of_existing_constraint
+            @connection.add_check_constraint :trades, "quantity > 0", name: "quantity_check", validate: false
+            @connection.validate_check_constraint :trades, name: "quantity_check"
+
+            @connection.remove_check_constraint :trades, "quantity > 0", name: "quantity_check", validate: false
+
+            assert_empty @connection.check_constraints("trades")
+          end
+
+          def test_remove_check_constraint_with_if_exists_ignores_validate_of_existing_constraint
+            @connection.add_check_constraint :trades, "quantity > 0", name: "quantity_check", validate: false
+            @connection.validate_check_constraint :trades, name: "quantity_check"
+
+            @connection.remove_check_constraint :trades, "quantity > 0", name: "quantity_check", validate: false, if_exists: true
+
+            assert_empty @connection.check_constraints("trades")
+          end
+
           def test_validate_non_existing_check_constraint_raises
             assert_raises ArgumentError do
               @connection.validate_check_constraint :trades, name: "quantity_check"
