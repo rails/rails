@@ -47,7 +47,7 @@ module ActiveRecord
         #   the attribute. Each entry of the list can contain the properties supported by #encrypts. Also, when deterministic
         #   encryption is used, they will be used to generate additional ciphertexts to check in the queries.
         def encrypts(*names, key_provider: nil, key: nil, deterministic: false, support_unencrypted_data: nil, downcase: false, ignore_case: false, previous: [], compress: true, compressor: nil, **context_properties)
-          self.encrypted_attributes ||= Set.new # not using :default because the instance would be shared across classes
+          self.encrypted_attributes = encrypted_attributes ? encrypted_attributes.dup : Set.new # not using :default because the instance would be shared across classes
 
           names.each do |name|
             encrypt_attribute name, key_provider: key_provider, key: key, deterministic: deterministic, support_unencrypted_data: support_unencrypted_data, downcase: downcase, ignore_case: ignore_case, previous: previous, compress: compress, compressor: compressor, **context_properties
@@ -83,6 +83,12 @@ module ActiveRecord
 
           def encrypt_attribute(name, key_provider: nil, key: nil, deterministic: false, support_unencrypted_data: nil, downcase: false, ignore_case: false, previous: [], compress: true, compressor: nil, **context_properties)
             encrypted_attributes << name.to_sym
+
+            descendants.each do |subclass|
+              next if subclass.encrypted_attributes.equal?(subclass.superclass.encrypted_attributes)
+
+              subclass.encrypted_attributes << name.to_sym
+            end
 
             decorate_attributes([name]) do |name, cast_type|
               scheme = scheme_for key_provider: key_provider, key: key, deterministic: deterministic, support_unencrypted_data: support_unencrypted_data, \
