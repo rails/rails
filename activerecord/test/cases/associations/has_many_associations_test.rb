@@ -3606,7 +3606,127 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     assert_equal book_ids.sort, great_author.reload.books.ids.sort
   end
 
+  test "Proc :dependent is evaluated once per destroy, against each owner" do
+    calls = []
+    klass = author_class_with_dependent_posts(-> { calls << name; :delete_all if name == "David" })
+    david, mary = klass.find(authors(:david).id, authors(:mary).id)
+
+    assert_difference -> { Post.where(author_id: david.id).count }, -david.posts.count do
+      david.destroy
+    end
+    assert_equal ["David"], calls
+
+    assert_no_difference -> { Post.where(author_id: mary.id).count } do
+      mary.destroy
+    end
+    assert_equal ["David", "Mary"], calls
+  end
+
+  test "Proc :dependent receives the owner when it takes an argument" do
+    klass = author_class_with_dependent_posts(->(author) { :destroy if author.name == "David" })
+    david = klass.find(authors(:david).id)
+
+    david.destroy
+
+    assert_empty Post.where(author_id: david.id)
+  end
+
+  test "Proc :dependent is used by collection.delete" do
+    { destroy: false, delete_all: false, nullify: true, nil => true }.each do |dependent, kept|
+      calls = 0
+      klass = author_class_with_dependent_posts(-> { calls += 1; dependent })
+      author = klass.find(authors(:david).id)
+      post = author.posts.first
+
+      author.posts.delete(post)
+
+      assert_equal kept, Post.exists?(post.id), "dependent: #{dependent.inspect}"
+      assert_nil post.reload.author_id if kept
+      assert_equal 1, calls
+    end
+  end
+
+  test "Proc :dependent is used by collection=" do
+    { destroy: false, delete_all: false, nullify: true, nil => true }.each do |dependent, kept|
+      calls = 0
+      klass = author_class_with_dependent_posts(-> { calls += 1; dependent })
+      author = klass.create!(name: "Author")
+      remaining, removed = 2.times.map { author.posts.create!(title: "t", body: "b") }
+
+      author.posts = [remaining]
+
+      assert_equal kept, Post.exists?(removed.id), "dependent: #{dependent.inspect}"
+      assert_nil removed.reload.author_id if kept
+      assert_equal author.id, remaining.reload.author_id
+      assert_equal 1, calls
+    end
+  end
+
+  test "Proc :dependent is used by collection.delete_all without an argument" do
+    { destroy: false, delete_all: false, nullify: true, nil => true }.each do |dependent, kept|
+      klass = author_class_with_dependent_posts(-> { dependent })
+      author = klass.create!(name: "Author")
+      post_ids = 2.times.map { author.posts.create!(title: "t", body: "b").id }
+
+      author.posts.delete_all
+
+      assert_equal kept, Post.where(id: post_ids).exists?, "dependent: #{dependent.inspect}"
+      assert_empty Post.where(author_id: author.id)
+    end
+  end
+
+  test "Proc :dependent returning :restrict_with_exception" do
+    klass = author_class_with_dependent_posts(-> { :restrict_with_exception })
+    author = klass.find(authors(:david).id)
+
+    assert_raises(ActiveRecord::DeleteRestrictionError) { author.destroy }
+    assert_not_predicate author, :destroyed?
+  end
+
+  test "Proc :dependent returning :restrict_with_error" do
+    klass = author_class_with_dependent_posts(-> { :restrict_with_error })
+    author = klass.find(authors(:david).id)
+
+    assert_not author.destroy
+    assert_not_empty author.errors[:base]
+  end
+
+  test "Proc :dependent returning an invalid value raises on use" do
+    { none: ":none", "destroy" => '"destroy"' }.each do |dependent, inspected|
+      klass = author_class_with_dependent_posts(-> { dependent })
+      author = klass.find(authors(:david).id)
+
+      error = assert_raises(ArgumentError) { author.destroy }
+      assert_equal "The :dependent Proc must return one of [:destroy, :delete_all, :nullify, :restrict_with_error, " \
+        ":restrict_with_exception, :destroy_async] or nil, but returned #{inspected}", error.message
+    end
+  end
+
+  test "Proc :dependent returning :destroy_async requires destroy_association_async_job" do
+    klass = author_class_with_dependent_posts(-> { :destroy_async })
+    klass.destroy_association_async_job = nil
+    author = klass.find(authors(:david).id)
+
+    assert_raises(ActiveRecord::ConfigurationError) { author.destroy }
+  end
+
+  test ":dependent must be a Symbol or a Proc" do
+    callable = Object.new
+    def callable.call(owner) = :destroy
+
+    error = assert_raises(ArgumentError) { author_class_with_dependent_posts(callable) }
+    assert_equal "The :dependent option must be a Symbol or a Proc, but is #{callable.inspect}", error.message
+  end
+
   private
+    def author_class_with_dependent_posts(dependent)
+      Class.new(ActiveRecord::Base) do
+        self.table_name = "authors"
+        def self.name = "Author"
+        has_many :posts, dependent: dependent
+      end
+    end
+
     def force_signal37_to_load_all_clients_of_firm
       companies(:first_firm).clients_of_firm.load_target
     end

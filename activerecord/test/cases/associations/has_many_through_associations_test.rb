@@ -2019,6 +2019,43 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
     assert_equal [[comment.blog_id, comment.id]], ids
   end
 
+  test "Proc :dependent on has_many :through removes the join records" do
+    klass = Class.new(ActiveRecord::Base) do
+      self.table_name = "authors"
+      def self.name = "Author"
+      has_many :categorizations
+      has_many :categories, through: :categorizations, dependent: -> { :destroy if name == "David" }
+    end
+    david, mary = klass.find(authors(:david).id, authors(:mary).id)
+    category_ids = david.categories.ids
+    assert_not_empty category_ids
+
+    assert_difference -> { Categorization.where(author_id: david.id).count }, -category_ids.size do
+      david.destroy
+    end
+    assert_equal category_ids.size, Category.where(id: category_ids).count
+
+    assert_no_difference -> { Categorization.where(author_id: mary.id).count } do
+      mary.destroy
+    end
+  end
+
+  test "Proc :dependent on has_many :through is used by collection.delete" do
+    klass = Class.new(ActiveRecord::Base) do
+      self.table_name = "authors"
+      def self.name = "Author"
+      has_many :categorizations
+      has_many :categories, through: :categorizations, dependent: -> { :delete_all }
+    end
+    author = klass.find(authors(:david).id)
+    category = author.categories.first
+
+    author.categories.delete(category)
+
+    assert_not Categorization.exists?(author_id: author.id, category_id: category.id)
+    assert Category.exists?(category.id)
+  end
+
   private
     def make_model(name)
       Class.new(ActiveRecord::Base) { define_singleton_method(:name) { name } }

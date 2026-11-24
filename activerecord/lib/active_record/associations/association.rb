@@ -256,6 +256,17 @@ module ActiveRecord
       end
 
       private
+        # Resolves the +:dependent+ option. A Proc is evaluated against the
+        # owner each time it's needed; +nil+ means "do nothing".
+        def dependent_option
+          dependent = options[:dependent]
+          return dependent unless dependent.is_a?(Proc)
+
+          dependent = dependent.arity.zero? ? owner.instance_exec(&dependent) : dependent.call(owner)
+          dependent_builder.check_dependent_options(dependent, owner.class, from_proc: true) if dependent
+          dependent
+        end
+
         # Reader and writer methods call this so that consistent errors are presented
         # when the association target class does not exist.
         def ensure_klass_exists!

@@ -1326,6 +1326,17 @@ module ActiveRecord
         #   * <tt>:restrict_with_exception</tt> causes an ActiveRecord::DeleteRestrictionError exception to be raised if there are any associated records.
         #   * <tt>:restrict_with_error</tt> causes an error to be added to the owner if there are any associated objects.
         #
+        #   It can also be a Proc. A Proc without arguments is evaluated in the context of the owner,
+        #   a Proc with one argument receives the owner. It must return one of the values above, or
+        #   +nil+ to do nothing:
+        #
+        #     has_many :projects, dependent: -> { admin? ? nil : :destroy }
+        #
+        #   The Proc is called every time the option is used: when the owner is destroyed, and also by
+        #   <tt>collection.delete</tt>, <tt>collection.delete_all</tt> and <tt>collection=</tt>. It is
+        #   not told which operation is being performed. Its return value is validated when it is called,
+        #   not when the class is loaded, and <tt>reflection.options[:dependent]</tt> returns the Proc itself.
+        #
         #   If using with the <tt>:through</tt> option, the association on the join model must be
         #   a #belongs_to, and the records which get deleted are the join records, rather than
         #   the associated records.
@@ -1400,7 +1411,8 @@ module ActiveRecord
         #   association.
         # [+:ensuring_owner_was+]
         #   Specifies an instance method to be called on the owner. The method must return true in order for the
-        #   associated records to be deleted in a background job.
+        #   associated records to be deleted in a background job. If <tt>:dependent</tt> is a Proc, this option
+        #   only applies when the Proc returns <tt>:destroy_async</tt>, and is ignored otherwise.
         # [+:query_constraints+]
         #   Serves as a composite foreign key. Defines the list of columns to be used to query the associated object.
         #   This is an optional option. By default Rails will attempt to derive the value automatically.
@@ -1530,6 +1542,17 @@ module ActiveRecord
         #   * <tt>:restrict_with_exception</tt> causes an ActiveRecord::DeleteRestrictionError exception to be raised if there is an associated record
         #   * <tt>:restrict_with_error</tt> causes an error to be added to the owner if there is an associated object
         #
+        #   It can also be a Proc. A Proc without arguments is evaluated in the context of the owner,
+        #   a Proc with one argument receives the owner. It must return one of the values above, or
+        #   +nil+ to do nothing:
+        #
+        #     has_one :profile, dependent: ->(user) { user.admin? ? nil : :destroy }
+        #
+        #   The Proc is called every time the option is used: when the owner is destroyed, and also when
+        #   the associated object is replaced. It is not told which operation is being performed. Its return
+        #   value is validated when it is called, not when the class is loaded, and
+        #   <tt>reflection.options[:dependent]</tt> returns the Proc itself.
+        #
         #   Note that <tt>:dependent</tt> option is ignored when using <tt>:through</tt> option.
         # [+:foreign_key+]
         #   Specify the foreign key used for the association. By default this is guessed to be the name
@@ -1615,7 +1638,8 @@ module ActiveRecord
         #   Enforces strict loading every time the associated record is loaded through this association.
         # [+:ensuring_owner_was+]
         #   Specifies an instance method to be called on the owner. The method must return true in order for the
-        #   associated records to be deleted in a background job.
+        #   associated records to be deleted in a background job. If <tt>:dependent</tt> is a Proc, this option
+        #   only applies when the Proc returns <tt>:destroy_async</tt>, and is ignored otherwise.
         # [+:query_constraints+]
         #   Serves as a composite foreign key. Defines the list of columns to be used to query the associated object.
         #   This is an optional option. By default Rails will attempt to derive the value automatically.
@@ -1743,6 +1767,9 @@ module ActiveRecord
         #   If set to <tt>:destroy</tt>, the associated object is destroyed when this object is. If set to
         #   <tt>:delete</tt>, the associated object is deleted *without* calling its destroy method. If set to
         #   <tt>:destroy_async</tt>, the associated object is scheduled to be destroyed in a background job.
+        #   It can also be a Proc, evaluated against the owner when it is destroyed, that returns one of these
+        #   values, or +nil+ to do nothing. The returned value is validated when the Proc is called, not when
+        #   the class is loaded, and <tt>reflection.options[:dependent]</tt> returns the Proc itself.
         #   This option should not be specified when #belongs_to is used in conjunction with
         #   a #has_many relationship on another class because of the potential to leave
         #   orphaned records behind.
@@ -1810,7 +1837,8 @@ module ActiveRecord
         #   Enforces strict loading every time the associated record is loaded through this association.
         # [+:ensuring_owner_was+]
         #   Specifies an instance method to be called on the owner. The method must return true in order for the
-        #   associated records to be deleted in a background job.
+        #   associated records to be deleted in a background job. If <tt>:dependent</tt> is a Proc, this option
+        #   only applies when the Proc returns <tt>:destroy_async</tt>, and is ignored otherwise.
         # [+:query_constraints+]
         #   Serves as a composite foreign key. Defines the list of columns to be used to query the associated object.
         #   This is an optional option. By default Rails will attempt to derive the value automatically.

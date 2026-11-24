@@ -2379,6 +2379,25 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
     assert_equal car, bulb.car_with_unscoped_where
     assert_equal car, Bulb.preload(:car_with_unscoped_where).find(bulb.id).car_with_unscoped_where
   end
+
+  test "Proc :dependent on belongs_to is evaluated against each owner" do
+    calls = 0
+    post_class = Class.new(ActiveRecord::Base) do
+      self.table_name = "posts"
+      def self.name = "Post"
+      belongs_to :author, dependent: ->(post) { calls += 1; :delete if post.title == "doomed" }
+    end
+    kept = post_class.create!(author: authors(:david), title: "kept", body: "b")
+    doomed = post_class.create!(author: authors(:mary), title: "doomed", body: "b")
+
+    assert_no_difference -> { Author.count } do
+      kept.destroy
+    end
+    assert_difference -> { Author.count }, -1 do
+      doomed.destroy
+    end
+    assert_equal 2, calls
+  end
 end
 
 class BelongsToWithForeignKeyTest < ActiveRecord::TestCase

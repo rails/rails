@@ -1,3 +1,18 @@
+*   Allow the `:dependent` association option to be a Proc.
+
+    The Proc is evaluated against the owner whenever the option is used (when the
+    owner is destroyed, by `collection.delete`, `collection.delete_all` and
+    `collection=`, and when a `has_one` record is replaced) and may return any
+    valid `:dependent` value, or `nil` to leave the associated records untouched.
+    The returned value is validated when the Proc is called.
+
+    ```ruby
+    has_many :projects, dependent: -> { admin? ? nil : :destroy }
+    has_one :profile, dependent: ->(user) { user.admin? ? nil : :destroy }
+    ```
+
+    *Vitalii Kasianchuk*
+
 *   Ignore `validate:` and `enforced:` when `remove_foreign_key` looks up the
     foreign key to remove.
 

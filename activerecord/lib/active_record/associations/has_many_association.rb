@@ -13,7 +13,7 @@ module ActiveRecord
       include ForeignAssociation
 
       def handle_dependency
-        case options[:dependent]
+        case dependent = dependent_option
         when :restrict_with_exception
           raise ActiveRecord::DeleteRestrictionError.new(reflection.name) unless empty?
 
@@ -46,8 +46,8 @@ module ActiveRecord
               ensuring_owner_was_method: options.fetch(:ensuring_owner_was, nil)
             )
           end
-        else
-          delete_all
+        when :delete_all, :nullify
+          delete_all(dependent)
         end
       end
 
@@ -57,6 +57,10 @@ module ActiveRecord
       end
 
       private
+        def dependent_builder
+          Builder::HasMany
+        end
+
         # Returns the number of records in this collection.
         #
         # If the association has a counter cache it gets that value. Otherwise

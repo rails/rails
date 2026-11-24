@@ -148,13 +148,8 @@ module ActiveRecord
           raise ArgumentError, "Valid values are :nullify or :delete_all"
         end
 
-        dependent = if dependent
-          dependent
-        elsif options[:dependent] == :destroy
-          :delete_all
-        else
-          options[:dependent]
-        end
+        dependent ||= dependent_option
+        dependent = :delete_all if dependent == :destroy
 
         delete_or_nullify_all_records(dependent).tap do
           reset
@@ -180,7 +175,7 @@ module ActiveRecord
       # are actually removed from the database, that depends precisely on
       # `delete_records`. They are in any case removed from the collection.
       def delete(*records)
-        delete_or_destroy(records, options[:dependent])
+        delete_or_destroy(records, dependent_option)
       end
 
       # Deletes the `records` and removes them from this association calling

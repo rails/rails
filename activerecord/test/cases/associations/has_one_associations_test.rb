@@ -1115,6 +1115,52 @@ class HasOneAssociationsTest < ActiveRecord::TestCase
       doesn't match with foreign key broken_order_with_non_cpk_books_id. Please specify query_constraints, or primary_key and foreign_key values.
     MESSAGE
   end
+
+  test "Proc :dependent on has_one is evaluated against each owner on destroy" do
+    klass = author_class_with_dependent_post(-> { :destroy if name == "doomed" })
+    doomed = klass.create!(name: "doomed").tap { |author| author.create_post!(title: "t", body: "b") }
+    kept = klass.create!(name: "kept").tap { |author| author.create_post!(title: "t", body: "b") }
+
+    assert_difference -> { Post.count }, -1 do
+      doomed.destroy
+    end
+    assert_no_difference -> { Post.where(author_id: kept.id).count } do
+      kept.destroy
+    end
+  end
+
+  test "Proc :dependent on has_one is used when the record is replaced" do
+    { destroy: false, delete: false, nullify: true, nil => true }.each do |dependent, kept|
+      calls = 0
+      klass = author_class_with_dependent_post(->(_author) { calls += 1; dependent })
+      author = klass.create!(name: "Author")
+      old_post = author.create_post!(title: "old", body: "b")
+
+      author.post = Post.create!(title: "new", body: "b")
+
+      assert_equal kept, Post.exists?(old_post.id), "dependent: #{dependent.inspect}"
+      assert_nil old_post.reload.author_id if kept
+      assert_equal 1, calls
+    end
+  end
+
+  test "Proc :dependent on has_one returning :restrict_with_exception" do
+    klass = author_class_with_dependent_post(-> { :restrict_with_exception })
+    author = klass.create!(name: "Author")
+    author.create_post!(title: "t", body: "b")
+
+    assert_raises(ActiveRecord::DeleteRestrictionError) { author.destroy }
+    assert_not_predicate author, :destroyed?
+  end
+
+  private
+    def author_class_with_dependent_post(dependent)
+      Class.new(ActiveRecord::Base) do
+        self.table_name = "authors"
+        def self.name = "Author"
+        has_one :post, dependent: dependent
+      end
+    end
 end
 
 class AsyncHasOneAssociationsTest < ActiveRecord::TestCase
