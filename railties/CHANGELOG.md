@@ -1,3 +1,7 @@
+*   Replace `build-essential` with `gcc`, `g++`, and `make` for building Gems in Dockerfiles.
+
+    *Brian Clinkenbeard*
+
 *   Harden generated GitHub Actions workflows
 
     Generated `ci.yml` pins versions of actions (except ruby/setup-ruby) to

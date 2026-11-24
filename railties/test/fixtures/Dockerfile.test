@@ -21,7 +21,7 @@ ENV RAILS_ENV="production" \
 FROM base AS build
 
 # Install packages needed to build gems
-RUN apt-get install --no-install-recommends -y build-essential git pkg-config
+RUN apt-get install --no-install-recommends -y gcc g++ make git pkg-config
 
 # Install application gems
 COPY Gemfile Gemfile.lock ./

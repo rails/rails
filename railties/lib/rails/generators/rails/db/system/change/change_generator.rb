@@ -12,7 +12,7 @@ module Rails
           include AppName
 
           BASE_PACKAGES = %w( curl libjemalloc2 libvips ).freeze
-          BUILD_PACKAGES = %w( build-essential git ).freeze
+          BUILD_PACKAGES = %w( gcc g++ make git ).freeze
 
           class_option :to, required: true,
             desc: "The database system to switch to."
@@ -98,7 +98,7 @@ module Rails
             end
 
             def all_docker_builds_regex
-              /(\b#{all_docker_builds.join('\b|\b')}\b)/
+              /(\b#{all_docker_builds.map { |packages| Regexp.escape(packages) }.join('\b|\b')}\b)/
             end
 
             def gem_entry_regex_for(gem_name)
