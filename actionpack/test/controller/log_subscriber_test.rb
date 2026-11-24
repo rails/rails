@@ -363,6 +363,16 @@ class ACLogSubscriberTest < ActionController::TestCase
     ActionController::Base.enable_fragment_cache_logging = true
   end
 
+  def test_fragment_cache_events_are_consumed_only_when_logged
+    subscriber = ActionController::LogSubscriber.new
+    assert subscriber.consumes?("action_controller.fragment_cache")
+
+    ActionController::Base.with(enable_fragment_cache_logging: false) do
+      assert_not subscriber.consumes?("action_controller.fragment_cache")
+      assert subscriber.consumes?("action_controller.request_completed")
+    end
+  end
+
   def test_with_fragment_cache_if_with_true
     get :with_fragment_cache_if_with_true_condition
 

@@ -28,8 +28,14 @@ module ActiveSupport
         end
         private :event_methods
 
-        def event_log_level(method_name, level)
+        # Sets the level an event is logged at. With +if+, the event is only
+        # logged while the condition returns true.
+        #
+        #   event_log_level :fragment_cache, :info, if: -> { ActionController::Base.enable_fragment_cache_logging }
+        def event_log_level(method_name, level, if: nil)
           self.log_levels = log_levels.merge(method_name.to_s => level).freeze
+          condition = binding.local_variable_get(:if)
+          self.log_conditions = ActiveSupport::Ractors.try_make_shareable(log_conditions.merge(method_name.to_s => condition)).freeze
         end
 
         def logger
@@ -52,6 +58,7 @@ module ActiveSupport
       end
 
       class_attribute :log_levels, default: {}.freeze # :nodoc:
+      class_attribute :log_conditions, default: {}.freeze # :nodoc:
 
       def emit(event)
         return unless logger
@@ -82,6 +89,9 @@ module ActiveSupport
         def log_level_satisfied?(event_method)
           predicate = LOG_LEVEL_PREDICATES[log_levels[event_method]]
           return false unless predicate
+
+          condition = log_conditions[event_method]
+          return false if condition && !condition.call
 
           logger.public_send(predicate)
         end
