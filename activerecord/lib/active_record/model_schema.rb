@@ -645,6 +645,56 @@ module ActiveRecord
         end
       end
 
+      # The slot of each attribute this model has laid out so far, by name.
+      #: () -> Hash[String, Integer]?
+      def attribute_slots # :nodoc:
+        @attribute_slots
+      end
+
+      # Returns the slot of each of +names+. A name keeps the slot it was
+      # first given for as long as the model's generated attribute methods
+      # are around, because the generated readers read by slot. So when a
+      # model has more than one schema context, and their tables order the
+      # columns differently, they still lay the attributes out the same way.
+      #
+      # A name that has no slot yet gets the one the block returns for it
+      # (its column's position in the table), unless another name has it
+      # already. Otherwise it goes after the last slot. An STI subclass
+      # prefers the slots of its parent, so they can share rows.
+      #: (Array[String]) { (String) -> Integer? } -> Hash[String, Integer]
+      def attribute_slots_for(names) # :nodoc:
+        slots = @attribute_slots
+        unless slots && names.all? { |name| slots.key?(name) }
+          slots = @load_schema_monitor.synchronize do
+            # The parent has no slots until it has laid something out, and
+            # this model can be loaded first.
+            parent_slots = (superclass.attribute_slots unless base_class?) || {}
+            slots = (@attribute_slots || {}).dup
+            taken = slots.each_value.to_set
+            unplaced = []
+
+            names.reject { |name| slots.key?(name) }.each do |name|
+              # If the parent has the slot, use it, otherwise yield to get the
+              # slot id from the columns hash (it could be nil for a column
+              # that doesn't exist, like an `attribute :blah`)
+              slot = parent_slots[name] || yield(name)
+              if slot && taken.add?(slot)
+                slots[name] = slot
+              else
+                unplaced << name
+              end
+            end
+
+            last_slot = taken.max || -1
+            unplaced.each { |name| slots[name] = (last_slot += 1) }
+
+            @attribute_slots = ActiveSupport::Ractors.make_shareable(slots.freeze)
+          end
+        end
+
+        names.index_with { |name| slots[name] }.freeze
+      end
+
       def make_reflections_shareable! # :nodoc:
         _reflections.each_value do |reflection|
           reflection.prepare_default_association_route if reflection.is_a?(ActiveRecord::Reflection::AssociationReflection)
@@ -665,6 +715,9 @@ module ActiveRecord
           @arel_table = Arel::Table.new(klass: self)
           @predicate_builder = PredicateBuilder.new(TableMetadata.new(self, @arel_table)) unless self == Base
           @attribute_names = nil
+          # The generated readers are compiled with these slots, so they have
+          # to last as long as the readers do.
+          @attribute_slots = nil unless @attribute_methods_generated
 
           reload_schema_contexts_from_cache
 

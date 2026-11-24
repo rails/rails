@@ -121,6 +121,49 @@ class SchemaLoadingTest < ActiveRecord::TestCase
     assert_includes klass.content_columns.map(&:name), "title"
   end
 
+  def test_generated_readers_read_the_right_slot_in_every_schema_context
+    klass = define_model { |model| model.table_name = "topics" }
+    topics_context = klass.schema_context
+    klass.table_name = "posts"
+    assert_equal "a post", klass.new(title: "a post", body: "").title
+    assert_not_equal klass.columns_hash["title"].slot, topics_context.mapped_table.columns_hash["title"].slot
+
+    builder = topics_context.attributes.builder
+    topic = klass.allocate.init_with_attributes(builder.build_from_database("title" => "a topic", "author_name" => "David"))
+
+    assert_equal builder.indexes["title"], klass.attributes_builder.indexes["title"]
+    assert_equal "a topic", topic.title
+    assert_equal "a topic", topic.read_attribute(:title)
+    assert_equal "David", topic.read_attribute(:author_name)
+  end
+
+  def test_slots_are_assigned_again_after_reset_column_information
+    klass = define_model { |model| model.table_name = "topics" }
+    topics_context = klass.schema_context
+    klass.table_name = "posts"
+    topics_context.attributes
+    klass.new.title
+    slots = klass.attributes_builder.indexes
+    assert_not_equal klass.columns_hash["title"].slot, slots["title"]
+
+    klass.reset_column_information
+
+    assert_equal klass.columns_hash["title"].slot, klass.attributes_builder.indexes["title"]
+    assert_equal "a post", klass.new(title: "a post", body: "").title
+  end
+
+  def test_sti_subclass_lays_out_its_attributes_like_its_parent
+    parent = define_model { |model| model.table_name = "topics" }
+    topics_context = parent.schema_context
+    parent.table_name = "companies"
+    topics_context.attributes
+    child = Class.new(parent)
+
+    assert_not_equal parent.columns_hash["type"].slot, parent.attributes_builder.indexes["type"]
+    assert_same parent.attributes_builder.indexes, child.attributes_builder.indexes
+    assert_equal "a company", child.new(name: "a company").name
+  end
+
   def test_failed_schema_load_does_not_publish_the_context
     klass = define_model
 
