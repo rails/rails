@@ -460,6 +460,16 @@ module ActiveSupport::Cache::RedisCacheStoreTests
     end
   end
 
+  module OutOfMemoryRedisMiddleware
+    def call(...)
+      raise ::RedisClient::OutOfMemoryError, "OOM command not allowed when used memory > 'maxmemory'."
+    end
+
+    def call_pipelined(...)
+      raise ::RedisClient::OutOfMemoryError, "OOM command not allowed when used memory > 'maxmemory'."
+    end
+  end
+
   class FailureRaisingFromUnavailableClientTest < StoreTest
     include FailureRaisingBehavior
 
@@ -514,6 +524,37 @@ module ActiveSupport::Cache::RedisCacheStoreTests
         yield ActiveSupport::Cache::RedisCacheStore.new(
           namespace: @namespace,
           middlewares: [MaxClientsReachedRedisMiddleware],
+        )
+      end
+  end
+
+  class FailureRaisingFromCommandErrorTest < StoreTest
+    include FailureRaisingBehavior
+
+    private
+      def assert_raise_redis_error(...)
+        assert_raise(RedisClient::OutOfMemoryError, ...)
+      end
+
+      def emulating_unavailability
+        yield ActiveSupport::Cache::RedisCacheStore.new(
+          url: REDIS_URL,
+          namespace: @namespace,
+          middlewares: [OutOfMemoryRedisMiddleware],
+          error_handler: -> (method:, returning:, exception:) { raise exception },
+        )
+      end
+  end
+
+  class FailureSafetyFromCommandErrorTest < StoreTest
+    include FailureSafetyBehavior
+
+    private
+      def emulating_unavailability
+        yield ActiveSupport::Cache::RedisCacheStore.new(
+          url: REDIS_URL,
+          namespace: @namespace,
+          middlewares: [OutOfMemoryRedisMiddleware],
         )
       end
   end
