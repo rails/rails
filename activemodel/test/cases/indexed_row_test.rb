@@ -90,6 +90,21 @@ class IndexedRowTest < ActiveModel::TestCase
   test "#to_h" do
     assert_equal @hash, @row.to_h
   end
+
+  test "#each_pair" do
+    pairs = []
+    assert_same @row, @row.each_pair { |column, value| pairs << [column, value] }
+    assert_equal @hash.to_a, pairs
+    assert_equal @hash.to_a, @row.each_pair.to_a
+  end
+
+  test "#each_pair skips unset slots and slots past the end of the row" do
+    values = ActiveModel::IndexedRow.unset_row(2)
+    values[0] = 1
+    row = ActiveModel::IndexedRow.new({ "id" => 0, "name" => 1, "age" => 2 }, values.freeze)
+
+    assert_equal [["id", 1]], row.each_pair.to_a
+  end
 end
 
 class EmptyMutableIndexedRowTest < ActiveModel::TestCase

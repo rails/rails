@@ -121,7 +121,9 @@ module ActiveModel
     end
 
     def to_hash
-      keys.index_with { |name| self[name].value }
+      hash = {}
+      attributes.each_pair { |name, attribute| hash[name] = attribute.value if attribute.initialized? }
+      hash
     end
     alias :to_h :to_hash
 
@@ -131,7 +133,9 @@ module ActiveModel
     alias :include? :key?
 
     def keys
-      attributes.each_key.select { |name| self[name].initialized? }
+      keys = []
+      attributes.each_pair { |name, attribute| keys << name if attribute.initialized? }
+      keys
     end
 
     def fetch_value(name, &block)

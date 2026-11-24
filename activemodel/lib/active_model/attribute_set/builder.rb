@@ -227,7 +227,7 @@ module ActiveModel
   end
 
   class LazyAttributeHash # :nodoc:
-    delegate :transform_values, :each_value, :fetch, :except, to: :materialize
+    delegate :transform_values, :each_value, :each_pair, :fetch, :except, to: :materialize
 
     def initialize(types, values, additional_types, default_attributes, delegate_hash = {})
       @types = types
