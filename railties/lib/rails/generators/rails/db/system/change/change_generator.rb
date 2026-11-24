@@ -81,7 +81,7 @@ module Rails
 
             def docker_build_packages(package_list)
               packages = package_list.split
-              return package_list unless BUILD_PACKAGES.all? { |package| packages.include?(package) }
+              return package_list unless BUILD_PACKAGES.all? { |package| packages.include?(package) } || packages.include?("build-essential")
 
               packages -= Database.all.filter_map(&:build_package)
               packages << database.build_package if database.build_package

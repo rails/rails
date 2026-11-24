@@ -222,6 +222,27 @@ module Rails
             end
           end
 
+          test "change database build packages in an older Dockerfile" do
+            dockerfile = File.join(destination_root, "Dockerfile")
+            content = File.read(dockerfile).sub(
+              "g++ gcc git libyaml-dev make pkg-config", "build-essential git libyaml-dev pkg-config"
+            )
+            File.write(dockerfile, content)
+
+            run_generator ["--to", "postgresql"]
+
+            assert_file("Dockerfile") do |content|
+              assert_match "build-essential git libpq-dev libyaml-dev pkg-config", content
+            end
+
+            run_generator ["--to", "mysql", "--force"]
+
+            assert_file("Dockerfile") do |content|
+              assert_match "build-essential default-libmysqlclient-dev git libyaml-dev pkg-config", content
+              assert_no_match "libpq-dev", content
+            end
+          end
+
           test "change from db with devcontainer service to one without" do
             copy_minimal_devcontainer_compose_file
 
