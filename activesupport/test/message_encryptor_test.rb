@@ -153,6 +153,18 @@ class MessageEncryptorTest < ActiveSupport::TestCase
     assert_equal "Ruby on Rails", encryptor.decrypt_and_verify(encrypted_message)
   end
 
+  def test_subclasses_use_the_default_cipher
+    subclass = Class.new(ActiveSupport::MessageEncryptor)
+
+    ActiveSupport::MessageEncryptor.with(use_authenticated_message_encryption: true) do
+      assert_equal "aes-256-gcm", subclass.default_cipher
+    end
+
+    ActiveSupport::MessageEncryptor.with(use_authenticated_message_encryption: false) do
+      assert_equal "aes-256-cbc", subclass.default_cipher
+    end
+  end
+
   def test_inspect_does_not_show_secrets
     encryptor = ActiveSupport::MessageEncryptor.new(@secret, cipher: "aes-256-gcm")
     assert_match(/\A#<ActiveSupport::MessageEncryptor:0x[0-9a-f]+>\z/, encryptor.inspect)
