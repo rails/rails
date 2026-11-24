@@ -42,7 +42,7 @@ module ActiveRecord
         args.concat([db_config.database.to_s])
         args.unshift(*extra_flags) if extra_flags
 
-        run_cmd("mysqldump", *args)
+        run_cmd(find_cmd("mariadb-dump", "mysqldump"), *args)
       end
 
       def structure_load(filename, extra_flags)
@@ -50,7 +50,7 @@ module ActiveRecord
         args.concat(["--database", db_config.database.to_s])
         args.unshift(*extra_flags) if extra_flags
 
-        run_cmd("mysql", *args, in: filename)
+        run_cmd(find_cmd("mariadb", "mysql"), *args, in: filename)
       end
 
       private
