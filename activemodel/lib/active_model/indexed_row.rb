@@ -170,6 +170,18 @@ module ActiveModel
       self
     end
 
+    #: () ?{ (String, untyped) -> void } -> (self | Enumerator[[String, untyped], self])
+    def each_pair
+      return enum_for(:each_pair) { size } unless block_given?
+
+      @indexes.each_key do |column|
+        if index = index_for(column)
+          yield column, @row[index]
+        end
+      end
+      self
+    end
+
     #: () ?{ (untyped) -> untyped } -> (Hash[String, untyped] | Enumerator[untyped, Hash[String, untyped]])
     def transform_values
       return enum_for(:transform_values) { size } unless block_given?
