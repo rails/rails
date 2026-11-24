@@ -35,6 +35,22 @@ class SubscriberMapTest < ActionCable::TestCase
     assert_equal origin, @subscription_map.instance_variable_get(:@subscribers)
   end
 
+  test "async subscriber map removes a subscriber whose removal is run before its addition" do
+    executor = OutOfOrderExecutor.new
+    subscription_map = ActionCable::SubscriptionAdapter::SubscriberMap::Async.new(executor)
+    received = []
+    subscriber = -> message { received << message }
+
+    subscription_map.add_subscriber("channel", subscriber, nil)
+    subscription_map.remove_subscriber("channel", subscriber)
+    executor.run_all
+
+    subscription_map.broadcast("channel", "message")
+    executor.run_all
+
+    assert_empty received
+  end
+
   private
     def setup_subscription_map
       @subscription_map = ActionCable::SubscriptionAdapter::SubscriberMap.new

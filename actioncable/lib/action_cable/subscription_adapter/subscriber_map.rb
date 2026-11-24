@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+require "concurrent/executor/serialized_execution"
+
 module ActionCable
   module SubscriptionAdapter
     class SubscriberMap
@@ -59,15 +61,20 @@ module ActionCable
       class Async < self
         def initialize(executor)
           @executor = executor
+          # The executor runs tasks on several threads, so tasks posted one after
+          # the other can run out of order. Subscribers must be added and removed in
+          # the order they were requested, or an unsubscribe that runs first is lost
+          # and the subscriber added after it is never removed.
+          @serial_execution = Concurrent::SerializedExecution.new
           super()
         end
 
         def add_subscriber(*)
-          @executor.post { super }
+          @serial_execution.post(@executor) { super }
         end
 
         def remove_subscriber(*)
-          @executor.post { super }
+          @serial_execution.post(@executor) { super }
         end
 
         def invoke_callback(*)

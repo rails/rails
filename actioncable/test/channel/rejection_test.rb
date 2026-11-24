@@ -53,4 +53,37 @@ class ActionCable::Channel::RejectionTest < ActionCable::TestCase
 
     assert subscriptions.verify
   end
+
+  class StreamingAfterRejectChannel < ActionCable::Channel::Base
+    def subscribed
+      reject
+      stream_from "secret"
+    end
+  end
+
+  class StreamingBeforeRejectChannel < ActionCable::Channel::Base
+    def subscribed
+      stream_from "secret"
+      reject
+    end
+  end
+
+  [StreamingAfterRejectChannel, StreamingBeforeRejectChannel].each do |channel_class|
+    test "#{channel_class.name.demodulize} is not streamed to after rejection when the adapter changes subscribers out of order" do
+      executor = OutOfOrderExecutor.new
+      server = TestServer.new(subscription_adapter: ActionCable::SubscriptionAdapter::Async)
+      server.stub(:executor, executor) do
+        @connection.stub(:server, -> { server }) do
+          channel = channel_class.new @connection, "{id: 1}", id: 1
+          channel.subscribe_to_channel
+          executor.run_all
+
+          server.pubsub.broadcast("secret", ActiveSupport::JSON.encode(message: "secret"))
+          executor.run_all
+        end
+      end
+
+      assert_equal [{ "identifier" => "{id: 1}", "type" => "reject_subscription" }], @connection.transmissions.map { |t| @connection.decode(t) }
+    end
+  end
 end
