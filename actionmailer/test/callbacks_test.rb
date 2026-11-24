@@ -58,6 +58,59 @@ class ActionMailerCallbacksTest < ActiveSupport::TestCase
     assert_instance_of ActionMailer::Base::NullMail, message
   end
 
+  test "deliver_now does not run deliver callbacks when before_action aborts message construction" do
+    CallbackMailer.abort_before_action = true
+
+    CallbackMailer.test_message.deliver_now
+
+    assert_empty ActionMailer::Base.deliveries
+    assert_empty CallbackMailer.deliver_callback_log
+    assert_nil CallbackMailer.after_deliver_instance
+    assert_nil CallbackMailer.around_deliver_instance
+  end
+
+  test "deliver_now! does not run deliver callbacks when before_action aborts message construction" do
+    CallbackMailer.abort_before_action = true
+
+    CallbackMailer.test_message.deliver_now!
+
+    assert_empty ActionMailer::Base.deliveries
+    assert_empty CallbackMailer.deliver_callback_log
+    assert_nil CallbackMailer.after_deliver_instance
+    assert_nil CallbackMailer.around_deliver_instance
+  end
+
+  test "deliver_now does not run deliver callbacks when the action does not call mail" do
+    CallbackMailer.test_skipped_message.deliver_now
+
+    assert_empty ActionMailer::Base.deliveries
+    assert_empty CallbackMailer.deliver_callback_log
+    assert_nil CallbackMailer.after_deliver_instance
+    assert_nil CallbackMailer.around_deliver_instance
+  end
+
+  test "deliver_now! does not run deliver callbacks when the action does not call mail" do
+    CallbackMailer.test_skipped_message.deliver_now!
+
+    assert_empty ActionMailer::Base.deliveries
+    assert_empty CallbackMailer.deliver_callback_log
+    assert_nil CallbackMailer.after_deliver_instance
+    assert_nil CallbackMailer.around_deliver_instance
+  end
+
+  test "deliver_later does not run deliver callbacks when the action does not call mail" do
+    perform_enqueued_jobs do
+      silence_stream($stdout) do
+        CallbackMailer.test_skipped_message.deliver_later
+      end
+    end
+
+    assert_empty ActionMailer::Base.deliveries
+    assert_empty CallbackMailer.deliver_callback_log
+    assert_nil CallbackMailer.after_deliver_instance
+    assert_nil CallbackMailer.around_deliver_instance
+  end
+
   test "before_deliver can abort the delivery and not run after_deliver callbacks" do
     CallbackMailer.abort_before_deliver = true
 
@@ -113,8 +166,8 @@ class ActionMailerCallbacksTest < ActiveSupport::TestCase
   end
 
   test "deliver callbacks with except option ignore missing actions by default" do
-    CallbackMailer.test_raise_action.deliver_now
-    assert_includes CallbackMailer.deliver_callback_log, [:except_action, "test_raise_action"]
+    CallbackMailer.another_test_message.deliver_now
+    assert_includes CallbackMailer.deliver_callback_log, [:except_action, "another_test_message"]
 
     CallbackMailer.test_message.deliver_now
     assert_not_includes CallbackMailer.deliver_callback_log, [:except_action, "test_message"]
@@ -124,7 +177,7 @@ class ActionMailerCallbacksTest < ActiveSupport::TestCase
     CallbackMailer.raise_on_missing_callback_actions = true
 
     error = assert_raises(AbstractController::ActionNotFound) do
-      CallbackMailer.test_raise_action.deliver_now
+      CallbackMailer.another_test_message.deliver_now
     end
 
     assert_match(/The non_existent_action action could not be found/, error.message)

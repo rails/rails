@@ -671,6 +671,10 @@ module ActionMailer
       end
     end
 
+    def mail_was_called? # :nodoc:
+      @_mail_was_called
+    end
+
     class NullMail # :nodoc:
       def body; "" end
       def header; {} end

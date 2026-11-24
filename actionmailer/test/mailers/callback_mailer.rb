@@ -77,6 +77,10 @@ class CallbackMailer < ActionMailer::Base
     mail(from: "test-sender@test.com", to: "test-receiver@test.com", subject: "Another Test Subject", body: "Another Test Body")
   end
 
+  # Intentionally doesn't call mail, so no email is built
+  def test_skipped_message(*)
+  end
+
   def test_raise_action
     raise CallbackMailerError, "boom action processing"
   end
