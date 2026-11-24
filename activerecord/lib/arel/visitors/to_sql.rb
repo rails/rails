@@ -354,6 +354,15 @@ module Arel # :nodoc: all
           values = o.casted_values
 
           if values.empty?
+            unless o.type == :in
+              ActiveRecord.deprecator.warn(<<~MSG.squish)
+                `where.not` with only values that cannot be cast to the type of
+                `#{o.attribute.name}` matches no rows. In a future version of Rails,
+                it will match every row, the same as `where.not` with one value
+                that cannot be cast. Remove the values that cannot be cast.
+              MSG
+            end
+
             collector << @connection.quote(nil)
           elsif o.attribute.respond_to?(:comparison_expression)
             # Comparison values need SQL around each bind, so they cannot use
