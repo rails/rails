@@ -1,3 +1,15 @@
+*   Render content attachments by partial path.
+
+    `ActionText::Attachables::ContentAttachment#to_html` handed the
+    `ActionText::Content` object to the renderer, which resolved it as an object
+    partial: prefixed with the rendering controller's namespace (a missing
+    `admin/action_text/contents/_content` from `Admin::MessagesController`),
+    restricted to the request's formats (missing from a JSON request), and
+    raising `NoMethodError` on the nil prefix of the fallback renderer when
+    rendering outside a request, such as from a job.
+
+    *Jeremy Daer*
+
 *   Add alternative text to Action Text attachments.
 
     Attachments could only be described by their caption, which is always shown
