@@ -11,8 +11,9 @@ module Rails
         class ChangeGenerator < Base # :nodoc:
           include AppName
 
-          BASE_PACKAGES = %w( curl libjemalloc2 libvips ).freeze
+          BASE_PACKAGES = %w( curl libjemalloc2 ).freeze
           BUILD_PACKAGES = %w( gcc g++ make git ).freeze
+          APT_INSTALL_PACKAGES_REGEXP = /(?<=apt-get install --no-install-recommends -y )[^\s\\&;|#<>]+(?:[ \t]+[^\s\\&;|#<>]+)*/
 
           class_option :to, required: true,
             desc: "The database system to switch to."
@@ -48,8 +49,9 @@ module Rails
             dockerfile_path = File.expand_path("Dockerfile", destination_root)
             return unless File.exist?(dockerfile_path)
 
-            gsub_file("Dockerfile", all_docker_bases_regex, docker_base_packages(database.base_package))
-            gsub_file("Dockerfile", all_docker_builds_regex, docker_build_packages(database.build_package))
+            gsub_file("Dockerfile", APT_INSTALL_PACKAGES_REGEXP) do |packages|
+              docker_packages(packages)
+            end
           end
 
           def edit_devcontainer_files
@@ -64,41 +66,27 @@ module Rails
               Database.all.map { |database| database.gem }
             end
 
-            def all_docker_bases
-              Database.all.map { |database| docker_base_packages(database.base_package) }.uniq
-            end
+            def docker_packages(package_list)
+              packages = package_list.split
 
-            def docker_base_packages(database_package)
-              if database_package
-                [database_package].concat(BASE_PACKAGES).sort
+              if BUILD_PACKAGES.all? { |package| packages.include?(package) } || packages.include?("build-essential")
+                database_packages = Database.all.filter_map(&:build_package)
+                database_package = database.build_package
+              elsif BASE_PACKAGES.all? { |package| packages.include?(package) }
+                database_packages = Database.all.filter_map(&:base_package)
+                database_package = database.base_package
               else
-                BASE_PACKAGES
-              end.join("\s")
-            end
+                return package_list
+              end
 
-            def all_docker_builds
-              Database.all.map { |database| docker_build_packages(database.build_package) }.uniq
-            end
-
-            def docker_build_packages(database_package)
-              if database_package
-                [database_package].concat(BUILD_PACKAGES).sort
-              else
-                BUILD_PACKAGES
-              end.join("\s")
+              packages -= database_packages
+              packages << database_package if database_package
+              packages.sort.join(" ")
             end
 
             def all_database_gems_regex
               all_database_gem_names = all_database_gems.map(&:first)
               /(\b#{all_database_gem_names.join('\b|\b')}\b)/
-            end
-
-            def all_docker_bases_regex
-              /(\b#{all_docker_bases.join('\b|\b')}\b)/
-            end
-
-            def all_docker_builds_regex
-              /(\b#{all_docker_builds.map { |packages| Regexp.escape(packages) }.join('\b|\b')}\b)/
             end
 
             def gem_entry_regex_for(gem_name)

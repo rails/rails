@@ -1,3 +1,8 @@
+*   Fix `db:system:change` to update Dockerfile packages for current and older
+    generated applications.
+
+    *Rafael Mendonça França*
+
 *   Replace `build-essential` with `gcc`, `g++`, and `make` for building Gems in Dockerfiles.
 
     *Brian Clinkenbeard*

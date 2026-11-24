@@ -47,14 +47,13 @@ module Rails
             end
 
             assert_file("Dockerfile") do |content|
-              assert_match "g++ gcc git libpq-dev make", content
+              assert_match "g++ gcc git libpq-dev libyaml-dev make pkg-config", content
               assert_match "curl libjemalloc2 libvips postgresql-client", content
             end
 
             assert_devcontainer_json_file do |content|
               assert_equal "postgres", content["containerEnv"]["DB_HOST"]
               assert_includes content["features"].keys, "ghcr.io/rails/devcontainer/features/postgres-client"
-              assert_not_includes content["features"].keys, "ghcr.io/rails/devcontainer/features/sqlite"
             end
 
             assert_compose_file do |compose_config|
@@ -76,6 +75,20 @@ module Rails
             end
           end
 
+          test "changing to postgresql removes the sqlite3 devcontainer feature" do
+            devcontainer_file = File.join(destination_root, ".devcontainer/devcontainer.json")
+            devcontainer = JSON.parse(File.read(devcontainer_file), allow_comments: true)
+            devcontainer["features"]["ghcr.io/rails/devcontainer/features/sqlite3"] = {}
+            File.write(devcontainer_file, JSON.pretty_generate(devcontainer))
+
+            run_generator ["--to", "postgresql"]
+
+            assert_devcontainer_json_file do |content|
+              assert_not_includes content["features"].keys, "ghcr.io/rails/devcontainer/features/sqlite3"
+              assert_includes content["features"].keys, "ghcr.io/rails/devcontainer/features/postgres-client"
+            end
+          end
+
           test "change to mysql" do
             run_generator ["--to", "mysql"]
 
@@ -90,7 +103,7 @@ module Rails
             end
 
             assert_file("Dockerfile") do |content|
-              assert_match "default-libmysqlclient-dev g++ gcc git make", content
+              assert_match "default-libmysqlclient-dev g++ gcc git libyaml-dev make pkg-config", content
               assert_match "curl default-mysql-client libjemalloc2 libvips", content
             end
 
@@ -132,7 +145,7 @@ module Rails
             end
 
             assert_file("Dockerfile") do |content|
-              assert_match "gcc g++ make git", content
+              assert_match "g++ gcc git libyaml-dev make pkg-config", content
               assert_match "curl libjemalloc2 libvips sqlite3", content
             end
 
@@ -155,7 +168,7 @@ module Rails
             end
 
             assert_file("Dockerfile") do |content|
-              assert_match "gcc g++ make git", content
+              assert_match "g++ gcc git libyaml-dev make pkg-config", content
               assert_match "curl default-mysql-client libjemalloc2 libvips", content
               assert_no_match "default-libmysqlclient-dev", content
             end
@@ -198,6 +211,70 @@ module Rails
             assert_file("Gemfile") do |content|
               assert_match "# Use mysql2 as the database for Active Record", content
               assert_match 'gem "mysql2", "~> 0.5"', content
+            end
+          end
+
+          test "change database build packages with additional Dockerfile packages" do
+            dockerfile = File.join(destination_root, "Dockerfile")
+            content = File.read(dockerfile).sub("make pkg-config", "make node-gyp pkg-config python-is-python3")
+            File.write(dockerfile, content)
+
+            run_generator ["--to", "mysql"]
+            run_generator ["--to", "postgresql", "--force"]
+
+            assert_file("Dockerfile") do |content|
+              assert_match "g++ gcc git libpq-dev libyaml-dev make node-gyp pkg-config python-is-python3", content
+              assert_no_match "default-libmysqlclient-dev", content
+            end
+
+            run_generator ["--to", "sqlite3", "--force"]
+
+            assert_file("Dockerfile") do |content|
+              assert_match "g++ gcc git libyaml-dev make node-gyp pkg-config python-is-python3", content
+              assert_no_match "libpq-dev", content
+            end
+          end
+
+          test "change database build packages in an older Dockerfile" do
+            dockerfile = File.join(destination_root, "Dockerfile")
+            content = File.read(dockerfile).sub(
+              "g++ gcc git libyaml-dev make pkg-config", "build-essential git libyaml-dev pkg-config"
+            )
+            File.write(dockerfile, content)
+
+            run_generator ["--to", "postgresql"]
+
+            assert_file("Dockerfile") do |content|
+              assert_match "build-essential git libpq-dev libyaml-dev pkg-config", content
+            end
+
+            run_generator ["--to", "mysql", "--force"]
+
+            assert_file("Dockerfile") do |content|
+              assert_match "build-essential default-libmysqlclient-dev git libyaml-dev pkg-config", content
+              assert_no_match "libpq-dev", content
+            end
+          end
+
+          test "change database runtime packages without libvips" do
+            dockerfile = File.join(destination_root, "Dockerfile")
+            content = File.read(dockerfile).sub("curl libjemalloc2 libvips sqlite3", "curl libjemalloc2 sqlite3")
+            File.write(dockerfile, content)
+
+            run_generator ["--to", "postgresql"]
+
+            assert_file("Dockerfile") do |content|
+              assert_match "curl libjemalloc2 postgresql-client", content
+              assert_no_match "libvips", content
+              assert_no_match "sqlite3", content
+            end
+
+            run_generator ["--to", "mysql", "--force"]
+
+            assert_file("Dockerfile") do |content|
+              assert_match "curl default-mysql-client libjemalloc2", content
+              assert_no_match "libvips", content
+              assert_no_match "postgresql-client", content
             end
           end
 
