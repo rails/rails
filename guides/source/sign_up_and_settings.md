@@ -94,7 +94,7 @@ In `config/routes.rb`, let's add a resource for sign up:
 
 ```ruby#3
 resource :session
-resources :passwords, param: :token
+resource :password, only: [ :new, :create, :edit, :update ]
 resource :sign_up
 ```
 
