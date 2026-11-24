@@ -1,3 +1,9 @@
+*   Preserve ordered list starting numbers when converting Action Text to Markdown.
+
+    Fixes #59359.
+
+    *Vipul*
+
 *   Add alternative text to Action Text attachments.
 
     Attachments could only be described by their caption, which is always shown
