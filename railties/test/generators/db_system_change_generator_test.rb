@@ -54,7 +54,6 @@ module Rails
             assert_devcontainer_json_file do |content|
               assert_equal "postgres", content["containerEnv"]["DB_HOST"]
               assert_includes content["features"].keys, "ghcr.io/rails/devcontainer/features/postgres-client"
-              assert_not_includes content["features"].keys, "ghcr.io/rails/devcontainer/features/sqlite"
             end
 
             assert_compose_file do |compose_config|
@@ -73,6 +72,20 @@ module Rails
 
               assert_equal expected_postgres_config, compose_config["services"]["postgres"]
               assert_includes compose_config["volumes"].keys, "postgres-data"
+            end
+          end
+
+          test "changing to postgresql removes the sqlite3 devcontainer feature" do
+            devcontainer_file = File.join(destination_root, ".devcontainer/devcontainer.json")
+            devcontainer = JSON.parse(File.read(devcontainer_file), allow_comments: true)
+            devcontainer["features"]["ghcr.io/rails/devcontainer/features/sqlite3"] = {}
+            File.write(devcontainer_file, JSON.pretty_generate(devcontainer))
+
+            run_generator ["--to", "postgresql"]
+
+            assert_devcontainer_json_file do |content|
+              assert_not_includes content["features"].keys, "ghcr.io/rails/devcontainer/features/sqlite3"
+              assert_includes content["features"].keys, "ghcr.io/rails/devcontainer/features/postgres-client"
             end
           end
 
