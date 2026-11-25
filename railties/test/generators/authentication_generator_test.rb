@@ -56,7 +56,7 @@ class AuthenticationGeneratorTest < Rails::Generators::TestCase
     end
 
     assert_includes @rails_commands, "generate migration CreateUsers email_address:string!:uniq password_digest:string! --force"
-    assert_includes @rails_commands, "generate migration CreateSessions user:references ip_address:string user_agent:string --force"
+    assert_includes @rails_commands, "generate migration CreateSessions user:references token:token! ip_address:string user_agent:string --force"
 
     assert_file "test/models/user_test.rb"
     assert_file "test/fixtures/users.yml"
@@ -110,7 +110,7 @@ class AuthenticationGeneratorTest < Rails::Generators::TestCase
     end
 
     assert_includes @rails_commands, "generate migration CreateUsers email_address:string!:uniq password_digest:string! --force"
-    assert_includes @rails_commands, "generate migration CreateSessions user:references ip_address:string user_agent:string --force"
+    assert_includes @rails_commands, "generate migration CreateSessions user:references token:token! ip_address:string user_agent:string --force"
 
     assert_file "test/models/user_test.rb"
     assert_file "test/fixtures/users.yml"
@@ -135,7 +135,7 @@ class AuthenticationGeneratorTest < Rails::Generators::TestCase
     run_generator_instance
 
     assert_not_includes @rails_commands, "generate migration CreateUsers email_address:string!:uniq password_digest:string! --force"
-    assert_includes @rails_commands, "generate migration CreateSessions user:references ip_address:string user_agent:string --force"
+    assert_includes @rails_commands, "generate migration CreateSessions user:references token:token! ip_address:string user_agent:string --force"
 
     assert_file "app/models/session.rb"
     assert_file "app/models/current.rb"
