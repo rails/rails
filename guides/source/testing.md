@@ -2830,6 +2830,18 @@ class WebNotificationsChannelTest < ActionCable::Channel::TestCase
 end
 ```
 
+Each identifier passed to `stub_connection` must be declared with
+`identified_by` on the connection class, `ApplicationCable::Connection` by
+default:
+
+```ruby
+module ApplicationCable
+  class Connection < ActionCable::Connection::Base
+    identified_by :current_user
+  end
+end
+```
+
 See the API documentation for
 [`ActionCable::Channel::TestCase`](https://api.rubyonrails.org/classes/ActionCable/Channel/TestCase.html)
 for more information.

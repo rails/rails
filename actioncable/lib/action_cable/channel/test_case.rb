@@ -86,8 +86,14 @@ module ActionCable
     # instance methods for use in the tests:
     #
     # connection
-    # :   An ActionCable::Channel::ConnectionStub, representing the current HTTP
-    #     connection.
+    # :   An instance of the connection class, representing the current HTTP
+    #     connection. See "Specifying connection identifiers" below.
+    #
+    # socket
+    # :   An ActionCable::Connection::TestSocket recording every message sent to
+    #     the client, including subscription confirmations and rejections.
+    #     Broadcasts aren't delivered to it: use `assert_broadcasts` and
+    #     `assert_broadcast_on` for those.
     #
     # subscription
     # :   An instance of the current channel, created when you call `subscribe`.
@@ -112,6 +118,14 @@ module ActionCable
     # identifiers. To do this just use:
     #
     #     stub_connection(user: users(:john))
+    #
+    # Each identifier must be declared with `identified_by` on the connection
+    # class, `ApplicationCable::Connection` by default. Use `tests_connection`
+    # to test against another connection class:
+    #
+    #     class ChatChannelTest < ActionCable::Channel::TestCase
+    #       tests_connection AdminCable::Connection
+    #     end
     #
     # ## Testing broadcasting
     #
@@ -198,11 +212,13 @@ module ActionCable
 
         # Set up test connection with the specified identifiers:
         #
-        #     class ApplicationCable < ActionCable::Connection::Base
-        #       identified_by :user, :token
+        #     module ApplicationCable
+        #       class Connection < ActionCable::Connection::Base
+        #         identified_by :user, :token
+        #       end
         #     end
         #
-        #     stub_connection(user: users[:john], token: 'my-secret-token')
+        #     stub_connection(user: users(:john), token: "my-secret-token")
         def stub_connection(server: ActionCable.server, **identifiers)
           @socket = Connection::TestSocket.new(Connection::TestSocket.build_request(ActionCable.server.config.mount_path || "/cable"))
           @testserver = Connection::TestServer.new(server)
