@@ -89,6 +89,53 @@ class ActionText::PlainTextConversionTest < ActiveSupport::TestCase
     )
   end
 
+  test "<ol> items are numbered in order" do
+    items = 1..120
+
+    assert_converted_to(
+      items.map { |n| "#{n}. Item #{n}" }.join("\n"),
+      "<ol>#{items.map { |n| "<li>Item #{n}</li>" }.join}</ol>"
+    )
+  end
+
+  test "<ol> items are numbered by position among their sibling elements" do
+    assert_converted_to(
+      "1. a\nx\n\n3. b\n\n  • u\n\n5. c",
+      "<ol><li>a</li><p>x</p><li>b</li><ul><li>u</li></ul><li>c</li></ol>"
+    )
+  end
+
+  test "<ol> numbering ignores text, whitespace, and comment siblings" do
+    fragment = Nokogiri::HTML5::DocumentFragment.parse(
+      "<ol>\n<!-- first -->before<li>one</li>\n<!-- second -->between<li>two</li></ol>"
+    )
+
+    assert_equal "before1. one\nbetween2. two", ActionText::PlainTextConversion.node_to_plain_text(fragment)
+  end
+
+  test "<li> inside a non-list parent is numbered among that parent's element children" do
+    fragment = Nokogiri::HTML5::DocumentFragment.parse(
+      "<ol><li>outer</li><div><span>prefix</span><li>inner one</li><li>inner two</li></div></ol>"
+    )
+
+    assert_equal "1. outer\nprefix2. inner one\n3. inner two", ActionText::PlainTextConversion.node_to_plain_text(fragment)
+  end
+
+  test "an attached <li> retains its sibling position when converted on its own" do
+    fragment = Nokogiri::HTML5::DocumentFragment.parse("<ol><li>one</li><span>other</span><li>two</li></ol>")
+    item = fragment.css("li").last
+
+    assert_equal "3. two", ActionText::PlainTextConversion.node_to_plain_text(item)
+  end
+
+  test "<ol> items are renumbered when the same document is converted again" do
+    fragment = Nokogiri::HTML5::DocumentFragment.parse("<ol><li>one</li><li>two</li></ol>")
+    assert_equal "1. one\n2. two", ActionText::PlainTextConversion.node_to_plain_text(fragment)
+
+    fragment.at_css("ol").prepend_child("<li>zero</li>")
+    assert_equal "1. zero\n2. one\n3. two", ActionText::PlainTextConversion.node_to_plain_text(fragment)
+  end
+
   test "complex nested / mixed list tags are indented" do
     assert_converted_to(
       "• Item 0\n• Item 1\n  • Item A\n    1. Item i\n    2. Item ii\n  • Item B\n    • Item i\n• Item 2",
