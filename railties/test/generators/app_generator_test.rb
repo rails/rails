@@ -152,6 +152,8 @@ class AppGeneratorTest < Rails::Generators::TestCase
       `#{File.expand_path("../../exe/rails", __dir__)} new --help`
     end
     assert_match(/rails new APP_PATH \[options\]/, output)
+    assert_not_includes output, "--skip-namespace"
+    assert_not_includes output, "--skip-collision-check"
     assert_equal true, $?.success?
   end
 
