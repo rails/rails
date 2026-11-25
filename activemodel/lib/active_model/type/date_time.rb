@@ -22,10 +22,10 @@ module ActiveModel
     # event.start.year  # => 2013
     # event.start.month # => 9
     # event.start.day   # => 4
-    # event.start.hour  # => 3
+    # event.start.hour  # => 0
     # event.start.min   # => 0
     # event.start.sec   # => 0
-    # event.start.zone  # => "EAT"
+    # event.start.zone  # => "UTC"
     # ```
     #
     # String values are parsed using the ISO 8601 datetime format. Use the
