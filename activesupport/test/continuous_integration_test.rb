@@ -228,6 +228,18 @@ class ContinuousIntegrationTest < ActiveSupport::TestCase
     assert_match(/System passed/, output)
   end
 
+  test "parallel group with steps sharing a title" do
+    output = capture_io do
+      @CI.group("Checks", parallel: 2) do
+        step "Tests", "sleep 0.1"
+        step "Tests", "sleep 0.1"
+      end
+    end.to_s
+
+    assert @CI.success?
+    assert_equal 2, output.scan("Tests passed").size
+  end
+
   test "step restores previous signal handler" do
     custom_handler = proc { }
     Signal.trap("INT", custom_handler)
