@@ -2230,9 +2230,11 @@ module ActiveRecord
 
         # The join dependencies rooted at the model never depend on another join,
         # while the ones merged in from a relation of another model join to the
-        # tables they bring in, so those come first.
+        # tables they bring in, so those come first. The `left_joins` one comes
+        # before the eager load one, so it gets the unaliased table name that
+        # conditions like `where(comments: ...)` refer to, as with `joins`.
         stashed_joins = [
-          stashed_eager_load, stashed_outer_join, *stashed_inner_joins, *stashed_left_joins
+          stashed_outer_join, stashed_eager_load, *stashed_inner_joins, *stashed_left_joins
         ].compact
 
         JoinBuckets.new(leading_joins, named_joins, stashed_joins, join_nodes, Arel::Nodes::InnerJoin)

@@ -16,6 +16,23 @@ require "models/job"
 class LeftOuterJoinAssociationTest < ActiveRecord::TestCase
   fixtures :authors, :author_addresses, :essays, :posts, :comments, :ratings, :categorizations, :people
 
+  def test_where_missing_applies_to_its_own_join_when_eager_loading_the_same_table
+    expected = Post.where.missing(:comments).order(:id).to_a
+    posts = Post.eager_load(:special_comments).where.missing(:comments).order(:id)
+
+    assert_not_empty expected
+    assert_equal expected, posts.to_a
+  end
+
+  def test_left_joins_conditions_do_not_filter_the_eager_loaded_association
+    post = posts(:welcome)
+    assert_operator post.comments.size, :>, 1
+
+    loaded = Post.left_joins(:comments).where(comments: { id: post.comments.first.id }).eager_load(:comments).find(post.id)
+
+    assert_equal post.comments.sort_by(&:id), loaded.comments.sort_by(&:id)
+  end
+
   def test_merging_multiple_left_joins_from_different_associations
     count = Author.joins(:posts).merge(Post.left_joins(:comments).merge(Comment.left_joins(:ratings))).count
     assert_equal 17, count
