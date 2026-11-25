@@ -2493,10 +2493,7 @@ module ActiveRecord
         references = nil
 
         columns.each do |column|
-          if column.is_a?(Arel::Nodes::Ordering)
-            column = column.expr
-            next unless column.is_a?(Arel::Attribute)
-          end
+          column = column.expr if column.is_a?(Arel::Nodes::Ordering)
 
           table_name =
             case column
@@ -2515,7 +2512,7 @@ module ActiveRecord
       end
 
       def extract_table_name_from(string)
-        string.match(/^\W?(\w+)\W?\./) && $1
+        string.match(/^\W?([A-Za-z_]\w*)\W?\./) && $1
       end
 
       def order_column(field)
