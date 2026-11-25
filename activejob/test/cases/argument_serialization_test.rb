@@ -288,6 +288,39 @@ class ArgumentSerializationTest < ActiveSupport::TestCase
     assert_instance_of GlobalID::Locator::RecordUnavailable, error.cause
   end
 
+  test "locates an Array of records referenced by Global IDs together" do
+    people = [Person.new(1), Person.new(2), Person.new(1)]
+    deserialized = ActiveJob::Arguments.deserialize(ActiveJob::Arguments.serialize([people])).first
+
+    assert_equal people, deserialized
+    assert_same deserialized.first, deserialized.last
+  end
+
+  test "deserializes an Array mixing records and other values" do
+    assert_arguments_unchanged [Person.new(1), 2, Person.new(3)]
+  end
+
+  test "wraps a missing record in an Array of records in a DeserializationError::RecordNotFound" do
+    serialized = ActiveJob::Arguments.serialize [[Person.new(1), Person.new(404)]]
+
+    error = assert_raises ActiveJob::DeserializationError::RecordNotFound do
+      ActiveJob::Arguments.deserialize serialized
+    end
+    assert_instance_of GlobalID::Locator::RecordNotFound, error.cause
+  end
+
+  test "wraps other errors raised while locating an Array of records in a plain DeserializationError" do
+    serialized = ActiveJob::Arguments.serialize [[Person.new(1), Person.new(500)]]
+
+    error = assert_raises ActiveJob::DeserializationError do
+      ActiveJob::Arguments.deserialize serialized
+    end
+    assert_instance_of ActiveJob::DeserializationError, error
+    assert_instance_of GlobalID::Locator::RecordUnavailable, error.cause
+    assert_instance_of RuntimeError, error.cause.cause
+    assert_equal "Connection error", error.cause.cause.message
+  end
+
   class RactorTest < ActiveSupport::TestCase
     include ActiveSupport::Testing::Isolation
     include ActiveSupport::Testing::RactorsAssertions
