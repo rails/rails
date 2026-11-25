@@ -74,14 +74,19 @@ module ActiveRecord
         private
           QUOTED_NAMES_CACHE_LIMIT = 1_000
           private_constant :QUOTED_NAMES_CACHE_LIMIT
+          QUOTED_NAMES_CACHE_BYTESIZE_LIMIT = 1_024
+          private_constant :QUOTED_NAMES_CACHE_BYTESIZE_LIMIT
 
           # Quoted names are cached, but names can also come from user input,
           # for example <tt>order(params[:sort] => :asc)</tt>. Stop caching
-          # new names once the cache is full, so it can't grow without limit.
+          # new names once the cache is full or a quoted name is too large, so
+          # the cache can't grow without limit.
           def cache_quoted_name(cache, name)
             cache[name] || begin
               quoted = yield.freeze
-              cache[name] = quoted if cache.size < QUOTED_NAMES_CACHE_LIMIT
+              if cache.size < QUOTED_NAMES_CACHE_LIMIT && quoted.bytesize <= QUOTED_NAMES_CACHE_BYTESIZE_LIMIT
+                cache[name] = quoted
+              end
               quoted
             end
           end

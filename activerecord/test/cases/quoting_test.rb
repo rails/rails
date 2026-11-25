@@ -205,6 +205,15 @@ module ActiveRecord
           end
         end
       end
+
+      def test_quoted_names_are_not_cached_when_the_name_is_too_large
+        adapter_class = ActiveRecord::Base.adapter_class
+        name = "x" * 4_096
+
+        assert_no_difference -> { adapter_class::QUOTED_COLUMN_NAMES.size } do
+          assert_includes adapter_class.quote_column_name(name), name
+        end
+      end
     end
 
     class TypeCastingTest < ActiveRecord::TestCase
