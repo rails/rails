@@ -33,6 +33,12 @@ module ActiveRecord
         @valid
       end
 
+      def lengths = {}
+      def opclasses = {}
+      def type = nil
+      def include = nil
+      def nulls_not_distinct = nil
+
       def column_options
         { order: orders }
       end

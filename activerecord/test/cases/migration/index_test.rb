@@ -39,6 +39,17 @@ module ActiveRecord
         assert connection.index_name_exists?(table_name, "new_idx")
       end
 
+      def test_adapter_specific_attributes_are_readable_on_every_adapter
+        connection.add_index(table_name, [:foo, :bar], name: "shared_idx")
+        index = connection.indexes(table_name).find { |i| i.name == "shared_idx" }
+
+        assert_equal({}, index.lengths) unless current_adapter?(:Mysql2Adapter, :TrilogyAdapter)
+        assert_equal({}, index.opclasses)
+        assert_nil index.type
+        assert_nil index.include
+        assert_not index.nulls_not_distinct
+      end
+
       def test_rename_index_with_symbol
         # keep the names short to make Oracle and similar behave
         connection.add_index(table_name, [:foo], name: :old_idx)
