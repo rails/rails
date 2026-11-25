@@ -173,10 +173,19 @@ module ActionController
   #       include ActionController::Redirecting
   #       include Rails.application.routes.url_helpers
   #
+  #       self.action_on_open_redirect = ActionController::Base.action_on_open_redirect
+  #       self.action_on_path_relative_redirect = ActionController::Base.action_on_path_relative_redirect
+  #       self.allowed_redirect_hosts = ActionController::Base.allowed_redirect_hosts
+  #
   #       def index
   #         redirect_to root_url
   #       end
   #     end
+  #
+  # The application's `config.action_controller` settings apply only to
+  # ActionController::Base and ActionController::API. A metal controller that
+  # includes ActionController::Redirecting keeps the module defaults, which log
+  # an open redirect instead of raising, unless it copies the settings as above.
   #
   # ## Other Helpers
   #
