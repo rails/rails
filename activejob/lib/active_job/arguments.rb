@@ -175,7 +175,7 @@ module ActiveJob
 
           records
         else
-          hashes.map { |hash| deserialize_global_id(hash) }
+          gids.map { |gid| gid && GlobalID::Locator.fetch(gid) }
         end
       end
 
