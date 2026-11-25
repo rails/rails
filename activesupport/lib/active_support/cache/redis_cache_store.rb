@@ -482,7 +482,7 @@ module ActiveSupport
 
         def failsafe(method, returning: nil)
           yield
-        rescue ::RedisClient::ConnectionError => error
+        rescue ::RedisClient::Error => error
           @error_handler&.call(method: method, exception: error, returning: returning)
           returning
         end
