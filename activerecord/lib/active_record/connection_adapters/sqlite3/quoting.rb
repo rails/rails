@@ -42,11 +42,11 @@ module ActiveRecord
           end
 
           def quote_column_name(name)
-            QUOTED_COLUMN_NAMES[name] ||= %Q("#{name.to_s.gsub('"', '""')}").freeze
+            cache_quoted_name(QUOTED_COLUMN_NAMES, name) { %Q("#{name.to_s.gsub('"', '""')}") }
           end
 
           def quote_table_name(name)
-            QUOTED_TABLE_NAMES[name] ||= %Q("#{name.to_s.gsub('"', '""').gsub(".", "\".\"")}").freeze
+            cache_quoted_name(QUOTED_TABLE_NAMES, name) { %Q("#{name.to_s.gsub('"', '""').gsub(".", "\".\"")}") }
           end
         end
 

@@ -195,6 +195,18 @@ module ActiveRecord
       end
     end
 
+    class QuotedNameCacheTest < ActiveRecord::TestCase
+      def test_quoted_names_are_not_cached_when_the_cache_is_full
+        adapter_class = ActiveRecord::Base.adapter_class
+
+        stub_const(Quoting::ClassMethods, :QUOTED_NAMES_CACHE_LIMIT, 0) do
+          assert_no_difference -> { adapter_class::QUOTED_COLUMN_NAMES.size } do
+            assert_includes adapter_class.quote_column_name("not_cached"), "not_cached"
+          end
+        end
+      end
+    end
+
     class TypeCastingTest < ActiveRecord::TestCase
       def setup
         @conn = ActiveRecord::Base.lease_connection

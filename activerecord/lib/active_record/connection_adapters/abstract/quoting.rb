@@ -70,6 +70,21 @@ module ActiveRecord
         def quote_table_name(table_name)
           quote_column_name(table_name)
         end
+
+        private
+          QUOTED_NAMES_CACHE_LIMIT = 1_000
+          private_constant :QUOTED_NAMES_CACHE_LIMIT
+
+          # Quoted names are cached, but names can also come from user input,
+          # for example <tt>order(params[:sort] => :asc)</tt>. Stop caching
+          # new names once the cache is full, so it can't grow without limit.
+          def cache_quoted_name(cache, name)
+            cache[name] || begin
+              quoted = yield.freeze
+              cache[name] = quoted if cache.size < QUOTED_NAMES_CACHE_LIMIT
+              quoted
+            end
+          end
       end
 
       # Quotes the column value to help prevent

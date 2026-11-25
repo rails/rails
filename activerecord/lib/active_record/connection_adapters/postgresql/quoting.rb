@@ -44,7 +44,7 @@ module ActiveRecord
 
           # Quotes column names for use in SQL queries.
           def quote_column_name(name) # :nodoc:
-            QUOTED_COLUMN_NAMES[name] ||= PG::Connection.quote_ident(name.to_s).freeze
+            cache_quoted_name(QUOTED_COLUMN_NAMES, name) { PG::Connection.quote_ident(name.to_s) }
           end
 
           # Checks the following cases:
@@ -56,7 +56,7 @@ module ActiveRecord
           # - "schema.name".table_name
           # - "schema.name"."table.name"
           def quote_table_name(name) # :nodoc:
-            QUOTED_TABLE_NAMES[name] ||= Utils.extract_schema_qualified_name(name.to_s).quoted.freeze
+            cache_quoted_name(QUOTED_TABLE_NAMES, name) { Utils.extract_schema_qualified_name(name.to_s).quoted }
           end
         end
 
