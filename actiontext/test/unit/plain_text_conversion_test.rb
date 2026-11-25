@@ -89,6 +89,30 @@ class ActionText::PlainTextConversionTest < ActiveSupport::TestCase
     )
   end
 
+  test "<ol> items are numbered in order" do
+    items = 1..120
+
+    assert_converted_to(
+      items.map { |n| "#{n}. Item #{n}" }.join("\n"),
+      "<ol>#{items.map { |n| "<li>Item #{n}</li>" }.join}</ol>"
+    )
+  end
+
+  test "<ol> items are numbered by position among their sibling elements" do
+    assert_converted_to(
+      "1. a\nx\n\n3. b\n\n  • u\n\n5. c",
+      "<ol><li>a</li><p>x</p><li>b</li><ul><li>u</li></ul><li>c</li></ol>"
+    )
+  end
+
+  test "<ol> items are renumbered when the same document is converted again" do
+    fragment = Nokogiri::HTML5::DocumentFragment.parse("<ol><li>one</li><li>two</li></ol>")
+    assert_equal "1. one\n2. two", ActionText::PlainTextConversion.node_to_plain_text(fragment)
+
+    fragment.at_css("ol").prepend_child("<li>zero</li>")
+    assert_equal "1. zero\n2. one\n3. two", ActionText::PlainTextConversion.node_to_plain_text(fragment)
+  end
+
   test "complex nested / mixed list tags are indented" do
     assert_converted_to(
       "• Item 0\n• Item 1\n  • Item A\n    1. Item i\n    2. Item ii\n  • Item B\n    • Item i\n• Item 2",

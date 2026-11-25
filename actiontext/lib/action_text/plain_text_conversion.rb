@@ -92,8 +92,8 @@ module ActionText
 
       def bullet_for_li_node(node)
         if list_node_name_for_li_node(node) == "ol"
-          index = node.parent.elements.index(node)
-          "#{index + 1}."
+          preceding_sibling_elements_count = node.xpath("count(preceding-sibling::*)").to_i
+          "#{preceding_sibling_elements_count + 1}."
         else
           "•"
         end
