@@ -316,6 +316,9 @@ class ArgumentSerializationTest < ActiveSupport::TestCase
       ActiveJob::Arguments.deserialize serialized
     end
     assert_instance_of ActiveJob::DeserializationError, error
+    assert_instance_of GlobalID::Locator::RecordUnavailable, error.cause
+    assert_instance_of RuntimeError, error.cause.cause
+    assert_equal "Connection error", error.cause.cause.message
   end
 
   class RactorTest < ActiveSupport::TestCase

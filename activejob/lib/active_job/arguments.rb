@@ -167,7 +167,7 @@ module ActiveJob
         gids = hashes.map { |hash| GlobalID.parse(hash[GLOBALID_KEY]) }
 
         if locatable_together?(gids)
-          records = GlobalID::Locator.locate_many(gids, ignore_missing: true)
+          records = locate_global_ids(gids)
 
           if records.size != gids.size || records.include?(nil)
             raise GlobalID::Locator::RecordNotFound, "Couldn't find all records for #{gids.join(", ")}"
@@ -177,6 +177,12 @@ module ActiveJob
         else
           gids.map { |gid| gid && GlobalID::Locator.fetch(gid) }
         end
+      end
+
+      def locate_global_ids(gids)
+        GlobalID::Locator.locate_many(gids, ignore_missing: true)
+      rescue => error
+        raise GlobalID::Locator::RecordUnavailable, "Couldn't fetch records for #{gids.join(", ")}: #{error.message}"
       end
 
       def locatable_together?(gids)
