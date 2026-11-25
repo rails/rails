@@ -45,6 +45,30 @@ module ActiveRecord
       assert_empty relation.references_values
     end
 
+    test "#order! with an SQL literal ordering of a qualified column adds a reference" do
+      node = Arel.sql("authors.name").desc
+      assert relation.order!(node).equal?(relation)
+      assert_equal [node], relation.order_values
+      assert_equal ["authors"], relation.references_values
+    end
+
+    test "#order! with an SQL literal as a hash key adds a reference" do
+      assert relation.order!(Arel.sql("authors.name") => :desc).equal?(relation)
+      assert_equal ["authors"], relation.references_values
+    end
+
+    test "#order! with an SQL literal ordering of an expression does not add a reference" do
+      node = Arel.sql("1.0 * authors.id").desc
+      assert relation.order!(node).equal?(relation)
+      assert_equal [node], relation.order_values
+      assert_empty relation.references_values
+    end
+
+    test "#order! with an SQL literal of an expression does not add a reference" do
+      assert relation.order!(Arel.sql("1.0 * authors.id DESC")).equal?(relation)
+      assert_empty relation.references_values
+    end
+
     test "#default_order!" do
       assert relation.default_order!("name ASC").equal?(relation)
       assert_equal ["name ASC"], relation.default_order_values

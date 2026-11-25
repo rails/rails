@@ -2514,7 +2514,7 @@ module ActiveRecord
       end
 
       def extract_table_name_from(string)
-        string.match(/^\W?(\w+)\W?\./) && $1
+        string.match(/^\W?([A-Za-z_]\w*)\W?\./) && $1
       end
 
       def order_column(field)
