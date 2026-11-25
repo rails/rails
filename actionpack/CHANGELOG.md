@@ -1,3 +1,12 @@
+*   Raise `ActionController::BadRequest` for every `Rack::BadRequest` error raised while parsing request parameters.
+
+    `ActionDispatch::Request#POST` only converted three explicit Rack errors into
+    `ActionController::BadRequest`. Other malformed-body errors that Rack tags with
+    `Rack::BadRequest`, such as `Rack::Multipart::BoundaryTooLongError` or
+    `Rack::Multipart::MultipartPartLimitError`, escaped as 500s instead of 400s.
+
+    *Navid Emad*
+
 *   Patch Rack to prevent submitting requested parameters encoded in arbitrary encodings.
 
     This is a part of the HTTP specification that has little to no legitimate use
