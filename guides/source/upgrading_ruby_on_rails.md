@@ -172,6 +172,22 @@ so a middleware inserted before it no longer wraps static file responses.
 config.middleware.insert_before ActionDispatch::Executor, Rack::ContentLength
 ```
 
+### Action Mailer no longer loads Active Job
+
+`require "action_mailer/railtie"` used to load the Active Job railtie too. It no
+longer does, so an application that lists its frameworks in `config/application.rb`
+and requires `action_mailer/railtie` without `active_job/railtie` no longer has
+`config.active_job`: setting it raises a `NoMethodError` on boot, and
+`deliver_later` enqueues to Active Job's default adapter. Require the Active Job
+railtie explicitly:
+
+```ruby
+require "active_job/railtie"
+require "action_mailer/railtie"
+```
+
+Applications that require `rails/all` are not affected.
+
 ### The old Active Record 6.1 marshalling format was removed.
 
 If your application still sets `active_record.marshalling_format_version = 6.1`, which may
