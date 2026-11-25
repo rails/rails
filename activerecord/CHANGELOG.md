@@ -1,3 +1,8 @@
+*   Fix preloading a `readonly` `has_many :through` with conditions returning
+    records that are not readonly.
+
+    *William T. Nelson*
+
 *   Deprecate passing the table name to `Arel::Table.new` positionally.
 
     `Arel::Table.new` now takes the table name as the `name:` keyword. The
