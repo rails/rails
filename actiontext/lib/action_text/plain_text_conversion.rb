@@ -5,15 +5,18 @@ module ActionText
     extend self
 
     def node_to_plain_text(node)
+      list_item_positions = {}
       BottomUpReducer.new(node).reduce do |n, child_values|
-        plain_text_for_node(n, child_values)
+        plain_text_for_node(n, child_values, list_item_positions)
       end.then(&method(:remove_trailing_newlines))
     end
 
     private
-      def plain_text_for_node(node, child_values)
+      def plain_text_for_node(node, child_values, list_item_positions)
         method = plain_text_method_for_node(node)
-        if respond_to?(method, true)
+        if method == :plain_text_for_li_node
+          plain_text_for_li_node(node, child_values, list_item_positions)
+        elsif respond_to?(method, true)
           send(method, node, child_values)
         else
           plain_text_for_child_values(child_values)
@@ -78,8 +81,8 @@ module ActionText
         text
       end
 
-      def plain_text_for_li_node(node, child_values)
-        bullet = bullet_for_li_node(node)
+      def plain_text_for_li_node(node, child_values, list_item_positions)
+        bullet = bullet_for_li_node(node, list_item_positions)
         text = remove_trailing_newlines(plain_text_for_child_values(child_values))
         indentation = indentation_for_li_node(node)
 
@@ -90,13 +93,24 @@ module ActionText
         text.chomp("")
       end
 
-      def bullet_for_li_node(node)
+      def bullet_for_li_node(node, list_item_positions)
         if list_node_name_for_li_node(node) == "ol"
-          preceding_sibling_elements_count = node.xpath("count(preceding-sibling::*)").to_i
-          "#{preceding_sibling_elements_count + 1}."
+          "#{position_for_li_node(node, list_item_positions)}."
         else
           "•"
         end
+      end
+
+      def position_for_li_node(node, list_item_positions)
+        unless list_item_positions.key?(node)
+          preceding_sibling_elements_count = 0
+          node.parent.children.each do |sibling|
+            list_item_positions[sibling] = preceding_sibling_elements_count + 1 if sibling.name == "li"
+            preceding_sibling_elements_count += 1 if sibling.element?
+          end
+        end
+
+        list_item_positions[node]
       end
 
       def list_node_name_for_li_node(node)

@@ -105,6 +105,29 @@ class ActionText::PlainTextConversionTest < ActiveSupport::TestCase
     )
   end
 
+  test "<ol> numbering ignores text, whitespace, and comment siblings" do
+    fragment = Nokogiri::HTML5::DocumentFragment.parse(
+      "<ol>\n<!-- first -->before<li>one</li>\n<!-- second -->between<li>two</li></ol>"
+    )
+
+    assert_equal "before1. one\nbetween2. two", ActionText::PlainTextConversion.node_to_plain_text(fragment)
+  end
+
+  test "<li> inside a non-list parent is numbered among that parent's element children" do
+    fragment = Nokogiri::HTML5::DocumentFragment.parse(
+      "<ol><li>outer</li><div><span>prefix</span><li>inner one</li><li>inner two</li></div></ol>"
+    )
+
+    assert_equal "1. outer\nprefix2. inner one\n3. inner two", ActionText::PlainTextConversion.node_to_plain_text(fragment)
+  end
+
+  test "an attached <li> retains its sibling position when converted on its own" do
+    fragment = Nokogiri::HTML5::DocumentFragment.parse("<ol><li>one</li><span>other</span><li>two</li></ol>")
+    item = fragment.css("li").last
+
+    assert_equal "3. two", ActionText::PlainTextConversion.node_to_plain_text(item)
+  end
+
   test "<ol> items are renumbered when the same document is converted again" do
     fragment = Nokogiri::HTML5::DocumentFragment.parse("<ol><li>one</li><li>two</li></ol>")
     assert_equal "1. one\n2. two", ActionText::PlainTextConversion.node_to_plain_text(fragment)
