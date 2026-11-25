@@ -44,6 +44,43 @@ module ActionText
         record || raise(ActiveRecord::RecordNotFound)
       end
 
+      # Locates multiple attachables in bulk, one query per model class, and
+      # returns them as a hash keyed by SGID. SGIDs that cannot be parsed or
+      # located are omitted:
+      #
+      #     attachable = Person.create! name: "Javan"
+      #     sgid = attachable.attachable_sgid
+      #     ActionText::Attachable.from_attachable_sgids([sgid, "missing"])
+      #     # => { sgid => person }
+      def from_attachable_sgids(sgids) # :nodoc:
+        gids_by_sgid = Array(sgids).uniq.each_with_object({}) do |sgid, hash|
+          if gid = SignedGlobalID.parse(sgid, for: LOCATOR_NAME)
+            hash[sgid] = gid
+          end
+        end
+
+        attachables_by_sgid = {}
+
+        # +locate_many+ sends every GID to the locator of the first, so GIDs
+        # are grouped by locator. It returns the located records in the order
+        # of its GIDs, omitting any it couldn't find, so GIDs and records are
+        # walked in lockstep, advancing the record pointer only on a match.
+        gids_by_sgid.group_by { |_sgid, gid| GlobalID::Locator.locator_for(gid) }.each_value do |pairs|
+          records = GlobalID::Locator.locate_many(pairs.map(&:last), ignore_missing: true)
+
+          index = 0
+          pairs.each do |sgid, gid|
+            record = records[index]
+            if record && gid.model_id.to_s == record.id.to_s && record.class <= gid.model_class
+              attachables_by_sgid[sgid] = record
+              index += 1
+            end
+          end
+        end
+
+        attachables_by_sgid
+      end
+
       private
         def attachable_from_sgid(sgid)
           from_attachable_sgid(sgid)
