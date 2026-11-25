@@ -20,6 +20,9 @@ module Rails
         ensure_encrypted_configuration_has_been_added
 
         change_encrypted_configuration_in_system_editor
+      rescue ActiveSupport::EncryptedFile::InvalidKeyLengthError => error
+        say_error error.message
+        exit 1
       end
 
       desc "show", "Show the decrypted contents of the file"
@@ -27,6 +30,9 @@ module Rails
         load_environment_config!
 
         say encrypted_configuration.read.presence || missing_encrypted_configuration_message
+      rescue ActiveSupport::EncryptedFile::InvalidKeyLengthError => error
+        say_error error.message
+        exit 1
       end
 
       private

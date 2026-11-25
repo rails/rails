@@ -1,3 +1,15 @@
+*   Raise `ActiveSupport::EncryptedFile::InvalidKeyLengthError` when reading
+    with a key of the wrong length, not only when writing.
+
+    A key that lost its last character could still decrypt the file if that
+    character was a `0`, so `EncryptedFile#read` and `EncryptedConfiguration`
+    accepted it while `#write` raised. Reading now raises
+    `InvalidKeyLengthError` for all keys of the wrong length, including keys
+    that are two or more characters short, which used to raise OpenSSL's
+    `ArgumentError`.
+
+    *Dennis Paagman*
+
 *   Return a plain `String` when `String#truncate_bytes` cuts an `html_safe` string.
 
     Truncating a `SafeBuffer` escaped its markup and could return more bytes than

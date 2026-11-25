@@ -65,6 +65,7 @@ module ActiveSupport
     # - MissingKeyError if the key is missing and +raise_if_missing_key+ is true.
     # - MissingContentError if the encrypted file does not exist or otherwise
     #   if the key is missing.
+    # - InvalidKeyLengthError if the key does not have the expected length.
     # - ActiveSupport::MessageEncryptor::InvalidMessage if the content cannot be
     #   decrypted or verified.
     def read
@@ -106,6 +107,7 @@ module ActiveSupport
       end
 
       def decrypt(contents)
+        check_key_length
         encryptor.decrypt_and_verify contents
       end
 

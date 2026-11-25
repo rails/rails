@@ -29,6 +29,9 @@ module Rails
         ensure_diffing_driver_is_configured
 
         change_credentials_in_system_editor
+      rescue ActiveSupport::EncryptedFile::InvalidKeyLengthError => error
+        say_error error.message
+        exit 1
       end
 
       desc "show", "Show the decrypted credentials"
@@ -36,6 +39,9 @@ module Rails
         load_environment_config!
 
         say credentials.read.presence || missing_credentials!
+      rescue ActiveSupport::EncryptedFile::InvalidKeyLengthError => error
+        say_error error.message
+        exit 1
       end
 
       desc "diff", "Enroll/disenroll in decrypted diffs of credentials using git"
@@ -53,7 +59,7 @@ module Rails
           disenroll_project_from_credentials_diffing if options[:disenroll]
           enroll_project_in_credentials_diffing if options[:enroll]
         end
-      rescue ActiveSupport::MessageEncryptor::InvalidMessage
+      rescue ActiveSupport::MessageEncryptor::InvalidMessage, ActiveSupport::EncryptedFile::InvalidKeyLengthError
         say credentials.content_path.read
       end
 
@@ -75,6 +81,9 @@ module Rails
         else
           missing_credentials!
         end
+      rescue ActiveSupport::EncryptedFile::InvalidKeyLengthError => error
+        say_error error.message
+        exit 1
       end
 
       private
