@@ -71,6 +71,29 @@ class Author < ActiveRecord::Base
     source: :comments,
     disable_joins: true
 
+  has_many :scoped_comments,
+    -> { select(:id, :post_id, :body).includes(:ratings).order(id: :desc).limit(2).readonly.strict_loading },
+    through: :posts,
+    source: :comments
+
+  has_many :no_joins_scoped_comments,
+    -> { select(:id, :post_id, :body).includes(:ratings).order(id: :desc).limit(2).readonly.strict_loading },
+    through: :posts,
+    source: :comments,
+    disable_joins: true
+
+  has_many :no_joins_scoped_comments_of_posts_ordered_by_default,
+    -> { select(:id, :body).includes(:ratings).readonly.strict_loading },
+    through: :posts_ordered_by_default,
+    source: :comments,
+    disable_joins: true
+
+  has_many :no_joins_comments_of_posts_ordered_by_default_with_unscoped_key,
+    -> { unscope(where: :post_id) },
+    through: :posts_ordered_by_default,
+    source: :comments,
+    disable_joins: true
+
   has_many :default_ordered_comments_of_posts_ordered_by_default,
     -> { default_order(id: :asc) },
     through: :posts_ordered_by_default,

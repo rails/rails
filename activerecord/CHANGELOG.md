@@ -1,3 +1,11 @@
+*   Fix lazily loading a `disable_joins` association ignoring the rest of its
+    scope, such as `select`, `limit`, `includes`, `readonly`, and
+    `strict_loading`.
+
+    Only the conditions and order of the scope were applied.
+
+    *Ryuta Kamizono*
+
 *   Fix preloading a `readonly` `has_many :through` with conditions returning
     records that are not readonly.
 

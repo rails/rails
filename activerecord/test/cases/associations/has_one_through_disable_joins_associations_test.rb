@@ -36,6 +36,15 @@ class HasOneThroughDisableJoinsAssociationsTest < ActiveRecord::TestCase
     end
   end
 
+  def test_disable_joins_through_applies_the_rest_of_the_scope
+    organization = @member.scoped_organization_without_joins
+
+    assert_equal @organization, organization
+    assert_equal %w[id name], organization.attributes.keys
+    assert_predicate organization, :readonly?
+    assert_predicate organization, :strict_loading?
+  end
+
   def test_nil_on_disable_joins_through
     member = members(:blarpy_winkup)
     assert_nil assert_queries_count(1) { member.organization }

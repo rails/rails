@@ -47,6 +47,18 @@ class HasManyThroughDisableJoinsAssociationsTest < ActiveRecord::TestCase
     assert_equal comments, @author.no_joins_comments_on_posts_with_unscoped_where.sort_by(&:id)
   end
 
+  def test_through_a_default_ordered_association_scope_cannot_unscope_foreign_key
+    author = authors(:bob)
+    first_post = author.posts.create!(title: "first", body: "body")
+    second_post = author.posts.create!(title: "second", body: "body")
+    first_comment = first_post.comments.create!(body: "first")
+    second_comment = second_post.comments.create!(body: "second")
+
+    assert_queries_match(/post_id.* IN /i, count: 1) do
+      assert_equal [second_comment, first_comment], author.no_joins_comments_of_posts_ordered_by_default_with_unscoped_key.to_a
+    end
+  end
+
   def test_through_association_scope_unscoping_foreign_key_is_deprecated_when_association_scope_keeps_owner_conditions_is_false
     message = /conditions tying the records to the owner on `posts.author_id`/
 
@@ -202,6 +214,33 @@ class HasManyThroughDisableJoinsAssociationsTest < ActiveRecord::TestCase
 
     assert_equal [first_comment, second_comment], author.default_ordered_comments_of_posts_ordered_by_default.to_a
     assert_equal [first_comment, second_comment], author.no_joins_default_ordered_comments_of_posts_ordered_by_default.to_a
+  end
+
+  def test_to_a_on_disable_joins_through_applies_the_rest_of_the_scope
+    expected = @author.scoped_comments.to_a
+    comments = @author.no_joins_scoped_comments.to_a
+
+    assert_equal 2, comments.size
+    assert_equal expected, comments
+    assert_equal %w[id post_id body], comments.first.attributes.keys
+    assert comments.all?(&:readonly?)
+    assert comments.all?(&:strict_loading?)
+    assert comments.all? { |comment| comment.association(:ratings).loaded? }
+  end
+
+  def test_to_a_on_disable_joins_through_a_default_ordered_association_applies_the_rest_of_the_scope
+    author = authors(:bob)
+    first_post = author.posts.create!(title: "first", body: "body")
+    second_post = author.posts.create!(title: "second", body: "body")
+    first_comment = first_post.comments.create!(body: "first")
+    second_comment = second_post.comments.create!(body: "second")
+
+    comments = author.no_joins_scoped_comments_of_posts_ordered_by_default.to_a
+
+    assert_equal [second_comment, first_comment], comments
+    assert comments.all?(&:readonly?)
+    assert comments.all?(&:strict_loading?)
+    assert comments.all? { |comment| comment.association(:ratings).loaded? }
   end
 
   def test_preloading_has_many_through_disable_joins

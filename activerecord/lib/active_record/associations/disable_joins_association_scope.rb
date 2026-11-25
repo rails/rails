@@ -18,18 +18,18 @@ module ActiveRecord
         lookup = Lookup.new(ids: [first_route.origin_key.value_of(owner)], order_rank: 0)
 
         reverse_chain.each_cons(2) do |reflection, next_reflection|
-          records = add_constraints(reflection, lookup, owner)
+          records = add_constraints(reflection, lookup, owner, head: false)
           lookup = Lookup.new(
             ids: records.pluck(next_reflection.association_route.origin_key.name),
             order_rank: order_rank(records)
           )
         end
 
-        add_constraints(reverse_chain.last, lookup, owner)
+        add_constraints(reverse_chain.last, lookup, owner, head: true)
       end
 
       private
-        def add_constraints(reflection, lookup, owner)
+        def add_constraints(reflection, lookup, owner, head:)
           route = reflection.association_route
           key = route.destination_key.name
           scope = reflection.build_scope(reflection.aliased_table)
@@ -49,6 +49,14 @@ module ActiveRecord
 
           scope = reflection.constraints.inject(scope) do |memo, scope_chain_item|
             item = eval_scope(reflection, scope_chain_item, owner)
+            # As in AssociationScope, the rest of the association's own scope goes to
+            # the query that loads the records, which is that of the last link here.
+            if head && scope_chain_item == reflection.scope
+              scope.merge! item.except(:where, :includes, :unscope, :order)
+            end
+            reflection.all_includes do
+              scope.includes_values |= item.includes_values
+            end
             scope.unscope!(*item.unscope_values)
             scope.where_clause += item.where_clause
             scope.order_values = item.order_values | scope.order_values
@@ -60,6 +68,9 @@ module ActiveRecord
           if order_rank(scope) < lookup.order_rank
             split_scope = DisableJoinsAssociationRelation.create(scope.model, key, lookup.ids)
             split_scope.where_clause += scope.where_clause
+            # Reordering by the key in Ruby needs the key and all the records loaded,
+            # and `unscope` is already applied to the where clause.
+            split_scope.merge!(scope.except(:where, :unscope, :order, :default_order, :limit, :offset, :select))
             split_scope
           else
             scope
