@@ -27,6 +27,12 @@ class ShowExceptionsTest < ActionDispatch::IntegrationTest
         rescue
           raise ActionView::Template::Error.new("template")
         end
+      when "/unrelated_eof"
+        begin
+          raise EOFError, "upstream service closed the connection"
+        rescue EOFError
+          raise ActionController::BadRequest, "upstream service failed"
+        end
       when "/rate_limited"
         raise ActionController::TooManyRequests.new
       else
@@ -145,6 +151,22 @@ class ShowExceptionsTest < ActionDispatch::IntegrationTest
     get "/not_found_original_exception", env: { "action_dispatch.show_exceptions" => :all }
     assert_response 404
     assert_equal "YOU FAILED", body
+  end
+
+  test "preserves a valid multipart request when an unrelated EOFError is wrapped" do
+    exceptions_app = lambda do |env|
+      assert_equal "multipart/form-data; boundary=boundary", env["CONTENT_TYPE"]
+      [400, { "content-type" => "text/plain" }, ["bad request"]]
+    end
+    @app = build_app(exceptions_app)
+
+    post "/unrelated_eof", params: "--boundary--\r\n", headers: {
+      "CONTENT_TYPE" => "multipart/form-data; boundary=boundary",
+      "action_dispatch.show_exceptions" => :all,
+    }
+
+    assert_response 400
+    assert_equal "bad request", body
   end
 
   test "returns an empty response if custom exceptions app returns x-cascade pass" do

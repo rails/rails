@@ -145,6 +145,7 @@ module ActionDispatch
     end
 
     TRANSFER_ENCODING = "HTTP_TRANSFER_ENCODING" # :nodoc:
+    REQUEST_PARAMETERS_ERROR = "action_dispatch.request.request_parameters_error" # :nodoc:
 
     def self.empty
       new({})
@@ -553,6 +554,7 @@ module ActionDispatch
         self.request_parameters = pr
       end
     rescue ActionDispatch::ParamError, EOFError => e
+      set_header REQUEST_PARAMETERS_ERROR, true
       raise ActionController::BadRequest.new("Invalid request parameters: #{e.message}")
     end
     alias :request_parameters :POST
