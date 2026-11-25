@@ -11,10 +11,7 @@ class EncryptedConfigurationTest < ActiveSupport::TestCase
     @credentials_key_path = File.join(@tmpdir, "master.key")
     File.write(@credentials_key_path, ActiveSupport::EncryptedConfiguration.generate_key)
 
-    @credentials = ActiveSupport::EncryptedConfiguration.new(
-      config_path: @credentials_config_path, key_path: @credentials_key_path,
-      env_key: "RAILS_MASTER_KEY", raise_if_missing_key: true
-    )
+    @credentials = new_credentials
   end
 
   teardown do
@@ -129,6 +126,13 @@ class EncryptedConfigurationTest < ActiveSupport::TestCase
     end
   end
 
+  test "raises InvalidKeyLengthError when the key has the wrong length" do
+    @credentials.write({ something: { good: true } }.to_yaml)
+    File.write(@credentials_key_path, File.read(@credentials_key_path).chop)
+
+    assert_raise(ActiveSupport::EncryptedFile::InvalidKeyLengthError) { new_credentials.config }
+  end
+
   test "raises key error when accessing config via bang method" do
     assert_raise(KeyError) { @credentials.something! }
   end
@@ -200,4 +204,12 @@ class EncryptedConfigurationTest < ActiveSupport::TestCase
   test "optional missing key with default block returning nil returns nil" do
     assert_nil @credentials.option(:missing, default: -> { nil })
   end
+
+  private
+    def new_credentials
+      ActiveSupport::EncryptedConfiguration.new(
+        config_path: @credentials_config_path, key_path: @credentials_key_path,
+        env_key: "RAILS_MASTER_KEY", raise_if_missing_key: true
+      )
+    end
 end

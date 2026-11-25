@@ -67,6 +67,7 @@ module ActiveSupport
     # - MissingKeyError if the key is missing and `raise_if_missing_key` is true.
     # - MissingContentError if the encrypted file does not exist or otherwise
     #   if the key is missing.
+    # - InvalidKeyLengthError if the key does not have the expected length.
     # - ActiveSupport::MessageEncryptor::InvalidMessage if the content cannot be
     #   decrypted or verified.
     def read
@@ -109,7 +110,6 @@ module ActiveSupport
 
 
       def encrypt(contents)
-        check_key_length
         encryptor.encrypt_and_sign contents
       end
 
@@ -119,9 +119,9 @@ module ActiveSupport
 
       def encryptor
         @encryptor ||= begin
-          keys = key.split(",")
-          encryptor = ActiveSupport::MessageEncryptor.new([ keys.shift ].pack("H*"), cipher: CIPHER, serializer: Marshal)
-          keys.each { |key| encryptor.rotate([ key ].pack("H*")) }
+          primary_key, *rotated_keys = encryption_keys
+          encryptor = ActiveSupport::MessageEncryptor.new(primary_key, cipher: CIPHER, serializer: Marshal)
+          rotated_keys.each { |rotated_key| encryptor.rotate(rotated_key) }
           encryptor
         end
       end
@@ -139,8 +139,14 @@ module ActiveSupport
         raise MissingKeyError.new(key_path: key_path, env_key: env_key) if raise_if_missing_key
       end
 
-      def check_key_length
-        raise InvalidKeyLengthError if key&.length != self.class.expected_key_length
+      def encryption_keys
+        keys = key.to_s.split(",")
+
+        if keys.empty? || keys.any? { |k| k.length != self.class.expected_key_length }
+          raise InvalidKeyLengthError
+        end
+
+        keys.map { |k| [ k ].pack("H*") }
       end
   end
 end

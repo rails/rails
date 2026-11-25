@@ -1,3 +1,14 @@
+*   Show a readable error in `credentials:edit`, `credentials:show`,
+    `credentials:fetch`, `encrypted:edit` and `encrypted:show` when the key has
+    the wrong length.
+
+    `credentials:edit` and `encrypted:edit` now fail before opening the
+    editor, instead of failing when saving and losing the changes.
+    `credentials:diff` prints the encrypted file, as it does when decryption
+    fails for other reasons.
+
+    *Dennis Paagman*
+
 *   Fix `db:system:change` to update Dockerfile packages for current and older
     generated applications.
 

@@ -111,18 +111,53 @@ class EncryptedFileTest < ActiveSupport::TestCase
   end
 
   test "raise InvalidKeyLengthError when key is too short" do
-    File.write(@key_path, ActiveSupport::EncryptedFile.generate_key[0..-2])
+    @encrypted_file.write(@content)
+    File.write(@key_path, @key.chop)
 
-    assert_raise ActiveSupport::EncryptedFile::InvalidKeyLengthError do
-      @encrypted_file.write(@content)
-    end
+    assert_raise(ActiveSupport::EncryptedFile::InvalidKeyLengthError) { encrypted_file(@content_path).read }
+    assert_raise(ActiveSupport::EncryptedFile::InvalidKeyLengthError) { encrypted_file(@content_path).write(@content) }
   end
 
   test "raise InvalidKeyLengthError when key is too long" do
-    File.write(@key_path, ActiveSupport::EncryptedFile.generate_key + "0")
+    @encrypted_file.write(@content)
+    File.write(@key_path, @key + "0")
+
+    assert_raise(ActiveSupport::EncryptedFile::InvalidKeyLengthError) { encrypted_file(@content_path).read }
+    assert_raise(ActiveSupport::EncryptedFile::InvalidKeyLengthError) { encrypted_file(@content_path).write(@content) }
+  end
+
+  test "key? does not raise when the key has the wrong length" do
+    File.write(@key_path, @key.chop)
+
+    assert_nothing_raised do
+      assert_predicate encrypted_file(@content_path), :key?
+    end
+  end
+
+  test "reading and writing with comma-separated env keys" do
+    FileUtils.rm_rf @key_path
+    old_key = ActiveSupport::EncryptedFile.generate_key
+
+    ENV["CONTENT_KEY"] = old_key
+    encrypted_file(@content_path).write(@content)
+
+    ENV["CONTENT_KEY"] = "#{@key},#{old_key}"
+    assert_equal @content, encrypted_file(@content_path).read
+
+    encrypted_file(@content_path).write(@content)
+    ENV["CONTENT_KEY"] = @key
+    assert_equal @content, encrypted_file(@content_path).read
+  end
+
+  test "raise InvalidKeyLengthError when one of the comma-separated env keys has the wrong length" do
+    FileUtils.rm_rf @key_path
+    ENV["CONTENT_KEY"] = @key
+    @encrypted_file.write(@content)
+
+    ENV["CONTENT_KEY"] = "#{@key},#{@key.chop}"
 
     assert_raise ActiveSupport::EncryptedFile::InvalidKeyLengthError do
-      @encrypted_file.write(@content)
+      encrypted_file(@content_path).read
     end
   end
 

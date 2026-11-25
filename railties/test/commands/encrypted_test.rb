@@ -139,6 +139,32 @@ class Rails::Command::EncryptedTest < ActiveSupport::TestCase
     assert_match(/access_key_id: 123/, run_show_command(key: "config/tokens.key"))
   end
 
+  test "show command prints an error when the key has the wrong length" do
+    run_edit_command
+    app_file "config/master.key", read_file("config/master.key").chop
+
+    output = run_show_command(allow_failure: true)
+
+    assert_not_predicate $?, :success?
+    assert_match(/Encryption key must be exactly 32 characters/, output)
+    assert_no_match(/\.rb:\d+:in /, output)
+  end
+
+  test "edit command prints an error and does not open the editor when the key has the wrong length" do
+    run_edit_command
+    app_file "config/master.key", read_file("config/master.key").chop
+    encrypted_content = File.binread(app_path(@encrypted_file))
+    editor_marker = app_path("editor_opened")
+
+    output = run_edit_command(visual: %(ruby -e "File.write '#{editor_marker}', ''"), allow_failure: true)
+
+    assert_not_predicate $?, :success?
+    assert_match(/Encryption key must be exactly 32 characters/, output)
+    assert_no_match(/\.rb:\d+:in /, output)
+    assert_not File.exist?(editor_marker)
+    assert_equal encrypted_content, File.binread(app_path(@encrypted_file))
+  end
+
   test "show command does not raise when an initializer tries to access non-existent credentials" do
     app_file "config/initializers/raise_when_loaded.rb", <<-RUBY
       Rails.application.credentials.missing_key!
