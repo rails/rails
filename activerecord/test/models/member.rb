@@ -14,6 +14,7 @@ class Member < ActiveRecord::Base
   has_one :member_detail, inverse_of: false
   has_one :organization, through: :member_detail
   has_one :organization_without_joins, through: :member_detail, disable_joins: true, source: :organization
+  has_one :scoped_organization_without_joins, -> { select(:id, :name).readonly.strict_loading }, through: :member_detail, disable_joins: true, source: :organization
   belongs_to :member_type
 
   has_many :nested_member_types, through: :member_detail, source: :member_type
