@@ -23,7 +23,7 @@ module ActiveJob
         end
       end
     end
-    event_log_level :enqueued, :info
+    event_log_level :enqueued, :error
 
     def enqueued_at(event)
       payload = event[:payload]
@@ -42,7 +42,7 @@ module ActiveJob
         end
       end
     end
-    event_log_level :enqueued_at, :info
+    event_log_level :enqueued_at, :error
 
     def bulk_enqueued(event)
       payload = event[:payload]
@@ -94,7 +94,7 @@ module ActiveJob
         end
       end
     end
-    event_log_level :completed, :info
+    event_log_level :completed, :error
 
     def retry_scheduled(event)
       payload = event[:payload]
@@ -235,6 +235,8 @@ module ActiveJob
       end
 
       def log_enqueue_source
+        return unless logger.info?
+
         source = enqueue_source_location
 
         if source
