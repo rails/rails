@@ -212,7 +212,7 @@ module ActiveRecord
         end
 
         def lease(context)
-          @lease_mutex.synchronize do
+          self[context] || @lease_mutex.synchronize do
             fetch_or_store(context) do
               Lease.new(@terminated_flag)
             end
