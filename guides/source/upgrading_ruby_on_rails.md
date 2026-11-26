@@ -147,6 +147,31 @@ warning naming each route whose controller does not exist. Such routes used to
 go unnoticed until a request matched them. Check the boot log for
 `references a missing controller` and fix or remove the routes it lists.
 
+### `Rack::Sendfile` is omitted when `x_sendfile_header` is unset
+
+The default middleware stack now includes `Rack::Sendfile` only when
+`config.action_dispatch.x_sendfile_header` is configured. When it is unset, code
+that positions middleware relative to `Rack::Sendfile`, such as
+`config.middleware.insert_before Rack::Sendfile, Rack::ContentLength`, raises
+`No such middleware to insert before: Rack::Sendfile` on boot.
+
+To keep sending files through the web server, configure the header your server
+expects:
+
+```ruby
+config.action_dispatch.x_sendfile_header = "X-Sendfile" # or "X-Accel-Redirect" for NGINX
+```
+
+If your middleware doesn't depend on `Rack::Sendfile`, insert it relative to
+another middleware, for example `ActionDispatch::Executor`, which is always in
+the default stack. Choose the insertion point by which requests your middleware
+needs to see: `ActionDispatch::Executor` comes after `ActionDispatch::Static`,
+so a middleware inserted before it no longer wraps static file responses.
+
+```ruby
+config.middleware.insert_before ActionDispatch::Executor, Rack::ContentLength
+```
+
 ### The old Active Record 6.1 marshalling format was removed.
 
 If your application still sets `active_record.marshalling_format_version = 6.1`, which may
