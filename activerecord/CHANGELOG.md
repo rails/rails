@@ -1,3 +1,11 @@
+*   Don't compare owner conditions when joining an association without a scope.
+
+    Comparing the where clauses could serialize their bind values early, so a
+    join raised `ActiveModel::RangeError` for an out of range condition in the
+    target's default scope instead of matching no records.
+
+    *Thomas Klemm*
+
 *   Add `change_check_constraint` to change a check constraint between `ENFORCED`
     and `NOT ENFORCED` on PostgreSQL 19+.
 
