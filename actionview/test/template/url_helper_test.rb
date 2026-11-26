@@ -75,6 +75,25 @@ class UrlHelperTest < ActiveSupport::TestCase
     assert_equal "http://example.com/other", url_for([:other, { controller: "foo", only_path: false }])
   end
 
+  [ActionView::Helpers::UrlHelper, ActionView::Helpers::FormTagHelper, ActionView::Helpers::FormHelper].each do |helper|
+    test "#{helper.name.demodulize} provides navigation helpers" do
+      context = Class.new do
+        include helper
+
+        def request
+          ActionDispatch::Request.new(Rack::MockRequest.env_for("/other"))
+        end
+      end.new
+
+      assert_dom_equal '<a href="/other">Other</a>', context.link_to("Other", "/other")
+      assert_dom_equal(
+        '<form method="post" action="/other" accept-charset="UTF-8" class="button_to"><button type="submit">Other</button></form>',
+        context.button_to("/other") { "Other" }
+      )
+      assert context.current_page?("/other")
+    end
+  end
+
   def test_mail_to
     assert_dom_equal %{<a href="mailto:david@loudthinking.com">david@loudthinking.com</a>}, mail_to("david@loudthinking.com")
     assert_dom_equal %{<a href="mailto:david@loudthinking.com">David Heinemeier Hansson</a>}, mail_to("david@loudthinking.com", "David Heinemeier Hansson")

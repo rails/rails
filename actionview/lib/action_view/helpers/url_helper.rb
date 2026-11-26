@@ -16,6 +16,14 @@ module ActionView
 
       include TagHelper
 
+      # NavigationHelper depends on UrlHelper, so include it after UrlHelper is in the ancestor chain.
+      included do |base|
+        # RDoc treats a constant passed to include here as a dependency of UrlHelper,
+        # which creates a cycle with NavigationHelper in the documentation.
+        navigation_helper = NavigationHelper
+        base.include navigation_helper
+      end
+
       module ClassMethods
         def _url_for_modules
           ActionView::RoutingUrlFor
