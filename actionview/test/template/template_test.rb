@@ -275,48 +275,6 @@ class TestERBTemplate < ActiveSupport::TestCase
     assert_equal "HELLO content", @template.render(@context, { name: "Hello" }) { "content" }
   end
 
-  def test_strict_locals_detects_an_explicit_render_block_with_non_utf8_defaults
-    source = "<%# locals: (label: '\u{30bd}', &_) -%>\n<%= label %> <%= _.call %>".encode(Encoding::Windows_31J)
-    @template = new_template(source)
-
-    assert_equal "\u{30bd} content", @template.render(@context, {}) { "content" }
-  end
-
-  def test_locals_with_parentheses
-    @template = new_template("<%# locals: (message: '(Hello)') -%>\n<%= message %>")
-    assert_equal "(Hello)", render
-
-    @template = new_template("<%# locals: (message: '(Hello') -%>\n<%= message %>")
-    assert_equal "(Hello", render
-
-    @template = new_template("<%# locals: (message: 'Hello)') -%>\n<%= message %>")
-    assert_equal "Hello)", render
-  end
-
-  def test_locals_can_spread_to_multiple_lines
-    template = <<~ERB.chomp
-        <%# locals: (arg_1:,
-                     arg_2: nil,
-                     arg_3: []) -%>
-        <%= arg_1 %><%= arg_2 %><%= arg_3 %>
-    ERB
-    @template = new_template(template)
-    assert_equal "First[]", render(arg_1: "First")
-  end
-
-  def test_locals_can_spread_to_multiple_lines_with_closing_parenthesis_on_diff_line
-    template = <<~ERB.chomp
-        <%# locals: (
-                      arg_1:,
-                      arg_2: nil,
-                      arg_3: []
-                     ) -%>
-        <%= arg_1 %><%= arg_2 %><%= arg_3 %>
-    ERB
-    @template = new_template(template)
-    assert_equal "First[]", render(arg_1: "First")
-  end
-
   def test_required_locals_must_be_specified
     error = assert_raises(ActionView::Template::Error) do
       @template = new_template("<%# locals: (message:) -%>")

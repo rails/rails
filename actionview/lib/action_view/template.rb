@@ -214,8 +214,6 @@ module ActionView
 
     # :stopdoc:
 
-    STRICT_LOCALS_REGEX = /\#\s+locals:\s+\((.*?)\)(?=\s*-?%>|\s*$)/m
-
     # Matches every name #method_name can produce: the identifier reduced to
     # `[a-z_]`, then the identifier hash (whose sign becomes an underscore) and
     # the object id.
@@ -432,21 +430,7 @@ module ActionView
     # Strict locals are useful for validating template arguments and for
     # specifying defaults.
     def strict_locals!
-      if @strict_locals == NONE
-        self.source.sub!(STRICT_LOCALS_REGEX, "")
-        @strict_locals = $1&.rstrip
-
-        return if @strict_locals.nil? # Magic comment not found
-
-        # Tag with the assumed encoding before encode! runs, same as
-        # encode! does for the source itself (see above).
-        if @strict_locals.encoding == Encoding::BINARY
-          @strict_locals.force_encoding(Encoding.default_external)
-        end
-
-        @strict_locals = "**nil" if @strict_locals.blank?
-      end
-
+      @strict_locals = StrictLocalsParser.extract!(source) if @strict_locals == NONE
       @strict_locals
     end
 
@@ -547,7 +531,7 @@ module ActionView
 
         method_arguments = +"local_assigns, output_buffer"
         method_arguments << ", #{set_strict_locals}" if set_strict_locals
-        method_arguments << ", &_" unless method_arguments.include?("&") && StrictLocalsParser.block_parameter?(method_arguments)
+        method_arguments << ", &_" unless set_strict_locals && StrictLocalsParser.block_parameter?(method_arguments)
 
         # Make sure that the resulting String to be eval'd is in the
         # encoding of the code
