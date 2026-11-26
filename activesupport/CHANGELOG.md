@@ -1,3 +1,16 @@
+*   Return a plain `String` when `String#truncate_bytes` cuts an `html_safe` string.
+
+    Truncating a `SafeBuffer` escaped its markup and could return more bytes than
+    requested. The cut result is now a plain, unescaped `String`, like `String#truncate`.
+
+    ```ruby
+    "<b>hello world</b>".html_safe.truncate_bytes(10)
+    # Before: "&lt;b&gt;…" (12 bytes, html_safe)
+    # After: "<b>hell…"
+    ```
+
+    *Carlos Daniel Pohlod*
+
 *   Treat a `:message_pack` cache serializer to treat classes that no longer
     exists as a cache miss.
 
