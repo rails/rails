@@ -55,6 +55,14 @@ class ActionMailbox::Ingresses::Sendgrid::InboundEmailsControllerTest < ActionDi
     assert_rejects_malformed_envelope "[\"replies@example.com\"]"
   end
 
+  test "rejecting an inbound email from Sendgrid with an array envelope parameter" do
+    assert_rejects_malformed_envelope ["replies@example.com"]
+  end
+
+  test "rejecting an inbound email from Sendgrid with a hash envelope parameter" do
+    assert_rejects_malformed_envelope({ "to" => ["replies@example.com"] })
+  end
+
   test "rejecting an inbound email from Sendgrid with non-array to recipients" do
     assert_rejects_malformed_envelope "{\"to\":\"replies@example.com\",\"from\":\"jason@37signals.com\"}"
   end

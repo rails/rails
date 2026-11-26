@@ -1,3 +1,9 @@
+*   Return `422 Unprocessable Content` for non-string SendGrid envelope and Mandrill events parameters.
+
+    Previously, array or hash parameters raised an unhandled `TypeError` before JSON parsing.
+
+    *Andrii Furmanets*
+
 *   Reject Mailgun inbound emails whose timestamp is more than 2 minutes ahead
     of local time.
 
