@@ -153,6 +153,20 @@ module ApplicationTests
       end
     end
 
+    test "/rails/conductor/action_mailbox is accessible in development" do
+      app("development")
+      get "/rails/conductor/action_mailbox/inbound_emails/new"
+      assert_equal 200, last_response.status
+    end
+
+    test "/rails/conductor/action_mailbox is not accessible in production" do
+      app("production")
+      quietly do
+        get("/rails/conductor/action_mailbox/inbound_emails/new", {}, { "HTTPS" => "on" })
+        assert_equal 404, last_response.status
+      end
+    end
+
     test "rails/health in production" do
       app("production")
 

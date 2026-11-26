@@ -1,3 +1,8 @@
+*   Only draw the conductor routes in the development and test environments,
+    and hide them from `bin/rails routes`.
+
+    *Matt Robinson*
+
 *   Reject Mailgun inbound emails whose timestamp is more than 2 minutes ahead
     of local time.
 
