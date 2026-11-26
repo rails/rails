@@ -1762,7 +1762,7 @@ module ActionView
           tag_builder
         else
           ensure_valid_html5_tag_name(name)
-          "<#{name}#{tag_builder.tag_options(options, escape) if options}#{open ? ">" : " />"}".html_safe
+          "<#{name}#{tag_builder.tag_options(options, escape) if options}#{open ? ">" : " />"}".freeze.html_safe
         end
       end
 
