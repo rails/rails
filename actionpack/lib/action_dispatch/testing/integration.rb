@@ -779,7 +779,7 @@ module ActionDispatch
         #
         # *   `:param_encoder` - A callable that accepts a Hash and returns an encoded value
         # *   `:response_parser` - A callable that accepts the body String and returns a parsed value
-        # *   `:content_type` - The String MIME type of the response body
+        # *   `:content_type` - The String MIME type of the request body
         #
         # #### Example
         #
