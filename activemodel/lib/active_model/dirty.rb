@@ -284,8 +284,8 @@ module ActiveModel
     end
 
     def initialize_dup(other) # :nodoc:
-      super
       @mutations_from_database = nil
+      super
     end
 
     def init_attributes(other) # :nodoc:

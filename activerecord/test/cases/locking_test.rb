@@ -196,6 +196,26 @@ class OptimisticLockingTest < ActiveRecord::TestCase
     assert_same error.record, p2
   end
 
+  def test_dup_resets_lock_version_after_checking_changes
+    person = Person.find(1)
+    person.update!(first_name: "anika2")
+    assert_not_predicate person, :changed?
+
+    copy = person.dup
+    assert_equal 0, copy.lock_version
+    assert_not_includes copy.changed, "lock_version"
+    assert_equal 1, person.lock_version
+  end
+
+  def test_dup_keeps_lock_version_change_of_original
+    person = Person.find(1)
+    person.lock_version = 5
+    assert_predicate person, :changed?
+
+    person.dup
+    assert_equal [0, 5], person.lock_version_change
+  end
+
   def test_lock_new_when_explicitly_passing_nil
     p1 = Person.new(first_name: "anika", lock_version: nil)
     p1.save!
