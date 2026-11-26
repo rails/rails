@@ -74,6 +74,8 @@ module ActiveRecord
           MASTER_CTE = <<~SQL
             WITH master AS (
               SELECT name, type, sql FROM sqlite_master
+              WHERE type NOT IN ('table', 'view')
+                OR name NOT IN (SELECT name FROM sqlite_temp_master WHERE type IN ('table', 'view'))
               UNION ALL
               SELECT name, type, sql FROM sqlite_temp_master
             )
