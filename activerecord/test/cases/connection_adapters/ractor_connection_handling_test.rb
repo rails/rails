@@ -150,6 +150,37 @@ module ActiveRecord
             assert_not pool.release_connection
           end
 
+          def test_unpin_releases_the_main_pool_that_was_pinned
+            reading = RactorConnectionHandler.instance.establish_connection(main_pool.db_config, role: :reading)
+            setup_shared_connection_pool
+            reading.pin_connection!(false)
+            reading.unpin_connection!
+
+            assert_equal 0, main_pool.stat[:busy]
+          ensure
+            teardown_shared_connection_pool
+            RactorConnectionHandler.instance.remove_connection_pool("ActiveRecord::Base", role: :reading)
+          end
+
+          if Process.respond_to?(:fork)
+            def test_unpin_in_a_forked_child_skips_the_discarded_main_pool
+              pool = proxy_pool
+              pool.pin_connection!(false)
+
+              pid = fork do
+                pool.unpin_connection!
+                exit!(0)
+              rescue Exception
+                exit!(1)
+              end
+              Process.wait(pid)
+
+              assert_predicate $?, :success?
+            ensure
+              pool.unpin_connection!
+            end
+          end
+
           def test_with_connection_yields_and_releases_when_not_sticky
             pool = proxy_pool
 

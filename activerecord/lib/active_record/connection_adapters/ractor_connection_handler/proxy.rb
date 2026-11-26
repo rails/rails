@@ -180,6 +180,7 @@ module ActiveRecord
         end
 
         @connections = {}
+        @pinned_pools = {}
         @next_token = 0
         @connections_lock = Mutex.new
 
@@ -232,6 +233,21 @@ module ActiveRecord
               raise ConnectionNotEstablished, "The Ractor-pinned connection was reset while a transaction was open, and the server rolled it back"
             end
             connection
+          end
+
+          def pin_main_pool(key, pool, lock_thread)
+            pool.pin_connection!(lock_thread)
+            @connections_lock.synchronize { (@pinned_pools[key] ||= []) << pool }
+          end
+
+          def unpin_main_pool(key)
+            pool = @connections_lock.synchronize do
+              pools = @pinned_pools[key]
+              popped = pools.pop
+              @pinned_pools.delete(key) if pools.empty?
+              popped
+            end
+            pool.unpin_connection! unless pool.discarded?
           end
 
           # After a fork, the inherited tokens name discarded connections and must not be checked back in.
