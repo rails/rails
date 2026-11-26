@@ -57,6 +57,8 @@ module ActiveRecord
       NORMAL_VALUE_BANG_METHODS = NORMAL_VALUES.index_with { |name| :"#{name}!" }.freeze
 
       def merge
+        return relation if other_contributes_nothing? && where_and_having_clauses_empty?
+
         # Merging a relation's values into themselves is a no-op, and `unscope!`
         # would delete them while they are read.
         return relation if values.equal?(relation.values_for_merge)
@@ -90,6 +92,18 @@ module ActiveRecord
       end
 
       private
+        # `Post.none.only(:order)` removes the WHERE clause from `Post.none`,
+        # but the merge must still make the receiver return no records.
+        def other_contributes_nothing?
+          values.empty? && !other.null_relation?
+        end
+
+        # Merging an empty WHERE or HAVING clause into a nonempty one can
+        # remove duplicate predicates from the receiver.
+        def where_and_having_clauses_empty?
+          relation.where_clause.empty? && relation.having_clause.empty?
+        end
+
         def merge_select_values
           return if other.select_values.empty?
 
