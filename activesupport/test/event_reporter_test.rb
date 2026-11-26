@@ -693,6 +693,20 @@ module ActiveSupport
       assert_equal({}, @reporter.context)
     end
 
+    test "#with_context_and_tags runs the block with exactly the given context and tags" do
+      @reporter.set_context(stale: true)
+
+      @reporter.tagged(:stale) do
+        @reporter.with_context_and_tags({ user_id: 123 }, { export: true }) do
+          assert_equal({ user_id: 123 }, @reporter.context)
+          assert_equal({ export: true }, TagStack.tags)
+        end
+
+        assert_equal({}, @reporter.context)
+        assert_equal({ stale: true }, TagStack.tags)
+      end
+    end
+
     test "#notify includes context in event" do
       @reporter.set_context(shop_id: 123)
 

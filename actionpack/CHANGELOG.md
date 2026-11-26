@@ -1,3 +1,12 @@
+*   Give `ActionController::Live` actions the event reporter context and tags of their request.
+
+    Live actions run on a pooled thread, which kept the `Rails.event` context and
+    tags of the request that created it. Events from later requests on that
+    thread had another user's context, and context set by the request itself
+    was missing.
+
+    *Bruno Costanzo*
+
 *   Raise `ActionController::BadRequest` for every `Rack::BadRequest` error raised while parsing request parameters.
 
     `ActionDispatch::Request#POST` only converted three explicit Rack errors into
