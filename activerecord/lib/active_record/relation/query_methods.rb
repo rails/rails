@@ -2743,6 +2743,8 @@ module ActiveRecord
         # the difference when other's multi values are uninitialized.
         # Likewise, `with_recursive` is relaxed when other's CTEs are not recursive.
         return false if (v1.is_a?(Array) || method == :with_recursive) && v2.nil?
+        # Skip `==` for shared values: comparing a relation held in a value can load its records.
+        return false if v1.equal?(v2)
 
         !(v1 == v2)
       end

@@ -163,6 +163,14 @@ module ActiveRecord
       end
     end
 
+    def test_or_does_not_load_association_relation_in_from
+      relation = Post.unscoped.from(Author.first.posts.select(Post.arel_table[Arel.star]), "posts")
+
+      assert_no_queries do
+        relation.where(id: 1).or(relation.where(id: 2))
+      end
+    end
+
     def test_or_with_annotate
       quoted_posts = Regexp.escape(Post.quoted_table_name)
       assert_match %r{#{quoted_posts} /\* foo \*/\z}, Post.annotate("foo").or(Post.all).to_sql
