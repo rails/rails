@@ -1,3 +1,9 @@
+*   Correctly parse escaped characters in quoted `Accept` header parameters.
+
+    Fixes #33980.
+
+    *Masaki Ozawa*
+
 *   Patch Rack to prevent submitting requested parameters encoded in arbitrary encodings.
 
     This is a part of the HTTP specification that has little to no legitimate use
