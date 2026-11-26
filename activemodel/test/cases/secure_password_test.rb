@@ -100,6 +100,10 @@ class SecurePasswordTest < ActiveModel::TestCase
     assert_equal ["can't be blank"], @user.errors[:password]
   end
 
+  test "MAX_PASSWORD_LENGTH_ALLOWED is the BCrypt limit of 72 bytes" do
+    assert_equal 72, ActiveModel::SecurePassword::MAX_PASSWORD_LENGTH_ALLOWED
+  end
+
   test "create a new user with validation and password length greater than 72 characters" do
     @user.password = "a" * 73
     @user.password_confirmation = "a" * 73
