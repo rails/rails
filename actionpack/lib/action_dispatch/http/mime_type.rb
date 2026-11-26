@@ -221,7 +221,7 @@ module Mime
       # all media-type parameters need to be before the q-parameter
       # https://www.rfc-editor.org/rfc/rfc7231#section-5.3.2
       PARAMETER_SEPARATOR_REGEXP = /;\s*q="?/
-      ACCEPT_HEADER_REGEXP = /[^,\s"](?:[^,"]|"[^"]*")*/
+      ACCEPT_HEADER_REGEXP = /[^,\s"](?:[^,"]|"(?:\\.|[^"\\])*")*/
 
       def on_change(&block) # :nodoc:
         @on_change_callbacks << block

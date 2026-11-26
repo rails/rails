@@ -1,3 +1,9 @@
+*   Correctly parse escaped characters in quoted `Accept` header parameters.
+
+    Fixes #33980.
+
+    *Masaki Ozawa*
+
 *   The Active Record railtie prevents `ActionController::Live` streams from using the request's query cache.
 
     Since the query cache state moved to `IsolatedExecutionState`, the streaming
