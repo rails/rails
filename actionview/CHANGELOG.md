@@ -1,3 +1,8 @@
+*   Fix an unused block warning when the default value of a strict local uses
+    the safe navigation operator.
+
+    *Shu Masuda*
+
 *   Fix the debug page for errors raised in view templates on Ruby 4.1.
 
     Ruby 4.1 builds prism into the interpreter as `Ruby::Prism`, and
