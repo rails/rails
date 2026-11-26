@@ -1,3 +1,11 @@
+*   Stop setting `config.action_mailer.delivery_job` in `config.load_defaults`.
+
+    Action Mailer already defaults to `ActionMailer::MailDeliveryJob`, and
+    setting it loaded Active Job as soon as Action Mailer loaded. Apps that use
+    Action Mailer without the `activejob` gem now boot.
+
+    *Thomas Klemm*
+
 *   Show a readable error in `credentials:edit`, `credentials:show`,
     `credentials:fetch`, `encrypted:edit` and `encrypted:show` when the key has
     the wrong length.

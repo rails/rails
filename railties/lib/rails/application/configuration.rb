@@ -170,10 +170,6 @@ module Rails
             action_dispatch.use_cookies_with_metadata = true
           end
 
-          if respond_to?(:action_mailer)
-            action_mailer.delivery_job = "ActionMailer::MailDeliveryJob"
-          end
-
           if respond_to?(:active_storage)
             active_storage.queues.analysis = :active_storage_analysis
             active_storage.queues.purge    = :active_storage_purge

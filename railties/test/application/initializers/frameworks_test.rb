@@ -41,6 +41,14 @@ module ApplicationTests
       assert_equal expanded_path, ActionMailer::Base.view_paths[0].to_s
     end
 
+    test "loading Action Mailer does not load its delivery job" do
+      app("development")
+      assert_not_nil ActionMailer::Base
+
+      assert ActionMailer.autoload?(:MailDeliveryJob)
+      assert_equal ActionMailer::MailDeliveryJob, ActionMailer::Base.delivery_job
+    end
+
     test "allows me to configure default URL options for ActionMailer" do
       app_file "config/environments/development.rb", <<-RUBY
         Rails.application.configure do
