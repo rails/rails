@@ -235,4 +235,32 @@ class ClassAttributeTest < ActiveSupport::TestCase
     @sub.setting = true
     assert_equal true, @sub.singleton_class.private_method_defined?(:__class_attr_setting_owner, false)
   end
+
+  test "same attribute name declared with and without an instance reader" do
+    with_reader = Class.new { class_attribute :shared_setting }
+    without_reader = Class.new { class_attribute :shared_setting, instance_reader: false }
+    with_reader_sub = Class.new(with_reader)
+    without_reader_sub = Class.new(without_reader)
+
+    with_reader_sub.shared_setting = 1
+    without_reader_sub.shared_setting = 2
+
+    assert_equal 1, with_reader_sub.new.shared_setting
+    assert_nil with_reader.shared_setting
+    assert_equal 2, without_reader_sub.shared_setting
+    assert_nil without_reader.shared_setting
+    assert_not_respond_to without_reader_sub.new, :shared_setting
+  end
+
+  test "same attribute name declared on a class and on a singleton class" do
+    klass = Class.new { class_attribute :shared_setting }
+    object = klass.new
+    object.singleton_class.class_attribute :shared_setting
+
+    klass.shared_setting = 1
+    object.singleton_class.shared_setting = 2
+
+    assert_equal 1, klass.new.shared_setting
+    assert_equal 2, object.shared_setting
+  end
 end
