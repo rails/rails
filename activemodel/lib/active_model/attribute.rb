@@ -179,7 +179,7 @@ module ActiveModel
 
       def initialize_dup(other)
         if @value&.duplicable?
-          @value = @value.dup
+          @value = other.frozen? ? @value.deep_dup : @value.dup
         end
       end
 

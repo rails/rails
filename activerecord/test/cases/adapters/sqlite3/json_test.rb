@@ -25,6 +25,12 @@ class SQLite3JSONTest < ActiveRecord::SQLite3TestCase
     assert_equal({ "users" => "read", "posts" => ["read", "write"] }, klass.new.permissions)
   end
 
+  def test_default_with_nested_value_is_not_shared_between_records
+    klass.new.with_defaults["list"] << 1
+
+    assert_equal({ "list" => [] }, klass.new.with_defaults)
+  end
+
   def test_default_before_type_cast
     assert_equal '{"list":[]}', klass.new.with_defaults_before_type_cast
   end
