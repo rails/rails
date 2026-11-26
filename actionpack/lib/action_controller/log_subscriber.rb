@@ -87,38 +87,30 @@ module ActionController
     event_log_level :unpermitted_parameters, :debug
 
     def csrf_token_fallback(event)
-      return unless ActionController::Base.log_warning_on_csrf_failure
-
       warn do
         payload = event[:payload]
         "Falling back to CSRF token verification for #{payload[:controller]}##{payload[:action]}"
       end
     end
-    event_log_level :csrf_token_fallback, :warn
+    event_log_level :csrf_token_fallback, :warn, if: -> { ActionController::Base.log_warning_on_csrf_failure }
 
     def csrf_request_blocked(event)
-      return unless ActionController::Base.log_warning_on_csrf_failure
-
       warn { event[:payload][:message] }
     end
-    event_log_level :csrf_request_blocked, :warn
+    event_log_level :csrf_request_blocked, :warn, if: -> { ActionController::Base.log_warning_on_csrf_failure }
 
     def csrf_javascript_blocked(event)
-      return unless ActionController::Base.log_warning_on_csrf_failure
-
       warn { event[:payload][:message] }
     end
-    event_log_level :csrf_javascript_blocked, :warn
+    event_log_level :csrf_javascript_blocked, :warn, if: -> { ActionController::Base.log_warning_on_csrf_failure }
 
     def fragment_cache(event)
-      return unless ActionController::Base.enable_fragment_cache_logging
-
       key        = event[:payload][:key]
       human_name = event[:payload][:method].to_s.humanize
 
       info("#{human_name} #{key} (#{event[:payload][:duration_ms]}ms)")
     end
-    event_log_level :fragment_cache, :info
+    event_log_level :fragment_cache, :info, if: -> { ActionController::Base.enable_fragment_cache_logging }
 
     def self.default_logger
       ActionController::Base.logger

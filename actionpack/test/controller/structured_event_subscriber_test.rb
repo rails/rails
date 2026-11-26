@@ -142,6 +142,21 @@ module ActionController
       end
     end
 
+    def test_fragment_cache_events_are_not_built_when_no_subscriber_consumes_them
+      key = Object.new
+      def key.cache_key
+        raise "the fragment_cache payload should not have been built"
+      end
+      event = ActiveSupport::Notifications::Event.new("read_fragment.action_controller", nil, nil, "abc", { key: key })
+
+      reporter = ActiveSupport::EventReporter.new(SilencedEventSubscriber.new, raise_on_error: true)
+      ActiveSupport.with(event_reporter: reporter) do
+        assert_nothing_raised do
+          ActionController::StructuredEventSubscriber.new.read_fragment(event)
+        end
+      end
+    end
+
     def test_request_events_are_not_built_when_no_subscriber_consumes_them
       params = Object.new
       def params.each_pair

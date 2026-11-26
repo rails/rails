@@ -32,6 +32,12 @@ class ActiveSupport::EventReporter::LogSubscriberTest < ActiveSupport::TestCase
     def no_level(event)
       info "hello #{event[:name]}"
     end
+
+    singleton_class.attr_accessor :conditional_enabled
+    def conditional(event)
+      info "hello #{event[:name]}"
+    end
+    event_log_level :conditional, :info, if: -> { MyLogSubscriber.conditional_enabled }
   end
 
   setup do
@@ -57,6 +63,20 @@ class ActiveSupport::EventReporter::LogSubscriberTest < ActiveSupport::TestCase
 
     @logger.level = Logger::DEBUG
     assert @log_subscriber.consumes?("test.debug_only")
+  end
+
+  test "events are logged only while their condition is true" do
+    MyLogSubscriber.conditional_enabled = false
+    assert_not @log_subscriber.consumes?("test.conditional")
+    ActiveSupport.event_reporter.notify("test.conditional")
+    assert_empty @logger.logged(:info)
+
+    MyLogSubscriber.conditional_enabled = true
+    assert @log_subscriber.consumes?("test.conditional")
+    ActiveSupport.event_reporter.notify("test.conditional")
+    assert_equal ["hello test.conditional"], @logger.logged(:info)
+  ensure
+    MyLogSubscriber.conditional_enabled = nil
   end
 
   test "events nobody would log are not built" do
