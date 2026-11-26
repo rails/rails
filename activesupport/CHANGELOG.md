@@ -1,3 +1,12 @@
+*   Honor `Time::DATE_FORMATS` and `Date::DATE_FORMATS` overrides of built-in formats.
+
+    `to_fs(:short)` kept the frozen built-in format whenever that key existed,
+    so assigning `DATE_FORMATS[:short]` had no effect. An override now applies.
+    `ActiveSupport::TimeFormats.register` and `ActiveSupport::DateFormats.register`
+    still replace a built-in format.
+
+    *Aditya*
+
 *   Return a plain `String` when `String#truncate_bytes` cuts an `html_safe` string.
 
     Truncating a `SafeBuffer` escaped its markup and could return more bytes than

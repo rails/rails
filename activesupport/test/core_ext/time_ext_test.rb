@@ -2,10 +2,13 @@
 
 require_relative "../abstract_unit"
 require "active_support/time"
+require "active_support/testing/ractors_assertions"
 require_relative "../core_ext/date_and_time_behavior"
 require_relative "../time_zone_test_helpers"
 
 class TimeExtCalculationsTest < ActiveSupport::TestCase
+  include ActiveSupport::Testing::RactorsAssertions
+
   def date_time_init(year, month, day, hour, minute, second, usec = 0)
     Time.local(year, month, day, hour, minute, second, usec)
   end
@@ -876,6 +879,73 @@ class TimeExtCalculationsTest < ActiveSupport::TestCase
     ActiveSupport::TimeFormats.stub(:lookup, ->(format) { { custom: "%Y%m%d%H%M%S" }[format] }) do
       assert_equal "20050221143000", Time.utc(2005, 2, 21, 14, 30, 0).to_fs(:custom)
     end
+  end
+
+  def test_register_overrides_builtin_format
+    ActiveSupport::TimeFormats.register(:short, "%Y")
+    assert_equal "2005", Time.utc(2005, 2, 21, 17, 44, 30).to_fs(:short)
+  ensure
+    ActiveSupport::TimeFormats.register(:short, "%d %b %H:%M")
+  end
+
+  def test_deprecated_date_formats_override_builtin_format
+    time = Time.utc(2024, 3, 5, 14, 7)
+    assert_equal "05 Mar 14:07", time.to_fs(:short)
+
+    assert_deprecated(ActiveSupport.deprecator) do
+      Time::DATE_FORMATS[:short] = "%-d %b, %H:%M"
+    end
+    assert_equal "5 Mar, 14:07", time.to_fs(:short)
+    assert_equal "5 Mar, 14:07", ActiveSupport::TimeZone["UTC"].local(2024, 3, 5, 14, 7).to_fs(:short)
+  ensure
+    ActiveSupport::TimeFormats::DEPRECATED_LIST[:short] = "%d %b %H:%M"
+  end
+
+  def test_deprecated_date_formats_can_remove_a_builtin_format
+    time = Time.utc(2024, 3, 5, 14, 7)
+    assert_deprecated(ActiveSupport.deprecator) do
+      Time::DATE_FORMATS.delete(:number)
+    end
+    assert_equal time.to_s, time.to_fs(:number)
+  ensure
+    ActiveSupport::TimeFormats::DEPRECATED_LIST[:number] = "%Y%m%d%H%M%S"
+  end
+
+  def test_deprecated_proc_override_does_not_hide_other_overrides_in_a_ractor
+    time = Time.utc(2024, 3, 5, 14, 7)
+    assert_deprecated(ActiveSupport.deprecator) do
+      Time::DATE_FORMATS[:short] = ->(value) { "at #{value.year}" }
+      Time::DATE_FORMATS[:number] = +"%Y"
+    end
+    assert_equal "at 2024", time.to_fs(:short)
+    assert_equal "2024", on_ractor { Time.utc(2024, 3, 5, 14, 7).to_fs(:number) }
+    assert_equal "2024-03-05 14:07:00", on_ractor { Time.utc(2024, 3, 5, 14, 7).to_fs(:db) }
+  ensure
+    ActiveSupport::TimeFormats::DEPRECATED_LIST[:short] = "%d %b %H:%M"
+    ActiveSupport::TimeFormats::DEPRECATED_LIST[:number] = "%Y%m%d%H%M%S"
+  end
+
+  def test_deprecated_override_does_not_block_builtin_formats_in_a_ractor
+    assert_deprecated(ActiveSupport.deprecator) do
+      Time::DATE_FORMATS[:number] = "%Y"
+    end
+
+    assert_equal "2024", Time.utc(2024, 3, 5, 14, 7).to_fs(:number)
+    assert_equal "2024", on_ractor { Time.utc(2024, 3, 5, 14, 7).to_fs(:number) }
+    assert_equal "2024-03-05 14:07:00", on_ractor { Time.utc(2024, 3, 5, 14, 7).to_fs(:db) }
+  ensure
+    ActiveSupport::TimeFormats::DEPRECATED_LIST[:number] = "%Y%m%d%H%M%S"
+  end
+
+  def test_register_replaces_a_deprecated_builtin_override
+    assert_deprecated(ActiveSupport.deprecator) do
+      Time::DATE_FORMATS[:short] = "%Y-%m-%d"
+    end
+    ActiveSupport::TimeFormats.register(:short, "%Y")
+    assert_equal "2005", Time.utc(2005, 2, 21, 17, 44, 30).to_fs(:short)
+  ensure
+    ActiveSupport::TimeFormats::DEPRECATED_LIST[:short] = "%d %b %H:%M"
+    ActiveSupport::TimeFormats.register(:short, "%d %b %H:%M")
   end
 
   def test_deprecated_to_fs_custom_date_format
