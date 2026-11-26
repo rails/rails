@@ -94,6 +94,93 @@ module ActiveJob
       end
     end
 
+    def test_enqueue_job_filters_hash_arguments
+      with_filter_parameters(:token) do
+        assert_event_reported("active_job.enqueued", payload: {
+          job_class: TestJob.name,
+          arguments: [{ id: 1, nested: { token: "[FILTERED]" } }]
+        }) do
+          TestJob.perform_later({ id: 1, nested: { token: "secret" } })
+        end
+      end
+    end
+
+    def test_enqueue_job_filters_hashes_nested_in_array_arguments
+      with_filter_parameters(:token) do
+        assert_event_reported("active_job.enqueued", payload: {
+          job_class: TestJob.name,
+          arguments: [[{ token: "[FILTERED]" }]]
+        }) do
+          TestJob.perform_later([{ token: "secret" }])
+        end
+      end
+    end
+
+    def test_enqueue_job_does_not_filter_positional_arguments
+      with_filter_parameters(:token) do
+        assert_event_reported("active_job.enqueued", payload: {
+          job_class: TestJob.name,
+          arguments: ["token"]
+        }) do
+          TestJob.perform_later("token")
+        end
+      end
+    end
+
+    def test_enqueue_job_filters_keyword_arguments
+      with_filter_parameters(:token) do
+        assert_event_reported("active_job.enqueued", payload: {
+          job_class: TestJob.name,
+          arguments: [{ token: "[FILTERED]" }]
+        }) do
+          TestJob.perform_later(token: "secret")
+        end
+      end
+    end
+
+    def test_enqueue_job_filters_string_keys
+      with_filter_parameters(:token) do
+        assert_event_reported("active_job.enqueued", payload: {
+          job_class: TestJob.name,
+          arguments: [{ "token" => "[FILTERED]" }]
+        }) do
+          TestJob.perform_later({ "token" => "secret" })
+        end
+      end
+    end
+
+    def test_enqueue_job_filters_hash_with_indifferent_access_arguments
+      with_filter_parameters(:token) do
+        event = assert_event_reported("active_job.enqueued", payload: { job_class: TestJob.name }) do
+          TestJob.perform_later(ActiveSupport::HashWithIndifferentAccess.new(token: "secret"))
+        end
+
+        argument = event[:payload][:arguments].first
+        assert_instance_of ActiveSupport::HashWithIndifferentAccess, argument
+        assert_equal "[FILTERED]", argument[:token]
+      end
+    end
+
+    def test_filtering_does_not_change_the_job_arguments
+      with_filter_parameters(:token) do
+        job = TestJob.new({ token: "secret" })
+        job.enqueue
+
+        assert_equal [{ token: "secret" }], job.arguments
+      end
+    end
+
+    def test_perform_start_filters_hash_arguments
+      with_filter_parameters(:token) do
+        assert_event_reported("active_job.started", payload: {
+          job_class: TestJob.name,
+          arguments: [{ token: "[FILTERED]" }]
+        }) do
+          TestJob.perform_now({ token: "secret" })
+        end
+      end
+    end
+
     def test_enqueue_job_with_arguments_with_log_arguments_false
       TestJob.log_arguments = false
       event = assert_event_reported("active_job.enqueued", payload: {
@@ -123,6 +210,17 @@ module ActiveJob
 
         assert event[:payload][:job_id].present?
         assert event[:payload][:scheduled_at].present?
+      end
+
+      def test_enqueue_at_job_filters_hash_arguments
+        with_filter_parameters(:token) do
+          assert_event_reported("active_job.enqueued_at", payload: {
+            job_class: TestJob.name,
+            arguments: [{ token: "[FILTERED]" }]
+          }) do
+            TestJob.set(wait_until: 1.hour.from_now).perform_later({ token: "secret" })
+          end
+        end
       end
     end
 
@@ -363,5 +461,16 @@ module ActiveJob
         assert event[:payload][:duration].present?
       end
     end
+
+    private
+      def with_filter_parameters(*filters)
+        original = ActiveSupport.filter_parameters
+        ActiveSupport.filter_parameters = filters
+        ActiveSupport.event_reporter.reload_payload_filter
+        yield
+      ensure
+        ActiveSupport.filter_parameters = original
+        ActiveSupport.event_reporter.reload_payload_filter
+      end
   end
 end

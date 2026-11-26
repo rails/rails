@@ -26,6 +26,11 @@ module ActiveJob
       # useful when a job's arguments may be sensitive and so should not be
       # logged.
       #
+      # Hash and keyword arguments are filtered by key with
+      # `config.filter_parameters` before they are logged. Positional
+      # arguments have no key to match, so a job that takes a sensitive value
+      # positionally should disable logging its arguments.
+      #
       # The value defaults to `true`, but this can be configured with
       # `config.active_job.log_arguments`. Additionally, individual jobs can
       # also configure a value, which will apply to themselves and any

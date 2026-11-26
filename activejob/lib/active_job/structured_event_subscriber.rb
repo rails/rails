@@ -22,7 +22,7 @@ module ActiveJob
       end
 
       if job.class.log_arguments?
-        payload[:arguments] = job.arguments
+        payload[:arguments] = filter_arguments(job.arguments)
       end
 
       emit_event("active_job.enqueued", payload)
@@ -47,7 +47,7 @@ module ActiveJob
       end
 
       if job.class.log_arguments?
-        payload[:arguments] = job.arguments
+        payload[:arguments] = filter_arguments(job.arguments)
       end
 
       emit_event("active_job.enqueued_at", payload)
@@ -81,7 +81,7 @@ module ActiveJob
         enqueued_at: job.enqueued_at&.getutc&.iso8601(9),
       }
       if job.class.log_arguments?
-        payload[:arguments] = job.arguments
+        payload[:arguments] = filter_arguments(job.arguments)
       end
       emit_event("active_job.started", payload)
     end
@@ -216,6 +216,11 @@ module ActiveJob
 
       emit_event("active_job.step", payload)
     end
+
+    private
+      def filter_arguments(arguments)
+        ActiveSupport.event_reporter.payload_filter.filter_param(:arguments, arguments)
+      end
   end
 end
 

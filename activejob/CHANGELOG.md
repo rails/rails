@@ -1,3 +1,20 @@
+*   Filter hash and keyword job arguments with `config.filter_parameters` in
+    Active Job events and logs.
+
+    ```ruby
+    config.filter_parameters += [:token]
+
+    InviteJob.perform_later(user, token: "abc123")
+    # Enqueued InviteJob (Job ID: ...) to Async(default) with arguments:
+    #   #<GlobalID ...>, {token: "[FILTERED]"}
+    ```
+
+    Positional arguments have no key to match and are still logged as given.
+    Use `log_arguments = false` for jobs that take sensitive values
+    positionally.
+
+    *Jack Scotti*
+
 *   Locate an Array of records passed to a job with one query per model.
 
     `MyJob.perform_later(users)` used to run one query per record when the
