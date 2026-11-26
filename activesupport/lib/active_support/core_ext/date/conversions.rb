@@ -13,7 +13,7 @@ class Date
     deprecator: ActiveSupport.deprecator,
     message: "Date::DATE_FORMATS is deprecated, to register custom time formats use ActiveSupport::DateFormats.register"
 
-  # Convert to a formatted string. See DATE_FORMATS for predefined formats.
+  # Convert to a formatted string.
   #
   # This method is aliased to `to_formatted_s`.
   #

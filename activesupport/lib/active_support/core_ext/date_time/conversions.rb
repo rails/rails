@@ -7,7 +7,7 @@ require "active_support/core_ext/date_time/calculations"
 require "active_support/values/time_zone"
 
 class DateTime
-  # Convert to a formatted string. See `Time::DATE_FORMATS` for predefined formats.
+  # Convert to a formatted string. Uses the same built-in formats as Time#to_fs.
   #
   # This method is aliased to `to_formatted_s`.
   #

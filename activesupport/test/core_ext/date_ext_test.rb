@@ -52,6 +52,36 @@ class DateExtCalculationsTest < ActiveSupport::TestCase
     end
   end
 
+  def test_register_overrides_builtin_format
+    ActiveSupport::DateFormats.register(:short, "%Y")
+    assert_equal "2005", Date.new(2005, 2, 21).to_fs(:short)
+  ensure
+    ActiveSupport::DateFormats.register(:short, "%d %b")
+  end
+
+  def test_deprecated_date_formats_override_builtin_format
+    date = Date.new(2024, 3, 5)
+    assert_equal "05 Mar", date.to_fs(:short)
+
+    assert_deprecated(ActiveSupport.deprecator) do
+      Date::DATE_FORMATS[:short] = "%-d %b"
+    end
+    assert_equal "5 Mar", date.to_fs(:short)
+  ensure
+    ActiveSupport::DateFormats::DEPRECATED_LIST[:short] = "%d %b"
+  end
+
+  def test_register_replaces_a_deprecated_builtin_override
+    assert_deprecated(ActiveSupport.deprecator) do
+      Date::DATE_FORMATS[:short] = "%-d %b"
+    end
+    ActiveSupport::DateFormats.register(:short, "%Y")
+    assert_equal "2024", Date.new(2024, 3, 5).to_fs(:short)
+  ensure
+    ActiveSupport::DateFormats::DEPRECATED_LIST[:short] = "%d %b"
+    ActiveSupport::DateFormats.register(:short, "%d %b")
+  end
+
   def test_deprecated_to_fs_custom_date_format
     assert_deprecated(ActiveSupport.deprecator) do
       Date::DATE_FORMATS[:custom] = "%B %Y"
