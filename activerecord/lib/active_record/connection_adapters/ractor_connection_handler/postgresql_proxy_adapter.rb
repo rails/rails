@@ -39,6 +39,10 @@ module ActiveRecord
           pure_remote_dispatch(:supports_deferrable_constraints?)
         end
 
+        def supports_enforced_check_constraints?
+          pure_remote_dispatch(:supports_enforced_check_constraints?)
+        end
+
         def supports_enforced_foreign_keys?
           pure_remote_dispatch(:supports_enforced_foreign_keys?)
         end
