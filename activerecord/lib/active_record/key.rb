@@ -91,6 +91,10 @@ module ActiveRecord
       raise NotImplementedError
     end
 
+    def find_record_by_id(records, id)
+      raise NotImplementedError
+    end
+
     def expects_multiple_ids?(value)
       raise NotImplementedError
     end
@@ -202,6 +206,11 @@ module ActiveRecord
         normalizer ? normalizer.call(value) : value
       end
 
+      def find_record_by_id(records, id)
+        id = id.to_s
+        records.find { |record| record.id.to_s == id }
+      end
+
       def expects_multiple_ids?(value)
         value.is_a?(Array)
       end
@@ -295,6 +304,11 @@ module ActiveRecord
         else
           @columns.map { |column| record._read_attribute(column) }
         end
+      end
+
+      def find_record_by_id(records, id)
+        id = Array(id).map(&:to_s)
+        records.find { |record| Array(record.id).map(&:to_s) == id }
       end
 
       # A single composite id is itself an Array, so several ids are an Array of
