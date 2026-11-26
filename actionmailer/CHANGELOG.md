@@ -1,3 +1,11 @@
+*   Don't run deliver callbacks when the mailer action didn't call `mail`.
+
+    Previously, if a `before_action` halted the action or the action returned
+    without calling `mail`, no email was sent but `before_deliver`,
+    `around_deliver` and `after_deliver` callbacks still ran.
+
+    *Bastin*
+
 *   Action Mailer no longer have a hard dependency on Active Job.
 
     If using Action Mailer standalone, as in outside Rails, and depend on the

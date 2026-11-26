@@ -134,9 +134,7 @@ module ActionMailer
     #
     def deliver_now!
       processed_mailer.handle_exceptions do
-        processed_mailer.run_callbacks(:deliver) do
-          message.deliver!
-        end
+        run_deliver_callbacks { message.deliver! }
       end
     end
 
@@ -148,9 +146,7 @@ module ActionMailer
     #
     def deliver_now
       processed_mailer.handle_exceptions do
-        processed_mailer.run_callbacks(:deliver) do
-          message.deliver
-        end
+        run_deliver_callbacks { message.deliver }
       end
     end
 
@@ -160,6 +156,14 @@ module ActionMailer
       def processed_mailer
         @processed_mailer ||= @mailer_class.new.tap do |mailer|
           mailer.process @action, *@args
+        end
+      end
+
+      # Skips the deliver callbacks when the action never called +mail+,
+      # since no email will be sent.
+      def run_deliver_callbacks(&block)
+        if processed_mailer.mail_was_called?
+          processed_mailer.run_callbacks(:deliver, &block)
         end
       end
 
