@@ -43,6 +43,7 @@ PATH
       builder (~> 3.1)
       erubi (~> 1.11)
       herb (>= 0.10)
+      prism (~> 1.0)
       rails-dom-testing (~> 2.2)
       rails-html-sanitizer (~> 1.7, >= 1.7.2)
     activejob (8.2.0.alpha)

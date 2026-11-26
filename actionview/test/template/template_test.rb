@@ -260,39 +260,19 @@ class TestERBTemplate < ActiveSupport::TestCase
     assert_equal "Hello", render
   end
 
-  def test_locals_with_parentheses
-    @template = new_template("<%# locals: (message: '(Hello)') -%>\n<%= message %>")
-    assert_equal "(Hello)", render
+  def test_strict_locals_default_with_safe_navigation_accepts_a_render_block
+    @template = new_template("<%# locals: (name: nil, message: name&.upcase) -%>\n<%= message %>")
 
-    @template = new_template("<%# locals: (message: '(Hello') -%>\n<%= message %>")
-    assert_equal "(Hello", render
-
-    @template = new_template("<%# locals: (message: 'Hello)') -%>\n<%= message %>")
-    assert_equal "Hello)", render
+    assert_silent do
+      assert_equal "HELLO", @template.render(@context, { name: "Hello" }) { "content" }
+    end
+    assert_includes @context.method(@template.method_name).parameters, [:block, :_]
   end
 
-  def test_locals_can_spread_to_multiple_lines
-    template = <<~ERB.chomp
-        <%# locals: (arg_1:,
-                     arg_2: nil,
-                     arg_3: []) -%>
-        <%= arg_1 %><%= arg_2 %><%= arg_3 %>
-    ERB
-    @template = new_template(template)
-    assert_equal "First[]", render(arg_1: "First")
-  end
+  def test_strict_locals_can_explicitly_accept_the_render_block_with_safe_navigation
+    @template = new_template("<%# locals: (name: nil, message: name&.upcase, &_) -%>\n<%= message %> <%= _.call %>")
 
-  def test_locals_can_spread_to_multiple_lines_with_closing_parenthesis_on_diff_line
-    template = <<~ERB.chomp
-        <%# locals: (
-                      arg_1:,
-                      arg_2: nil,
-                      arg_3: []
-                     ) -%>
-        <%= arg_1 %><%= arg_2 %><%= arg_3 %>
-    ERB
-    @template = new_template(template)
-    assert_equal "First[]", render(arg_1: "First")
+    assert_equal "HELLO content", @template.render(@context, { name: "Hello" }) { "content" }
   end
 
   def test_required_locals_must_be_specified

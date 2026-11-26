@@ -1,3 +1,8 @@
+*   Fix an unused block warning when the default value of a strict local uses
+    the safe navigation operator.
+
+    *Shu Masuda*
+
 *   Support `Set` values in class attributes and token lists.
 
     *Alexander Senko*
