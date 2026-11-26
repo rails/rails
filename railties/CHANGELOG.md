@@ -1,3 +1,15 @@
+*   Pass the password reset token of the authentication generator as a query
+    parameter instead of a path segment.
+
+    The generated `passwords` route was `resources :passwords, param: :token`,
+    which put the token in `/passwords/<token>/edit`. Request paths are not
+    filtered in the `Started GET` log line, so the token was logged. Query
+    string values are filtered by `config.filter_parameters`, so the generator
+    now defines `resource :password` and links to `/password/edit?token=...`.
+    The `passwords_path` helper becomes `password_path`.
+
+    *saddestmartian*
+
 *   Show a readable error in `credentials:edit`, `credentials:show`,
     `credentials:fetch`, `encrypted:edit` and `encrypted:show` when the key has
     the wrong length.

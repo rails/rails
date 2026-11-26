@@ -71,6 +71,32 @@ class AuthenticationGeneratorTest < Rails::Generators::TestCase
     end
   end
 
+  def test_authentication_generator_does_not_put_the_reset_token_in_the_url_path
+    generator([destination_root])
+
+    run_generator_instance
+
+    assert_file "config/routes.rb" do |content|
+      assert_no_match(/param: :token/, content)
+    end
+
+    assert_file "app/controllers/passwords_controller.rb" do |content|
+      assert_match(/edit_password_path\(token: params\[:token\]\)/, content)
+    end
+
+    assert_file "app/views/passwords/edit.html.erb" do |content|
+      assert_match(/password_path\(token: params\[:token\]\)/, content)
+    end
+
+    assert_file "app/views/passwords_mailer/reset.html.erb" do |content|
+      assert_match(/edit_password_url\(token: @user\.password_reset_token\)/, content)
+    end
+
+    assert_file "app/views/passwords_mailer/reset.text.erb" do |content|
+      assert_match(/edit_password_url\(token: @user\.password_reset_token\)/, content)
+    end
+  end
+
   def test_authentication_generator_without_bcrypt_in_gemfile
     File.write("#{destination_root}/Gemfile", File.read("#{destination_root}/Gemfile").sub(/# gem "bcrypt".*\n/, ""))
 
@@ -106,7 +132,7 @@ class AuthenticationGeneratorTest < Rails::Generators::TestCase
 
     assert_file "config/routes.rb" do |content|
       assert_match(/resource :session, only: \[ :new, :create, :destroy \]/, content)
-      assert_match(/resources :passwords, param: :token, only: \[ :new, :create, :edit, :update \]/, content)
+      assert_match(/resource :password, only: \[ :new, :create, :edit, :update \]/, content)
     end
 
     assert_includes @rails_commands, "generate migration CreateUsers email_address:string!:uniq password_digest:string! --force"
