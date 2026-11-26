@@ -110,9 +110,12 @@ module ActionView
           object_name = object_name.model_name.singular
         end
 
-        sanitized_object_name = object_name.to_s.gsub(/\]\[|[^-a-zA-Z0-9:.]/, "_").delete_suffix("_")
+        sanitized_object_name = object_name.to_s
+        sanitized_object_name = sanitized_object_name.gsub(/\]\[|[^-a-zA-Z0-9:.]/, "_") if sanitized_object_name.match?(/[^-a-zA-Z0-9:._]/)
+        sanitized_object_name = sanitized_object_name.delete_suffix("_") if sanitized_object_name.end_with?("_")
 
-        sanitized_method_name = method_name.to_s.delete_suffix("?")
+        sanitized_method_name = method_name.to_s
+        sanitized_method_name = sanitized_method_name.delete_suffix("?") if sanitized_method_name.end_with?("?")
 
         [
           namespace,
@@ -138,7 +141,7 @@ module ActionView
       # ```
       #
       def field_name(object_name, method_name, *method_names, multiple: false, index: nil)
-        names = method_names.map! { |name| "[#{name}]" }.join
+        names = method_names.empty? ? "" : method_names.map! { |name| "[#{name}]" }.join
 
         # a little duplication to construct fewer strings
         case
