@@ -312,6 +312,10 @@ module Rails
 
       add_shared_options_for "application"
 
+      # Keep accepting these generator options for compatibility.
+      class_option :skip_namespace, type: :boolean, default: false, hide: true
+      class_option :skip_collision_check, type: :boolean, default: false, hide: true
+
       # Add rails command options
       class_option :version, type: :boolean, aliases: "-v", group: :rails, desc: "Show Rails version number and quit"
       class_option :api, type: :boolean, desc: "Preconfigure smaller stack for API only apps"
