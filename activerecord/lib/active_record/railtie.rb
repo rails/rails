@@ -319,6 +319,12 @@ To keep using the current cache store, you can turn off cache versioning entirel
       ActiveRecord::ConnectionAdapters::ConnectionPool.install_executor_hooks
     end
 
+    initializer "active_record.exclude_query_cache_from_live" do
+      ActiveSupport.on_load(:action_controller_live) do
+        exclude_execution_state_keys(:active_record_used_pools, :active_record_query_cache_enabled)
+      end
+    end
+
     initializer "active_record.add_watchable_files" do |app|
       path = app.paths["db"].first
       config.watchable_files.concat ["#{path}/schema.rb", "#{path}/structure.sql"]

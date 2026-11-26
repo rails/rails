@@ -1,3 +1,11 @@
+*   The Active Record railtie prevents `ActionController::Live` streams from using the request's query cache.
+
+    Since the query cache state moved to `IsolatedExecutionState`, the streaming
+    thread inherited the request's query cache, so repeated reads inside a stream
+    returned stale results.
+
+    *Cestercian*
+
 *   Give `ActionController::Live` actions the event reporter context and tags of their request.
 
     Live actions run on a pooled thread, which kept the `Rails.event` context and

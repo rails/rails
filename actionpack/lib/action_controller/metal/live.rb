@@ -88,12 +88,23 @@ module ActionController
   # - `:active_record_connected_to_stack` - Database connection routing and roles
   # - `:active_record_prohibit_shard_swapping` - Shard swapping restrictions
   #
-  # By default, no keys are excluded to maintain backward compatibility.
+  # Action Controller does not exclude any keys by default. Other frameworks
+  # can exclude their own keys independently of this setting.
   module Live
     extend ActiveSupport::Concern
 
     @live_streaming_excluded_keys = []
     singleton_class.attr_accessor :live_streaming_excluded_keys
+
+    @always_excluded_keys = [].freeze
+
+    def self.exclude_execution_state_keys(*keys) # :nodoc:
+      @always_excluded_keys = (@always_excluded_keys | keys).freeze
+    end
+
+    def self.excluded_execution_state_keys(configured_keys) # :nodoc:
+      @always_excluded_keys | Array(configured_keys)
+    end
 
     included do
       class_attribute :live_streaming_excluded_keys, instance_accessor: false, default: Live.live_streaming_excluded_keys
@@ -333,7 +344,8 @@ module ActionController
           # from the main thread to the child thread. :'(
           locals.each { |k, v| t2[k] = v }
 
-          ActiveSupport::IsolatedExecutionState.share_with(context, except: self.class.live_streaming_excluded_keys) do
+          excluded_keys = Live.excluded_execution_state_keys(self.class.live_streaming_excluded_keys)
+          ActiveSupport::IsolatedExecutionState.share_with(context, except: excluded_keys) do
             super(name)
           rescue => e
             if @_response.committed?
