@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require "active_support/core_ext/enumerable"
+require "active_support/core_ext/object/try"
 
 module ActiveSupport
   # Allows for configuration keys to be pulled from multiple backends. Keys are pulled in first-found order from
