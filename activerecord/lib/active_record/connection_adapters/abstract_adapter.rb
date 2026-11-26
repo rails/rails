@@ -130,6 +130,7 @@ module ActiveRecord
       def ractor_connection_capabilities # :nodoc:
         {
           supports_advisory_locks?: supports_advisory_locks?,
+          supports_altering_enforced_check_constraints?: supports_altering_enforced_check_constraints?,
           supports_bulk_alter?: supports_bulk_alter?,
           supports_check_constraints?: supports_check_constraints?,
           supports_comments?: supports_comments?,
@@ -614,6 +615,12 @@ module ActiveRecord
 
       # Does this adapter support NOT ENFORCED check constraints?
       def supports_enforced_check_constraints?
+        false
+      end
+
+      # Does this adapter support changing an existing check constraint between
+      # ENFORCED and NOT ENFORCED?
+      def supports_altering_enforced_check_constraints?
         false
       end
 

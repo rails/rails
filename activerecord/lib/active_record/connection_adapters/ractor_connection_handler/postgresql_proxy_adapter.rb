@@ -15,6 +15,10 @@ module ActiveRecord
           pure_remote_dispatch(:supports_advisory_locks?)
         end
 
+        def supports_altering_enforced_check_constraints?
+          pure_remote_dispatch(:supports_altering_enforced_check_constraints?)
+        end
+
         def supports_bulk_alter?
           pure_remote_dispatch(:supports_bulk_alter?)
         end
@@ -226,6 +230,10 @@ module ActiveRecord
 
         def build_create_index_definition(...)
           remote_dispatch(:build_create_index_definition, ...)
+        end
+
+        def change_check_constraint(...)
+          remote_dispatch(:change_check_constraint, ...)
         end
 
         def change_column(...)

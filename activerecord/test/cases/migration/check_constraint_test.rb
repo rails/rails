@@ -341,7 +341,83 @@ if ActiveRecord::Base.lease_connection.supports_check_constraints?
           end
         end
 
+        if ActiveRecord::Base.lease_connection.supports_altering_enforced_check_constraints?
+          def test_change_check_constraint_enforced_to_not_enforced
+            @connection.add_check_constraint :trades, "quantity > 0", name: "quantity_check"
+
+            assert_queries_match(/ALTER CONSTRAINT "quantity_check" NOT ENFORCED\z/) do
+              @connection.change_check_constraint :trades, name: "quantity_check", enforced: false
+            end
+
+            cc = @connection.check_constraints("trades").first
+            assert_not_predicate cc, :enforced?
+            assert_not_predicate cc, :validate?
+          end
+
+          def test_change_check_constraint_not_enforced_to_enforced
+            @connection.add_check_constraint :trades, "quantity > 0", name: "quantity_check", enforced: false
+
+            assert_queries_match(/ALTER CONSTRAINT "quantity_check" ENFORCED\z/) do
+              @connection.change_check_constraint :trades, name: "quantity_check", enforced: true
+            end
+
+            cc = @connection.check_constraints("trades").first
+            assert_predicate cc, :enforced?
+            assert_predicate cc, :validate?
+          end
+
+          def test_change_check_constraint_to_enforced_checks_existing_rows
+            @connection.add_check_constraint :trades, "quantity > 0", name: "quantity_check", enforced: false
+            @connection.execute("INSERT INTO trades (quantity) VALUES (-1)")
+
+            assert_raises(ActiveRecord::CheckViolation) do
+              @connection.transaction(requires_new: true) do
+                @connection.change_check_constraint :trades, name: "quantity_check", enforced: true
+              end
+            end
+
+            assert_not_predicate @connection.check_constraints("trades").first, :enforced?
+          end
+
+          def test_change_check_constraint_by_expression
+            @connection.add_check_constraint :trades, "quantity > 0"
+
+            @connection.change_check_constraint :trades, expression: "quantity > 0", enforced: false
+
+            assert_not_predicate @connection.check_constraints("trades").first, :enforced?
+          end
+
+          def test_change_check_constraint_raises_without_enforced
+            @connection.add_check_constraint :trades, "quantity > 0", name: "quantity_check"
+
+            error = assert_raises(ArgumentError) do
+              @connection.change_check_constraint :trades, name: "quantity_check"
+            end
+            assert_match(/enforced/, error.message)
+          end
+
+          def test_remove_check_constraint_after_change_check_constraint
+            @connection.add_check_constraint :trades, "quantity > 0", name: "quantity_check", enforced: false
+            @connection.change_check_constraint :trades, name: "quantity_check", enforced: true
+
+            @connection.remove_check_constraint :trades, "quantity > 0", name: "quantity_check", enforced: false
+
+            assert_empty @connection.check_constraints("trades")
+          end
+        end
+
         if current_adapter?(:PostgreSQLAdapter)
+          def test_change_check_constraint_raises_when_unsupported
+            @connection.add_check_constraint :trades, "quantity > 0", name: "quantity_check"
+
+            @connection.stub(:supports_altering_enforced_check_constraints?, false) do
+              error = assert_raises(ArgumentError) do
+                @connection.change_check_constraint :trades, name: "quantity_check", enforced: false
+              end
+              assert_match(/change_check_constraint requires PostgreSQL 19\+/, error.message)
+            end
+          end
+
           def test_not_enforced_check_constraint_raises_when_unsupported
             @connection.stub(:supports_enforced_check_constraints?, false) do
               error = assert_raises(ArgumentError) do

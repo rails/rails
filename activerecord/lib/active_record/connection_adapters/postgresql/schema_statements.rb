@@ -1008,6 +1008,46 @@ module ActiveRecord
           execute "ALTER TABLE #{quote_table_name(from_table)} ALTER CONSTRAINT #{quote_column_name(fk_name)} #{enforced ? 'ENFORCED' : 'NOT ENFORCED'}"
         end
 
+        # Changes an existing check constraint on a table.
+        #
+        # The `enforced` option toggles whether PostgreSQL checks the constraint when rows
+        # are inserted or updated. Requires PostgreSQL 19+.
+        #
+        # Changing a constraint to `ENFORCED` checks all existing rows, and the constraint
+        # becomes validated. Changing it to `NOT ENFORCED` makes it not validated.
+        #
+        # Like `validate_check_constraint`, this is a runtime helper rather than a migration
+        # command: it is not registered as reversible, so use it from application code
+        # or explicit `up`/`down` methods. Accepted options are `:enforced` plus
+        # identifying keys (`:name`, `:expression`).
+        #
+        # Changes the check constraint named `price_check` on the `products` table to NOT ENFORCED.
+        #
+        # ```
+        # change_check_constraint :products, name: "price_check", enforced: false
+        # ```
+        #
+        # Changes it back to ENFORCED.
+        #
+        # ```
+        # change_check_constraint :products, name: "price_check", enforced: true
+        # ```
+        #
+        def change_check_constraint(table_name, **options)
+          unless supports_altering_enforced_check_constraints?
+            raise ArgumentError, "change_check_constraint requires PostgreSQL 19+ (got #{database_version})"
+          end
+
+          unless options.key?(:enforced)
+            raise ArgumentError, "change_check_constraint requires at least one option (e.g. enforced:)"
+          end
+
+          enforced = options[:enforced]
+          chk_name = check_constraint_for!(table_name, **options.slice(:name, :expression)).name
+
+          execute "ALTER TABLE #{quote_table_name(table_name)} ALTER CONSTRAINT #{quote_column_name(chk_name)} #{enforced ? 'ENFORCED' : 'NOT ENFORCED'}"
+        end
+
         # Validates the given check constraint.
         #
         # ```
