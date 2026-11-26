@@ -5664,28 +5664,62 @@ module ApplicationTests
       assert_not output.include?("Processing by Rails::WelcomeController#index as HTML")
     end
 
-    test "config.action_controller.live_streaming_excluded_keys configures ActionController::Live" do
-      app_file "app/controllers/posts_controller.rb", <<-RUBY
-      class PostsController < ActionController::Base
-        include ActionController::Live
+    test "ActionController::Live excludes query cache state by default" do
+      app_file "app/controllers/posts_controller.rb", <<~RUBY
+        class PostsController < ActionController::Base
+          include ActionController::Live
 
-        def index
-          render plain: self.class.live_streaming_excluded_keys.inspect
+          def index
+            keys = [:active_record_query_cache_enabled, :active_record_used_pools, :custom_key]
+            render plain: keys.select { |key| ActiveSupport::IsolatedExecutionState[key] }.inspect
+          end
         end
-      end
       RUBY
 
-      add_to_config <<-RUBY
+      add_to_config <<~RUBY
         routes.prepend do
           resources :posts
         end
-        config.action_controller.live_streaming_excluded_keys = [:active_record_connected_to_stack, :custom_key]
       RUBY
 
       app "development"
+      ActiveRecord::ConnectionAdapters::ConnectionPool.used_pools!
+      ActiveSupport::IsolatedExecutionState[:custom_key] = true
 
       get "/posts"
-      assert_equal "[:active_record_connected_to_stack, :custom_key]", last_response.body
+      assert_equal "[:custom_key]", last_response.body
+    end
+
+    test "ActionController::Live excludes query cache state with custom live_streaming_excluded_keys" do
+      app_file "app/controllers/posts_controller.rb", <<~RUBY
+        class PostsController < ActionController::Base
+          include ActionController::Live
+
+          def index
+            keys = [:active_record_query_cache_enabled, :active_record_used_pools, :custom_key]
+            render plain: keys.select { |key| ActiveSupport::IsolatedExecutionState[key] }.inspect
+          end
+        end
+      RUBY
+
+      add_to_config <<~RUBY
+        routes.prepend do
+          resources :posts
+        end
+        config.action_controller.live_streaming_excluded_keys = [:custom_key]
+      RUBY
+
+      app "development"
+      ActiveRecord::ConnectionAdapters::ConnectionPool.used_pools!
+      ActiveSupport::IsolatedExecutionState[:custom_key] = true
+
+      get "/posts"
+      assert_equal "[]", last_response.body
+
+      PostsController.with(live_streaming_excluded_keys: []) do
+        get "/posts"
+        assert_equal "[:custom_key]", last_response.body
+      end
     end
 
     test "ActiveRecord configuration lists can be appended to after boot" do
