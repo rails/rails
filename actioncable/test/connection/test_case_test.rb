@@ -211,3 +211,24 @@ class EnvConnectionTest < ActionCable::Connection::TestCase
     assert_reject_connection { connect }
   end
 end
+
+class BroadcastingConnection < ActionCable::Connection::Base
+  identified_by :user_id
+
+  def connect
+    self.user_id = request.params[:user_id]
+    broadcast "presence", { user_id: user_id }
+  end
+end
+
+class BroadcastingConnectionTest < ActionCable::Connection::TestCase
+  include ActionCable::TestHelper
+
+  tests BroadcastingConnection
+
+  def test_broadcast_on_connect
+    assert_broadcast_on("presence", user_id: "42") do
+      connect params: { user_id: 42 }
+    end
+  end
+end
