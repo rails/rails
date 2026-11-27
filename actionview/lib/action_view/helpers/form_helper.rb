@@ -1694,7 +1694,7 @@ module ActionView
       #
       # ```
       # datetime_field("user", "born_on", min: Date.today)
-      # # => <input id="user_born_on" name="user[born_on]" type="datetime-local" min="2014-05-20T00:00:00.000" />
+      # # => <input id="user_born_on" name="user[born_on]" type="datetime-local" min="2014-05-20T00:00:00" />
       # ```
       #
       # Alternatively, you can pass a String formatted as an ISO8601 datetime as
@@ -1702,7 +1702,7 @@ module ActionView
       #
       # ```
       # datetime_field("user", "born_on", min: "2014-05-20T00:00:00")
-      # # => <input id="user_born_on" name="user[born_on]" type="datetime-local" min="2014-05-20T00:00:00.000" />
+      # # => <input id="user_born_on" name="user[born_on]" type="datetime-local" min="2014-05-20T00:00:00" />
       # ```
       #
       # By default, provided datetimes will be formatted including seconds. You can render just the date, hour,
