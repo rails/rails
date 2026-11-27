@@ -3,6 +3,7 @@
 require "helper"
 require "jobs/hello_job"
 require "jobs/retry_job"
+require "jobs/after_discard_retry_job"
 
 class InstrumentationTest < ActiveSupport::TestCase
   include ActiveJob::TestHelper
@@ -39,6 +40,15 @@ class InstrumentationTest < ActiveSupport::TestCase
 
   test "job is removed from the execution context after perform_now" do
     HelloJob.perform_now("World!")
+    assert_nil ActiveSupport::ExecutionContext.to_h[:job]
+  end
+
+  test "job is in the execution context when discard_on reports an error" do
+    job = AfterDiscardRetryJob.new("AfterDiscardRetryJob::ReportedError", 2)
+
+    report = assert_error_reported(AfterDiscardRetryJob::ReportedError) { job.perform_now }
+
+    assert_equal job.job_id, report.context[:job]&.job_id
     assert_nil ActiveSupport::ExecutionContext.to_h[:job]
   end
 end
