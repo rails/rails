@@ -39,9 +39,9 @@ module ActiveRecord
 
       # This is the actual query cache store.
       #
-      # It has an internal hash whose keys are either SQL strings, or arrays of
-      # two elements [SQL string, binds], if there are binds. The hash values
-      # are their corresponding ActiveRecord::Result objects.
+      # It has an internal hash whose keys are either SQL strings, or Key
+      # structs of the SQL string and its binds, if there are binds. The hash
+      # values are their corresponding ActiveRecord::Result objects.
       #
       # Keeping the hash size under max size is achieved with LRU eviction.
       #
@@ -50,6 +50,12 @@ module ActiveRecord
       # down below). The version value may be externally changed as a way to
       # signal cache invalidation, that is why all methods have a guard for it.
       class Store # :nodoc:
+        Key = Struct.new(:sql, :binds, :hash) do
+          def initialize(sql, binds)
+            super(sql, binds, [sql, binds].hash)
+          end
+        end
+
         attr_accessor :enabled, :dirties
         alias_method :enabled?, :enabled
         alias_method :dirties?, :dirties
@@ -281,7 +287,7 @@ module ActiveRecord
         end
 
         def lookup_sql_cache(sql, name, binds)
-          key = binds.empty? ? sql : [sql, binds]
+          key = binds.empty? ? sql : Store::Key.new(sql, binds)
 
           result = nil
           @lock.synchronize do
@@ -299,7 +305,7 @@ module ActiveRecord
         end
 
         def cache_sql(sql, name, binds)
-          key = binds.empty? ? sql : [sql, binds]
+          key = binds.empty? ? sql : Store::Key.new(sql, binds)
           result = nil
           hit = true
 
