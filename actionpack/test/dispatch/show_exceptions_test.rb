@@ -3,6 +3,12 @@
 require "abstract_unit"
 
 class ShowExceptionsTest < ActionDispatch::IntegrationTest
+  if defined?(Rack::BadRequest)
+    class RackBadRequestError < StandardError
+      include Rack::BadRequest
+    end
+  end
+
   class Boomer
     def call(env)
       req = ActionDispatch::Request.new(env)
@@ -17,6 +23,8 @@ class ShowExceptionsTest < ActionDispatch::IntegrationTest
         rescue
           raise ActionDispatch::Http::Parameters::ParseError
         end
+      when "/bad_rack_request"
+        raise RackBadRequestError, "invalid multipart boundary"
       when "/method_not_allowed"
         raise ActionController::MethodNotAllowed, "PUT"
       when "/unknown_http_method"
@@ -57,6 +65,12 @@ class ShowExceptionsTest < ActionDispatch::IntegrationTest
     get "/bad_params", env: { "action_dispatch.show_exceptions" => :all }
     assert_response 400
     assert_equal "400 error fixture\n", body
+
+    if defined?(Rack::BadRequest)
+      get "/bad_rack_request", env: { "action_dispatch.show_exceptions" => :all }
+      assert_response 400
+      assert_equal "400 error fixture\n", body
+    end
 
     get "/not_found", env: { "action_dispatch.show_exceptions" => :all }
     assert_response 404

@@ -125,7 +125,15 @@ module ActionDispatch
     end
 
     def status_code
-      self.class.status_code_for_exception(unwrapped_exception.class.name)
+      exception_class_name = unwrapped_exception.class.name
+
+      if self.class.rescue_responses.key?(exception_class_name)
+        self.class.status_code_for_exception(exception_class_name)
+      elsif defined?(Rack::BadRequest) && Rack::BadRequest === unwrapped_exception
+        ActionDispatch::Response.rack_status_code(:bad_request)
+      else
+        self.class.status_code_for_exception(exception_class_name)
+      end
     end
 
     def exception_trace
@@ -199,7 +207,8 @@ module ActionDispatch
     end
 
     def rescue_response?
-      self.class.rescue_responses.key?(exception.class.name)
+      self.class.rescue_responses.key?(exception.class.name) ||
+        (defined?(Rack::BadRequest) && Rack::BadRequest === exception)
     end
 
     def source_extracts
