@@ -112,6 +112,33 @@ class ActionText::ContentTest < ActiveSupport::TestCase
     assert_equal last, attachables.third
   end
 
+  test "renders attachments the bulk lookup didn't locate through Attachment.from_node" do
+    blob = create_file_blob(filename: "racecar.jpg", content_type: "image/jpeg")
+    from_node = ActionText::Attachment.method(:from_node)
+    content = content_from_html('<action-text-attachment content-type="application/vnd.example"></action-text-attachment>')
+
+    attachables = []
+    ActionText::Attachment.stub(:from_node, ->(node, attachable = nil) { from_node.(node, attachable || blob) }) do
+      content.render_attachments { |attachment| attachables << attachment.attachable; attachment.node }
+    end
+
+    assert_equal [ blob ], attachables
+  end
+
+  test "renders attachments without an sgid before looking up the others" do
+    person = Person.create! name: "Before"
+    html = %Q(<action-text-attachment content-type="image" url="http://example.com/cat.jpg"></action-text-attachment><action-text-attachment sgid="#{person.attachable_sgid}"></action-text-attachment>)
+
+    names = []
+    ActionText::Content.new(html).render_attachments do |attachment|
+      person.update!(name: "After") if names.empty?
+      names << attachment.attachable.try(:name)
+      attachment.node
+    end
+
+    assert_equal [ nil, "After" ], names
+  end
+
   test "extracts remote image attachables" do
     html = '<action-text-attachment content-type="image" url="http://example.com/cat.jpg" width="100" height="100" caption="Captioned"></action-text-attachment>'
 

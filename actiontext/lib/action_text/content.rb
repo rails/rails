@@ -220,7 +220,9 @@ module ActionText
       end
 
       def attachment_for_node(node, with_full_attributes: true)
-        attachment = ActionText::Attachment.from_node(node, attachable_for_node(node))
+        sgid = node["sgid"]
+        attachable = attachables_by_sgid[sgid] if sgid.present?
+        attachment = ActionText::Attachment.from_node(node, attachable)
         with_full_attributes ? attachment.with_full_attributes : attachment
       end
 
