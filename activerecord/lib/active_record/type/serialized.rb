@@ -70,6 +70,10 @@ module ActiveRecord
         true
       end
 
+      def freezable? # :nodoc:
+        false
+      end
+
       private
         # Prevent Ruby 4.0 "delegator does not forward private method" warning.
         # Kernel#inspect calls instance_variables_to_inspect which, without this,
