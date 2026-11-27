@@ -188,6 +188,39 @@ require "action_mailer/railtie"
 
 Applications that require `rails/all` are not affected.
 
+### `default_url_options` is frozen by default
+
+`default_url_options` is now a frozen empty Hash in integration tests and any
+class that includes `Rails.application.routes.url_helpers`, and in controllers
+and mailers unless the application configures them. Code that changes it in
+place raises:
+
+```ruby
+ActionMailer::Base.default_url_options[:host] = "example.com"
+# => FrozenError: can't modify frozen Hash: {}
+```
+
+Configure the options, assign a new Hash, or override the
+`default_url_options` method instead:
+
+```ruby
+# config/environments/production.rb
+config.action_mailer.default_url_options = { host: "example.com" }
+config.action_controller.default_url_options = { host: "example.com" }
+
+# or at runtime
+ActionMailer::Base.default_url_options = { host: "example.com" }
+
+# app/mailers/application_mailer.rb
+class ApplicationMailer < ActionMailer::Base
+  def default_url_options
+    { host: "example.com" }
+  end
+end
+```
+
+`Rails.application.routes.default_url_options` is not affected.
+
 ### The old Active Record 6.1 marshalling format was removed.
 
 If your application still sets `active_record.marshalling_format_version = 6.1`, which may
