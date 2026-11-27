@@ -170,6 +170,17 @@ module ActiveRecord
         assert @conn, "should have connection"
       end
 
+      def test_check_version_requires_sqlite_3_37
+        @conn.stub(:database_version, SQLite3Adapter::Version.new("3.36.0")) do
+          error = assert_raises(RuntimeError) { @conn.check_version }
+          assert_equal "Your version of SQLite (3.36.0) is too old. Active Record supports SQLite >= 3.37.0.", error.message
+        end
+
+        @conn.stub(:database_version, SQLite3Adapter::Version.new("3.37.0")) do
+          assert_nil @conn.check_version
+        end
+      end
+
       # sqlite3 defaults to UTF-8 encoding
       def test_encoding
         assert_equal "UTF-8", @conn.encoding
