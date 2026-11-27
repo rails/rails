@@ -1605,6 +1605,33 @@ class RequestParameters < BaseRequestTest
     assert_equal "Invalid request parameters: Invalid encoding for parameter: �E", err.message
   end
 
+  test "JSON parameters key containing an invalid UTF8 character" do
+    data = +"{\"foo\x81E\":\"bar\"}"
+    request = stub_request(
+      "REQUEST_METHOD" => "POST",
+      "CONTENT_LENGTH" => data.bytesize.to_s,
+      "CONTENT_TYPE" => "application/json",
+      :input => data
+    )
+
+    err = assert_raises(ActionController::BadRequest) { request.parameters }
+
+    assert_predicate err.message, :valid_encoding?
+    assert_equal "Invalid request parameters: Invalid encoding for parameter: foo�E", err.message
+  end
+
+  test "JSON parameters containing a deeply nested key with an invalid UTF8 character" do
+    data = +"{\"foo\":[{\"bar\":{\"\x81E\":1}}]}"
+    request = stub_request(
+      "REQUEST_METHOD" => "POST",
+      "CONTENT_LENGTH" => data.bytesize.to_s,
+      "CONTENT_TYPE" => "application/json",
+      :input => data
+    )
+
+    assert_raises(ActionController::BadRequest) { request.parameters }
+  end
+
   test "query parameters specified as ASCII_8BIT encoded do not raise InvalidParameterError" do
     request = stub_request("QUERY_STRING" => "foo=%81E")
 
