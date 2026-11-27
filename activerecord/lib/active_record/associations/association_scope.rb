@@ -30,7 +30,7 @@ module ActiveRecord
         scope.extending!(extensions) unless extensions.empty?
 
         scope = add_constraints(scope, owner, chain)
-        scope.default_order!(reflection.options[:default_order]) if reflection.options[:default_order].present?
+        scope.fallback_order!(reflection.options[:fallback_order]) if reflection.options[:fallback_order].present?
         scope.limit!(1) unless reflection.collection?
         scope
       end
@@ -157,7 +157,7 @@ module ActiveRecord
               scope.unscope!(*item.table_name_qualified_unscope_values)
               scope.where_clause += item.where_clause
               scope.order_values = item.order_values | scope.order_values
-              scope.default_order_values = item.default_order_values | scope.default_order_values
+              scope.fallback_order_values = item.fallback_order_values | scope.fallback_order_values
             end
           end
 

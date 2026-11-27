@@ -220,9 +220,9 @@ class EachTest < ActiveRecord::TestCase
     end
   end
 
-  def test_find_in_batches_should_error_on_default_order
+  def test_find_in_batches_should_error_on_fallback_order
     assert_raise(ArgumentError) do
-      Post.default_order(:title).find_in_batches(error_on_ignore: true) { }
+      Post.fallback_order(:title).find_in_batches(error_on_ignore: true) { }
     end
   end
 
@@ -703,8 +703,8 @@ class EachTest < ActiveRecord::TestCase
     end
   end
 
-  def test_in_batches_with_ranges_drops_ignored_default_order
-    relations = Post.default_order(:title).in_batches(of: 2, use_ranges: true).to_a
+  def test_in_batches_with_ranges_drops_ignored_fallback_order
+    relations = Post.fallback_order(:title).in_batches(of: 2, use_ranges: true).to_a
 
     assert_not_empty relations
     relations.each { |relation| assert_no_match(/ORDER BY/i, relation.to_sql) }

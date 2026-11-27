@@ -929,48 +929,47 @@ module ActiveRecord
       self
     end
 
-    # Defines a default order used when no other order is specified.
+    # Defines a fallback order used when no explicit order is specified.
     #
     # ```
-    # User.default_order('email DESC') # generated SQL has 'ORDER BY email DESC'
+    # User.fallback_order('email DESC') # generated SQL has 'ORDER BY email DESC'
     # ```
     #
-    # Subsequent calls to order on the same relation will replace default
-    # order. For example:
+    # Calls to order take precedence over the fallback order. For example:
     #
     # ```
-    # User.default_order('email DESC').order('id ASC').order('name ASC')
+    # User.fallback_order('email DESC').order('id ASC').order('name ASC')
     # ```
     #
     # generates a query with 'ORDER BY id ASC, name ASC'.
-    def default_order(*args)
+    def fallback_order(*args)
       check_if_method_has_arguments!(__callee__, args) do
         sanitize_order_arguments(args)
       end
-      spawn._default_order!(preprocess_order_args(args))
+      spawn._fallback_order!(preprocess_order_args(args))
     end
 
-    # Same as #default_order but operates on relation in-place instead of copying.
-    def default_order!(*args) = _default_order!(preprocess_order_args(args)) # :nodoc:
+    # Same as #fallback_order but operates on relation in-place instead of copying.
+    def fallback_order!(*args) = _fallback_order!(preprocess_order_args(args)) # :nodoc:
 
-    def _default_order!(args) # :nodoc:
+    def _fallback_order!(args) # :nodoc:
       _references!(column_references(args))
       args.uniq!
-      self.default_order_values = args
+      self.fallback_order_values = args
       self
     end
 
-    # The explicit order values, or the default ones if there are none.
+    # The explicit order values, or the fallback values if there are none.
     def effective_order_values # :nodoc:
       orders = order_values
       orders = orders.compact_blank unless orders.empty?
-      if orders.empty? && !default_order_values.empty?
-        orders = default_order_values.compact_blank
+      if orders.empty? && !fallback_order_values.empty?
+        orders = fallback_order_values.compact_blank
       end
       orders
     end
 
-    VALID_UNSCOPING_VALUES = Set.new([:where, :select, :group, :order, :default_order, :lock,
+    VALID_UNSCOPING_VALUES = Set.new([:where, :select, :group, :order, :fallback_order, :lock,
                                      :limit, :offset, :joins, :left_outer_joins, :annotate,
                                      :includes, :eager_load, :preload, :from, :readonly,
                                      :having, :optimizer_hints, :with]).freeze
@@ -1868,10 +1867,10 @@ module ActiveRecord
 
     def reverse_order! # :nodoc:
       orders = order_values.compact_blank
-      default_orders = default_order_values.compact_blank
+      fallback_orders = fallback_order_values.compact_blank
 
-      if orders.empty? && default_orders.any?
-        self.default_order_values = reverse_sql_order(default_orders)
+      if orders.empty? && fallback_orders.any?
+        self.fallback_order_values = reverse_sql_order(fallback_orders)
       else
         self.order_values = reverse_sql_order(orders)
       end

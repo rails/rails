@@ -10,9 +10,9 @@ class Author < ActiveRecord::Base
   has_many :posts_with_comments_sorted_by_comment_id, -> { includes(:comments).order("comments.id") }, class_name: "Post"
   has_many :posts_sorted_by_id, -> { order(:id) }, class_name: "Post"
   has_many :posts_sorted_by_id_limited, -> { order("posts.id").limit(1) }, class_name: "Post"
-  has_many :posts_with_default_order, class_name: "Post", default_order: "posts.id DESC"
-  has_many :posts_with_ascending_default_order, class_name: "Post", default_order: "posts.id ASC"
-  has_many :posts_with_default_order_overriding_scope, -> { default_order(id: :desc) }, class_name: "Post", default_order: "posts.id ASC"
+  has_many :posts_with_fallback_order, class_name: "Post", fallback_order: "posts.id DESC"
+  has_many :posts_with_ascending_fallback_order, class_name: "Post", fallback_order: "posts.id ASC"
+  has_many :posts_with_fallback_order_overriding_scope, -> { fallback_order(id: :desc) }, class_name: "Post", fallback_order: "posts.id ASC"
   has_many :posts_with_categories, -> { includes(:categories) }, class_name: "Post"
   has_many :posts_with_comments_and_categories, -> { includes(:comments, :categories).order("posts.id") }, class_name: "Post"
   has_many :posts_with_special_categorizations, class_name: "PostWithSpecialCategorization"
@@ -60,7 +60,7 @@ class Author < ActiveRecord::Base
     source_type: "Member",
     disable_joins: true
 
-  has_many :posts_ordered_by_default, -> { default_order(id: :desc) }, class_name: "Post"
+  has_many :posts_ordered_by_default, -> { fallback_order(id: :desc) }, class_name: "Post"
 
   has_many :comments_of_posts_ordered_by_default,
     through: :posts_ordered_by_default,
@@ -94,13 +94,13 @@ class Author < ActiveRecord::Base
     source: :comments,
     disable_joins: true
 
-  has_many :default_ordered_comments_of_posts_ordered_by_default,
-    -> { default_order(id: :asc) },
+  has_many :fallback_ordered_comments_of_posts_ordered_by_default,
+    -> { fallback_order(id: :asc) },
     through: :posts_ordered_by_default,
     source: :comments
 
-  has_many :no_joins_default_ordered_comments_of_posts_ordered_by_default,
-    -> { default_order(id: :asc) },
+  has_many :no_joins_fallback_ordered_comments_of_posts_ordered_by_default,
+    -> { fallback_order(id: :asc) },
     through: :posts_ordered_by_default,
     source: :comments,
     disable_joins: true
@@ -125,12 +125,12 @@ class Author < ActiveRecord::Base
     disable_joins: true
 
   has_many :ratings_ordered_by_default,
-    -> { default_order(value: :desc) },
+    -> { fallback_order(value: :desc) },
     through: :comments,
     source: :ratings
 
   has_many :no_joins_ratings_ordered_by_default,
-    -> { default_order(value: :desc) },
+    -> { fallback_order(value: :desc) },
     through: :comments,
     source: :ratings,
     disable_joins: true
@@ -232,12 +232,12 @@ class Author < ActiveRecord::Base
   has_many :commented_categorized_posts, -> { joins(:comments).distinct }, through: :categorizations, source: :post
   has_many :readonly_categorized_posts, -> { readonly }, through: :categorizations, source: :post
   has_many :first_categorized_posts, -> { order(:id).limit(1) }, through: :categorizations, source: :post
-  has_many :categorized_posts_by_default_desc, -> { default_order(id: :desc) }, through: :categorizations, source: :post
-  has_many :popular_categorized_posts_by_default_desc, -> { where(legacy_comments_count: 2..).default_order(id: :desc) }, through: :categorizations, source: :post
-  has_many :popular_categorized_posts_reordered_by_default_desc, -> { where(legacy_comments_count: 2..).reorder(nil).default_order(id: :desc) }, through: :categorizations, source: :post
-  has_many :categorized_posts_with_default_order_scope, through: :categorizations, source: :post_with_default_order_scope
+  has_many :categorized_posts_by_default_desc, -> { fallback_order(id: :desc) }, through: :categorizations, source: :post
+  has_many :popular_categorized_posts_by_default_desc, -> { where(legacy_comments_count: 2..).fallback_order(id: :desc) }, through: :categorizations, source: :post
+  has_many :popular_categorized_posts_reordered_by_default_desc, -> { where(legacy_comments_count: 2..).reorder(nil).fallback_order(id: :desc) }, through: :categorizations, source: :post
+  has_many :categorized_posts_with_fallback_order_scope, through: :categorizations, source: :post_with_fallback_order_scope
   has_many :ordered_categorizations, -> { order(:id) }, class_name: "Categorization"
-  has_many :ordered_categorized_posts_by_default_desc, -> { default_order(id: :desc) }, through: :ordered_categorizations, source: :post
+  has_many :ordered_categorized_posts_by_default_desc, -> { fallback_order(id: :desc) }, through: :ordered_categorizations, source: :post
 
   has_many :nothings, through: :kateggorizatons, class_name: "Category"
 

@@ -54,7 +54,7 @@ module ActiveRecord
     end
 
     MULTI_VALUE_METHODS  = [:includes, :eager_load, :preload, :select, :group,
-                            :order, :default_order, :joins, :left_outer_joins,
+                            :order, :fallback_order, :joins, :left_outer_joins,
                             :references, :extending, :unscope, :optimizer_hints,
                             :annotate,
                             :with].freeze
@@ -509,7 +509,7 @@ module ActiveRecord
             subquery_column = "#{subquery_alias}.collection_cache_key_timestamp"
             arel = query.build_subquery(subquery_alias, select_values % subquery_column)
           else
-            query = collection.except(:order, :default_order)
+            query = collection.except(:order, :fallback_order)
             query.select_values = [select_values % column]
             arel = query.arel
           end

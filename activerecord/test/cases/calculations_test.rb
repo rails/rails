@@ -367,50 +367,50 @@ class CalculationsTest < ActiveRecord::TestCase
     assert_no_match(/ORDER BY/, queries.first)
   end
 
-  def test_count_with_default_order
-    posts = Post.default_order(:title)
+  def test_count_with_fallback_order
+    posts = Post.fallback_order(:title)
     queries = capture_sql { assert_equal 11, posts.count }
 
     assert_equal 1, queries.length
     assert_no_match(/ORDER BY/, queries.first)
-    assert_equal [Post.arel_table[:title].asc], posts.default_order_values
+    assert_equal [Post.arel_table[:title].asc], posts.fallback_order_values
   end
 
-  def test_sum_with_default_order
-    queries = capture_sql { assert_equal 318, Account.default_order(:firm_id).sum(:credit_limit) }
+  def test_sum_with_fallback_order
+    queries = capture_sql { assert_equal 318, Account.fallback_order(:firm_id).sum(:credit_limit) }
 
     assert_equal 1, queries.length
     assert_no_match(/ORDER BY/, queries.first)
   end
 
-  def test_count_with_default_order_and_limit
-    queries = capture_sql { assert_equal 4, Account.default_order(:firm_id).limit(4).count }
+  def test_count_with_fallback_order_and_limit
+    queries = capture_sql { assert_equal 4, Account.fallback_order(:firm_id).limit(4).count }
 
     assert_equal 1, queries.length
     assert_no_match(/ORDER BY/, queries.first)
   end
 
-  def test_distinct_count_with_default_order_and_custom_select
-    accounts = Account.distinct.select(:credit_limit).default_order(:firm_id)
+  def test_distinct_count_with_fallback_order_and_custom_select
+    accounts = Account.distinct.select(:credit_limit).fallback_order(:firm_id)
     assert_equal 4, accounts.count(:all)
   end
 
-  def test_count_with_eager_loading_and_default_order
-    posts = Post.includes(:comments).references(:comments).default_order("comments.id")
+  def test_count_with_eager_loading_and_fallback_order
+    posts = Post.includes(:comments).references(:comments).fallback_order("comments.id")
     queries = capture_sql { assert_equal 11, posts.count }
 
     assert_equal 1, queries.length
     assert_no_match(/ORDER BY/, queries.first)
   end
 
-  def test_distinct_count_with_eager_loading_and_default_order_and_custom_select
-    posts = Post.includes(:comments).references(:comments).select(:id, :title).distinct.default_order("comments.id")
+  def test_distinct_count_with_eager_loading_and_fallback_order_and_custom_select
+    posts = Post.includes(:comments).references(:comments).select(:id, :title).distinct.fallback_order("comments.id")
     assert_equal 11, posts.count
   end
 
-  def test_grouped_count_preserves_default_order
+  def test_grouped_count_preserves_fallback_order
     queries = capture_sql do
-      assert_equal({ 9 => 1 }, Account.where.not(firm_id: nil).group(:firm_id).default_order(firm_id: :desc).limit(1).count)
+      assert_equal({ 9 => 1 }, Account.where.not(firm_id: nil).group(:firm_id).fallback_order(firm_id: :desc).limit(1).count)
     end
 
     assert_equal 1, queries.length

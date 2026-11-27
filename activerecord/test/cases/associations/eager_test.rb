@@ -1088,11 +1088,11 @@ class EagerAssociationTest < ActiveRecord::TestCase
     )
   end
 
-  def test_limited_eager_with_default_order
+  def test_limited_eager_with_fallback_order
     posts = Post.includes(:author, :comments).where("authors.name" => "David").limit(2).offset(1)
 
-    assert_equal posts(:thinking, :sti_comments), posts.default_order("UPPER(posts.title)").to_a
-    assert_equal posts(:sti_post_and_comments, :sti_comments), posts.default_order("UPPER(posts.title) DESC").to_a
+    assert_equal posts(:thinking, :sti_comments), posts.fallback_order("UPPER(posts.title)").to_a
+    assert_equal posts(:sti_post_and_comments, :sti_comments), posts.fallback_order("UPPER(posts.title) DESC").to_a
   end
 
   def test_limited_eager_with_multiple_order_columns
@@ -1420,7 +1420,7 @@ class EagerAssociationTest < ActiveRecord::TestCase
     end
   end
 
-  def test_preload_has_many_through_with_default_order
+  def test_preload_has_many_through_with_fallback_order
     author = Author.create!(name: "Preload Test")
     [posts(:welcome), posts(:sti_post_and_comments), posts(:sti_comments), posts(:thinking)].each do |post|
       Categorization.create!(author: author, post: post, category: categories(:general))
@@ -1429,14 +1429,14 @@ class EagerAssociationTest < ActiveRecord::TestCase
 
     assert_equal expected, Author.preload(:categorized_posts_by_default_desc).find(author.id).categorized_posts_by_default_desc
     assert_equal expected, Author.preload(:categorized_posts, :categorized_posts_by_default_desc).find(author.id).categorized_posts_by_default_desc
-    assert_equal expected.map(&:id), Author.preload(:categorized_posts_with_default_order_scope).find(author.id).categorized_posts_with_default_order_scope.map(&:id)
+    assert_equal expected.map(&:id), Author.preload(:categorized_posts_with_fallback_order_scope).find(author.id).categorized_posts_with_fallback_order_scope.map(&:id)
 
     expected = [posts(:sti_post_and_comments), posts(:sti_comments), posts(:welcome)]
     assert_equal expected, Author.preload(:popular_categorized_posts_by_default_desc).find(author.id).popular_categorized_posts_by_default_desc
     assert_equal expected, Author.preload(:popular_categorized_posts_reordered_by_default_desc).find(author.id).popular_categorized_posts_reordered_by_default_desc
   end
 
-  def test_preload_has_many_through_with_default_order_keeps_the_explicit_order_of_the_through_association
+  def test_preload_has_many_through_with_fallback_order_keeps_the_explicit_order_of_the_through_association
     author = Author.create!(name: "Preload Test")
     expected = [posts(:welcome), posts(:sti_comments), posts(:thinking)]
     expected.each do |post|
