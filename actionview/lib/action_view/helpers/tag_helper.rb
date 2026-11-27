@@ -1547,7 +1547,7 @@ module ActionView
           options.each_pair do |key, value|
             next if key.blank?
 
-            name = Symbol === key ? key.name : key.to_s
+            name = key.to_s
             next if name.blank?
 
             type = TAG_TYPES[key]
@@ -1555,7 +1555,7 @@ module ActionView
               value.each_pair do |k, v|
                 next if k.blank? || v.nil?
 
-                nested_name = Symbol === k ? k.name : k.to_s
+                nested_name = k.to_s
                 next if nested_name.blank?
 
                 output << sep
@@ -1565,7 +1565,7 @@ module ActionView
               value.each_pair do |k, v|
                 next if k.blank? || v.nil?
 
-                nested_name = Symbol === k ? k.name : k.to_s
+                nested_name = k.to_s
                 next if nested_name.blank?
 
                 case v
@@ -1575,7 +1575,7 @@ module ActionView
 
                   v = @view_context.safe_join(tokens, " ")
                 else
-                  v = v.is_a?(Symbol) ? v.name : v.to_s
+                  v = v.to_s
                 end
 
                 output << sep
@@ -1621,7 +1621,7 @@ module ActionView
           end
 
           def append_boolean_tag_option(output, key)
-            key = Symbol === key ? key.name : key.to_s
+            key = key.to_s
             output << key
             output << "=\""
             output << key
@@ -1637,7 +1637,7 @@ module ActionView
           # Appends a single attribute to +output+ without allocating an
           # intermediate string per attribute.
           def append_tag_option(output, key, value, escape)
-            key = Symbol === key ? key.name : key.to_s
+            key = key.to_s
             key = ERB::Util.xml_name_escape(key) if escape
 
             case value
@@ -1648,8 +1648,6 @@ module ActionView
               value = escape ? @view_context.safe_join(value, " ") : value.join(" ")
             when Regexp
               value = escape ? ERB::Util.unwrapped_html_escape(value.source) : value.source
-            when Symbol
-              value = escape ? ERB::Util.unwrapped_html_escape(value.name) : value.name
             else
               value = escape ? ERB::Util.unwrapped_html_escape(value) : value.to_s
             end
@@ -1668,7 +1666,7 @@ module ActionView
           end
 
           def append_prefix_tag_option(output, prefix, key, value, escape)
-            key = "#{prefix}-#{(Symbol === key ? key.name : key.to_s).dasherize}"
+            key = "#{prefix}-#{key.to_s.dasherize}"
             unless value.is_a?(String) || value.is_a?(Symbol) || value.is_a?(BigDecimal)
               value = value.to_json
             end

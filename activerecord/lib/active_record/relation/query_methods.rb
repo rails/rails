@@ -2016,11 +2016,11 @@ module ActiveRecord
           opts = opts.transform_keys do |key|
             if key.is_a?(Array)
               key.map do |k|
-                k = k.is_a?(Symbol) ? k.name : k.to_s
+                k = k.to_s
                 attribute_aliases[k] || k
               end
             else
-              key = key.is_a?(Symbol) ? key.name : key.to_s
+              key = key.to_s
               attribute_aliases[key] || key
             end
           end

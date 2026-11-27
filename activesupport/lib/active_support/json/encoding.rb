@@ -204,7 +204,7 @@ module ActiveSupport
             if is_key
               # Keep compatibility by calling to_s on non-String keys
               if Symbol === value
-                next value # Symbol#to_s needlessly allocate a string.
+                next value
               else
                 next value.to_s
               end

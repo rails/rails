@@ -51,7 +51,7 @@ module ActiveModel
     #
     # Specify `options` with additional translating options.
     def human_attribute_name(attribute, options = {})
-      attribute = attribute.is_a?(Symbol) ? attribute.name : attribute.to_s
+      attribute = attribute.to_s
 
       if attribute.include?(".")
         namespace, _, attribute = attribute.rpartition(".")

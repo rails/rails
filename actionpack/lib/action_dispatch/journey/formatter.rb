@@ -152,7 +152,7 @@ module ActionDispatch
             routes = non_recursive(cache, options, dispatchers_only: !name)
 
             supplied_keys = options.each_with_object({}) do |(k, v), h|
-              h[k.is_a?(Symbol) ? k.name : k.to_s] = true if v
+              h[k.to_s] = true if v
             end
 
             hash = routes.group_by { |_, r| r.score(supplied_keys) }
