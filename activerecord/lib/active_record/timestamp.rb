@@ -91,13 +91,14 @@ module ActiveRecord
         with_connection { |c| c.default_timezone == :utc ? Time.now.utc : Time.now }
       end
 
-      def timestamp_attributes_for_create
-        ["created_at", "created_on"].map! { |name| attribute_aliases[name] || name }
-      end
+      private
+        def timestamp_attributes_for_create
+          ["created_at", "created_on"].map! { |name| attribute_aliases[name] || name }
+        end
 
-      def timestamp_attributes_for_update
-        ["updated_at", "updated_on"].map! { |name| attribute_aliases[name] || name }
-      end
+        def timestamp_attributes_for_update
+          ["updated_at", "updated_on"].map! { |name| attribute_aliases[name] || name }
+        end
     end
 
   private

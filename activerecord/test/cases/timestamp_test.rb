@@ -590,6 +590,22 @@ class TimestampTest < ActiveRecord::TestCase
     assert_not_nil person.born_at
   end
 
+  def test_timestamp_attributes_for_create_can_be_overridden_as_a_private_class_method
+    klass = Class.new(ActiveRecord::Base) do
+      self.table_name = "people"
+
+      class << self
+        private
+          def timestamp_attributes_for_create
+            super + ["born_at"]
+          end
+      end
+    end
+
+    person = klass.create first_name: "David"
+    assert_not_nil person.born_at
+  end
+
   def test_timestamp_attributes_for_create_in_model
     toy = Toy.first
     assert_equal ["created_at"], toy.send(:timestamp_attributes_for_create_in_model)
