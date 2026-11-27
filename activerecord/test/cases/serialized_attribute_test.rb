@@ -116,6 +116,43 @@ class SerializedAttributeTest < ActiveRecord::TestCase
     assert_equal({ key: "value" }, t.content)
   end
 
+  def test_serialized_column_default_is_unchanged_on_a_new_record_until_read
+    coder = Class.new do
+      def self.load(value) = value.blank? ? [] : JSON.parse(value)
+      def self.dump(value) = JSON.dump(value)
+    end
+    klass = Class.new(ActiveRecord::Base) do
+      self.table_name = "admin_users"
+      serialize :preferences, coder: coder
+    end
+
+    user = klass.new
+    assert_not_predicate user, :changed?
+    user.save!
+    assert_equal "", user.reload.preferences_before_type_cast
+
+    user = klass.new
+    assert_equal [], user.preferences
+    assert_predicate user, :changed?
+  end
+
+  def test_serialized_null_default_is_not_shared_or_changed_on_new_records
+    coder = Class.new do
+      def self.load(value) = value.nil? ? { "theme" => { "mode" => "light" } } : JSON.parse(value)
+      def self.dump(value) = JSON.dump(value)
+    end
+    model = Class.new(ActiveRecord::Base) { self.table_name = "admin_users" }
+
+    [
+      Class.new(model) { serialize :configs, coder: coder },
+      Class.new(model) { serialize :configs, coder: coder; encrypts :configs },
+    ].each do |klass|
+      klass.new.configs["theme"]["mode"] = "dark"
+      assert_equal "light", klass.new.configs["theme"]["mode"]
+      assert_not_predicate klass.new, :changed?
+    end
+  end
+
   def test_serialized_attribute_on_custom_attribute_with_default
     klass = Class.new(ActiveRecord::Base) do
       self.table_name = Topic.table_name

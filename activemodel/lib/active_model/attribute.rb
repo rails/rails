@@ -40,7 +40,7 @@ module ActiveModel
     end
 
     def freezable?
-      true
+      type.freezable?
     end
 
     def freeze

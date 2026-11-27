@@ -142,6 +142,10 @@ module ActiveModel
         true
       end
 
+      def freezable? # :nodoc:
+        true
+      end
+
       def as_json(*)
         raise NoMethodError
       end
