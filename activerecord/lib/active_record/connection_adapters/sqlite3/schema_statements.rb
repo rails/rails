@@ -81,18 +81,40 @@ module ActiveRecord
             )
           SQL
 
+          def by_stored_name(tables)
+            found = yield tables
+            missing = tables - found.keys
+            return found if missing.empty?
+
+            catalog = query_all(<<~SQL).index_by { |row| row["name"].downcase(:ascii) }
+              SELECT name, 0 AS temporary FROM sqlite_master WHERE type IN ('table', 'view')
+              UNION ALL
+              SELECT name, 1 FROM sqlite_temp_master WHERE type IN ('table', 'view')
+              ORDER BY temporary
+            SQL
+            stored = missing.index_with { |table| catalog[table.downcase(:ascii)]&.fetch("name") }.compact
+            stored.reject! { |table, name| table == name }
+            return found if stored.empty?
+
+            again = yield stored.values.uniq
+            stored.each { |table, name| found[table] = again[name] if again.key?(name) }
+            found
+          end
+
           def fetch_indexes(tables)
             return {} if tables.empty?
 
-            rows = query_all(<<~SQL).group_by { |row| row["table_name"] }
-              #{MASTER_CTE}
-              SELECT m.name AS table_name, i.name, i."unique"
-              FROM master m
-              JOIN pragma_index_list(m.name) i
-              WHERE m.type = 'table'
-                AND m.name IN (#{quoted_table_names(tables)})
-                AND i.name NOT GLOB 'sqlite_*'
-            SQL
+            rows = by_stored_name(tables) do |names|
+              query_all(<<~SQL).group_by { |row| row["table_name"] }
+                #{MASTER_CTE}
+                SELECT m.name AS table_name, i.name, i."unique"
+                FROM master m
+                LEFT JOIN pragma_index_list(m.name) i ON i.name NOT GLOB 'sqlite_*'
+                WHERE m.type IN ('table', 'view')
+                  AND m.name IN (#{quoted_table_names(names)})
+              SQL
+            end
+            rows.transform_values! { |group| group.select { |row| row["name"] } }
 
             details = index_details(rows.each_value.flat_map { |group| group.map { |row| row["name"] } })
 

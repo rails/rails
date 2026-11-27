@@ -573,6 +573,9 @@ module ActiveRecord
         def fetch_foreign_keys(tables)
           return {} if tables.empty?
 
+          structures = table_structures(tables)
+          stored = tables.index_with { |table| structures.dig(table, 2) || table }
+
           # SQLite returns 1 row for each column of composite foreign keys.
           fk_infos = query_all(<<~SQL).group_by { |row| row["table_name"] }
             #{MASTER_CTE}
@@ -580,16 +583,14 @@ module ActiveRecord
             FROM master m
             JOIN pragma_foreign_key_list(m.name) fk
             WHERE m.type = 'table'
-              AND m.name IN (#{quoted_table_names(tables)})
+              AND m.name IN (#{quoted_table_names(stored.values.uniq)})
           SQL
-
-          structures = table_structures(tables)
 
           tables.index_with do |table_name|
             create_table_sql, structure = structures[table_name] || [nil, []]
             column_strings = split_table_structure_sql(create_table_sql, structure.map { |column| column["name"] })
 
-            build_foreign_keys(table_name, fk_infos.fetch(table_name, []), column_strings)
+            build_foreign_keys(table_name, fk_infos.fetch(stored[table_name], []), column_strings)
           end
         end
 
@@ -942,19 +943,21 @@ module ActiveRecord
           fields = ["name", "type", "notnull", "dflt_value", "pk"]
           fields << "hidden" if supports_virtual_columns?
 
-          query_all(<<~SQL).group_by { |row| row["table_name"] }
-            #{MASTER_CTE}
-            SELECT m.name AS table_name, CASE WHEN m.type = 'table' THEN m.sql END AS create_table_sql,
-                   #{fields.map { |field| "t.#{quote_column_name(field)}" }.join(", ")}
-            FROM master m
-            JOIN pragma_#{table_info_pragma}(m.name) t
-            WHERE m.type IN ('table', 'view')
-              AND m.name IN (#{quoted_table_names(tables)})
-            ORDER BY m.name, t.cid
-          SQL
-            .transform_values do |group|
-              [group.first["create_table_sql"], group.map { |row| row.except("table_name", "create_table_sql") }]
-            end
+          by_stored_name(tables) do |names|
+            query_all(<<~SQL).group_by { |row| row["table_name"] }
+              #{MASTER_CTE}
+              SELECT m.name AS table_name, CASE WHEN m.type = 'table' THEN m.sql END AS create_table_sql,
+                     #{fields.map { |field| "t.#{quote_column_name(field)}" }.join(", ")}
+              FROM master m
+              JOIN pragma_#{table_info_pragma}(m.name) t
+              WHERE m.type IN ('table', 'view')
+                AND m.name IN (#{quoted_table_names(names)})
+              ORDER BY m.name, t.cid
+            SQL
+              .to_h do |name, group|
+                [name, [group.first["create_table_sql"], group.map { |row| row.except("table_name", "create_table_sql") }, name]]
+              end
+          end
         end
 
         def arel_visitor

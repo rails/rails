@@ -698,6 +698,48 @@ module ActiveRecord
         end
       end
 
+      def test_schema_readers_find_a_table_by_any_ascii_case_of_its_name
+        with_example_table <<~SQL, "Widgets" do
+          id integer PRIMARY KEY,
+          number integer,
+          FOREIGN KEY (number) REFERENCES "Widgets"(id)
+        SQL
+          @conn.add_index "Widgets", :number
+          @conn.execute 'CREATE VIEW "WidgetsView" AS SELECT id FROM "Widgets"'
+
+          assert_equal %w[ id number ], @conn.columns("widgets").map(&:name)
+          assert_equal "id", @conn.primary_key("widgets")
+          assert_equal ["index_Widgets_on_number"], @conn.indexes("widgets").map(&:name)
+          assert_equal [["number", "Widgets"]], @conn.foreign_keys("widgets").map { |fk| [fk.column, fk.to_table] }
+          assert_equal %w[ id ], @conn.columns("widgetsview").map(&:name)
+          assert_equal({ "Widgets" => %w[ id number ], "widgets" => %w[ id number ] },
+            @conn.columns(["Widgets", "widgets"]).transform_values { |columns| columns.map(&:name) })
+        ensure
+          @conn.execute 'DROP VIEW IF EXISTS "WidgetsView"'
+        end
+      end
+
+      def test_schema_readers_find_a_temporary_table_first_by_any_ascii_case_of_its_name
+        with_example_table "id integer PRIMARY KEY, permanent integer", "Widgets" do
+          @conn.execute 'CREATE TEMP TABLE "WIDGETS" ("temp_id" integer PRIMARY KEY, "temporary" text COLLATE "NOCASE", CONSTRAINT "temporary_fk" FOREIGN KEY ("temporary") REFERENCES "targets" ("id"))'
+          @conn.execute 'CREATE INDEX temp.temp_idx ON "WIDGETS" (temporary)'
+
+          assert_equal %w[ temp_id temporary ], @conn.columns("widgets").map(&:name)
+          assert_equal "NOCASE", @conn.columns("widgets").last.collation
+          assert_equal %w[ temp_idx ], @conn.indexes("widgets").map(&:name)
+          assert_equal [["temporary", "targets", "temporary_fk"]], @conn.foreign_keys("widgets").map { |fk| [fk.column, fk.to_table, fk.name] }
+        ensure
+          @conn.execute 'DROP TABLE IF EXISTS temp."WIDGETS"'
+        end
+      end
+
+      def test_schema_readers_ignore_only_the_ascii_case_of_a_table_name
+        with_example_table "id integer PRIMARY KEY, upper integer", "Ärger" do
+          assert_equal %w[ id upper ], @conn.columns("ÄRGER").map(&:name)
+          assert_raises(ActiveRecord::StatementInvalid) { @conn.columns("ärger") }
+        end
+      end
+
       def test_add_column_with_not_null
         with_example_table "id integer PRIMARY KEY AUTOINCREMENT, number integer not null" do
           assert_nothing_raised { @conn.add_column :ex, :name, :string, null: false }
@@ -733,10 +775,9 @@ module ActiveRecord
             )
             SELECT m.name AS table_name, i.name, i."unique"
             FROM master m
-            JOIN pragma_index_list(m.name) i
-            WHERE m.type = 'table'
+            LEFT JOIN pragma_index_list(m.name) i ON i.name NOT GLOB 'sqlite_*'
+            WHERE m.type IN ('table', 'view')
               AND m.name IN ('ex')
-              AND i.name NOT GLOB 'sqlite_*'
           SQL
 
           assert_logged [index_list_query] do
