@@ -112,7 +112,7 @@ module ActionDispatch
       # not found in the session.
       def [](key)
         load_for_read!
-        key = stringify_key(key)
+        key = key.to_s
 
         if key == "session_id"
           id&.public_id
@@ -125,14 +125,14 @@ module ActionDispatch
       # any intermediate step is `nil`.
       def dig(*keys)
         load_for_read!
-        keys = keys.map.with_index { |key, i| i.zero? ? (stringify_key(key)) : key }
+        keys = keys.map.with_index { |key, i| i.zero? ? key.to_s : key }
         @delegate.dig(*keys)
       end
 
       # Returns true if the session has the given key or false.
       def has_key?(key)
         load_for_read!
-        @delegate.key?(stringify_key(key))
+        @delegate.key?(key.to_s)
       end
       alias :key? :has_key?
       alias :include? :has_key?
@@ -152,7 +152,7 @@ module ActionDispatch
       # Writes given value to given key of the session.
       def []=(key, value)
         load_for_write!
-        @delegate[stringify_key(key)] = value
+        @delegate[key.to_s] = value
       end
       alias store []=
 
@@ -192,7 +192,7 @@ module ActionDispatch
       # Deletes given key from the session.
       def delete(key)
         load_for_delete!
-        @delegate.delete(stringify_key(key))
+        @delegate.delete(key.to_s)
       end
 
       # Returns value of the given key from the session, or raises `KeyError` if can't
@@ -212,9 +212,9 @@ module ActionDispatch
       def fetch(key, default = Unspecified, &block)
         load_for_read!
         if default == Unspecified
-          @delegate.fetch(stringify_key(key), &block)
+          @delegate.fetch(key.to_s, &block)
         else
-          @delegate.fetch(stringify_key(key), default, &block)
+          @delegate.fetch(key.to_s, default, &block)
         end
       end
 
@@ -251,13 +251,6 @@ module ActionDispatch
       end
 
       private
-        # Symbol#name returns the symbol's interned frozen string, where
-        # Symbol#to_s allocates a new one on every call. Session keys are
-        # symbols at virtually every call site, on every request.
-        def stringify_key(key)
-          Symbol === key ? key.name : key.to_s
-        end
-
         def load_for_read!
           load! if !loaded? && exists?
         end

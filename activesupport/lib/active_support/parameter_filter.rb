@@ -61,9 +61,7 @@ module ActiveSupport
       filters, patterns = filters.partition { |filter| filter.is_a?(Proc) }
       regexps, patterns = patterns.partition { |filter| filter.is_a?(Regexp) }
 
-      patterns.map! do |p|
-        p.is_a?(Symbol) ? p.name : p.to_s
-      end
+      patterns.map!(&:to_s)
 
       patterns.sort_by! { |p| [p.count("."), p.size] }
 

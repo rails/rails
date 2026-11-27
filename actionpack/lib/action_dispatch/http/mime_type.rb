@@ -243,7 +243,7 @@ module Mime
       end
 
       def lookup_by_extension(extension)
-        Mime.lookup_by_extension[extension.is_a?(Symbol) ? extension.name : extension.to_s]
+        Mime.lookup_by_extension[extension.to_s]
       end
 
       # Registers an alias that's not used on MIME type lookup, but can be referenced
@@ -385,14 +385,10 @@ module Mime
 
     def ==(mime_type)
       return false unless mime_type
-      if mime_type.is_a?(Symbol)
-        # `format == :json` is the common call. Compare the symbol directly, and
-        # use `Symbol#name` so that the string comparison doesn't allocate.
-        return true if @symbol == mime_type
-        mime_string = mime_type.name
-      else
-        mime_string = mime_type.to_s
-      end
+      # `format == :json` is the common call. Compare the symbol directly.
+      return true if mime_type.is_a?(Symbol) && @symbol == mime_type
+
+      mime_string = mime_type.to_s
       return true if @string == mime_string || @synonyms.include?(mime_string)
 
       mime_symbol = mime_type.to_sym

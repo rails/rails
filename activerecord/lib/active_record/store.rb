@@ -275,15 +275,15 @@ module ActiveRecord
 
       class StringKeyedHashAccessor < HashAccessor # :nodoc:
         def self.get(store_object, key)
-          super store_object, Symbol === key ? key.name : key.to_s
+          super store_object, key.to_s
         end
 
         def self.read(object, attribute, key)
-          super object, attribute, Symbol === key ? key.name : key.to_s
+          super object, attribute, key.to_s
         end
 
         def self.write(object, attribute, key, value)
-          super object, attribute, Symbol === key ? key.name : key.to_s, value
+          super object, attribute, key.to_s, value
         end
       end
 

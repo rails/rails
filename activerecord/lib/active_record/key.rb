@@ -128,7 +128,7 @@ module ActiveRecord
 
     class Single < Key # :nodoc:
       def initialize(name)
-        @name = name.is_a?(Symbol) ? name.name : -name.to_s
+        @name = -name.to_s
         @columns = [@name].freeze
       end
 

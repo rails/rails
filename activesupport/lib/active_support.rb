@@ -30,6 +30,7 @@ require "active_support/deprecator"
 require "active_support/logger"
 require "active_support/broadcast_logger"
 require "active_support/lazy_load_hooks"
+require "active_support/core_ext/symbol/to_s"
 
 # :include: ../README.md
 module ActiveSupport

@@ -158,13 +158,13 @@ module ActionDispatch
       end
 
       def []=(k, v)
-        k = stringify_key(k)
+        k = k.to_s
         @discard.delete k
         @flashes[k] = v
       end
 
       def [](k)
-        @flashes[stringify_key(k)]
+        @flashes[k.to_s]
       end
 
       def update(h) # :nodoc:
@@ -178,13 +178,13 @@ module ActionDispatch
       end
 
       def key?(name)
-        @flashes.key? stringify_key(name)
+        @flashes.key? name.to_s
       end
 
       # Immediately deletes the single flash entry. Use this method when you want
       # remove the message within the current action. See also #discard.
       def delete(key)
-        key = stringify_key(key)
+        key = key.to_s
         @discard.delete key
         @flashes.delete key
         self
@@ -245,7 +245,7 @@ module ActionDispatch
       #     flash.keep            # keeps the entire flash
       #     flash.keep(:notice)   # keeps only the "notice" entry, the rest of the flash is discarded
       def keep(k = nil)
-        k = stringify_key(k) if k
+        k = k.to_s if k
         @discard.subtract Array(k || keys)
         k ? self[k] : self
       end
@@ -259,7 +259,7 @@ module ActionDispatch
       # Use this method when you want to display the message in the current action but
       # not in the next one. See also #delete.
       def discard(k = nil)
-        k = stringify_key(k) if k
+        k = k.to_s if k
         @discard.merge Array(k || keys)
         k ? self[k] : self
       end
@@ -303,12 +303,6 @@ module ActionDispatch
           array.map do |item|
             item.kind_of?(Symbol) ? item.name : item
           end
-        end
-
-        # Flash keys are Symbols at nearly every call site. Symbol#name returns the
-        # interned frozen string where Symbol#to_s would allocate a new one.
-        def stringify_key(key)
-          key.is_a?(Symbol) ? key.name : key.to_s
         end
     end
 

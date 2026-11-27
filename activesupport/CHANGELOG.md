@@ -1,3 +1,10 @@
+*   `Symbol#to_s` now returns `Symbol#name`, the symbol's interned frozen String,
+    on Rubies before 4.1, which made that change in Ruby itself
+    ([Feature #22137](https://bugs.ruby-lang.org/issues/22137)). Mutating the
+    returned String raises `FrozenError`; Ruby 3.4 and 4.0 already warned about it.
+
+    *Akira Matsuda*
+
 *   Fix `Time#change` in the hour repeated when clocks are set back, for times
     with a zone object.
 
