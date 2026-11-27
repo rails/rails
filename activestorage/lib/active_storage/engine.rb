@@ -207,18 +207,34 @@ module ActiveStorage
 
     initializer "active_storage.services" do |app|
       ActiveSupport.on_load(:active_storage_blob) do
+        storage_url = ENV["STORAGE_URL"].presence
+
         configs = app.config.active_storage.service_configurations ||=
           begin
             config_file = Rails.root.join("config/storage/#{Rails.env}.yml")
             config_file = Rails.root.join("config/storage.yml") unless config_file.exist?
-            raise("Couldn't find Active Storage configuration in #{config_file}") unless config_file.exist?
 
-            ActiveSupport::ConfigurationFile.parse(config_file)
+            if config_file.exist?
+              ActiveSupport::ConfigurationFile.parse(config_file)
+            elsif storage_url
+              {}
+            else
+              raise("Couldn't find Active Storage configuration in #{config_file}")
+            end
           end
+
+        config_choice = app.config.active_storage.service
+
+        if storage_url
+          config_choice ||= :default
+          configs = configs.deep_symbolize_keys.merge(
+            config_choice.to_sym => ActiveStorage::Service::Configurator.configuration_from_url(storage_url)
+          )
+        end
 
         ActiveStorage::Blob.services = ActiveStorage::Service::Registry.new(configs)
 
-        if config_choice = app.config.active_storage.service
+        if config_choice
           ActiveStorage::Blob.service = ActiveStorage::Blob.services.fetch(config_choice)
         end
       end

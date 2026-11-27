@@ -15,6 +15,21 @@ module ActiveStorage
     attr_reader :client, :bucket, :default_digest_type, :default_digest_class
     attr_reader :multipart_upload_threshold, :upload_options
 
+    def self.service_config_from_url(url) # :nodoc:
+      uri = parse_storage_url(url)
+
+      if uri.host.blank? || !uri.path.match?(%r{\A/[^/]+\z})
+        raise ArgumentError, "STORAGE_URL must look like s3://access_key_id:secret_access_key@region/bucket"
+      end
+
+      {
+        region: uri.host,
+        bucket: uri.path.delete_prefix("/"),
+        access_key_id: uri.user,
+        secret_access_key: uri.password
+      }.compact.transform_values { |value| URI.decode_uri_component(value) }
+    end
+
     def initialize(bucket:, upload: {}, public: false, default_digest_type: :md5, **options)
       @client = Aws::S3::Resource.new(**options)
       @transfer_manager = Aws::S3::TransferManager.new(client: @client.client) if defined?(Aws::S3::TransferManager)
