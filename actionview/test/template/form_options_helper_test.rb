@@ -158,6 +158,20 @@ class FormOptionsHelperTest < ActionView::TestCase
     )
   end
 
+  def test_collection_options_with_proc_for_value_method_and_selected
+    assert_dom_equal(
+      "<option value=\"&lt;Abe&gt;\">&lt;Abe&gt; went home</option>\n<option value=\"Babe\" selected=\"selected\">Babe went home</option>\n<option value=\"Cabe\">Cabe went home</option>",
+      options_from_collection_for_select(dummy_posts, lambda { |p| p.author_name }, "title", lambda { |p| p.author_name == "Babe" })
+    )
+  end
+
+  def test_collection_options_with_proc_for_value_method_and_disabled
+    assert_dom_equal(
+      "<option value=\"&lt;Abe&gt;\">&lt;Abe&gt; went home</option>\n<option value=\"Babe\" disabled=\"disabled\">Babe went home</option>\n<option value=\"Cabe\" disabled=\"disabled\">Cabe went home</option>",
+      options_from_collection_for_select(dummy_posts, lambda { |p| p.author_name }, "title", disabled: lambda { |p| %w(Babe Cabe).include?(p.author_name) })
+    )
+  end
+
   def test_collection_options_with_proc_for_text_method
     assert_dom_equal(
       "<option value=\"&lt;Abe&gt;\">&lt;Abe&gt; went home</option>\n<option value=\"Babe\">Babe went home</option>\n<option value=\"Cabe\">Cabe went home</option>",
