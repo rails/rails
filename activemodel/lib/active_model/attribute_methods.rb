@@ -184,6 +184,7 @@ module ActiveModel
       # end
       #
       # person = Person.new
+      # person.name = 'Gem'
       # person.name                         # => 'Gem'
       # person.reset_name_to_default!
       # person.name                         # => 'Default Name'
