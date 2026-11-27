@@ -239,6 +239,15 @@ module ActiveRecord
           keep_owner_conditions(klass_scope, Relation::WhereClause.empty, fixed_clause)
         end
 
+        # Merging the association scope drops the STI type condition when the
+        # scope has its own condition on the inheritance column. Add it back,
+        # as loading the association keeps it.
+        if klass.finder_needs_type_condition?
+          type_clause = Relation::WhereClause.new([klass.send(:type_condition, table)])
+          removed_type = type_clause - klass_scope.where_clause
+          klass_scope.where_clause += removed_type
+        end
+
         route.each_match do |origin_column, destination_column|
           destination_attribute = predicate_builder.predicate_attribute(table[destination_column])
           origin_attribute = predicate_builder.predicate_attribute(foreign_table[origin_column])
