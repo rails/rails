@@ -2,6 +2,7 @@
 
 require "active_support/core_ext/object/deep_dup"
 require "active_support/core_ext/array/wrap"
+require "active_support/core_ext/string/filters"
 
 module ActionDispatch # :nodoc:
   # # Action Dispatch Content Security Policy
