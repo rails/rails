@@ -98,6 +98,12 @@ class MimeTypeTest < ActiveSupport::TestCase
     assert_equal expect, Mime::Type.parse(accept)
   end
 
+  test "parse escaped quote and commas in a quoted parameter" do
+    accept = 'text/html; parameter="a, \\"quoted, string, text/csv, etc", text/plain'
+    expect = [Mime[:html], Mime[:text]]
+    assert_equal expect, Mime::Type.parse(accept)
+  end
+
   test "parse wildcard with arbitrary media type parameters" do
     accept = '*/*; boundary="simple"'
     expect = ["*/*"]
