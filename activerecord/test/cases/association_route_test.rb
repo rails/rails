@@ -235,10 +235,12 @@ class AssociationRouteTest < ActiveRecord::TestCase
       first_reference = AliasedRouteComment.new(route_fk: first.id)
       second_reference = AliasedRouteComment.new(route_fk: second.id)
 
-      assert_equal first, first_reference.routed_post
-      statement = reflection.association_scope_cache(Post, routes)
-      assert_equal second, second_reference.routed_post
-      assert_same statement, reflection.association_scope_cache(Post, routes)
+      Post.with_connection do |connection|
+        assert_equal first, first_reference.routed_post
+        statement = reflection.association_scope_cache(Post, routes, connection)
+        assert_equal second, second_reference.routed_post
+        assert_same statement, reflection.association_scope_cache(Post, routes, connection)
+      end
     end
   end
 
@@ -325,10 +327,12 @@ class AssociationRouteTest < ActiveRecord::TestCase
       routes = reflection.association_route_chain(origin_class: Member, destination_class: Sponsor)
 
       each_statement_mode do
-        assert_equal first_target, first.reload_sponsor
-        statement = reflection.association_scope_cache(Sponsor, routes)
-        assert_equal second_target, second.reload_sponsor
-        assert_same statement, reflection.association_scope_cache(Sponsor, routes)
+        Sponsor.with_connection do |connection|
+          assert_equal first_target, first.reload_sponsor
+          statement = reflection.association_scope_cache(Sponsor, routes, connection)
+          assert_equal second_target, second.reload_sponsor
+          assert_same statement, reflection.association_scope_cache(Sponsor, routes, connection)
+        end
       end
     end
   end

@@ -295,11 +295,9 @@ module ActiveRecord
         MSG
       end
 
-      def association_scope_cache(klass, routes, &block)
+      def association_scope_cache(klass, routes, connection, &block)
         key = [self, *routes]
-        klass.with_connection do |connection|
-          klass.cached_find_by_statement(connection, key, &block)
-        end
+        klass.cached_find_by_statement(connection, key, &block)
       end
 
       def association_route_for_join(origin_class, destination_class: klass)
