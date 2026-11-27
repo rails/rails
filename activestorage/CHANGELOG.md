@@ -1,3 +1,8 @@
+*   Respond with 404 instead of 500 when a blob's signed ID is given as an
+    array or hash parameter.
+
+    *Daniel López Prat*
+
 *   Preserve committed proxy responses when a storage error interrupts a
     streamed download.
 

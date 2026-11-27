@@ -179,6 +179,15 @@ class MessageEncryptorTest < ActiveSupport::TestCase
     end
   end
 
+  test "non-String messages are invalid" do
+    aead_encryptor = ActiveSupport::MessageEncryptor.new(@secret, cipher: "aes-256-gcm")
+
+    [nil, ["purejunk"], { "purejunk" => "purejunk" }, 1, :purejunk].each do |message|
+      assert_not_verified(message)
+      assert_aead_not_decrypted(aead_encryptor, message)
+    end
+  end
+
   def test_invalid_base64_argument
     assert_not_decrypted("jrcc<!--esi-->rkls<!--esx-->tyx9")
   end

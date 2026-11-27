@@ -346,7 +346,7 @@ module ActiveSupport
       end
 
       def extract_encoded(signed)
-        if signed.nil? || !signed.valid_encoding?
+        unless signed.is_a?(String) && signed.valid_encoding?
           throw :invalid_message_format, "invalid message string"
         end
 
