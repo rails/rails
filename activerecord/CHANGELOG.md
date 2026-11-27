@@ -1,3 +1,12 @@
+*   Bump the minimum supported SQLite version to 3.37.0.
+
+    SQLite 3.37.0 introduced `pragma_table_list`, which the SQLite3 adapter
+    has used to list tables and views since Rails 8.0 (#52354). On SQLite 3.35
+    and 3.36, table listing and uncached schema discovery fail with
+    "no such table: pragma_table_list"; make the requirement explicit.
+
+    *Thomas Klemm*
+
 *   Don't compare owner conditions when joining an association without a scope.
 
     Comparing the where clauses could serialize their bind values early, so a
