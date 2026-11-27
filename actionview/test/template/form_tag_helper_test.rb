@@ -582,6 +582,13 @@ class FormTagHelperTest < ActionView::TestCase
     assert_dom_equal expected, actual
   end
 
+  def test_select_tag_with_prompt_doesnt_change_options
+    options = { prompt: "string" }
+    expected_options = options.dup
+    select_tag "places", raw("<option>Home</option><option>Work</option><option>Pub</option>"), options
+    assert_equal expected_options, options
+  end
+
   def test_select_tag_escapes_prompt
     actual = select_tag "places", raw("<option>Home</option><option>Work</option><option>Pub</option>"), prompt: "<script>alert(1337)</script>"
     expected = %(<select id="places" name="places"><option value="">&lt;script&gt;alert(1337)&lt;/script&gt;</option><option>Home</option><option>Work</option><option>Pub</option></select>)

@@ -232,11 +232,11 @@ module ActionView
           end
         end
 
-        if prompt = options.delete(:prompt)
+        if prompt = options[:prompt]
           option_tags = content_tag("option", prompt, value: "").safe_concat(option_tags)
         end
 
-        content_tag "select", option_tags, { "name" => html_name, "id" => sanitize_to_id(name) }.update(options.stringify_keys)
+        content_tag "select", option_tags, { "name" => html_name, "id" => sanitize_to_id(name) }.update(options.except(:prompt).stringify_keys)
       end
 
       # Creates a standard text field; use these text fields to input smaller chunks of text like a username
