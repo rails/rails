@@ -415,6 +415,19 @@ class IntegrationProcessTest < ActionDispatch::IntegrationTest
     end
   end
 
+  def test_follow_redirect_does_not_modify_the_given_headers
+    with_test_route_set do
+      headers = { "X-Test-Header" => "value" }.freeze
+
+      get "/redirect"
+      follow_redirect!(headers: headers)
+
+      assert_equal "http://www.example.com/redirect", request.referer
+      assert_equal "value", request.headers["X-Test-Header"]
+      assert_equal({ "X-Test-Header" => "value" }, headers)
+    end
+  end
+
   def test_307_redirect_uses_the_same_http_verb
     with_test_route_set do
       post "/redirect_307"

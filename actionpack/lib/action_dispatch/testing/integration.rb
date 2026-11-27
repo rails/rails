@@ -81,7 +81,7 @@ module ActionDispatch
           end
 
         if [ :HTTP_REFERER, "HTTP_REFERER" ].none? { |key| headers.key? key }
-          headers["HTTP_REFERER"] = request.url
+          headers = headers.merge("HTTP_REFERER" => request.url)
         end
 
         public_send(method, response.location, headers: headers, **args)
