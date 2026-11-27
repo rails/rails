@@ -1,3 +1,15 @@
+*   Treat non-String messages as invalid in `ActiveSupport::MessageVerifier`
+    and `ActiveSupport::MessageEncryptor`.
+
+    Passing an `Array`, a `Hash` or another non-String object, such as an
+    untrusted request parameter, to `verified`, `verify`, `valid_message?` or
+    `decrypt_and_verify` raised `NoMethodError`. Such a message is now handled
+    like a malformed string: `verified` returns `nil`, `valid_message?` returns
+    `false`, `verify` raises `ActiveSupport::MessageVerifier::InvalidSignature`
+    and `decrypt_and_verify` raises `ActiveSupport::MessageEncryptor::InvalidMessage`.
+
+    *Daniel López Prat*
+
 *   Fix `Time#change` in the hour repeated when clocks are set back, for times
     with a zone object.
 

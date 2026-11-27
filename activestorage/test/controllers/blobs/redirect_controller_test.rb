@@ -13,6 +13,14 @@ class ActiveStorage::Blobs::RedirectControllerTest < ActionDispatch::Integration
     assert_response :not_found
   end
 
+  test "non-String signed ID" do
+    get rails_service_blob_url("invalid", "racecar.jpg", signed_blob_id: ["invalid"])
+    assert_response :not_found
+
+    get rails_service_blob_url("invalid", "racecar.jpg", signed_blob_id: { "invalid" => "invalid" })
+    assert_response :not_found
+  end
+
   test "HTTP caching" do
     get rails_storage_redirect_url(@blob)
     assert_redirected_to(/racecar\.jpg/)

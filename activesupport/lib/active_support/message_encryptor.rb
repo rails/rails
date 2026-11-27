@@ -359,6 +359,8 @@ module ActiveSupport
       end
 
       def extract_parts(encrypted_message)
+        throw :invalid_message_format, "invalid message string" unless encrypted_message.is_a?(String)
+
         parts = []
         rindex = encrypted_message.length
 

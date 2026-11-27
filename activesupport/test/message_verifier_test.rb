@@ -59,6 +59,16 @@ class MessageVerifierTest < ActiveSupport::TestCase
     end
   end
 
+  test "non-String messages are invalid" do
+    [["purejunk"], { "purejunk" => "purejunk" }, 1, :purejunk].each do |message|
+      assert_not @verifier.valid_message?(message)
+      assert_nil @verifier.verified(message)
+      assert_raise(ActiveSupport::MessageVerifier::InvalidSignature) do
+        @verifier.verify(message)
+      end
+    end
+  end
+
   test "supports URL-safe encoding" do
     verifier = ActiveSupport::MessageVerifier.new(@secret, url_safe: true, serializer: JSON)
 
