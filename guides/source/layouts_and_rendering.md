@@ -190,7 +190,7 @@ render action: :edit, status: :unprocessable_content
 ```
 
 NOTE: We render with the HTTP status
-[`303 Unprocessable Content`](https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Status/303)
+[`422 Unprocessable Content`](https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Status/422)
 in the above example because it's the idiomatically correct HTTP response code
 for a form submission error. It's also required by the
 [Turbo](https://turbo.hotwired.dev) JavaScript library which Rails includes by
