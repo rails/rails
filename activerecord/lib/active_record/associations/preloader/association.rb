@@ -307,7 +307,7 @@ module ActiveRecord
               scope.merge!(reflection_scope)
               reflection.keep_owner_conditions(scope, Relation::WhereClause.empty, fixed_clause) if fixed_clause
             end
-            scope.default_order!(reflection.options[:default_order]) if reflection.options[:default_order].present?
+            scope.fallback_order!(reflection.options[:fallback_order]) if reflection.options[:fallback_order].present?
 
             if preload_scope && !preload_scope.empty_scope?
               scope.merge!(preload_scope)

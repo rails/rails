@@ -240,6 +240,14 @@ class NamedScopingTest < ActiveRecord::TestCase
     end
   end
 
+  def test_default_order_can_be_used_as_a_scope_name
+    klass = Class.new(Post) do
+      scope :default_order, -> { order(:title) }
+    end
+
+    assert_equal klass.where(approved: true).order(:title), klass.where(approved: true).default_order
+  end
+
   def test_active_records_have_scope_named__all__
     assert_not_empty Topic.all
 

@@ -293,7 +293,7 @@ module ActiveRecord
       def scope(routes = nil)
         scope = super
         scope.none! if null_scope?
-        scope.default_order!(options[:default_order]) if options[:default_order].present?
+        scope.fallback_order!(options[:fallback_order]) if options[:fallback_order].present?
         scope
       end
 

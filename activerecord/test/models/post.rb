@@ -91,7 +91,7 @@ class Post < ActiveRecord::Base
     end
   end
 
-  has_many :ordered_comments, class_name: "Comment", default_order: :body
+  has_many :ordered_comments, class_name: "Comment", fallback_order: :body
 
   has_many :comments_with_extend, extend: NamedExtension, class_name: "Comment", foreign_key: "post_id" do
     def greeting
@@ -291,10 +291,10 @@ class PostWithDefaultScope < ActiveRecord::Base
   default_scope { order(:title) }
 end
 
-class PostWithDefaultOrderScope < ActiveRecord::Base
+class PostWithFallbackOrderScope < ActiveRecord::Base
   self.inheritance_column = :disabled
   self.table_name = "posts"
-  default_scope { default_order(id: :desc) }
+  default_scope { fallback_order(id: :desc) }
 end
 
 class PostWithWhereDefaultScope < ActiveRecord::Base

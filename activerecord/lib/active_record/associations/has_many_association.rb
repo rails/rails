@@ -31,7 +31,7 @@ module ActiveRecord
         when :destroy_async
           association_class = scope.model
           primary_key_column = association_class.query_constraints_list || Array(association_class.primary_key)
-          relation = scope.except(:order, :default_order)
+          relation = scope.except(:order, :fallback_order)
           batch_size = owner.class.destroy_association_async_batch_size || relation.count
 
           relation.in_batches(of: batch_size, cursor: primary_key_column) do |batch|

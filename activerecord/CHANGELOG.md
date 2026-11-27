@@ -344,16 +344,16 @@
 
     *Kengo Johira*
 
-*   Fix a `default_order` being ignored by a `disable_joins` through association.
+*   Fix a `fallback_order` being ignored by a `disable_joins` through association.
 
     An explicit order in an association's scope was carried over to the
-    queries the chain is split into, but a `default_order` was dropped, so the
+    queries the chain is split into, but a `fallback_order` was dropped, so the
     records came back in whatever order the database returned them.
 
     ```ruby
     class Author < ApplicationRecord
       has_many :comments, through: :posts
-      has_many :ratings, -> { default_order(value: :desc) },
+      has_many :ratings, -> { fallback_order(value: :desc) },
         through: :comments, disable_joins: true
     end
     ```
@@ -448,34 +448,33 @@
 
     *Wei-Lun Li*
 
-*   Fix `in_batches(use_ranges: true)` yielding relations that keep an ignored `default_order`.
+*   Fix `in_batches(use_ranges: true)` yielding relations that keep an ignored `fallback_order`.
 
-    Batching ignores `default_order` like an explicit order, but the ranged
+    Batching ignores `fallback_order` like an explicit order, but the ranged
     relations still carried it, adding a needless `ORDER BY` to each batch.
 
     *Clément Joubert*
 
-*   Support `unscope(:default_order)`.
+*   Support `unscope(:fallback_order)`.
 
-    Previously, `unscope(:default_order)` raised an `ArgumentError`. It now
-    removes default ordering while keeping explicit ordering, just like
-    `unscope(:order)` removes explicit ordering while keeping default ordering.
+    `unscope(:fallback_order)` removes the fallback order and keeps the explicit order.
+    `unscope(:order)` removes the explicit order and keeps the fallback order.
 
     ```ruby
-    Post.order(:id).default_order(:title).unscope(:default_order)
+    Post.order(:id).fallback_order(:title).unscope(:fallback_order)
     # SELECT "posts".* FROM "posts" ORDER BY "posts"."id" ASC
     ```
 
     *Kengo Johira*
 
-*   Fix eager loading with `limit` or `offset` on a relation with a `default_order`.
+*   Fix eager loading with `limit` or `offset` on a relation with a `fallback_order`.
 
-    The `SELECT DISTINCT` of primary keys ignored `default_order`, which raised
+    The `SELECT DISTINCT` of primary keys ignored `fallback_order`, which raised
     on PostgreSQL and MySQL because the `ORDER BY` columns were missing from
     its select list.
 
     ```ruby
-    Post.eager_load(:comments).default_order(:title).limit(2).offset(1)
+    Post.eager_load(:comments).fallback_order(:title).limit(2).offset(1)
     # => PG::InvalidColumnReference before, now loads the records
     ```
 
@@ -699,18 +698,18 @@
 
     *Ryuta Kamizono*
 
-*   Exclude `default_order` from aggregate calculations.
+*   Exclude `fallback_order` from aggregate calculations.
 
-    Calculations such as `count` and `sum` now remove default ordering where they
+    Calculations such as `count` and `sum` now remove fallback ordering where they
     already remove explicit ordering. This avoids invalid SQL on PostgreSQL,
     including `distinct.count` with a custom select.
 
     *Kengo Johira*
 
-*   Exclude `default_order` in `Relation#exists?`.
+*   Exclude `fallback_order` in `Relation#exists?`.
 
     Previously, `exists?` only excluded explicit `order` values, causing
-    `default_order` to be retained in the query.
+    `fallback_order` to be retained in the query.
 
     *Kengo Johira*
 
@@ -1950,7 +1949,8 @@
 
     *Hartley McGuire*
 
-*   Add `#default_order` query method and association option which can be used to order records when no other order is specified.
+*   Add `#fallback_order` and the `fallback_order:` association option to order
+    records when the relation has no explicit order.
 
     This extends the functionality offered by `#implicit_order_column` to scopes and associations.
 
@@ -1958,9 +1958,9 @@
 
     ```ruby
     class Post < ApplicationRecord
-      has_many :comments, default_order: :likes
+      has_many :comments, fallback_order: :likes
       # .. or ..
-      has_many :comments, -> { default_order(:likes) }
+      has_many :comments, -> { fallback_order(:likes) }
     end
 
     post = Post.first

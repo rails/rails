@@ -168,7 +168,7 @@ module ActiveRecord
           end
 
           # As in SQL, an explicit order on the through association beats the
-          # default order of the source.
+          # fallback order of the source.
           def source_order_applies?
             return @source_order_applies if defined?(@source_order_applies)
 
@@ -225,7 +225,7 @@ module ActiveRecord
               # Both are kept so that `effective_order_values` picks one as for the source.
               if scope.eager_loading?
                 scope.order_values = reflection_scope.order_values
-                scope.default_order_values = reflection_scope.default_order_values
+                scope.fallback_order_values = reflection_scope.fallback_order_values
               end
             end
 

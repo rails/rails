@@ -254,8 +254,8 @@ module ActiveRecord
       assert_match(/\Adevelopers\/query-(\h+)-(\d+)-(\d+)\z/, developers.cache_key)
     end
 
-    test "cache_key with a relation having default_order" do
-      developers = Developer.where(salary: 100000).default_order(:name)
+    test "cache_key with a relation having fallback_order" do
+      developers = Developer.where(salary: 100000).fallback_order(:name)
 
       queries = capture_sql do
         assert_match(/\Adevelopers\/query-(\h+)-(\d+)-(\d+)\z/, developers.cache_key)

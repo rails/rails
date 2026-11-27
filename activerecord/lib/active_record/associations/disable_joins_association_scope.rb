@@ -60,7 +60,7 @@ module ActiveRecord
             scope.unscope!(*item.unscope_values)
             scope.where_clause += item.where_clause
             scope.order_values = item.order_values | scope.order_values
-            scope.default_order_values = item.default_order_values | scope.default_order_values
+            scope.fallback_order_values = item.fallback_order_values | scope.fallback_order_values
             scope
           end
           reflection.keep_owner_conditions(scope, key_clause, type_clause)
@@ -70,21 +70,21 @@ module ActiveRecord
             split_scope.where_clause += scope.where_clause
             # Reordering by the key in Ruby needs the key and all the records loaded,
             # and `unscope` is already applied to the where clause.
-            split_scope.merge!(scope.except(:where, :unscope, :order, :default_order, :limit, :offset, :select))
+            split_scope.merge!(scope.except(:where, :unscope, :order, :fallback_order, :limit, :offset, :select))
             split_scope
           else
             scope
           end
         end
 
-        # How strongly a link is ordered: not at all, only by a default order, or by
+        # How strongly a link is ordered: not at all, only by a fallback order, or by
         # an explicit one. A link keeps the order of the previous one unless it is
         # ordered at least as strongly, as an explicit order on any link of a joined
         # chain takes over from the default ones.
         def order_rank(scope)
           if !scope.order_values.empty?
             2
-          elsif !scope.default_order_values.empty?
+          elsif !scope.fallback_order_values.empty?
             1
           else
             0

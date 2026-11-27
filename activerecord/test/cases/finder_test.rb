@@ -374,8 +374,8 @@ class FinderTest < ActiveRecord::TestCase
     assert_equal true, Topic.order(Arel.sql("invalid sql here")).exists?
   end
 
-  def test_exists_with_default_order
-    assert_equal true, Topic.default_order(Arel.sql("invalid sql here")).exists?
+  def test_exists_with_fallback_order
+    assert_equal true, Topic.fallback_order(Arel.sql("invalid sql here")).exists?
   end
 
   def test_exists_with_large_number

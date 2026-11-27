@@ -485,9 +485,9 @@ class RelationTest < ActiveRecord::TestCase
     assert_equal [:author_id], topics.group_values
   end
 
-  def test_default_order_deduplication
-    topics = Topic.default_order("id desc", "id desc")
-    assert_equal ["id desc"], topics.default_order_values
+  def test_fallback_order_deduplication
+    topics = Topic.fallback_order("id desc", "id desc")
+    assert_equal ["id desc"], topics.fallback_order_values
   end
 
   def test_order_with_table_name_does_not_modify_receiver
@@ -495,7 +495,7 @@ class RelationTest < ActiveRecord::TestCase
 
     assert_equal ["replies"], topics.order(:"replies.id").references_values
     assert_equal ["replies"], topics.reorder("replies.id" => :desc).references_values
-    assert_equal ["replies"], topics.default_order(replies: { id: :desc }).references_values
+    assert_equal ["replies"], topics.fallback_order(replies: { id: :desc }).references_values
     assert_empty topics.references_values
   end
 
@@ -2132,8 +2132,8 @@ class RelationTest < ActiveRecord::TestCase
     assert_nil relation.order_values.first
   end
 
-  def test_default_order
-    comments = posts(:welcome).comments.default_order(:body)
+  def test_fallback_order
+    comments = posts(:welcome).comments.fallback_order(:body)
     assert_equal [2, 1], comments.pluck(:id)
     assert_equal 2, comments.first.id
 
@@ -2142,43 +2142,43 @@ class RelationTest < ActiveRecord::TestCase
     assert_equal 1, comments.first.id
   end
 
-  def test_reverse_order_reverses_default_order
+  def test_reverse_order_reverses_fallback_order
     # reverse_order should reverse the default order, just like a regular
     # order, rather than discarding it in favor of the primary key.
-    assert_equal Post.order("title ASC").reverse_order.ids, Post.default_order("title ASC").reverse_order.ids
+    assert_equal Post.order("title ASC").reverse_order.ids, Post.fallback_order("title ASC").reverse_order.ids
 
-    relation = Post.default_order("title ASC").reverse_order
+    relation = Post.fallback_order("title ASC").reverse_order
     assert_match(/ORDER BY title DESC/, relation.to_sql)
   end
 
-  def test_unscope_default_order
-    relation = Post.default_order("title ASC").unscope(:default_order)
-    assert_empty relation.default_order_values
+  def test_unscope_fallback_order
+    relation = Post.fallback_order("title ASC").unscope(:fallback_order)
+    assert_empty relation.fallback_order_values
     assert_no_match(/ORDER BY/, relation.to_sql)
 
-    relation_with_both = Post.order("id DESC").default_order("title ASC").unscope(:default_order)
-    assert_empty relation_with_both.default_order_values
+    relation_with_both = Post.order("id DESC").fallback_order("title ASC").unscope(:fallback_order)
+    assert_empty relation_with_both.fallback_order_values
     assert_equal ["id DESC"], relation_with_both.order_values
     assert_match(/ORDER BY id DESC/, relation_with_both.to_sql)
   end
 
-  def test_unscope_order_preserves_default_order
-    relation = Post.order("id DESC").default_order("title ASC").unscope(:order)
+  def test_unscope_order_preserves_fallback_order
+    relation = Post.order("id DESC").fallback_order("title ASC").unscope(:order)
     assert_empty relation.order_values
-    assert_equal ["title ASC"], relation.default_order_values
+    assert_equal ["title ASC"], relation.fallback_order_values
     assert_match(/ORDER BY title ASC/, relation.to_sql)
   end
 
-  def test_unscope_order_and_default_order
-    relation = Post.order("id DESC").default_order("title ASC").unscope(:order, :default_order)
+  def test_unscope_order_and_fallback_order
+    relation = Post.order("id DESC").fallback_order("title ASC").unscope(:order, :fallback_order)
     assert_empty relation.order_values
-    assert_empty relation.default_order_values
+    assert_empty relation.fallback_order_values
     assert_no_match(/ORDER BY/, relation.to_sql)
   end
 
-  def test_merge_with_unscope_default_order
-    merged = Post.default_order("title ASC").merge(Post.unscope(:default_order))
-    assert_empty merged.default_order_values
+  def test_merge_with_unscope_fallback_order
+    merged = Post.fallback_order("title ASC").merge(Post.unscope(:fallback_order))
+    assert_empty merged.fallback_order_values
     assert_no_match(/ORDER BY/, merged.to_sql)
   end
 

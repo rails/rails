@@ -480,9 +480,9 @@ module ActiveRecord
         conditions = sanitize_forbidden_attributes(conditions)
 
         if distinct_value && offset_value
-          relation = except(:order, :default_order).limit!(1)
+          relation = except(:order, :fallback_order).limit!(1)
         else
-          relation = except(:select, :distinct, :order, :default_order)._select!(ONE_AS_ONE_LITERAL).limit!(1)
+          relation = except(:select, :distinct, :order, :fallback_order)._select!(ONE_AS_ONE_LITERAL).limit!(1)
         end
 
         case conditions
@@ -692,8 +692,8 @@ module ActiveRecord
 
       def ordered_relation
         if order_values.empty?
-          if default_order_values.present?
-            return order(default_order_values)
+          if fallback_order_values.present?
+            return order(fallback_order_values)
           end
 
           order_columns = _order_columns

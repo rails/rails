@@ -757,7 +757,7 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     assert_equal firm.limited_clients.length, firm.limited_clients.count
   end
 
-  def test_default_order
+  def test_fallback_order
     post = posts(:welcome)
 
     comments = post.comments.order(:body)
@@ -773,36 +773,36 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     assert_equal 1, comments.first.id
   end
 
-  def test_default_order_is_applied_when_the_target_is_loaded
+  def test_fallback_order_is_applied_when_the_target_is_loaded
     author = authors(:david)
 
-    # The generated SQL (used by pluck/count/to_sql) honors default_order.
-    assert_equal [6, 5, 4, 2, 1], author.posts_with_default_order.pluck(:id)
+    # The generated SQL (used by pluck/count/to_sql) honors fallback_order.
+    assert_equal [6, 5, 4, 2, 1], author.posts_with_fallback_order.pluck(:id)
 
     # The materialized collection must honor it too, not come back in
     # arbitrary database order.
-    assert_equal [6, 5, 4, 2, 1], author.posts_with_default_order.to_a.map(&:id)
-    assert_equal [6, 5, 4, 2, 1], author.posts_with_default_order.reload.map(&:id)
+    assert_equal [6, 5, 4, 2, 1], author.posts_with_fallback_order.to_a.map(&:id)
+    assert_equal [6, 5, 4, 2, 1], author.posts_with_fallback_order.reload.map(&:id)
   end
 
-  def test_default_order_is_applied_when_the_association_is_preloaded
+  def test_fallback_order_is_applied_when_the_association_is_preloaded
     id = authors(:david).id
     expected = [1, 2, 4, 5, 6]
 
-    assert_equal expected, Author.preload(:posts_with_ascending_default_order).find(id).posts_with_ascending_default_order.map(&:id)
+    assert_equal expected, Author.preload(:posts_with_ascending_fallback_order).find(id).posts_with_ascending_fallback_order.map(&:id)
   end
 
-  def test_default_order_option_overrides_default_order_in_scope_when_the_association_is_preloaded
+  def test_fallback_order_option_overrides_fallback_order_in_scope_when_the_association_is_preloaded
     author = authors(:david)
     expected = [1, 2, 4, 5, 6]
 
-    assert_equal expected, author.posts_with_default_order_overriding_scope.map(&:id)
-    assert_equal expected, Author.preload(:posts_with_default_order_overriding_scope).find(author.id).posts_with_default_order_overriding_scope.map(&:id)
+    assert_equal expected, author.posts_with_fallback_order_overriding_scope.map(&:id)
+    assert_equal expected, Author.preload(:posts_with_fallback_order_overriding_scope).find(author.id).posts_with_fallback_order_overriding_scope.map(&:id)
   end
 
-  def test_default_order_keeps_using_the_statement_cache
+  def test_fallback_order_keeps_using_the_statement_cache
     author = authors(:david)
-    association = author.association(:posts_with_default_order)
+    association = author.association(:posts_with_fallback_order)
 
     # The ORDER BY is baked into the cached SQL, so the statement cache must
     # not be bypassed.
@@ -3552,7 +3552,7 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
       :anonymous_class, :primary_key, :foreign_key, :dependent, :validate, :inverse_of,
       :strict_loading, :query_constraints, :deprecated, :autosave, :class_name, :before_add,
       :after_add, :before_remove, :after_remove, :extend, :counter_cache, :join_table,
-      :index_errors, :default_order, :as, :through
+      :index_errors, :fallback_order, :as, :through
     MESSAGE
   end
 
