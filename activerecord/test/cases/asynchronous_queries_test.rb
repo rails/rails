@@ -100,6 +100,32 @@ class AsynchronousQueriesTest < ActiveRecord::TestCase
     assert_equal @connection.supports_concurrent_connections?, event.payload[:async]
   end
 
+  def test_async_select_all_reports_the_row_count
+    events = capture_notifications("sql.active_record") do
+      future_result = @connection.select_all "SELECT 1 AS value", "Async Row Count", async: true
+      wait_for_future_result(future_result) unless in_memory_db?
+      future_result.result
+    end
+
+    event = events.find { _1.payload[:name] == "Async Row Count" }
+    assert_equal 1, event.payload[:row_count]
+  end
+
+  def test_async_select_failure_reports_the_exception
+    error = nil
+    events = capture_notifications("sql.active_record") do
+      error = assert_raises ActiveRecord::StatementInvalid do
+        future_result = @connection.select_all "SELECT * FROM does_not_exists", async: true
+        wait_for_future_result(future_result) unless in_memory_db?
+        future_result.result
+      end
+    end
+
+    event = events.find { _1.payload[:sql] == "SELECT * FROM does_not_exists" }
+    assert_equal [error.class.name, error.message], event.payload[:exception]
+    assert_same error, event.payload[:exception_object]
+  end
+
   def test_async_query_retries_query_failure
     skip unless @connection.async_enabled?
 
