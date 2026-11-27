@@ -21,6 +21,10 @@ require "active_support/testing/method_call_assertions"
 require "action_mailer"
 require "action_mailer/test_case"
 
+# Emulate the Active Job railtie
+require "active_job"
+ActionMailer::TestHelper.prepend(ActiveJob::ActionMailerTestHelper)
+
 # Emulate AV railtie
 require "action_view"
 ActionMailer::Base.include(ActionView::Layouts)

@@ -44,6 +44,65 @@ module ApplicationTests
       output = rails("test")
       assert_match(/0 failures, 0 errors/, output)
     end
+
+    test "asserts enqueued Action Mailer deliveries with Active Job" do
+      rails "generate", "mailer", "BaseMailer", "welcome"
+
+      app_file "test/integration/mailer_integration_test.rb", <<-RUBY
+        require "test_helper"
+
+        class MailerIntegrationTest < ActionDispatch::IntegrationTest
+          def test_delivers_enqueued_email
+            assert_emails(1) { BaseMailer.welcome.deliver_later }
+          end
+        end
+
+        class BaseMailerTest < ActionMailer::TestCase
+          def test_delivers_enqueued_email
+            assert_enqueued_emails(1) { BaseMailer.welcome.deliver_later }
+            assert_emails(1) { BaseMailer.welcome.deliver_later }
+          end
+        end
+      RUBY
+
+      output = rails("test", "test/integration/mailer_integration_test.rb")
+      assert_match(/2 runs, \d+ assertions, 0 failures, 0 errors/, output)
+    end
+
+    test "asserts Action Mailer deliveries without Active Job" do
+      rails "generate", "mailer", "BaseMailer", "welcome"
+      remove_file "app/jobs"
+      app_file "config/boot.rb", <<-RUBY
+        $LOAD_PATH.reject! { |path| path.include?("/activejob/") }
+        require "rails"
+        require "active_record/railtie"
+        require "action_controller/railtie"
+        require "action_mailer/railtie"
+        require "rails/test_unit/railtie"
+      RUBY
+      remove_from_config 'require "rails/all"'
+      remove_from_env_config "test", "config.active_storage.*"
+
+      app_file "test/integration/mailer_integration_test.rb", <<-RUBY
+        require "test_helper"
+
+        class MailerIntegrationTest < ActionDispatch::IntegrationTest
+          def test_sends_welcome_email
+            assert_not defined?(ActiveJob)
+            assert_emails(1) { BaseMailer.welcome.deliver_now }
+          end
+        end
+
+        class BaseMailerTest < ActionMailer::TestCase
+          def test_sends_welcome_email
+            assert_emails(1) { BaseMailer.welcome.deliver_now }
+          end
+        end
+      RUBY
+
+      output = rails("test", "test/integration/mailer_integration_test.rb")
+      assert_match(/2 runs, \d+ assertions, 0 failures, 0 errors/, output)
+    end
   end
 
   class IntegrationTestDefaultApp < ActiveSupport::TestCase

@@ -2319,6 +2319,9 @@ with: `ActionMailer::Base.deliveries.clear`
 
 #### Testing Enqueued Emails
 
+The Active Job railtie adds the assertions for enqueued emails to
+`ActionMailer::TestHelper`.
+
 You can use the `assert_enqueued_email_with` assertion to confirm that the email
 has been enqueued with all of the expected mailer method arguments and/or
 parameterized mailer parameters. This allows you to match any emails that have
