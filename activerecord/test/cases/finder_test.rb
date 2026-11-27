@@ -775,6 +775,13 @@ class FinderTest < ActiveRecord::TestCase
     assert_equal(topics(:second).title, topics.first.title)
   end
 
+  def test_find_with_prepared_select_statement_given_as_sql_literal
+    topics = Topic.find_by_sql [Arel.sql("SELECT * FROM topics WHERE author_name = ?"), "Mary"]
+
+    assert_equal(1, topics.size)
+    assert_equal(topics(:second).title, topics.first.title)
+  end
+
   if ActiveRecord::Base.lease_connection.prepared_statements
     def test_find_by_sql_with_positional_placeholder_binds_the_value
       payload = capture_query_payload("Topic Load") do
@@ -1723,6 +1730,10 @@ class FinderTest < ActiveRecord::TestCase
     assert_equal(2, Entrant.count_by_sql(["SELECT COUNT(*) FROM entrants WHERE id > ?", 1]))
 
     assert_async_equal 2, Entrant.async_count_by_sql(["SELECT COUNT(*) FROM entrants WHERE id > ?", 1])
+  end
+
+  def test_count_by_sql_with_sql_literal
+    assert_equal(1, Entrant.count_by_sql([Arel.sql("SELECT COUNT(*) FROM entrants WHERE id > ?"), 2]))
   end
 
   def test_find_by_one_attribute

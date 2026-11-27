@@ -193,7 +193,7 @@ module ActiveRecord
           end
         elsif statement.include?("?")
           with_connection do |c|
-            replace_bind_variables(c, statement, values)
+            replace_bind_variables(c, statement.to_s, values)
           end
         elsif statement.blank?
           statement

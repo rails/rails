@@ -155,7 +155,7 @@ module ActiveRecord
         return sql unless sql.is_a?(Array)
 
         statement, *values = sql
-        bound_sql_literal_for(statement, values)
+        bound_sql_literal_for(statement.to_s, values)
       end
   end
 end
