@@ -491,8 +491,8 @@ module ActiveModel
     # person.errors.full_messages_for(:name)
     # # => ["Name is too short (minimum is 5 characters)", "Name can't be blank"]
     #
-    # person.errors.full_messages_for(:name, :invalid)
-    # # => ["Name is invalid"]
+    # person.errors.full_messages_for(:name, :too_short)
+    # # => ["Name is too short (minimum is 5 characters)"]
     # ```
     #: (Symbol | String, ?untyped) -> Array[untyped]
     def full_messages_for(attribute, type = nil)
@@ -512,8 +512,8 @@ module ActiveModel
     # person.errors.messages_for(:name)
     # # => ["is too short (minimum is 5 characters)", "can't be blank"]
     #
-    # person.errors.messages_for(:name, :invalid)
-    # # => ["is invalid"]
+    # person.errors.messages_for(:name, :too_short)
+    # # => ["is too short (minimum is 5 characters)"]
     # ```
     #: (Symbol | String, ?untyped) -> Array[untyped]
     def messages_for(attribute, type = nil)
