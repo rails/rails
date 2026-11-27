@@ -926,6 +926,7 @@ module ActiveRecord
       args.uniq!
       self.reordering_value = true
       self.order_values = args
+      self.fallback_order_values = []
       self
     end
 
