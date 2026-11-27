@@ -615,6 +615,7 @@ module ActiveRecord
       @previously_new_record    = false
       @destroyed                = false
       @_start_transaction_state = nil
+      @_transaction_saved_changes = @_transaction_last_save_mutations = nil
 
       super
     end

@@ -1209,6 +1209,33 @@ database record. It can influence the flow and predictability of callback
 sequences, leading to potential inconsistencies in application logic following
 the transaction.
 
+### Changes in `after_commit`
+
+The `saved_changes` method and the `saved_change_to_*` methods only contain the
+changes of the last save. When a record is saved more than once in a
+transaction, `after_commit` runs once, after the last save, so these methods
+miss the changes of the earlier saves. Use [`transaction_changes`][] to see the
+changes of every save in the transaction.
+
+```ruby
+class User < ApplicationRecord
+  after_commit :send_confirmation_email, if: -> { transaction_changes.key?("email") }
+end
+```
+
+```ruby
+User.transaction do
+  user.update!(email: "john.doe.new@example.com")
+  user.update!(name: "John Doe")
+end
+```
+
+In the `after_commit` callback, `saved_changes` does not contain the change to
+`email`, but `transaction_changes` does.
+
+[`transaction_changes`]:
+    https://api.rubyonrails.org/classes/ActiveRecord/AttributeMethods/Dirty.html#method-i-transaction_changes
+
 ### Aliases for `after_commit`
 
 Using the `after_commit` callback only on create, update, or destroy is common.

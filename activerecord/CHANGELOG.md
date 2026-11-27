@@ -1,3 +1,23 @@
+*   Add `ActiveRecord::Base#transaction_changes`.
+
+    `saved_changes` only contains the changes of the last save. When a record
+    is saved more than once in a transaction, an `after_commit` callback that
+    reads `saved_changes` misses the changes of the earlier saves.
+    `transaction_changes` merges the `saved_changes` of every save in the
+    current or last transaction.
+
+    ```ruby
+    Person.transaction do
+      person.update!(email: "alice@example.com")
+      person.update!(name: "Alice")
+    end
+
+    person.saved_changes.key?("email")       # => false
+    person.transaction_changes.key?("email") # => true
+    ```
+
+    *Ufuk Kayserilioglu*
+
 *   Clear `fallback_order` when calling `reorder`.
 
     Previously, `reorder(nil)` removed only explicit ordering, so a relation

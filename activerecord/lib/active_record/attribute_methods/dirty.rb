@@ -131,6 +131,42 @@ module ActiveRecord
         mutations_before_last_save.changes
       end
 
+      # Returns a hash of the changes that every save of the record made in the
+      # current transaction, or in the last transaction once it has finished.
+      #
+      # It is #saved_changes merged over every save in the transaction: each
+      # change is an array of the value before the first save that changed the
+      # attribute and the value after the last save. Unlike #saved_changes,
+      # which only contains the changes of the last save, this is useful in
+      # `after_commit` callbacks, which run once for the whole transaction:
+      #
+      # ```
+      # class Person < ActiveRecord::Base
+      #   after_commit :send_confirmation_email, if: -> { transaction_changes.key?("email") }
+      # end
+      #
+      # Person.transaction do
+      #   person.update!(email: "alice@example.com")
+      #   person.update!(name: "Alice")
+      # end
+      #
+      # person.saved_changes.key?("email")       # => false
+      # person.transaction_changes.key?("email") # => true
+      # ```
+      #
+      # Attributes that the transaction saved back to their original value are
+      # not included, and neither are changes that are not saved yet (see
+      # #changes_to_save). The changes are kept when the record is reloaded,
+      # and are replaced when the record joins another transaction. After a
+      # rollback they are empty, but `after_rollback` callbacks see the changes
+      # that the transaction attempted to save.
+      #: () -> (ActiveSupport::HashWithIndifferentAccess | Hash[String, [ untyped, untyped ]])
+      def transaction_changes
+        return {} unless @_transaction_last_save_mutations
+
+        merge_saved_changes(@_transaction_saved_changes&.transform_values(&:dup), @_transaction_last_save_mutations.changes)
+      end
+
       # Will this attribute change the next time we save?
       #
       # This method is useful in validations and before callbacks to determine
@@ -218,6 +254,23 @@ module ActiveRecord
           @mutations_from_database = nil
           @_touch_attr_names = nil
           @_skip_dirty_tracking = nil
+          @_transaction_saved_changes = nil
+          @_transaction_last_save_mutations = nil
+        end
+
+        def remember_transaction_changes
+          if @_transaction_last_save_mutations
+            @_transaction_saved_changes = merge_saved_changes(@_transaction_saved_changes, @_transaction_last_save_mutations.changes)
+          end
+          @_transaction_last_save_mutations = @mutations_before_last_save
+        end
+
+        def merge_saved_changes(changes, saved_changes)
+          return saved_changes unless changes
+
+          changes.merge(saved_changes) do |attr_name, (original_value, _), (_, value)|
+            [original_value, value] if @attributes[attr_name].type.changed?(original_value, value, value)
+          end.compact
         end
 
         def _touch_row(attribute_names, time)
@@ -242,6 +295,7 @@ module ActiveRecord
           end
 
           changes_applied
+          remember_transaction_changes
           changes.each { |attr_name, value| _write_attribute(attr_name, value) }
 
           affected_rows
@@ -252,12 +306,14 @@ module ActiveRecord
         def _update_record(attribute_names = attribute_names_for_partial_updates)
           affected_rows = super
           changes_applied
+          remember_transaction_changes
           affected_rows
         end
 
         def _create_record(attribute_names = attribute_names_for_partial_inserts)
           id = super
           changes_applied
+          remember_transaction_changes
           id
         end
 
