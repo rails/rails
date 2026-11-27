@@ -187,7 +187,13 @@ module ActiveSupport
 
         stubs = simple_stubs
         stubbed_time = Time.now if stubs.stubbing(Time, :now)
-        stubs.stub_object(Time, :now) { at(now) }
+        stubs.stub_object(Time, :now) do |**options|
+          if options.empty?
+            at(now)
+          else
+            at(now, **options)
+          end
+        end
 
         stubs.stub_object(Time, :new) do |*args, **options|
           if args.empty? && options.empty?
