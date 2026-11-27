@@ -20,31 +20,13 @@ module ActiveRecord
               raise ArgumentError, "#{self.name} has no attribute `#{canonical_name}` to define a reader for"
             end
 
-            reader_slots = (@attribute_reader_slots ||= {})
-            if reader_slots.fetch(canonical_name) { reader_slots[canonical_name] = slot } != slot
-              reader_slots[canonical_name] = nil
-              ActiveModel::AttributeMethods::AttrNames.define_attribute_accessor_method(
-                canonical_name
-              ) do |temp_method_name, attr_name_expr|
-                owner.define_cached_method(temp_method_name, as: as, namespace: :active_record) do |batch|
-                  batch <<
-                    "def #{temp_method_name}" <<
-                    "  _read_attribute!(#{attr_name_expr})" <<
-                    "end"
-                end
-              end
-              return
-            end
-
-            ActiveModel::AttributeMethods::AttrNames.define_attribute_accessor_method(
-              "_read_attribute_#{slot}"
-            ) do |temp_method_name|
-              owner.define_cached_method(temp_method_name, as: as, namespace: :active_record_slot) do |batch|
-                batch <<
-                  "def #{temp_method_name}" <<
-                  "  _read_attribute_at!(#{slot})" <<
-                  "end"
-              end
+            if @attribute_reader_layout == false
+              define_proxy_call(owner, canonical_name, "_read_attribute!", nil, canonical_name, namespace: :active_record, as: as)
+            else
+              define_proxy_call(
+                owner, "_read_attribute_#{slot}", "_read_attribute_at!", nil, slot,
+                namespace: :active_record_slot, as: as
+              )
             end
           end
       end

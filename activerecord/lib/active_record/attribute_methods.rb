@@ -139,6 +139,18 @@ module ActiveRecord
 
           unless abstract_class?
             load_schema
+
+            # Existing records retain their layout. Once layouts differ,
+            # keep generating readers by name even if the layout changes back.
+            unless @attribute_reader_layout == false
+              indexes = attributes_builder.indexes
+              if @attribute_reader_layout && @attribute_reader_layout != indexes
+                @attribute_reader_layout = false
+              else
+                @attribute_reader_layout = indexes
+              end
+            end
+
             super(attribute_names)
             define_id_value if _has_attribute?("id") && !_has_attribute?("id_value")
           end

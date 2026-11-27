@@ -84,6 +84,18 @@ class HotCompatibilityTest < ActiveRecord::TestCase
     assert_equal "bar", record.bar
   end
 
+  test "read an added column on a record loaded with extra select columns" do
+    @klass.create!
+    record = @klass.select("hot_compatibilities.*, 1 AS one").first
+
+    @klass.lease_connection.add_column :hot_compatibilities, :baz, :string
+    @klass.reset_column_information
+    @klass.first
+
+    assert_nil record.baz
+    assert_equal 1, record.one
+  end
+
   test "read a record loaded with extra select columns before reset_column_information" do
     @klass.create!(foo: "foo", bar: "bar")
     record = @klass.select("hot_compatibilities.*, 1 AS one").first
