@@ -719,6 +719,25 @@ module CallbacksTest
         [:before_save, :combined_symbol],
       ], person.history
     end
+
+    def test_frozen_array_of_conditions
+      conditions = [:yes].freeze
+
+      klass = Class.new(Record) do
+        before_save Proc.new { |r| r.history << :if }, if: conditions
+        before_save Proc.new { |r| r.history << "b00m" }, unless: conditions
+
+        def yes; true; end
+
+        def save
+          run_callbacks :save
+        end
+      end
+
+      person = klass.new
+      person.save
+      assert_equal [:if], person.history
+    end
   end
 
   class ResetCallbackTest < ActiveSupport::TestCase

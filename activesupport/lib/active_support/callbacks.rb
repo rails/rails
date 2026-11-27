@@ -348,7 +348,7 @@ module ActiveSupport
               MSG
             end
 
-            conditionals.map! { |conditional| try_shareable_proc(conditional) }
+            conditionals.map { |conditional| try_shareable_proc(conditional) }
           end
 
           def conditions_lambdas
