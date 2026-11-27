@@ -43,6 +43,7 @@ PATH
       activesupport (= 8.1.4.1)
       builder (~> 3.1)
       erubi (~> 1.11)
+      prism (~> 1.0)
       rails-dom-testing (~> 2.2)
       rails-html-sanitizer (~> 1.6, >= 1.7.2)
     activejob (8.1.4.1)
