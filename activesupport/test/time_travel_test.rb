@@ -112,6 +112,15 @@ class TimeTravelTest < ActiveSupport::TestCase
     end
   end
 
+  def test_time_helper_travel_to_with_time_now_in_a_time_zone
+    expected_time = Time.new(2004, 11, 24, 1, 4, 44)
+
+    travel_to expected_time do
+      assert_equal expected_time, Time.now(in: "+09:00")
+      assert_equal 9 * 3600, Time.now(in: "+09:00").utc_offset
+    end
+  end
+
   def test_time_helper_travel_to_with_different_system_and_application_time_zones
     with_env_tz "US/Eastern" do # system time zone: -05
       expected_time_in_2021 = Time.new(2021)
