@@ -373,6 +373,16 @@ module ActiveModel
     end
     alias :to_h :to_hash
 
+    #: () -> Hash[String, untyped]
+    def values_before_type_cast
+      attributes_to_hash { |attribute| attribute.value_before_type_cast }
+    end
+
+    #: () -> Hash[String, untyped]
+    def values_for_database
+      attributes_to_hash { |attribute| attribute.value_for_database }
+    end
+
     #: (String) ?{ (String) -> untyped } -> untyped
     def fetch_value(name, &block)
       index = index_for_name(name)
@@ -483,6 +493,21 @@ module ActiveModel
       end
 
     private
+      #: () { (ActiveModel::Attribute) -> untyped } -> Hash[String, untyped]
+      def attributes_to_hash
+        materialize
+        snapshot = @attributes&.dup
+        hash = {}
+        return hash unless snapshot
+
+        indexes.each_key do |name|
+          if attribute = snapshot[index_for_name(name)]
+            hash[name] = yield(attribute)
+          end
+        end
+        hash
+      end
+
       #: () -> void
       def materialize
         unless @materialized
