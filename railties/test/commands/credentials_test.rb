@@ -153,6 +153,20 @@ class Rails::Command::CredentialsTest < ActiveSupport::TestCase
     assert_match %r/provides_secret_key_base: true/, run_edit_command
   end
 
+  test "edit command prints an error and does not open the editor when the master key has the wrong length" do
+    app_file "config/master.key", read_file("config/master.key").chop
+    encrypted_content = File.binread(app_path("config/credentials.yml.enc"))
+    editor_marker = app_path("editor_opened")
+
+    output = run_edit_command(visual: %(ruby -e "File.write '#{editor_marker}', ''"), allow_failure: true)
+
+    assert_not_predicate $?, :success?
+    assert_match(/Encryption key must be exactly 32 characters/, output)
+    assert_no_match(/\.rb:\d+:in /, output)
+    assert_not File.exist?(editor_marker)
+    assert_equal encrypted_content, File.binread(app_path("config/credentials.yml.enc"))
+  end
+
   test "edit command does not display save confirmation message if interrupted" do
     assert_match %r/file encrypted and saved/i, run_edit_command
 
@@ -187,6 +201,16 @@ class Rails::Command::CredentialsTest < ActiveSupport::TestCase
 
     stderr_output = capture(:stderr) { run_show_command(stderr: true, allow_failure: true) }
     assert_match(/Missing 'config\/master\.key' to decrypt credentials/, stderr_output)
+  end
+
+  test "show command prints an error when the master key has the wrong length" do
+    app_file "config/master.key", read_file("config/master.key").chop
+
+    output = run_show_command(allow_failure: true)
+
+    assert_not_predicate $?, :success?
+    assert_match(/Encryption key must be exactly 32 characters/, output)
+    assert_no_match(/\.rb:\d+:in /, output)
   end
 
   test "show command displays content specified by environment option" do
@@ -285,6 +309,13 @@ class Rails::Command::CredentialsTest < ActiveSupport::TestCase
     assert_match(raw_content, run_diff_command("config/credentials.yml.enc"))
   end
 
+  test "diff when master key has the wrong length" do
+    app_file "config/master.key", read_file("config/master.key").chop
+
+    raw_content = File.read(app_path("config", "credentials.yml.enc"))
+    assert_match(raw_content, run_diff_command("config/credentials.yml.enc"))
+  end
+
   test "diff for custom environment" do
     run_edit_command(environment: "custom")
 
@@ -348,6 +379,16 @@ class Rails::Command::CredentialsTest < ActiveSupport::TestCase
     end
 
     assert_credentials_paths "config/credentials/production.yml.enc", key_path, environment: "production"
+  end
+
+  test "fetch command prints an error when the master key has the wrong length" do
+    app_file "config/master.key", read_file("config/master.key").chop
+
+    output = run_fetch_command("foo.bar", allow_failure: true)
+
+    assert_not_predicate $?, :success?
+    assert_match(/Encryption key must be exactly 32 characters/, output)
+    assert_no_match(/\.rb:\d+:in /, output)
   end
 
   test "fetch value for given path" do

@@ -112,19 +112,58 @@ class EncryptedFileTest < ActiveSupport::TestCase
   end
 
   test "raise InvalidKeyLengthError when key is too short" do
-    File.write(@key_path, ActiveSupport::EncryptedFile.generate_key[0..-2])
+    @encrypted_file.write(@content)
+    File.write(@key_path, @key.chop)
 
-    assert_raise ActiveSupport::EncryptedFile::InvalidKeyLengthError do
-      @encrypted_file.write(@content)
-    end
+    assert_raise(ActiveSupport::EncryptedFile::InvalidKeyLengthError) { encrypted_file(@content_path).read }
+    assert_raise(ActiveSupport::EncryptedFile::InvalidKeyLengthError) { encrypted_file(@content_path).write(@content) }
   end
 
   test "raise InvalidKeyLengthError when key is too long" do
-    File.write(@key_path, ActiveSupport::EncryptedFile.generate_key + "0")
+    @encrypted_file.write(@content)
+    File.write(@key_path, @key + "0")
 
-    assert_raise ActiveSupport::EncryptedFile::InvalidKeyLengthError do
-      @encrypted_file.write(@content)
+    assert_raise(ActiveSupport::EncryptedFile::InvalidKeyLengthError) { encrypted_file(@content_path).read }
+    assert_raise(ActiveSupport::EncryptedFile::InvalidKeyLengthError) { encrypted_file(@content_path).write(@content) }
+  end
+
+  test "key? does not raise when the key has the wrong length" do
+    File.write(@key_path, @key.chop)
+
+    assert_nothing_raised do
+      assert_predicate encrypted_file(@content_path), :key?
     end
+  end
+
+  test "raise InvalidKeyLengthError when a key is missing its final zero" do
+    key = @key[0...-1] + "0"
+    File.write(@key_path, key)
+    encrypted_file(@content_path).write(@content)
+    File.write(@key_path, key.chop)
+
+    assert_raise(ActiveSupport::EncryptedFile::InvalidKeyLengthError) { encrypted_file(@content_path).read }
+    assert_raise(ActiveSupport::EncryptedFile::InvalidKeyLengthError) { encrypted_file(@content_path).write(@content) }
+  end
+
+  test "raise InvalidKeyLengthError when key is two characters too short" do
+    @encrypted_file.write(@content)
+    File.write(@key_path, @key[0...-2])
+
+    assert_raise(ActiveSupport::EncryptedFile::InvalidKeyLengthError) { encrypted_file(@content_path).read }
+    assert_raise(ActiveSupport::EncryptedFile::InvalidKeyLengthError) { encrypted_file(@content_path).write(@content) }
+  end
+
+  test "raise InvalidKeyLengthError when env key changes after encryptor is memoized" do
+    FileUtils.rm_rf @key_path
+    ENV["CONTENT_KEY"] = @key
+    @encrypted_file.write(@content)
+    ENV["CONTENT_KEY"] = @key.chop
+
+    assert_raise(ActiveSupport::EncryptedFile::InvalidKeyLengthError) { @encrypted_file.read }
+    assert_raise(ActiveSupport::EncryptedFile::InvalidKeyLengthError) { @encrypted_file.write(@content) }
+
+    ENV["CONTENT_KEY"] = @key
+    assert_equal @content, @encrypted_file.read
   end
 
   test "respects existing content_path symlink" do
