@@ -82,8 +82,8 @@ module ActionMailbox
 
     # Create an InboundEmail from fixture using the same arguments as create_inbound_email_from_fixture
     # and immediately route it to processing.
-    def receive_inbound_email_from_fixture(*args)
-      create_inbound_email_from_fixture(*args).tap(&:route)
+    def receive_inbound_email_from_fixture(*args, **kwargs)
+      create_inbound_email_from_fixture(*args, **kwargs).tap(&:route)
     end
 
     # Create an InboundEmail using the same options or block as
@@ -94,8 +94,8 @@ module ActionMailbox
 
     # Create an InboundEmail using the same arguments as create_inbound_email_from_source and immediately route it
     # to processing.
-    def receive_inbound_email_from_source(*args)
-      create_inbound_email_from_source(*args).tap(&:route)
+    def receive_inbound_email_from_source(*args, **kwargs)
+      create_inbound_email_from_source(*args, **kwargs).tap(&:route)
     end
   end
 end
