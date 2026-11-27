@@ -93,13 +93,24 @@ module AbstractController
       # The basic idea is that `:only => :index` gets converted to `:if => proc {|c|
       # c.action_name == "index" }`.
       #
-      # Note that `:only` has priority over `:if` in case they are used together.
+      # When `:only` or `:except` is used together with `:if` or `:unless`, a
+      # callback runs only when all of them hold:
       #
-      #     only: :index, if: -> { true } # the :if option will be ignored.
+      #     before_action :authenticate, only: :index, if: -> { false } # never runs
       #
-      # Note that `:if` has priority over `:except` in case they are used together.
+      # A skip, however, applies as soon as any one of them holds: the action is
+      # one that `:only` names (or that `:except` does not), the `:if` is true, or
+      # the `:unless` is false. So it can reach actions the list leaves out:
       #
-      #     except: :index, if: -> { true } # the :except option will be ignored.
+      #     # Each of these skips :authenticate for every action.
+      #     skip_before_action :authenticate, only: :index, if: -> { true }
+      #     skip_before_action :authenticate, only: :index, unless: -> { false }
+      #     skip_before_action :authenticate, except: :index, if: -> { true }
+      #
+      # To skip a callback for some actions only when a condition holds, check
+      # both in one condition:
+      #
+      #     skip_before_action :authenticate, if: -> { action_name == "index" && public_listing? }
       #
       # #### Options
       # *   `only`   - The callback should be run only for this action.
