@@ -44,6 +44,8 @@ module ActiveRecord
           def initialize(buffer, instrumenter, name, payload)
             @buffer = buffer
             @event = instrumenter.new_event(name, payload)
+            # The adapter keeps filling in the payload after the query has started.
+            @event.payload = payload
           end
 
           def start
