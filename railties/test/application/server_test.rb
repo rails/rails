@@ -24,6 +24,10 @@ module ApplicationTests
         f.puts 'require "bundler/setup"'
       end
 
+      # Puma restarts only when tmp/restart.txt gets an mtime newer than the
+      # one it had at boot, and a touch right after boot may not change it.
+      FileUtils.touch("#{app_path}/tmp/restart.txt", mtime: Time.now - 60)
+
       primary, replica = PTY.open
       pid = nil
 
