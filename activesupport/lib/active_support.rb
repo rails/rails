@@ -45,6 +45,7 @@ module ActiveSupport
   autoload :ContinuousIntegration
   autoload :CurrentAttributes
   autoload :DateFormats
+  autoload :Deadline
   autoload :Dependencies
   autoload :DescendantsTracker
   autoload :Editor
@@ -174,6 +175,12 @@ module ActiveSupport
   # recognizable date information.
   singleton_class.attr_accessor :raise_on_invalid_time_zone_parse
   @raise_on_invalid_time_zone_parse = false
+
+  singleton_class.attr_accessor :executor # :nodoc:
+
+  def self.deadline
+    @executor&.deadline || Deadline::Null
+  end
 end
 
 autoload :I18n, "active_support/i18n"

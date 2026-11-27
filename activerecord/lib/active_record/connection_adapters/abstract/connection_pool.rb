@@ -232,13 +232,13 @@ module ActiveRecord
 
       module ExecutorHooks # :nodoc:
         class << self
-          def run
+          def run(executor)
             outer = ConnectionPool.used_pools
             ConnectionPool.used_pools = outer&.dup
             outer
           end
 
-          def complete(outer)
+          def complete(executor, outer)
             kept = nil
 
             ConnectionPool.each_used_pool do |pool|
@@ -262,7 +262,7 @@ module ActiveRecord
 
       class << self
         def install_executor_hooks(executor = ActiveSupport::Executor)
-          executor.register_hook(ExecutorHooks)
+          executor.register_hook(ExecutorHooks, instance: true)
         end
 
         def used_pools # :nodoc:
@@ -1229,11 +1229,15 @@ module ActiveRecord
         # Raises:
         #
         # - ActiveRecord::ConnectionTimeoutError if a connection could not be acquired
+        # - ActiveRecord::DeadlineExceededError if a connection could not be acquired before the executor deadline is exceeded
         #
         #--
         # Implementation detail: the connection returned by +acquire_connection+
         # will already be "+connection.lease+ -ed" to the current thread.
-        def acquire_connection(checkout_timeout)
+        def acquire_connection(max_checkout_timeout)
+          deadline = ActiveSupport.deadline
+          checkout_timeout = deadline.clamp(max_checkout_timeout, error: DeadlineExceededError)
+
           # NOTE: we rely on <tt>@available.poll</tt> and +try_to_checkout_new_connection+ to
           # +conn.lease+ the returned connection (and to do this in a +synchronized+
           # section). This is not the cleanest implementation, as ideally we would
@@ -1255,6 +1259,7 @@ module ActiveRecord
             end
           end
         rescue ConnectionTimeoutError => ex
+          deadline.check!(error: DeadlineExceededError) # raise DeadlineExceededError instead if it applies.
           raise ex.set_pool(self)
         end
 

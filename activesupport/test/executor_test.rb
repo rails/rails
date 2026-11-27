@@ -134,6 +134,33 @@ class ExecutorTest < ActiveSupport::TestCase
     assert_equal :some_state, supplied_state
   end
 
+  def test_hooks_pass_executor_instance
+    supplied_state = :none
+    run_executor_instance = nil
+    complete_executor_instance = nil
+
+    hook = Class.new do
+      define_method(:run) do |executor_instance|
+        run_executor_instance = executor_instance
+        :some_state
+      end
+
+      define_method(:complete) do |executor_instance, state|
+        complete_executor_instance = executor_instance
+        supplied_state = state
+      end
+    end.new
+
+    executor.register_hook(hook, instance: true)
+
+    executor.wrap { }
+
+    assert_equal :some_state, supplied_state
+    assert_instance_of executor, run_executor_instance
+    assert_instance_of executor, complete_executor_instance
+    assert_same run_executor_instance, complete_executor_instance
+  end
+
   def test_nil_state_is_sufficient
     supplied_state = :none
 
@@ -257,6 +284,6 @@ class ExecutorTest < ActiveSupport::TestCase
 
   private
     def executor
-      @executor ||= Class.new(ActiveSupport::Executor)
+      @executor ||= Class.new(ActiveSupport::Executor).set_temporary_name("TestExecutor<#{self.name}>")
     end
 end

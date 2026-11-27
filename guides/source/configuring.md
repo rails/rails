@@ -394,6 +394,16 @@ Sets up the application-wide encoding. Defaults to UTF-8.
 Sets the exceptions application invoked by the `ShowException` middleware when an exception happens.
 Defaults to `ActionDispatch::PublicExceptions.new(Rails.public_path)`.
 
+#### `config.executor_timeout`
+
+Sets the maximum amount of time in seconds that a unit of work (request or job) is given to complete.
+Defaults to `nil`, no limit.
+
+This timeout is purely cooperative, only code that is aware of `ActiveSupport.deadline` and do the necessary work to respect it
+will be timed out.
+
+It should be set a few seconds lower than any preceding timeout (web server, reverse proxy, etc).
+
 #### `config.file_watcher`
 
 Is the class used to detect file updates in the file system when `config.reload_classes_only_on_change` is `true`. Rails ships with `ActiveSupport::FileUpdateChecker`, the default, and `ActiveSupport::EventedFileUpdateChecker`. Custom classes must conform to the `ActiveSupport::FileUpdateChecker` API.

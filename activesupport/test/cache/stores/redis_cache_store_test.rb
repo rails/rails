@@ -21,6 +21,20 @@ module ActiveSupport::Cache::RedisCacheStoreTests
     $stderr.puts "Skipping redis tests. Start redis and try again."
   end
 
+
+  class FakeConnection
+    attr_reader :commands
+
+    def initialize
+      @commands = []
+    end
+
+    def call(*args)
+      @commands << args
+      "OK-#{@commands.size}"
+    end
+  end
+
   class LookupTest < ActiveSupport::TestCase
     test "may be looked up as :redis_cache_store" do
       assert_kind_of ActiveSupport::Cache::RedisCacheStore,
@@ -77,30 +91,37 @@ module ActiveSupport::Cache::RedisCacheStoreTests
 
     test "clear without a namespace issues FLUSHDB on each HashRing node" do
       @cache = build url: REDIS_URLS
-      flushed = []
 
-      @cache.redis.nodes.each do |node|
-        node.define_singleton_method(:call) do |command, *|
-          flushed << command
-          "OK"
+      fake_connection = FakeConnection.new
+
+      nodes = @cache.redis.nodes
+      @cache.define_singleton_method(:with_connection_for_each_node) do |&block|
+        nodes.each do
+          block.call(fake_connection)
         end
+        nil
       end
 
       @cache.clear
-
-      assert_equal ["flushdb"] * REDIS_URLS.size, flushed
+      assert_equal [["flushdb"]] * REDIS_URLS.size, fake_connection.commands
     end
 
     test "stats collects INFO from each HashRing node" do
       @cache = build url: REDIS_URLS
 
-      @cache.redis.nodes.each_with_index do |node, index|
-        node.define_singleton_method(:call) do |command, *|
-          "info-#{index}" if command == "info"
+      fake_connection = FakeConnection.new
+
+      nodes = @cache.redis.nodes
+      @cache.define_singleton_method(:with_connection_for_each_node) do |&block|
+        nodes.each do
+          block.call(fake_connection)
         end
+        nil
       end
 
-      assert_equal ["info-0", "info-1"], @cache.stats
+      result = @cache.stats
+      assert_equal [["info"], ["info"]], fake_connection.commands
+      assert_equal ["OK-1", "OK-2"], result
     end
 
     test "one :client Config" do
@@ -240,6 +261,7 @@ module ActiveSupport::Cache::RedisCacheStoreTests
     include CacheInstrumentationBehavior
     include CacheLoggingBehavior
     include EncodedKeyCacheBehavior
+    include CacheStoreDeadlineBehavior
 
     def test_fetch_multi_uses_redis_mget
       commands = capture_redis_commands do

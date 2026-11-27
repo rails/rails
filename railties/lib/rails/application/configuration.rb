@@ -14,7 +14,8 @@ module Rails
     class Configuration < ::Rails::Engine::Configuration
       attr_accessor :allow_concurrency, :asset_host, :assume_ssl, :autoflush_log,
                     :cache_classes, :cache_store, :consider_all_requests_local, :console,
-                    :eager_load, :exceptions_app, :file_watcher, :filter_parameters, :precompile_filter_parameters,
+                    :eager_load, :executor_timeout, :exceptions_app, :file_watcher, :filter_parameters,
+                    :precompile_filter_parameters,
                     :force_ssl, :helpers_paths, :hosts, :host_authorization, :logger, :log_formatter,
                     :log_tags, :silence_healthcheck_path, :railties_order, :relative_url_root,
                     :ssl_options, :public_file_server,
@@ -60,6 +61,7 @@ module Rails
         @railties_order                          = [:all]
         @relative_url_root                       = ENV["RAILS_RELATIVE_URL_ROOT"]
         @reload_classes_only_on_change           = true
+        @executor_timeout                        = nil
         @file_watcher                            = ActiveSupport::FileUpdateChecker
         @exceptions_app                          = nil
         @autoflush_log                           = true

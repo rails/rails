@@ -6,6 +6,7 @@ require "active_record/connection_adapters/abstract/schema_creation"
 require "active_support/concurrency/null_lock"
 require "active_support/concurrency/load_interlock_aware_monitor"
 require "active_support/concurrency/thread_monitor"
+require "active_support/deadline"
 require "arel/collectors/bind"
 require "arel/collectors/composite"
 require "arel/collectors/sql_string"
@@ -1167,7 +1168,12 @@ module ActiveRecord
       end
 
       def downgrade_connection_after_error(exception) # :nodoc:
-        unless retryable_query_error?(exception)
+        if exception.is_a?(ActiveRecord::DeadlineExceededError)
+          # If we reached a deadline we can't be sure which state the connection
+          # is in, e.g. we might fail to issue a `ROLLBACK` or any other type
+          # of statement that has a stateful effect on the connection.
+          disconnect!
+        elsif !retryable_query_error?(exception)
           # Barring a known-retryable error inside the query (regardless of
           # whether we were in a _position_ to retry it), we should infer that
           # there's likely a real problem with the connection.

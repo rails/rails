@@ -203,6 +203,33 @@ module ActiveRecord
       assert_predicate intent, :finalized?
     end
 
+    test "exceeded deadline is checked before querying" do
+      deadline = ActiveSupport::Deadline.new(-1)
+      ActiveSupport.stub(:deadline, deadline) do
+        intent = build_intent(@connection, allow_retry: true)
+        assert_same deadline, intent.deadline
+        intent.execute!
+        assert_raises ActiveRecord::DeadlineExceededError do
+          intent.cast_result
+        end
+      end
+    end
+
+    test "an exceeded deadline closes the connnection" do
+      # Intented for queries we should always run, e.g. ROLLBACK
+      @connection.verify!
+      assert_predicate @connection, :verified?
+
+      ActiveSupport.stub(:deadline, ActiveSupport::Deadline.new(-1)) do
+        intent = build_intent(@connection, allow_retry: true)
+
+        intent.execute!
+
+        assert_not_predicate @connection, :verified?
+        assert_not_predicate @connection, :active?
+      end
+    end
+
     test "exhausted retries make the final failure available" do
       connection = @connection
       intent = build_intent(connection, allow_retry: true)

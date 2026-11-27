@@ -1800,6 +1800,14 @@ module ActiveRecord
         assert_equal(expected, order)
       end
 
+      def test_checkout_deadline
+        ActiveSupport.stub(:deadline, ActiveSupport::Deadline.new(-1)) do
+          assert_raises ActiveRecord::DeadlineExceededError, match: /Deadline exceeded/ do
+            @pool.checkout
+          end
+        end
+      end
+
       # As mentioned in #test_checkout_fairness, we don't care about
       # strict fairness.  This test creates two groups of threads:
       # group1 whose members all start waiting before any thread in

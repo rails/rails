@@ -933,6 +933,15 @@ module ActiveRecord
           raise NotImplementedError
         end
 
+        # Since not all clients support deadlines or adaptive timeouts,
+        # for these the best we can do is check the deadline before attempting a blocking
+        # call.
+        # For adapters that have proper deadline support, this can be redefined as an empty method.
+        def check_deadline!(intent = nil)
+          deadline = intent ? intent.deadline : ActiveSupport.deadline
+          deadline.check!(error: DeadlineExceededError)
+        end
+
         def internal_build_intent(sql, name = "SQL", binds = [], prepare: false, allow_retry: false, materialize_transactions: true, &block)
           QueryIntent.new(
             adapter: self,

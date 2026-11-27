@@ -102,6 +102,7 @@ class MemCacheStoreTest < ActiveSupport::TestCase
   include EncodedKeyCacheBehavior
   include ConnectionPoolBehavior
   include FailureSafetyBehavior
+  include CacheStoreDeadlineBehavior
 
   test "validate pool arguments" do
     assert_raises TypeError do

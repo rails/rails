@@ -110,6 +110,8 @@ module ActiveRecord
           end
 
           def perform_query(raw_connection, intent)
+            check_deadline!(intent)
+
             total_changes_before_query = raw_connection.total_changes
             affected_rows = nil
 

@@ -17,7 +17,10 @@ module ActiveSupport
 
     class << self
       attr_reader :active_key # :nodoc:
+      attr_accessor :default_timeout
     end
+
+    attr_reader :deadline
 
     def self.inherited(subclass)
       subclass.class_eval { @active_key = :"active_execution_wrapper_#{object_id}" }
@@ -31,18 +34,34 @@ module ActiveSupport
       set_callback(:complete, *args, &block)
     end
 
-    RunHook = Struct.new(:hook) do # :nodoc:
-      def before(target)
-        hook_state = target.send(:hook_state)
-        hook_state[hook] = hook.run
+    class Hook # :nodoc:
+      def initialize(hook, pass_target)
+        @hook = hook
+        @pass_target = pass_target
       end
     end
 
-    CompleteHook = Struct.new(:hook) do # :nodoc:
+    class RunHook < Hook # :nodoc:
       def before(target)
-        hook_state = target.send(:hook_state)
-        if hook_state.key?(hook)
-          hook.complete hook_state[hook]
+        state = if @pass_target
+          @hook.run(target)
+        else
+          @hook.run
+        end
+        target.hook_state[@hook] = state
+      end
+    end
+
+    class CompleteHook < Hook # :nodoc:
+      def before(target)
+        hook_state = target.hook_state
+        if hook_state.key?(@hook)
+          state = hook_state[@hook]
+          if @pass_target
+            @hook.complete target, state
+          else
+            @hook.complete state
+          end
         end
       end
       alias after before
@@ -56,13 +75,13 @@ module ActiveSupport
     # (Mostly, this means it won't be invoked if an exception occurs in
     # a preceding `to_run` block; all ordinary `to_complete` blocks are
     # invoked in that situation.)
-    def self.register_hook(hook, outer: false)
+    def self.register_hook(hook, outer: false, instance: false)
       if outer
-        to_run RunHook.new(hook), prepend: true
-        to_complete :after, CompleteHook.new(hook)
+        to_run RunHook.new(hook, instance), prepend: true
+        to_complete :after, CompleteHook.new(hook, instance)
       else
-        to_run RunHook.new(hook)
-        to_complete CompleteHook.new(hook)
+        to_run RunHook.new(hook, instance)
+        to_complete CompleteHook.new(hook, instance)
       end
     end
 
@@ -124,7 +143,12 @@ module ActiveSupport
       IsolatedExecutionState.key?(active_key)
     end
 
+    def self.deadline
+      IsolatedExecutionState[active_key]&.deadline
+    end
+
     def run! # :nodoc:
+      @deadline = self.class.default_timeout ? Deadline.new(self.class.default_timeout) : Deadline::Null
       IsolatedExecutionState[self.class.active_key] = self
       run
     end
@@ -140,6 +164,7 @@ module ActiveSupport
     def complete!
       complete
     ensure
+      @deadline.close
       IsolatedExecutionState.delete(self.class.active_key)
     end
 
@@ -147,9 +172,8 @@ module ActiveSupport
       run_callbacks(:complete)
     end
 
-    private
-      def hook_state
-        @_hook_state ||= {}
-      end
+    def hook_state # :nodoc:
+      @_hook_state ||= {}
+    end
   end
 end
