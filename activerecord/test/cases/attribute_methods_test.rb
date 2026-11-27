@@ -388,6 +388,27 @@ class AttributeMethodsTest < ActiveRecord::TestCase
     assert_equal Topic.column_names, Topic.instantiate(topic.attributes_for_database).attributes.keys
   end
 
+  test "attributes_for_database serializes the attributes the record had when it was called" do
+    topic = Topic.new(title: "title", author_name: "David")
+    title = Object.new
+    title.define_singleton_method(:to_s) { topic.author_name = "Mary"; "title" }
+    topic.title = title
+
+    assert_equal "David", topic.attributes_for_database["author_name"]
+    assert_equal "Mary", topic.author_name
+  end
+
+  test "attributes_before_type_cast returns the attributes the record had when it was called" do
+    topic = nil
+    klass = Class.new(Topic) do
+      attribute :title, default: -> { topic.author_name = "Mary"; "title" }
+    end
+    topic = klass.new(author_name: "David")
+
+    assert_equal "David", topic.attributes_before_type_cast["author_name"]
+    assert_equal "Mary", topic.author_name
+  end
+
   test "read attributes after type cast on a date" do
     tz = "Pacific Time (US & Canada)"
 
