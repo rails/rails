@@ -197,7 +197,8 @@ module ActiveJob
       end
 
       def args_info(event)
-        if (arguments = event[:payload][:arguments]) && arguments.any?
+        arguments = Array(event[:payload][:arguments])
+        if arguments.any?
           " with arguments: " +
             arguments.map { |arg| format(arg).inspect }.join(", ")
         else

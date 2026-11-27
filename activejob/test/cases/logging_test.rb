@@ -98,6 +98,23 @@ class LoggingTest < ActiveSupport::TestCase
     assert_match(/Enqueued HelloJob \(Job ID: .*?\) to .*?:.*Cristian/, @logger.messages)
   end
 
+  def test_enqueue_job_logging_filters_keyword_arguments
+    with_filter_parameters(:token) do
+      LoggingJob.perform_later "Cristian", token: "secret"
+    end
+
+    assert_match(/Enqueued LoggingJob \(Job ID: .*?\) to .*? with arguments: "Cristian", #{Regexp.escape({ token: "[FILTERED]" }.inspect)}/, @logger.messages)
+    assert_match(/Performing LoggingJob \(Job ID: .*?\) from .*? with arguments: "Cristian", #{Regexp.escape({ token: "[FILTERED]" }.inspect)}/, @logger.messages)
+  end
+
+  def test_logging_a_job_whose_arguments_are_filtered_as_a_whole
+    with_filter_parameters(:arguments) do
+      LoggingJob.perform_later "Cristian"
+    end
+
+    assert_match(/Enqueued LoggingJob \(Job ID: .*?\) to .*? with arguments: "\[FILTERED\]"/, @logger.messages)
+  end
+
   def test_enqueue_job_with_no_arguments_omits_the_arguments_suffix
     ConfigurationJob.perform_later
 
@@ -214,6 +231,14 @@ class LoggingTest < ActiveSupport::TestCase
       end
 
       assert_match(/Enqueued HelloJob \(Job ID: .*\) to .*? at.*Cristian/, @logger.messages)
+    end
+
+    def test_enqueue_at_job_logging_filters_keyword_arguments
+      with_filter_parameters(:token) do
+        LoggingJob.set(wait_until: 24.hours.from_now).perform_later "Cristian", token: "secret"
+      end
+
+      assert_match(/Enqueued LoggingJob \(Job ID: .*?\) to .*? at .*? with arguments: "Cristian", #{Regexp.escape({ token: "[FILTERED]" }.inspect)}/, @logger.messages)
     end
   end
 
@@ -511,6 +536,17 @@ class LoggingTest < ActiveSupport::TestCase
     perform_enqueued_jobs { RetryJob.perform_later "DiscardableError", 2 }
     assert_match(/Discarded RetryJob \(Job ID: .*?\) due to a DiscardableError.*\./, @logger.messages)
   end
+
+  private
+    def with_filter_parameters(*filters)
+      original = ActiveSupport.filter_parameters
+      ActiveSupport.filter_parameters = filters
+      ActiveSupport.event_reporter.reload_payload_filter
+      yield
+    ensure
+      ActiveSupport.filter_parameters = original
+      ActiveSupport.event_reporter.reload_payload_filter
+    end
 end
 
 class LoggingRactorTest < ActiveSupport::TestCase

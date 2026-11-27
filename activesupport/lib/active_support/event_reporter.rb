@@ -654,6 +654,13 @@ module ActiveSupport
       payload_filter
     end
 
+    def payload_filter # :nodoc:
+      @payload_filter ||= begin
+        mask = ActiveSupport::ParameterFilter::FILTERED
+        ActiveSupport::ParameterFilter.new(filter_parameters, mask: mask)
+      end
+    end
+
     private
       # Errors here must not bypass the per-subscriber error handling in
       # #notify: a subscriber whose consumes? blows up is treated as
@@ -676,13 +683,6 @@ module ActiveSupport
 
       def context_store
         self.class.context_store
-      end
-
-      def payload_filter
-        @payload_filter ||= begin
-          mask = ActiveSupport::ParameterFilter::FILTERED
-          ActiveSupport::ParameterFilter.new(filter_parameters, mask: mask)
-        end
       end
 
       def resolve_name(name_or_object)
