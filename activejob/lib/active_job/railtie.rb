@@ -87,6 +87,12 @@ module ActiveJob
       end
     end
 
+    initializer "active_job.action_mailer_test_helper" do
+      ActiveSupport.on_load(:action_mailer_test_helper) do
+        prepend ActiveJob::ActionMailerTestHelper
+      end
+    end
+
     initializer "active_job.set_reloader_hook" do |app|
       ActiveSupport.on_load(:active_job) do
         reloader = app.reloader

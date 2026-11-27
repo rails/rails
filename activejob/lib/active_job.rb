@@ -51,6 +51,7 @@ module ActiveJob
 
   autoload :TestCase
   autoload :TestHelper
+  autoload :ActionMailerTestHelper
 
   ##
   # :singleton-method: verbose_enqueue_logs

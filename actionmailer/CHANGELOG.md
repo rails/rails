@@ -1,3 +1,12 @@
+*   Fix `ActionMailer::TestCase` and synchronous email assertions in apps that
+    do not use Active Job.
+
+    The Active Job railtie still adds the helpers for enqueued emails automatically.
+    To use these helpers outside a Rails application, require `active_job`.
+    Then call `ActionMailer::TestHelper.prepend(ActiveJob::ActionMailerTestHelper)`.
+
+    *Thomas Klemm*
+
 *   Don't run deliver callbacks when the mailer action didn't call `mail`.
 
     Previously, if a `before_action` halted the action or the action returned

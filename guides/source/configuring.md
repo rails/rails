@@ -4601,9 +4601,9 @@ end
 
 ### Available Load Hooks
 
-These are the load hooks you can use in your own code. To hook into the initialization process of one of the following classes use the available hook.
+These are the load hooks you can use in your own code. To run code when a class or module loads, use its hook.
 
-| Class                                | Hook                                 |
+| Class or Module                      | Hook                                 |
 | -------------------------------------| ------------------------------------ |
 | `ActionCable`                        | `action_cable`                       |
 | `ActionCable::Channel::Base`         | `action_cable_channel`               |
@@ -4625,6 +4625,7 @@ These are the load hooks you can use in your own code. To hook into the initiali
 | `ActionMailbox::TestCase`            | `action_mailbox_test_case`           |
 | `ActionMailer::Base`                 | `action_mailer`                      |
 | `ActionMailer::TestCase`             | `action_mailer_test_case`            |
+| `ActionMailer::TestHelper`           | `action_mailer_test_helper`          |
 | `ActionText::Content`                | `action_text_content`                |
 | `ActionText::Record`                 | `action_text_record`                 |
 | `ActionText::RichText`               | `action_text_rich_text`              |
