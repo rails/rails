@@ -250,6 +250,26 @@ Book.not_published # => [book2]
 Book.not_published # => [book2, book3]
 ```
 
+### Models can no longer define a `default_order` scope
+
+Active Record now has a `default_order` query method, so a model that defines a
+scope with that name raises when the class is loaded:
+
+```
+ArgumentError: You tried to define a scope named "default_order" on the model "Post", but Active Record already defined a class method with the same name.
+```
+
+A class method named `default_order` still runs when it is called on the model,
+but on a relation, as in `Post.where(published: true).default_order`, the query
+method runs instead. Called without arguments, it raises:
+
+```
+ArgumentError: The method .default_order() must contain arguments.
+```
+
+Called with arguments, it treats them as order arguments, so the call can raise
+or silently change the ordering. Rename the scope or class method.
+
 ### Upgrade Sidekiq to 8.0.3 or later
 
 The `sidekiq` adapter that Rails 8.1 deprecated has been removed, so the adapter
