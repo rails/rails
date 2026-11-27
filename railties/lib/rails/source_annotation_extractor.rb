@@ -21,7 +21,7 @@ module Rails
         return [] unless result.success?
 
         result.comments.filter_map do |comment|
-          Annotation.new(comment.location.start_line, $1, $2) if comment.location.slice =~ pattern
+          Annotation.new(comment.location.start_line, $1, $2) if comment.location.slice.scrub =~ pattern
         end
       end
     end

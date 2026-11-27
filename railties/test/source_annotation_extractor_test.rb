@@ -13,4 +13,14 @@ class SourceAnnotationExtractorTest < ActiveSupport::TestCase
       assert_equal "améliorer � ici", annotation.text
     end
   end
+
+  test "annotations extracted from a Ruby file are UTF-8 and invalid bytes are replaced" do
+    Dir.mktmpdir do |dir|
+      File.binwrite("#{dir}/post.rb", "# TODO: améliorer \xFF ici\n".b)
+      annotation = Rails::SourceAnnotationExtractor.new("TODO").find_in(dir)["#{dir}/post.rb"].first
+
+      assert_equal Encoding::UTF_8, annotation.text.encoding
+      assert_equal "améliorer � ici", annotation.text
+    end
+  end
 end
