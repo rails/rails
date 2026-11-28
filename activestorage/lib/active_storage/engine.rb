@@ -185,6 +185,7 @@ module ActiveStorage
         ActiveStorage.ffprobe_arguments = app.config.active_storage.ffprobe_arguments || ""
         ActiveStorage.ffmpeg_allowed_formats = app.config.active_storage.ffmpeg_allowed_formats
         ActiveStorage.track_variants = app.config.active_storage.track_variants || false
+        ActiveStorage.default_variant_format = app.config.active_storage.default_variant_format || :png
         ActiveStorage.s3_public_uploads_via_acl = app.config.active_storage.s3_public_uploads_via_acl != false
         ActiveStorage.analyze = app.config.active_storage.analyze || :later
         ActiveStorage.streaming_chunk_max_size = app.config.active_storage.streaming_chunk_max_size || 100.megabytes
