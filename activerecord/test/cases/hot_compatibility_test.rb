@@ -22,6 +22,7 @@ class HotCompatibilityTest < ActiveRecord::TestCase
 
   teardown do
     ActiveRecord::Base.lease_connection.drop_table :hot_compatibilities
+    @klass.reset_column_information
   end
 
   test "insert after remove_column" do
@@ -56,6 +57,83 @@ class HotCompatibilityTest < ActiveRecord::TestCase
     record.save!
     record.reload
     assert_equal "bar", record.foo
+  end
+
+  test "read a record loaded before remove_column and reset_column_information" do
+    @klass.create!(foo: "foo", bar: "bar")
+    record = @klass.first
+
+    @klass.lease_connection.remove_column :hot_compatibilities, :foo
+    @klass.reset_column_information
+    @klass.first
+
+    assert_equal "bar", record.bar
+    record.bar = "changed"
+    assert_equal "changed", record.bar
+  end
+
+  test "read a record loaded before add_column and reset_column_information" do
+    @klass.create!(foo: "foo", bar: "bar")
+    record = @klass.first
+
+    @klass.lease_connection.add_column :hot_compatibilities, :baz, :string
+    @klass.reset_column_information
+    @klass.first
+
+    assert_equal "foo", record.foo
+    assert_equal "bar", record.bar
+  end
+
+  test "read an added column on a record loaded with extra select columns" do
+    @klass.create!
+    record = @klass.select("hot_compatibilities.*, 1 AS one").first
+
+    @klass.lease_connection.add_column :hot_compatibilities, :baz, :string
+    @klass.reset_column_information
+    @klass.first
+
+    assert_nil record.baz
+    assert_equal 1, record.one
+  end
+
+  test "read a record loaded with extra select columns before reset_column_information" do
+    @klass.create!(foo: "foo", bar: "bar")
+    record = @klass.select("hot_compatibilities.*, 1 AS one").first
+
+    @klass.lease_connection.remove_column :hot_compatibilities, :foo
+    @klass.reset_column_information
+    @klass.first
+
+    assert_equal "bar", record.bar
+    assert_equal 1, record.one
+  end
+
+  test "read a declared attribute of a record loaded before add_column and reset_column_information" do
+    @klass.attribute :virtual, :string
+    @klass.create!(foo: "foo")
+    record = @klass.first
+    record.virtual = "virtual"
+
+    @klass.lease_connection.add_column :hot_compatibilities, :baz, :string
+    @klass.reset_column_information
+    @klass.first
+
+    assert_equal "virtual", record.virtual
+  end
+
+  test "read a declared attribute that moves back after reset_column_information" do
+    @klass.attribute :virtual, :string
+    @klass.create!(foo: "foo")
+    @klass.lease_connection.add_column :hot_compatibilities, :baz, :string
+    @klass.reset_column_information
+    record = @klass.first
+    record.virtual = "virtual"
+
+    @klass.lease_connection.remove_column :hot_compatibilities, :baz
+    @klass.reset_column_information
+    @klass.first
+
+    assert_equal "virtual", record.virtual
   end
 
   if current_adapter?(:PostgreSQLAdapter) && ActiveRecord::Base.lease_connection.prepared_statements
