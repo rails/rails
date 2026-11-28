@@ -4005,8 +4005,8 @@ in the Security Guide.
 
 #### `config.active_storage.multiple_file_field_include_hidden`
 
-In Rails 7.1 and beyond, Active Storage `has_many_attached` relationships will
-default to _replacing_ the current collection instead of _appending_ to it. Thus
+Active Storage `has_many_attached` relationships _replace_ the current
+collection instead of _appending_ to it. Thus
 to support submitting an _empty_ collection, when `multiple_file_field_include_hidden`
 is `true`, the [`file_field`](https://api.rubyonrails.org/classes/ActionView/Helpers/FormBuilder.html#method-i-file_field)
 helper will render an auxiliary hidden field, similar to the auxiliary field
