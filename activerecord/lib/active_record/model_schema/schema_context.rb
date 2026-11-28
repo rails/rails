@@ -126,7 +126,7 @@ module ActiveRecord
 
       # The model's columns as attributes, with its attribute declarations
       # applied. Read only unless some default can't be frozen.
-      #: () -> ActiveModel::AttributeSet
+      #: () -> (ActiveModel::AttributeSet | ActiveModel::ReadOnlyAttributeSet)
       def build_default_attributes # :nodoc:
         attributes = mapped_table.columns_hash.transform_values do |column|
           ActiveModel::Attribute.from_database(column.name, column.default, model_class.type_for_column(column))
