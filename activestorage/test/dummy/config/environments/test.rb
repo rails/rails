@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "active_support/core_ext/integer/time"
 
 # The test environment is used exclusively to run your application's
@@ -50,7 +52,10 @@ Rails.application.configure do
     "disk_mirror_1" => { "service" => "Disk", "root" => Dir.mktmpdir("active_storage_tests_1") },
     "disk_mirror_2" => { "service" => "Disk", "root" => Dir.mktmpdir("active_storage_tests_2") },
     "disk_mirror_3" => { "service" => "Disk", "root" => Dir.mktmpdir("active_storage_tests_3") },
-    "mirror" => { "service" => "Mirror", "primary" => "local", "mirrors" => ["disk_mirror_1", "disk_mirror_2", "disk_mirror_3"] }
+    "mirror" => { "service" => "Mirror", "primary" => "local", "mirrors" => ["disk_mirror_1", "disk_mirror_2", "disk_mirror_3"] },
+    "nested_mirror" => { "service" => "Mirror", "primary" => "primary_mirror", "mirrors" => ["secondary_mirror"] },
+    "primary_mirror" => { "service" => "Mirror", "primary" => "local", "mirrors" => ["disk_mirror_1"] },
+    "secondary_mirror" => { "service" => "Mirror", "primary" => "disk_mirror_2", "mirrors" => ["disk_mirror_3"] }
   ).deep_stringify_keys
 
   config.action_mailer.perform_caching = false
