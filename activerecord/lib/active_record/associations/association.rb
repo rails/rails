@@ -277,12 +277,12 @@ module ActiveRecord
             end
           end
 
-          sc = reflection.association_scope_cache(klass, routes) do |params|
-            as = AssociationScope.create { |_, column| params.bind(column) }
-            target_scope.merge!(as.scope(self, routes))
-          end
-
           klass.with_connection do |c|
+            sc = reflection.association_scope_cache(klass, routes, c) do |params|
+              as = AssociationScope.create { |_, column| params.bind(column) }
+              target_scope.merge!(as.scope(self, routes))
+            end
+
             sc.execute(->(name) { owner.read_attr(name) }, c, async: async) do |record|
               set_inverse_instance(record)
               set_strict_loading(record)
