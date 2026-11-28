@@ -152,6 +152,12 @@ class LoggingTest < ActiveSupport::TestCase
     assert_match(/Error performing AbortBeforeEnqueueJob.* a before_perform callback halted/, @logger.messages)
   end
 
+  def test_perform_job_log_error_when_callback_chain_is_halted_above_info_level
+    @logger.level = ERROR
+    AbortBeforeEnqueueJob.perform_now
+    assert_match(/Error performing AbortBeforeEnqueueJob.* a before_perform callback halted/, @logger.messages)
+  end
+
   def test_perform_job_doesnt_log_error_when_job_returns_falsy_value
     job = Class.new(ActiveJob::Base) do
       def perform
@@ -265,6 +271,15 @@ class LoggingTest < ActiveSupport::TestCase
     assert_match(/Failed enqueuing EnqueueErrorJob to EnqueueError\(default\): ActiveJob::EnqueueError \(There was an error enqueuing the job\)/, @logger.messages)
   end
 
+  def test_enqueue_log_when_enqueue_error_is_set_above_info_level
+    EnqueueErrorJob.disable_test_adapter
+    @logger.level = ERROR
+
+    EnqueueErrorJob.perform_later
+    EnqueueErrorJob.set(wait: 1.hour).perform_later
+    assert_equal 2, @logger.messages.scan(/Failed enqueuing EnqueueErrorJob to EnqueueError\(default\): ActiveJob::EnqueueError/).size
+  end
+
   def test_for_tagged_logger_support_is_consistent
     set_logger ::Logger.new(nil)
     assert_nothing_raised do
@@ -279,6 +294,17 @@ class LoggingTest < ActiveSupport::TestCase
       assert_match(/Performing RescueJob \(Job ID: .*?\) from .*? with arguments:.*other/, @logger.messages)
       assert_match(/Error performing RescueJob \(Job ID: .*?\) from .*? in .*ms: RescueJob::OtherError \(Bad hair\):\n.*\brescue_job\.rb:\d+:in .*perform'/, @logger.messages)
     end
+  end
+
+  def test_job_error_logging_above_info_level
+    @logger.level = ERROR
+    perform_enqueued_jobs do
+      assert_raises(RescueJob::OtherError) do
+        RescueJob.perform_later "other"
+      end
+    end
+
+    assert_match(/Error performing RescueJob \(Job ID: .*?\) from .*? in .*ms: RescueJob::OtherError \(Bad hair\)/, @logger.messages)
   end
 
   def test_job_error_logging_backtrace_cleaner

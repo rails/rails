@@ -1,3 +1,11 @@
+*   Log job errors and enqueue errors when the log level is `:warn` or `:error`.
+
+    "Error performing" and the "Failed enqueuing" of an enqueue error are logged
+    at `:error`, but since Rails 7.1 they were dropped when the logger level was
+    above `:info`.
+
+    *Clément Joubert*
+
 *   Locate an Array of records passed to a job with one query per model.
 
     `MyJob.perform_later(users)` used to run one query per record when the
