@@ -119,6 +119,10 @@
         the need to handle form control naming and its numerous attributes.
         Rails does away with this complexity by providing view helpers for
         generating form markup.
+    -
+      name: Accessibility
+      url: accessibility.html
+      description: This guide describes how to build Rails applications that work for everyone, including users of assistive technologies.
 -
   name: Other Components
   documents:
