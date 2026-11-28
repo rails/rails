@@ -776,7 +776,7 @@ module ActiveRecord
         return if options[:if_exists] == true && !column_exists?(table_name, column_name)
 
         at = build_alter_table_definition(table_name)
-        at.remove_column(column_name)
+        at.remove_column(column_name, type, **options)
         execute_alter_table(at)
       end
 

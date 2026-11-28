@@ -159,7 +159,10 @@ class ActiveSchemaTest < ActiveRecord::AbstractMysqlTestCase
   def test_remove_column_with_algorithm_and_lock
     with_real_execute do
       ActiveRecord::Base.lease_connection.create_table(:delete_me) { |t| t.string :name; t.string :email }
-      ActiveRecord::Base.lease_connection.remove_column(:delete_me, :name, algorithm: :inplace, lock: :none)
+      expected = "ALTER TABLE `delete_me` DROP COLUMN `name`, ALGORITHM = INPLACE, LOCK = NONE"
+      assert_queries_match(expected) do
+        ActiveRecord::Base.lease_connection.remove_column(:delete_me, :name, algorithm: :inplace, lock: :none)
+      end
       assert_not ActiveRecord::Base.lease_connection.column_exists?(:delete_me, :name)
     ensure
       ActiveRecord::Base.lease_connection.drop_table(:delete_me) rescue nil
