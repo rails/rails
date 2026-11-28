@@ -96,6 +96,8 @@ module SharedGeneratorTests
     assert_file "#{application_path}/config/environments/production.rb" do |content|
       assert_match(/# config\.action_mailer\.raise_delivery_errors = false/, content)
       assert_match(/config\.active_storage/, content)
+      assert_match(/# Cache static files served from \/public, including assets under \/public\/assets\./, content)
+      assert_match(/# Be sure to use digest-stamped filenames for long-lived caching\./, content)
     end
 
     assert_load_defaults
