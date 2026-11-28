@@ -34,9 +34,22 @@ module ActionController
     if defined?(DidYouMean::Correctable) && defined?(DidYouMean::SpellChecker)
       include DidYouMean::Correctable # :nodoc:
 
+      MAX_SUGGESTION_KEYS = 1_000 # :nodoc:
+
       def corrections # :nodoc:
-        @corrections ||= DidYouMean::SpellChecker.new(dictionary: keys).correct(param.to_s)
+        @corrections ||= DidYouMean::SpellChecker.new(dictionary: suggestion_keys).correct(param.to_s)
       end
+
+      private
+        # SpellChecker only suggests a word within Levenshtein distance ceil(n / 4) of
+        # the input, or less than n, so longer keys can't be suggested.
+        def suggestion_keys
+          return [] unless keys
+
+          length = param.to_s.downcase.delete("@").length
+          max_length = [length + (length / 4.0).ceil, 2 * length - 1].max
+          keys.lazy.select { |key| key.to_s.length - key.to_s.count("@") <= max_length }.first(MAX_SUGGESTION_KEYS)
+        end
     end
   end
 
