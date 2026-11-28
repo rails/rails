@@ -75,11 +75,12 @@ class Time
       # Time.rfc3339('1999-12-31') # => ArgumentError: invalid date
       # ```
       #
-      # Strings with the "Z" UTC designator return a UTC time, matching Ruby's
-      # `Time.rfc3339`.
+      # Strings with the "Z" UTC designator or the "-00:00" offset return a UTC
+      # time, matching Ruby's `Time.rfc3339`.
       #
       # ```
-      # Time.rfc3339('1999-12-31T14:00:00Z').utc? # => true
+      # Time.rfc3339('1999-12-31T14:00:00Z').utc?      # => true
+      # Time.rfc3339('1999-12-31T14:00:00-00:00').utc? # => true
       # ```
       def rfc3339(str)
         parts = Date._rfc3339(str)
@@ -96,8 +97,9 @@ class Time
           parts.fetch(:offset)
         )
 
-        # "Z" denotes UTC, which the integer offset alone cannot represent.
-        parts[:zone].casecmp?("Z") ? time.utc : time
+        # "Z" and "-00:00" denote UTC, which the integer offset alone cannot represent.
+        zone = parts[:zone]
+        zone.casecmp?("Z") || zone == "-00:00" ? time.utc : time
       end
     end
   end

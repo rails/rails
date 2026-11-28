@@ -1482,6 +1482,13 @@ class TimeExtCalculationsTest < ActiveSupport::TestCase
     assert_equal Time.utc(1999, 12, 31, 19, 0, 0), time
   end
 
+  def test_rfc3339_parse_with_negative_zero_offset
+    time = Time.rfc3339("1999-12-31T19:00:00-00:00")
+
+    assert_predicate time, :utc?
+    assert_equal Time.utc(1999, 12, 31, 19, 0, 0), time
+  end
+
   def test_rfc3339_parse_with_numeric_zero_offset
     time = Time.rfc3339("1999-12-31T19:00:00+00:00")
 
