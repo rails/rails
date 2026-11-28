@@ -73,11 +73,17 @@ module ActiveStorage
           metadata = ActiveStorage::Blob.find_by(key: key)&.service_metadata || {}
 
           primary.open(key, checksum: checksum, verify: checksum.present?) do |io|
-            io.rewind
-            content = io.read.freeze
+            path = io.path if io.respond_to?(:path)
+            unless path
+              io.rewind
+              content = io.read.freeze
+            end
             tasks = mirrors_in_need_of_mirroring.map do |service|
+              mirror_io = path ? File.open(path, "rb") : StringIO.new(content)
               Concurrent::Promise.execute(executor: @executor) do
-                service.upload key, StringIO.new(content), checksum: checksum, **metadata
+                service.upload key, mirror_io, checksum: checksum, **metadata
+              ensure
+                mirror_io.close
               end
             end
             tasks.each(&:value!)
