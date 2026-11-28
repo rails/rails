@@ -108,6 +108,7 @@ class ActiveStorage::Preview
     def process
       previewer.preview(service_name: blob.service_name) do |attachable|
         ActiveRecord::Base.connected_to(role: ActiveRecord.writing_role) do
+          attachable = attachable.reverse_merge(key: blob.generate_derived_key) if attachable.is_a?(Hash)
           image.attach(attachable)
         end
       end
