@@ -1,3 +1,7 @@
+*   Check the keys of JSON request parameters for valid encoding, as query string and form keys are.
+
+    *Darron Schall*
+
 *   Correctly parse escaped characters in quoted `Accept` header parameters.
 
     Fixes #33980.
