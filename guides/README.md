@@ -22,6 +22,12 @@ $ BUNDLE_ONLY=default:doc bundle exec rake guides:generate
 See the guidelines for the [Rails Guides](http://guides.rubyonrails.org/ruby_on_rails_guides_guidelines.html#html-guides)
 for all available Rake tasks.
 
+A local development server can be used to view the guides:
+
+```
+$ bundle exec rackup
+```
+
 ## FAQ
 
 ### Why are you not using CSS variables?
