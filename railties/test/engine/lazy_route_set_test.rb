@@ -223,6 +223,20 @@ module Rails
         )
       end
 
+      test "draw with disable_clear_and_finalize keeps routes that were not loaded yet" do
+        require "#{app_path}/config/environment"
+
+        routes = Rails.application.routes
+        assert_not_predicate(Rails.application.routes_reloader, :loaded)
+
+        routes.disable_clear_and_finalize = true
+        routes.draw { get "/extra", to: proc { [200, {}, []] }, as: :extra }
+
+        assert_includes(routes.named_routes.names, :extra)
+        assert_includes(routes.named_routes.names, :root)
+        assert(routes.disable_clear_and_finalize)
+      end
+
       test "mounted helpers lazily load routes" do
         require "#{app_path}/config/environment"
 
