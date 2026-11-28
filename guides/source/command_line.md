@@ -937,7 +937,7 @@ Ruby version              3.2.0 (x86_64-linux)
 RubyGems version          3.3.7
 Rack version              3.0.8
 JavaScript Runtime        Node.js (V8)
-Middleware:               ActionDispatch::HostAuthorization, Rack::Sendfile, ...
+Middleware:               ActionDispatch::HostAuthorization, ActionDispatch::Static, ...
 Application root          /home/code/my_app
 Environment               development
 Database adapter          sqlite3
@@ -974,7 +974,6 @@ Rails application, in the exact order the middlewares are run for each request.
 ```bash
 $ bin/rails middleware
 use ActionDispatch::HostAuthorization
-use Rack::Sendfile
 use ActionDispatch::Static
 use ActionDispatch::Executor
 use ActionDispatch::ServerTiming

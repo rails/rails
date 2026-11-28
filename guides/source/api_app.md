@@ -366,7 +366,6 @@ A Rails API application builds the following middleware stack by default:
 
 ```ruby
 use ActionDispatch::HostAuthorization
-use Rack::Sendfile
 use ActionDispatch::Static
 use ActionDispatch::Executor
 use ActionDispatch::ServerTiming
