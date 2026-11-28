@@ -1,3 +1,12 @@
+*   Only accept `attachment` or `inline` as the disposition of streamed blobs.
+
+    The proxy controllers passed `params[:disposition]` straight into the
+    `Content-Disposition` header, so a request could add its own parameters,
+    such as an extra `filename`. Any other value now falls back to `inline`,
+    as it already does for redirect and Disk service URLs.
+
+    *Richard Desmarais*
+
 *   Preserve committed proxy responses when a storage error interrupts a
     streamed download.
 
