@@ -1464,10 +1464,13 @@ module ActiveRecord
         end
 
         def attempt_configure_connection
-          yield
-        rescue Exception # Need to handle things such as Timeout::ExitException
-          disconnect!
-          raise
+          configured = false
+          result = yield
+          configured = true
+          result
+        ensure
+          # Not a `rescue`: a killed thread runs `ensure` blocks only.
+          disconnect! unless configured
         end
 
         def default_prepared_statements
