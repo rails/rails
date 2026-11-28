@@ -164,6 +164,11 @@ module ActionView
       # strip_tags("> A quote from Smith & Wesson")
       # # => &gt; A quote from Smith &amp; Wesson
       # ```
+      #
+      # The returned string is HTML-escaped and marked HTML-safe. If you need to
+      # apply further text transformations, such as +squish+, +truncate+ or joining
+      # values, do them before calling +strip_tags+. Otherwise the result can be
+      # escaped twice or lose its HTML-safe status.
       def strip_tags(html)
         stripped = self.class.full_sanitizer.sanitize(html)
         ERB::Util.html_escape_once(stripped) if stripped
