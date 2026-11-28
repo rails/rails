@@ -670,7 +670,7 @@ module Rails
       end
 
       def bundle_install?
-        !(options[:skip_bundle] || options[:pretend])
+        !(options[:skip_bundle] || options[:pretend] || ENV["RAILS_SKIP_BUNDLE"])
       end
 
       def depends_on_system_test?
@@ -704,7 +704,11 @@ module Rails
       end
 
       def run_bundle
-        bundle_command("install --quiet", "BUNDLE_IGNORE_MESSAGES" => "1") if bundle_install?
+        return unless bundle_install?
+
+        unless bundle_command("install --quiet", "BUNDLE_IGNORE_MESSAGES" => "1")
+          abort "Bundle install failed. Please run `bundle install` manually to see the error."
+        end
       end
 
       def run_javascript
