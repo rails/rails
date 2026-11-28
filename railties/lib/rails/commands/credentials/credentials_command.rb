@@ -95,6 +95,9 @@ module Rails
         else
           missing_credentials!
         end
+      rescue ActiveSupport::EncryptedFile::InvalidKeyLengthError => error
+        say_error error.message
+        exit 1
       end
 
       private
