@@ -972,7 +972,7 @@ which inherits from `application.html.erb`.
 
     <main>
       <% if content_for(:main) -%>
-        <%= yield :content %>
+        <%= yield :main %>
       <% else %>
         <%= yield %>
       <% end %>
