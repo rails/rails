@@ -235,6 +235,37 @@ module ApplicationTests
       assert_policy "default-src 'self' https:"
     end
 
+    test "raises error when content_security_policy_nonce_auto is true but nonce_directives is nil" do
+      app_file "config/initializers/content_security_policy.rb", <<-RUBY
+        Rails.application.config.content_security_policy_nonce_auto = true
+      RUBY
+
+      error = assert_raises(ArgumentError) do
+        app("development")
+      end
+
+      assert_match(/content_security_policy_nonce_auto.*is set to.*true/, error.message)
+      assert_match(/content_security_policy_nonce_directives.*is not configured/, error.message)
+    end
+
+    test "raises error when content_security_policy_nonce_auto is true but nonce_generator is nil" do
+      app_file "config/initializers/content_security_policy.rb", <<-RUBY
+        Rails.application.config.content_security_policy do |p|
+          p.default_src :self, :https
+        end
+
+        Rails.application.config.content_security_policy_nonce_auto = true
+        Rails.application.config.content_security_policy_nonce_directives = %w(script-src)
+      RUBY
+
+      error = assert_raises(ArgumentError) do
+        app("development")
+      end
+
+      assert_match(/content_security_policy_nonce_auto.*is set to.*true/, error.message)
+      assert_match(/content_security_policy_nonce_generator.*is not configured/, error.message)
+    end
+
     private
       def assert_policy(expected, report_only: false)
         assert_equal 200, last_response.status
