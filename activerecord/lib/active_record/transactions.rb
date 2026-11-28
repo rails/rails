@@ -494,6 +494,7 @@ module ActiveRecord
 
       # Save the new record state and id of a record so it can be restored later if a transaction fails.
       def remember_transaction_record_state
+        @_transaction_saved_changes = @_transaction_last_save_mutations = nil unless @_start_transaction_state
         @_start_transaction_state ||= {
           id: id,
           new_record: @new_record,
@@ -546,6 +547,7 @@ module ActiveRecord
             end
             @mutations_from_database = nil
             @mutations_before_last_save = nil
+            @_transaction_saved_changes = @_transaction_last_save_mutations = nil
             columns = self.class.primary_key_definition.columns
             restored_id = Array(restore_state[:id])
             if columns.map { |col| @attributes.fetch_value(col) } != restored_id

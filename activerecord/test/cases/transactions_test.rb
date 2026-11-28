@@ -396,6 +396,266 @@ class TransactionTest < ActiveRecord::TestCase
     assert_equal author, book.reload.author
   end
 
+  def test_transaction_changes_include_every_save_in_the_transaction
+    topic = topics(:fifth)
+
+    Topic.transaction do
+      topic.update!(title: "Ruby on Rails")
+      topic.update!(author_name: "DHH")
+      topic.update!(title: "Another Title")
+    end
+
+    assert_equal ["The Fifth Topic of the day", "Another Title"], topic.transaction_changes["title"]
+    assert_equal ["Jason", "DHH"], topic.transaction_changes[:author_name]
+    assert_equal %w(author_name title updated_at), topic.transaction_changes.keys.sort
+    assert_equal %w(title updated_at), topic.saved_changes.keys.sort
+  end
+
+  def test_transaction_changes_are_visible_to_after_commit_callbacks
+    changes = []
+    topic_class = Class.new(Topic) do
+      after_commit { changes << transaction_changes.except("updated_at") }
+    end
+    topic = topic_class.find(topics(:fifth).id)
+
+    Topic.transaction do
+      topic.update!(title: "Ruby on Rails")
+      topic.update!(author_name: "DHH")
+    end
+
+    assert_equal [{ "title" => ["The Fifth Topic of the day", "Ruby on Rails"], "author_name" => ["Jason", "DHH"] }], changes
+  end
+
+  def test_transaction_changes_of_a_record_created_in_the_transaction
+    topic = Topic.new(title: "A new topic")
+
+    Topic.transaction do
+      topic.save!
+      topic.update!(title: "Another title")
+    end
+
+    assert_equal [nil, topic.id], topic.transaction_changes["id"]
+    assert_equal [nil, "Another title"], topic.transaction_changes["title"]
+  end
+
+  def test_transaction_changes_drop_attributes_saved_back_to_their_original_value
+    topic = topics(:fifth)
+
+    Topic.transaction do
+      topic.update!(title: "Ruby on Rails", author_name: "DHH")
+      topic.update!(title: "The Fifth Topic of the day")
+    end
+
+    assert_equal %w(author_name updated_at), topic.transaction_changes.keys.sort
+  end
+
+  def test_transaction_changes_include_in_place_changes_to_serialized_attributes
+    topic = Topic.create!(content: { "rails" => "omakase" })
+
+    Topic.transaction do
+      topic.content["ruby"] = "friendly"
+      topic.save!
+    end
+
+    assert_equal [{ "rails" => "omakase" }, { "rails" => "omakase", "ruby" => "friendly" }], topic.transaction_changes["content"]
+  end
+
+  def test_transaction_changes_ignore_unsaved_changes
+    topic = topics(:fifth)
+
+    Topic.transaction do
+      topic.update!(title: "Ruby on Rails")
+      topic.author_name = "DHH"
+    end
+
+    assert_equal %w(title updated_at), topic.transaction_changes.keys.sort
+  end
+
+  def test_transaction_changes_ignore_attributes_that_were_not_loaded
+    topic = Topic.select(:id, :title, :updated_at).find(topics(:fifth).id)
+
+    Topic.transaction do
+      topic.update!(title: "Ruby on Rails")
+      topic.reload
+    end
+
+    assert_equal %w(title updated_at), topic.transaction_changes.keys.sort
+  end
+
+  def test_transaction_changes_keep_saved_changes_when_the_record_reloads
+    topic = topics(:fifth)
+
+    Topic.transaction do
+      topic.update!(title: "Ruby on Rails")
+      topic.reload
+      topic.update!(author_name: "DHH")
+    end
+
+    assert_equal %w(author_name title updated_at), topic.transaction_changes.keys.sort
+  end
+
+  def test_transaction_changes_include_touches
+    topic = topics(:fifth)
+
+    Topic.transaction do
+      topic.update!(title: "Ruby on Rails")
+      topic.touch(:written_on)
+    end
+
+    assert_equal %w(title updated_at written_on), topic.transaction_changes.keys.sort
+  end
+
+  def test_transaction_changes_do_not_change_after_the_transaction
+    topic = topics(:fifth)
+
+    Topic.transaction do
+      topic.update!(title: "Ruby on Rails")
+    end
+    changes = topic.transaction_changes
+
+    Topic.find(topic.id).update!(title: "Another title", author_name: "DHH")
+    topic.reload
+    topic.update_columns(author_email_address: "dhh@example.com")
+
+    assert_equal changes, topic.transaction_changes
+    assert_equal ["The Fifth Topic of the day", "Ruby on Rails"], topic.transaction_changes["title"]
+  end
+
+  def test_transaction_changes_ignore_changes_applied_without_a_save
+    topic = topics(:fifth)
+
+    Topic.transaction do
+      topic.update!(title: "Ruby on Rails")
+      topic.author_name = "DHH"
+      topic.changes_applied
+    end
+
+    assert_equal %w(title updated_at), topic.transaction_changes.keys.sort
+  end
+
+  def test_transaction_changes_use_the_attribute_type_to_compare_values
+    value_class = Struct.new(:value) do
+      def ==(other)
+        equal?(other)
+      end
+    end
+    type = Class.new(ActiveModel::Type::Value) do
+      define_method(:cast_value) { |value| value.is_a?(value_class) ? value : value_class.new(value) }
+      define_method(:serialize) { |value| value&.value }
+      define_method(:changed?) { |old_value, new_value, _| old_value&.value != new_value&.value }
+      define_method(:changed_in_place?) { |raw_old_value, new_value| raw_old_value != serialize(new_value) }
+    end
+    topic_class = Class.new(ActiveRecord::Base) do
+      self.table_name = "topics"
+      attribute :author_name, type.new
+    end
+    topic = topic_class.find(topics(:fifth).id)
+
+    Topic.transaction do
+      topic.update!(title: "Ruby on Rails", author_name: "DHH")
+      topic.update!(author_name: "Jason")
+    end
+
+    assert_equal %w(title updated_at), topic.transaction_changes.keys.sort
+  end
+
+  def test_transaction_changes_return_new_arrays
+    topic = topics(:fifth)
+
+    Topic.transaction do
+      topic.update!(title: "Ruby on Rails")
+      topic.update!(author_name: "DHH")
+      topic.transaction_changes["title"][0] = "Changed"
+      topic.update!(author_email_address: "dhh@example.com")
+    end
+
+    assert_equal ["The Fifth Topic of the day", "Ruby on Rails"], topic.transaction_changes["title"]
+  end
+
+  def test_transaction_changes_are_visible_to_after_rollback_callbacks_and_empty_after_the_rollback
+    changes = []
+    topic_class = Class.new(Topic) do
+      after_rollback { changes << transaction_changes.except("updated_at") }
+    end
+    topic = topic_class.find(topics(:fifth).id)
+
+    Topic.transaction do
+      topic.update!(title: "Ruby on Rails")
+      topic.update!(author_name: "DHH")
+      raise ActiveRecord::Rollback
+    end
+
+    assert_equal [{ "title" => ["The Fifth Topic of the day", "Ruby on Rails"], "author_name" => ["Jason", "DHH"] }], changes
+    assert_empty topic.transaction_changes
+  end
+
+  def test_transaction_changes_include_nested_transactions_and_released_savepoints
+    topic = topics(:fifth)
+
+    Topic.transaction do
+      topic.update!(title: "Ruby on Rails")
+
+      Topic.transaction do
+        topic.update!(author_name: "DHH")
+      end
+
+      Topic.transaction(requires_new: true) do
+        topic.update!(author_email_address: "dhh@example.com")
+      end
+    end
+
+    assert_equal %w(author_email_address author_name title updated_at), topic.transaction_changes.keys.sort
+  end
+
+  def test_transaction_changes_drop_the_changes_of_a_rolled_back_savepoint
+    topic = topics(:fifth)
+
+    Topic.transaction do
+      Topic.transaction(requires_new: true) do
+        topic.title = "Rolled back"
+        topic.save!
+        raise ActiveRecord::Rollback
+      end
+    end
+
+    assert_empty topic.transaction_changes
+    assert_equal ["The Fifth Topic of the day", "Rolled back"], topic.changes["title"]
+  end
+
+  def test_transaction_changes_of_a_record_without_transaction_callbacks
+    topic_class = Class.new(ActiveRecord::Base) do
+      self.table_name = "topics"
+    end
+    topic = topic_class.find(topics(:fifth).id)
+
+    topic_class.transaction do
+      topic.update!(title: "Ruby on Rails")
+      topic.update!(author_name: "DHH")
+    end
+
+    assert_equal %w(author_name title updated_at), topic.transaction_changes.keys.sort
+  end
+
+  def test_transaction_changes_are_replaced_by_the_next_transaction
+    topic = topics(:fifth)
+
+    topic.update!(title: "Ruby on Rails")
+    topic.update!(author_name: "DHH")
+
+    assert_equal %w(author_name updated_at), topic.transaction_changes.keys.sort
+  end
+
+  def test_transaction_changes_are_empty_without_a_transaction
+    topic = topics(:fifth)
+
+    assert_empty Topic.new.transaction_changes
+    assert_empty topic.transaction_changes
+
+    topic.update!(title: "Ruby on Rails")
+
+    assert_empty topic.dup.transaction_changes
+  end
+
   def test_persisted_in_a_model_with_custom_primary_key_after_failed_save
     movie = Movie.create
     assert_not_predicate movie, :persisted?
