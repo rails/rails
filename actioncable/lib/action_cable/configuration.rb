@@ -12,7 +12,7 @@ module ActionCable
   class Configuration
     attr_accessor :logger, :log_tags
     attr_accessor :connection_class, :worker_pool_size, :executor_pool_size
-    attr_accessor :disable_request_forgery_protection, :allowed_request_origins, :allow_same_origin_as_host, :filter_parameters
+    attr_accessor :disable_request_forgery_protection, :allowed_request_origins, :allow_same_origin_as_host, :allow_missing_origin, :filter_parameters
     attr_accessor :cable, :url, :mount_path
     attr_accessor :precompile_assets
     attr_accessor :health_check_path, :health_check_application
@@ -27,6 +27,7 @@ module ActionCable
 
       @disable_request_forgery_protection = false
       @allow_same_origin_as_host = true
+      @allow_missing_origin = false
       @filter_parameters = []
 
       @health_check_application = ->(env) {

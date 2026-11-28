@@ -153,6 +153,7 @@ module ActionCable
       # Check if the request origin is allowed to connect to the Action Cable server.
       def allow_request_origin?(env)
         return true if config.disable_request_forgery_protection
+        return true if config.allow_missing_origin && env["HTTP_ORIGIN"].nil?
 
         request = ActionDispatch::Request.new(env)
         proto = request.ssl? ? "https" : "http"
@@ -160,6 +161,10 @@ module ActionCable
           true
         elsif Array(config.allowed_request_origins).any? { |allowed_origin|  allowed_origin === env["HTTP_ORIGIN"] }
           true
+        elsif env["HTTP_ORIGIN"].nil?
+          logger.error("Request origin not allowed: the request has no Origin header. " \
+            "Set config.action_cable.allow_missing_origin = true to accept clients that don't send one.")
+          false
         else
           logger.error("Request origin not allowed: #{env['HTTP_ORIGIN']}")
           false

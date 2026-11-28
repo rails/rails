@@ -1,3 +1,18 @@
+*   Add `config.action_cable.allow_missing_origin` to accept WebSocket connections without an `Origin` header.
+
+    Browsers always send `Origin` when they open a WebSocket connection, but
+    clients that aren't browsers, such as mobile apps, devices and other
+    servers, often don't. Action Cable rejected those connections, and the
+    usual advice was to turn request forgery protection off entirely. With this
+    option on, a connection with no `Origin` header is accepted, and one that
+    has the header is still checked against `allow_same_origin_as_host` and
+    `allowed_request_origins`. The option is off by default.
+
+    When a connection is rejected for having no `Origin` header, the log now
+    says so instead of ending in a blank.
+
+    *Yuji Teshima*
+
 *   Filter parameters from the message logged when a command can't be handled.
 
     When a channel action raised, the error log included the raw WebSocket message,

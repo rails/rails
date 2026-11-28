@@ -3652,6 +3652,14 @@ only the configured origins.
 Determines the request origins which will be accepted by the cable server.
 The default value is `/https?:\/\/localhost:\d+/` in the `development` environment.
 
+#### `config.action_cable.allow_missing_origin`
+
+Determines whether a connection without an `Origin` header will be accepted.
+Browsers always send one, but clients that aren't browsers often don't.
+Connections that send an `Origin` header are still checked against
+`allow_same_origin_as_host` and `allowed_request_origins`. The default value is
+`false`.
+
 ### Configuring Active Storage
 
 `config.active_storage` provides the following configuration options:
