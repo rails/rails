@@ -1,3 +1,14 @@
+*   Upload attachments when another instance of the record is saved later in the same transaction.
+
+    After-commit callbacks run on only one of the instances saved for the same
+    record in a transaction, and by default it's the last one saved, so the
+    attachments of an earlier instance were committed without their files being
+    uploaded. Those attachments are now uploaded when the transaction commits.
+
+    Fixes #59877.
+
+    *M Ibtehaj Nasar*
+
 *   Preserve committed proxy responses when a storage error interrupts a
     streamed download.
 

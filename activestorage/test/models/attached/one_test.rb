@@ -59,6 +59,15 @@ class ActiveStorage::OneAttachedTest < ActiveSupport::TestCase
     assert_nothing_raised { @user.avatar.download }
   end
 
+  test "uploads the file when another instance of the record is saved later in the transaction" do
+    ActiveRecord::Base.transaction do
+      @user = User.create!(name: "Dorian", avatar: file_fixture("image.gif"))
+      User.find(@user.id).update!(name: "Dorian Marié")
+    end
+
+    assert_nothing_raised { @user.avatar.download }
+  end
+
   test "attaching an existing blob to an existing record" do
     @user.avatar.attach create_blob(filename: "funky.jpg")
     assert_equal "funky.jpg", @user.avatar.filename.to_s
