@@ -25,6 +25,7 @@ require "models/shop_account"
 require "models/customer_carrier"
 require "models/cpk"
 require "models/dats"
+require "models/rating"
 
 class HasOneThroughAssociationsTest < ActiveRecord::TestCase
   fixtures :member_types, :members, :clubs, :memberships, :sponsors, :organizations, :minivans,
@@ -43,6 +44,112 @@ class HasOneThroughAssociationsTest < ActiveRecord::TestCase
     assert_queries_match(/LIMIT|ROWNUM <=|FETCH FIRST/) do
       assert_equal boring_club, @member.general_club
     end
+  end
+
+  def test_setting_association_on_new_record_sets_through_record
+    club = Club.create!
+    membership = CurrentMembership.new(club: club)
+    member = Member.new
+    member.current_membership = membership
+
+    assert_predicate club, :persisted?
+    assert_predicate member, :new_record?
+    assert_predicate member.current_membership, :new_record?
+    assert_no_queries { assert_equal club, member.club }
+  end
+
+  def test_setting_association_on_new_record_sets_nested_through_record
+    category = Category.create!(name: "General")
+    club = Club.create!(category: category)
+    membership = CurrentMembership.new(club: club)
+    member = Member.new
+    member.current_membership = membership
+
+    assert_predicate category, :persisted?
+    assert_predicate club, :persisted?
+    assert_predicate member, :new_record?
+    assert_predicate member.current_membership, :new_record?
+    assert_no_queries { assert_equal club.category, member.club_category }
+  end
+
+  def test_setting_association_on_new_record_sets_not_loaded_nested_through_record
+    category = Category.create!(name: "General")
+    club = Club.create!(category: category)
+    club.reload
+    membership = CurrentMembership.new(club: club)
+    member = Member.new
+    member.current_membership = membership
+
+    assert_predicate category, :persisted?
+    assert_predicate club, :persisted?
+    assert_predicate member, :new_record?
+    assert_predicate member.current_membership, :new_record?
+    assert_queries_count(1) { assert_equal club.category, member.club_category }
+  end
+
+  def test_setting_association_on_new_record_sets_nested_through_record_with_belongs_to
+    essay = Essay.create!
+    author = Author.create!(name: "Josh", owned_essay: essay)
+    post = Post.create!(title: "Foo", body: "Bar", author: author)
+    comment = Comment.new(post: post)
+    rating = Rating.new
+    rating.comment = comment
+
+    assert_predicate essay, :persisted?
+    assert_predicate author, :persisted?
+    assert_predicate post, :persisted?
+    assert_predicate rating, :new_record?
+    assert_predicate rating.comment, :new_record?
+    assert_no_queries { assert_equal essay, rating.owned_essay }
+  end
+
+  def test_setting_association_on_new_record_sets_nested_through_record_with_renamed_source
+    category = Category.create!(name: "General")
+    member = Member.new(current_membership: CurrentMembership.new(club: Club.create!(category: category)))
+    member_detail = MemberDetail.new(member: member)
+
+    assert_no_queries { assert_equal category, member_detail.member_club_category }
+  end
+
+  def test_setting_association_on_new_record_ignores_other_source_types
+    club = Club.new
+    club.sponsor = Sponsor.new(sponsorable: Club.create!)
+    assert_nil club.sponsored_member
+
+    member = Member.create!(name: "Groucho")
+    club.sponsor = Sponsor.new(sponsorable: member)
+    assert_equal member, club.sponsored_member
+  end
+
+  def test_association_on_new_record_follows_the_through_record
+    club, other_club = Club.create!, Club.create!
+    member = Member.new
+
+    assert_nil member.club
+
+    member.current_membership = CurrentMembership.new(club: club)
+    assert_equal club, member.club
+
+    member.current_membership = CurrentMembership.new(club: other_club)
+    assert_equal other_club, member.club
+  end
+
+  def test_scoped_association_on_new_record_is_not_set_from_through_record
+    member = Member.new
+    member.membership = Membership.new(club: Club.create!, favorite: false)
+
+    assert_nil member.favorite_club
+  end
+
+  def test_association_set_from_through_record_is_saved_by_its_own_parent
+    member = Member.new
+    member.current_membership = CurrentMembership.new(club: Club.new(name: "LRUG"))
+    assert_equal "LRUG", member.club.name
+
+    assert_difference -> { Club.count }, 1 do
+      member.save!
+    end
+    assert_queries_count(1) { assert_equal "LRUG", member.club.name }
   end
 
   def test_creating_association_creates_through_record
