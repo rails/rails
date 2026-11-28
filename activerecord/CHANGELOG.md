@@ -2016,7 +2016,7 @@
 
     ```ruby
     Book.new(status: "bogus")
-    # ArgumentError: 'bogus' is not a valid status. Valid values are: "proposed", "written", "published"
+    # ArgumentError: "bogus" is not a valid status. Valid values are: "proposed", "written", "published"
     ```
 
     *Hammad Khan*

@@ -151,7 +151,7 @@ module ActiveRecord
   #
   # conversation = Conversation.new
   #
-  # conversation.status = :unknown # 'unknown' is not a valid status (ArgumentError)
+  # conversation.status = :unknown # :unknown is not a valid status (ArgumentError)
   # ```
   #
   # If, instead, you want the enum value to be validated before saving, use the
@@ -235,7 +235,7 @@ module ActiveRecord
         return unless @_raise_on_invalid_values
 
         unless value.blank? || mapping.has_key?(value) || mapping.has_value?(value)
-          raise ArgumentError, "'#{value}' is not a valid #{name}. Valid values are: #{mapping.keys.map(&:inspect).join(", ")}"
+          raise ArgumentError, "#{value.inspect} is not a valid #{name}. Valid values are: #{mapping.keys.map(&:inspect).join(", ")}"
         end
       end
 
