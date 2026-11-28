@@ -428,6 +428,15 @@ class Rails::Command::CredentialsTest < ActiveSupport::TestCase
     assert_match(/Missing 'config\/master\.key' to decrypt credentials/, stderr_output)
   end
 
+  test "keys command prints an error when the master key has the wrong length" do
+    app_file "config/master.key", read_file("config/master.key").chop
+
+    output = run_keys_command(allow_failure: true)
+
+    assert_not_predicate $?, :success?
+    assert_equal "Encryption key must be exactly 32 characters.\n", output
+  end
+
   private
     DEFAULT_CREDENTIALS_PATTERN = /access_key_id: 123\n.*secret_key_base: \h{128}\n/m
 
