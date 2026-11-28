@@ -177,7 +177,6 @@ Here's an example from a freshly generated Rails app:
 
 ```ruby
 use ActionDispatch::HostAuthorization
-use Rack::Sendfile
 use ActionDispatch::Static
 use Propshaft::Server
 use ActionDispatch::Executor
