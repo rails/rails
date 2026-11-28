@@ -116,6 +116,19 @@ class HttpDigestAuthenticationTest < ActionController::TestCase
     assert_equal "Authentication Failed", @response.body
   end
 
+  test "authentication request without response or opaque" do
+    header = encode_credentials(username: "pretty", password: "please")
+
+    ["response", "opaque"].each do |field|
+      @request.env["HTTP_AUTHORIZATION"] = header.sub(/,\s*#{field}='[^']*'/, "")
+      assert_no_match field, @request.env["HTTP_AUTHORIZATION"]
+      get :display
+
+      assert_response :unauthorized
+      assert_equal "Authentication Failed", @response.body
+    end
+  end
+
   test "authentication request with invalid realm" do
     @request.env["HTTP_AUTHORIZATION"] = encode_credentials(username: "pretty", password: "foo", realm: "NotSecret")
     get :display
