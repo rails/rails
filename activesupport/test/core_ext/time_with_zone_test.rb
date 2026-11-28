@@ -789,6 +789,13 @@ class TimeWithZoneTest < ActiveSupport::TestCase
     assert_equal "1999-12-31 19:00:00.000000000 HST -10:00", @twz.change(zone: "Pacific/Honolulu").inspect
   end
 
+  def test_change_offset_during_dst
+    twz = ActiveSupport::TimeWithZone.new(Time.utc(2020, 7, 1, 14), @time_zone)
+    assert_equal "-08:00", twz.change(offset: "-08:00").formatted_offset
+    assert_equal Time.new(2020, 7, 1, 10, 0, 0, "-08:00"), twz.change(offset: "-08:00")
+    assert_equal "+00:00", @twz.change(offset: "+00:00").formatted_offset
+  end
+
   def test_change_at_dst_boundary
     twz = ActiveSupport::TimeWithZone.new(Time.at(1319936400).getutc, ActiveSupport::TimeZone["Madrid"])
     assert_equal twz, twz.change(min: 0)
