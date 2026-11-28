@@ -55,4 +55,9 @@ class HealthControllerTest < ActionController::TestCase
     assert_includes json_response, "timestamp"
     assert_match(/\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}/, json_response["timestamp"])
   end
+
+  test "health controller returns not acceptable for unsupported formats" do
+    get :show, format: :php
+    assert_response :not_acceptable
+  end
 end
