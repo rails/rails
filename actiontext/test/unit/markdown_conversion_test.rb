@@ -152,6 +152,39 @@ class ActionText::MarkdownConversionTest < ActiveSupport::TestCase
     assert_converted_to('1\.', "<p>1.</p>")
   end
 
+  test "text escaping: parenthesis (ordered list item)" do
+    assert_converted_to('1\) not a list', "<p>1) not a list</p>")
+    assert_converted_to('1\)', "<p>1)</p>")
+  end
+
+  test "text escaping: parenthesis is not escaped in normal prose" do
+    assert_converted_to("see item 1) and 2)", "<p>see item 1) and 2)</p>")
+    assert_converted_to("(1) first", "<p>(1) first</p>")
+  end
+
+  test "text escaping: block markers after a newline in the same text node" do
+    assert_converted_to("Title\n\\# not a heading", "<p>Title\n# not a heading</p>")
+    assert_converted_to("Title\n\\=", "<p>Title\n=</p>")
+    assert_converted_to("Title\n\\---", "<p>Title\n---</p>")
+    assert_converted_to("a\n\\- not a list", "<p>a\n- not a list</p>")
+    assert_converted_to("a\n1\\. not a list", "<p>a\n1. not a list</p>")
+    assert_converted_to("a\n1\\) not a list", "<p>a\n1) not a list</p>")
+    assert_converted_to("a\n\\+ not a list", "<p>a\n+ not a list</p>")
+  end
+
+  test "text escaping: block markers after a bare carriage return in the same text node" do
+    node = Nokogiri::HTML4.fragment("<p>Title\r# not a heading</p>")
+    assert_equal "Title\n\\# not a heading", ActionText::MarkdownConversion.node_to_markdown(node)
+  end
+
+  test "text escaping: block markers after leading whitespace" do
+    assert_converted_to("x\n\n \\# not a heading", "<p>x</p><p> # not a heading</p>")
+    assert_converted_to("x\n\n  \\- not a list", "<p>x</p><p>  - not a list</p>")
+    assert_converted_to("Title\n  \\=", "<p>Title\n  =</p>")
+    assert_converted_to("a\n  1\\. not a list", "<p>a<br>  1. not a list</p>")
+    assert_converted_to("x\n\n   \\# not a heading", "<p>x</p><p>   # not a heading</p>")
+  end
+
   test "text escaping: dot is not escaped in normal prose" do
     assert_converted_to("end of sentence. start of next", "<p>end of sentence. start of next</p>")
     assert_converted_to("e.g. for example", "<p>e.g. for example</p>")
