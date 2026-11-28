@@ -337,6 +337,10 @@ module ActionView
       end
     end
 
+    def test_every_handler_declares_its_event
+      assert_empty ActionView::StructuredEventSubscriber.undeclared_handlers
+    end
+
     private
       def set_cache_controller
         controller = ActionController::Base.new

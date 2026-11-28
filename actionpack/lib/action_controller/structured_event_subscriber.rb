@@ -25,6 +25,7 @@ module ActionController
         params:,
       )
     end
+    emits :start_processing, "action_controller.request_started"
 
     def process_action(event)
       return unless emitting?("action_controller.request_completed")
@@ -45,10 +46,12 @@ module ActionController
         gc_time_ms: event.gc_time.round(1),
       }.compact)
     end
+    emits :process_action, "action_controller.request_completed"
 
     def halted_callback(event)
       emit_event("action_controller.callback_halted", filter: event.payload[:filter])
     end
+    emits :halted_callback, "action_controller.callback_halted"
 
     def rescue_from_callback(event)
       exception = event.payload[:exception]
@@ -66,18 +69,22 @@ module ActionController
         exception_backtrace:
       )
     end
+    emits :rescue_from_callback, "action_controller.rescue_from_handled"
 
     def send_file(event)
       emit_event("action_controller.file_sent", path: event.payload[:path], duration_ms: event.duration.round(1))
     end
+    emits :send_file, "action_controller.file_sent"
 
     def redirect_to(event)
       emit_event("action_controller.redirected", location: event.payload[:location])
     end
+    emits :redirect_to, "action_controller.redirected"
 
     def send_data(event)
       emit_event("action_controller.data_sent", filename: event.payload[:filename], duration_ms: event.duration.round(1))
     end
+    emits :send_data, "action_controller.data_sent"
 
     def open_redirect(event)
       payload = event.payload
@@ -89,6 +96,7 @@ module ActionController
         stacktrace: payload[:stack_trace],
       )
     end
+    emits :open_redirect, "action_controller.open_redirect"
 
     def unpermitted_parameters(event)
       unpermitted_keys = event.payload[:keys]
@@ -104,14 +112,17 @@ module ActionController
     def csrf_token_fallback(event)
       emit_csrf_event "action_controller.csrf_token_fallback", event.payload
     end
+    emits :csrf_token_fallback, "action_controller.csrf_token_fallback"
 
     def csrf_request_blocked(event)
       emit_csrf_event "action_controller.csrf_request_blocked", event.payload
     end
+    emits :csrf_request_blocked, "action_controller.csrf_request_blocked"
 
     def csrf_javascript_blocked(event)
       emit_csrf_event "action_controller.csrf_javascript_blocked", event.payload
     end
+    emits :csrf_javascript_blocked, "action_controller.csrf_javascript_blocked"
 
     private def emit_csrf_event(name, payload)
       emit_event name,
@@ -135,6 +146,10 @@ module ActionController
 
     def expire_fragment(event)
       fragment_cache(__method__, event)
+    end
+
+    %i[write_fragment read_fragment exist_fragment? expire_fragment].each do |method|
+      emits method, "action_controller.fragment_cache"
     end
 
     private

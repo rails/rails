@@ -362,6 +362,10 @@ module ActiveJob
         assert event[:payload][:job_id].present?
         assert event[:payload][:duration].present?
       end
+
+      def test_every_handler_declares_its_event
+        assert_empty ActiveJob::StructuredEventSubscriber.undeclared_handlers
+      end
     end
   end
 end

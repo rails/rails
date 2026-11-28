@@ -38,6 +38,10 @@ module ActionDispatch
       end
     end
 
+    def test_every_handler_declares_its_event
+      assert_empty ActionDispatch::StructuredEventSubscriber.undeclared_handlers
+    end
+
     private
       def draw(&block)
         self.class.stub_controllers do |routes|

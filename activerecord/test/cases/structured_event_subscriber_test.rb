@@ -125,5 +125,9 @@ module ActiveRecord
         assert_match(/<(6|7) bytes of binary data>/, value)
       end
     end
+
+    def test_every_handler_declares_its_event
+      assert_empty ActiveRecord::StructuredEventSubscriber.undeclared_handlers
+    end
   end
 end

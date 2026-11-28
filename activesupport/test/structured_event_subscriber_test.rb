@@ -123,6 +123,197 @@ class StructuredEventSubscriberTest < ActiveSupport::TestCase
     assert_equal base_methods, ActiveSupport::StructuredEventSubscriber.debug_methods
   end
 
+  class ConsumingSubscriber
+    def initialize(names)
+      @names = names
+    end
+
+    def emit(event)
+    end
+
+    def consumes?(name)
+      @names.include?(name)
+    end
+  end
+
+  class EmittingSubscriber < ActiveSupport::StructuredEventSubscriber
+    attr_reader :handled
+
+    def initialize
+      super
+      @handled = []
+    end
+
+    def declared(event)
+      @handled << :declared
+      emit_event("test.declared")
+    end
+    emits :declared, "test.declared"
+
+    def other_declared(event)
+      @handled << :other_declared
+      emit_event("test.other_declared")
+    end
+    emits :other_declared, "test.other_declared"
+
+    def undeclared(event)
+      @handled << :undeclared
+      emit_event("test.undeclared")
+    end
+  end
+
+  def test_emits_silences_handlers_while_no_subscriber_consumes_their_event
+    subscriber = EmittingSubscriber.new
+    EmittingSubscriber.attach_to :test, subscriber
+
+    with_event_reporter_subscribers(ConsumingSubscriber.new([])) do
+      assert subscriber.silenced?("declared.test")
+      assert_not subscriber.silenced?("undeclared.test")
+
+      ActiveSupport::Notifications.instrument("declared.test")
+      ActiveSupport::Notifications.instrument("undeclared.test")
+      assert_equal [:undeclared], subscriber.handled
+    end
+
+    with_event_reporter_subscribers(ConsumingSubscriber.new(["test.declared"])) do
+      assert_not subscriber.silenced?("declared.test")
+
+      ActiveSupport::Notifications.instrument("declared.test")
+      assert_equal [:undeclared, :declared], subscriber.handled
+    end
+  ensure
+    EmittingSubscriber.detach_from :test
+  end
+
+  def test_emits_does_not_silence_handlers_for_subscribers_that_consume_every_event
+    subscriber = EmittingSubscriber.new
+    EmittingSubscriber.attach_to :test, subscriber
+
+    with_event_reporter_subscribers(ConsumingSubscriber.new([]), TestEventReporterSubscriber.new) do
+      assert_not subscriber.silenced?("declared.test")
+    end
+  ensure
+    EmittingSubscriber.detach_from :test
+  end
+
+  def test_emits_skips_checks_for_a_while_after_an_event_is_consumed
+    subscriber = EmittingSubscriber.new
+    EmittingSubscriber.attach_to :test, subscriber
+
+    with_event_reporter_subscribers(ConsumingSubscriber.new(["test.declared"])) do
+      assert_not subscriber.silenced?("declared.test")
+    end
+
+    with_event_reporter_subscribers(ConsumingSubscriber.new([])) do
+      ActiveSupport::StructuredEventSubscriber::CHECKS_SKIPPED_WHILE_CONSUMED.times do
+        assert_not subscriber.silenced?("declared.test")
+      end
+      assert subscriber.silenced?("declared.test")
+      assert subscriber.silenced?("declared.test")
+    end
+  ensure
+    EmittingSubscriber.detach_from :test
+  end
+
+  def test_emits_skips_checks_per_event
+    subscriber = EmittingSubscriber.new
+    EmittingSubscriber.attach_to :test, subscriber
+
+    with_event_reporter_subscribers(ConsumingSubscriber.new(["test.declared"])) do
+      assert_not subscriber.silenced?("declared.test")
+      assert subscriber.silenced?("other_declared.test")
+    end
+  ensure
+    EmittingSubscriber.detach_from :test
+  end
+
+  def test_undeclared_handlers
+    subscriber_class = Class.new(ActiveSupport::StructuredEventSubscriber) do
+      def declared(event); end
+      emits :declared, "test.declared"
+
+      def debug(event); end
+      debug_only :debug
+
+      def undeclared(event); end
+
+      private
+        def helper; end
+    end
+
+    assert_equal [:undeclared], subscriber_class.undeclared_handlers
+  end
+
+  def test_emits_raises_for_undefined_handler
+    assert_raises(NameError) do
+      Class.new(ActiveSupport::StructuredEventSubscriber) do
+        emits :missing, "test.missing"
+      end
+    end
+
+    assert_raises(NameError) do
+      Class.new(ActiveSupport::StructuredEventSubscriber) do
+        private def helper(event); end
+        emits :helper, "test.helper"
+      end
+    end
+  end
+
+  def test_emits_does_not_silence_handlers_of_frozen_subscribers
+    subscriber = EmittingSubscriber.new
+    EmittingSubscriber.attach_to :test, subscriber
+    subscriber.freeze
+
+    with_event_reporter_subscribers(ConsumingSubscriber.new([])) do
+      assert_not subscriber.silenced?("declared.test")
+    end
+  ensure
+    EmittingSubscriber.detach_from :test
+  end
+
+  def test_emits_does_not_silence_handlers_when_a_subscription_filter_raises
+    subscriber = EmittingSubscriber.new
+    EmittingSubscriber.attach_to :test, subscriber
+
+    with_event_reporter_subscribers do
+      ActiveSupport.event_reporter.subscribe(ConsumingSubscriber.new([])) { |event| raise "filter error" }
+
+      assert_nothing_raised { assert_not subscriber.silenced?("declared.test") }
+    end
+  ensure
+    EmittingSubscriber.detach_from :test
+  end
+
+  def test_emits_applies_to_the_namespace_attached_to
+    subscriber = EmittingSubscriber.new
+    EmittingSubscriber.attach_to :other, subscriber
+
+    with_event_reporter_subscribers(ConsumingSubscriber.new([])) do
+      assert subscriber.silenced?("declared.other")
+      assert_not subscriber.silenced?("declared.test")
+    end
+  ensure
+    EmittingSubscriber.detach_from :other
+  end
+
+  def test_emits_does_not_leak_across_subclasses
+    base_events = ActiveSupport::StructuredEventSubscriber.emitted_events
+
+    subscriber_a = Class.new(ActiveSupport::StructuredEventSubscriber) do
+      def foo(event); end
+      emits :foo, "a.foo"
+    end
+
+    subscriber_b = Class.new(ActiveSupport::StructuredEventSubscriber) do
+      def bar(event); end
+      emits :bar, "b.bar"
+    end
+
+    assert_equal({ foo: "a.foo" }, subscriber_a.emitted_events)
+    assert_equal({ bar: "b.bar" }, subscriber_b.emitted_events)
+    assert_equal base_events, ActiveSupport::StructuredEventSubscriber.emitted_events
+  end
+
   def test_no_event_reporter_subscribers
     ActiveSupport::StructuredEventSubscriber.attach_to :test, @subscriber
 
@@ -170,4 +361,14 @@ class StructuredEventSubscriberTest < ActiveSupport::TestCase
     ActiveSupport.filter_parameters = old_filter_parameters
     ActiveSupport.event_reporter.reload_payload_filter
   end
+
+  private
+    def with_event_reporter_subscribers(*subscribers)
+      old_subscribers = ActiveSupport.event_reporter.subscribers.dup
+      ActiveSupport.event_reporter.subscribers.clear
+      subscribers.each { |subscriber| ActiveSupport.event_reporter.subscribe(subscriber) }
+      yield
+    ensure
+      ActiveSupport.event_reporter.subscribers.replace(old_subscribers)
+    end
 end

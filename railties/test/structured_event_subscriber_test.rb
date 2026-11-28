@@ -31,5 +31,9 @@ module Rails
         assert_includes output, "This is a deprecation warning"
       end
     end
+
+    def test_every_handler_declares_its_event
+      assert_empty Rails::StructuredEventSubscriber.undeclared_handlers
+    end
   end
 end
