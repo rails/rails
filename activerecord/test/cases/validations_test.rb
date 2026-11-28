@@ -159,6 +159,20 @@ class ValidationsTest < ActiveRecord::TestCase
     assert topic["approved"]
   end
 
+  def test_validating_a_column_that_was_not_selected_raises
+    Topic.validates_presence_of :title
+    topic = Topic.select(:id, :content).first
+
+    assert_raises(ActiveModel::MissingAttributeError) { topic.valid? }
+  end
+
+  def test_errors_on_an_attribute_that_is_not_a_column
+    topic = Topic.select(:id).first
+    topic.errors.add(:foo_bar, :invalid)
+
+    assert_equal ["Foo bar is invalid"], topic.errors.full_messages
+  end
+
   def test_validators
     assert_equal 1, Parrot.validators.size
     assert_equal 1, Company.validators.size
