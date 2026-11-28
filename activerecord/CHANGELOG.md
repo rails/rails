@@ -1,3 +1,15 @@
+*   Add support for index storage parameters to PostgreSQL.
+
+    ```ruby
+    add_index :documents, :tags, using: :gin, with: { fastupdate: false }
+    # CREATE INDEX ... USING gin ("tags") WITH ("fastupdate" = 'false')
+    ```
+
+    The parameters are read back by `indexes` and dumped to `schema.rb`, so they
+    survive `db:schema:load`.
+
+    *Andrew Kane*, *Andrew K. Fader*
+
 *   Clear `fallback_order` when calling `reorder`.
 
     Previously, `reorder(nil)` removed only explicit ordering, so a relation

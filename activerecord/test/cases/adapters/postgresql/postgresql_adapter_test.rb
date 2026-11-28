@@ -878,6 +878,55 @@ module ActiveRecord
         end
       end
 
+      def test_index_with_storage_parameters
+        with_example_table do
+          @connection.add_index "ex", "number", name: "ex_number", with: { fillfactor: 70 }
+
+          index = @connection.indexes("ex").find { |idx| idx.name == "ex_number" }
+          assert_equal ["number"], index.columns
+          assert_equal({ "fillfactor" => "70" }, index.storage_parameters)
+          assert index.defined_for?(with: { fillfactor: 70 })
+          assert index.defined_for?(with: "fillfactor = 70")
+          assert_not index.defined_for?(with: { fillfactor: 90 })
+          assert @connection.index_exists?("ex", "number", with: { fillfactor: 70 })
+          assert @connection.index_exists?("ex", "number", with: "fillfactor = '70'")
+          assert_not @connection.index_exists?("ex", "number", with: { fillfactor: 90 })
+        end
+      end
+
+      def test_expression_partial_index_with_storage_parameters
+        with_example_table do
+          @connection.add_index "ex", "lower(data)", name: "ex_lower_data", with: { fillfactor: 80 }, where: "number > 0"
+
+          index = @connection.indexes("ex").find { |idx| idx.name == "ex_lower_data" }
+          assert_equal "lower((data)::text)", index.columns
+          assert_equal "(number > 0)", index.where
+          assert_equal({ "fillfactor" => "80" }, index.storage_parameters)
+        end
+      end
+
+      def test_index_without_storage_parameters
+        with_example_table do
+          @connection.add_index "ex", "number", name: "ex_number"
+
+          index = @connection.indexes("ex").find { |idx| idx.name == "ex_number" }
+          assert_nil index.storage_parameters
+          assert_not index.defined_for?(with: { fillfactor: 70 })
+        end
+      end
+
+      def test_index_storage_parameters_survive_the_schema_cache
+        with_example_table do
+          @connection.add_index "ex", "number", name: "ex_number", with: { fillfactor: 70 }
+          index = @connection.indexes("ex").find { |idx| idx.name == "ex_number" }
+
+          serializer = ActiveRecord::ConnectionAdapters::JSONSchemaCacheSerializer
+          loaded = serializer.load(serializer.dump(index))
+          assert_instance_of ActiveRecord::ConnectionAdapters::PostgreSQL::IndexDefinition, loaded
+          assert_equal({ "fillfactor" => "70" }, loaded.storage_parameters)
+        end
+      end
+
       def test_invalid_index
         with_example_table do
           @connection.exec_query("INSERT INTO ex (number) VALUES (1), (1)")

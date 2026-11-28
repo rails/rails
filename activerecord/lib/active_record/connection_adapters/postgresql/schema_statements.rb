@@ -1113,7 +1113,7 @@ module ActiveRecord
                 SELECT distinct i.relname, d.indisunique, d.indoption, pg_get_indexdef(d.indexrelid),
                                 pg_catalog.obj_description(i.oid, 'pg_class') AS comment, d.indisvalid,
                                 #{key_count}, #{nulls_not_distinct}, am.amname,
-                                pg_get_expr(d.indpred, d.indrelid), i.reloptions IS NOT NULL,
+                                pg_get_expr(d.indpred, d.indrelid), i.reloptions,
                                 c.columns, c.definitions, c.collated, t.relname
                 FROM tables t
                 INNER JOIN pg_index d ON t.oid = d.indrelid
@@ -1205,7 +1205,7 @@ module ActiveRecord
               nulls_not_distinct = row[7]
               using = row[8]
               where = row[9]
-              storage_parameters = row[10]
+              storage_parameters = row[10] && decode_string_array(row[10]).to_h { |option| option.split("=", 2) }
               key_columns = decode_string_array(row[11])
               include_columns = key_columns.slice!(key_count..)
               include_definitions = decode_string_array(row[12]).drop(key_count)
@@ -1249,6 +1249,7 @@ module ActiveRecord
                 using: using.to_sym,
                 include: include_columns.presence,
                 nulls_not_distinct: nulls_not_distinct,
+                storage_parameters: storage_parameters,
                 comment: comment.presence,
                 valid: valid
               )
@@ -1523,7 +1524,20 @@ module ActiveRecord
               opclasses: options[:opclass] || {},
               include: options[:include],
               nulls_not_distinct: options[:nulls_not_distinct],
+              storage_parameters: storage_parameters_for_index(options[:with]),
             )
+          end
+
+          def valid_index_options
+            super << :with
+          end
+
+          # Stored the way pg_class.reloptions reports them, so an index created
+          # from a migration compares equal to one read back from the catalogs.
+          def storage_parameters_for_index(parameters)
+            return parameters unless parameters.is_a?(Hash)
+
+            parameters.to_h { |name, value| [name.to_s, value.to_s] }.presence
           end
 
           def add_index_opclass(quoted_columns, **options)

@@ -32,6 +32,10 @@ module ActiveRecord
           default_keys.concat([":lock"])
         end
 
+        if current_adapter?(:PostgreSQLAdapter)
+          default_keys.concat([":with"])
+        end
+
         "Unknown key: :#{key}. Valid keys are: #{default_keys.join(", ")}"
       end
 
