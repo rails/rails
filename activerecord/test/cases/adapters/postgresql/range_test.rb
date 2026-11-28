@@ -168,6 +168,10 @@ class PostgresqlRangeTest < ActiveRecord::PostgreSQLTestCase
     assert_nil @empty_range.float_range
   end
 
+  def test_custom_range_value_escaping
+    assert_equal_round_trip(@first_range, :string_range, "ca\\t"..."do\"g")
+  end
+
   def test_timezone_awareness_tzrange
     tz = "Pacific Time (US & Canada)"
 
