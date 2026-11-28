@@ -133,12 +133,20 @@ module ActionController # :nodoc:
     #     render json: @people
     #
     # `any` can also be used with no arguments, in which case it will be used for
-    # any format requested by the user:
+    # any format requested by the user, with exceptions noted below:
     #
     #     respond_to do |format|
     #       format.html
     #       format.any { redirect_to support_path }
     #     end
+    #
+    # `any` handling differs where the format requested by the user is `nil`, being
+    # a MIME type of `*/*` or requests without an `Accept` header. In these cases,
+    # the first format defined within `respond_to` is used instead. In the example
+    # above, `format.any` is ignored for these type of requests because
+    # `format.html` was defined first. Also note that requests with an `Accept`
+    # header but an empty value will utilize the default format for that request
+    # and its route.
     #
     # Formats can have different variants.
     #
