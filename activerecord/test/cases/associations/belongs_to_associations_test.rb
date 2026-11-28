@@ -71,6 +71,21 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
     end
   end
 
+  def test_reader_does_not_build_the_association_scope_when_using_the_statement_cache
+    post = posts(:welcome)
+    association = post.association(:author)
+
+    assert_not_called(association, :scope) do
+      assert_equal authors(:david), post.author
+    end
+  end
+
+  def test_reader_eager_loads_from_the_association_scope
+    post = posts(:welcome)
+
+    assert_predicate post.author_with_posts.association(:posts), :loaded?
+  end
+
   def test_where_with_custom_primary_key
     assert_equal [authors(:david)], Author.where(owned_essay: essays(:david_modest_proposal))
   end
