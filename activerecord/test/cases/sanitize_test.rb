@@ -25,6 +25,11 @@ class SanitizeTest < ActiveRecord::TestCase
     assert_equal "name=#{quoted_bambi_and_thumper}", Binary.sanitize_sql_array(["name=?", "Bambi\nand\nThumper"])
   end
 
+  def test_sanitize_sql_array_handles_bind_variables_in_sql_literal
+    quoted_bambi = ActiveRecord::Base.lease_connection.quote("Bambi")
+    assert_equal "name=#{quoted_bambi}", Binary.sanitize_sql_array([Arel.sql("name=?"), "Bambi"])
+  end
+
   def test_sanitize_sql_array_handles_named_bind_variables
     quoted_bambi = ActiveRecord::Base.lease_connection.quote("Bambi")
     assert_equal "name=#{quoted_bambi}", Binary.sanitize_sql_array(["name=:name", name: "Bambi"])
