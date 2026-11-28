@@ -299,6 +299,28 @@
       e.clearSelection();
     });
 
+    var flashCopyMarkdownIcon = function (button) {
+      button.classList.add("is-copied");
+      setTimeout(function () {
+        button.classList.remove("is-copied");
+      }, 1500);
+    };
+
+    var copyMarkdownClipboard = new ClipboardJS("#copy-markdown-button", {
+      text: function () {
+        var template = document.getElementById("guide-markdown");
+        if (!template) {
+          return "";
+        }
+
+        return template.content ? template.content.textContent : template.textContent;
+      }
+    });
+    copyMarkdownClipboard.on("success", function (e) {
+      flashCopyMarkdownIcon(e.trigger);
+      e.clearSelection();
+    });
+
     // ============ highlight chapter navigation ============
     var columnMain = document.getElementById("column-main");
     var columnSide = document.getElementById("column-side");
