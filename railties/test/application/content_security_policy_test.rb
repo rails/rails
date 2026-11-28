@@ -128,15 +128,22 @@ module ApplicationTests
         end
       RUBY
 
+      # This should match the default in
+      # ~/railties/lib/rails/generators/rails/app/templates/config/initializers/content_security_policy.rb.tt
       app_file "config/initializers/content_security_policy.rb", <<-RUBY
-        Rails.application.config.content_security_policy do |p|
-          p.default_src :self, :https
-          p.script_src  :self, :https
-          p.style_src   :self, :https
-        end
+        Rails.application.configure do
+          config.content_security_policy do |policy|
+            policy.default_src :self, :https
+            policy.font_src    :self, :https, :data
+            policy.img_src     :self, :https, :data
+            policy.object_src  :none
+            policy.script_src  :self, :https
+            policy.style_src   :self, :https
+          end
 
-        Rails.application.config.content_security_policy_nonce_generator = proc { "iyhD0Yc0W+c=" }
-        Rails.application.config.content_security_policy_nonce_directives = %w(script-src)
+          config.content_security_policy_nonce_generator = ->(request) { request.session.id || SecureRandom.hex(16) }
+          config.content_security_policy_nonce_directives = %w(script-src style-src)
+        end
       RUBY
 
       app_file "config/routes.rb", <<-RUBY
@@ -148,7 +155,7 @@ module ApplicationTests
       app("development")
 
       get "/"
-      assert_policy "default-src 'self' https:; script-src 'self' https: 'nonce-iyhD0Yc0W+c='; style-src 'self' https:"
+      assert_policy %r{default-src 'self' https:; font-src 'self' https: data:; img-src 'self' https: data:; object-src 'none'; script-src 'self' https: 'nonce-([a-z0-9]+)'; style-src 'self' https: 'nonce-([a-z0-9]+)'}
     end
 
     test "override content security policy in a controller" do
@@ -248,7 +255,7 @@ module ApplicationTests
         end
 
         assert_nil last_response.headers[unexpected_header]
-        assert_equal expected, last_response.headers[expected_header]
+        assert_match expected, last_response.headers[expected_header]
       end
   end
 end
