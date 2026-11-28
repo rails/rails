@@ -166,22 +166,14 @@ module ActionDispatch
       def new_polymorphic_path(record_or_hash, options = {}) = polymorphic_path_for_action("new", record_or_hash, options)
 
       private
+        # These go through polymorphic_url and polymorphic_path, which
+        # applications and libraries override.
         def polymorphic_url_for_action(action, record_or_hash, options)
-          if options.empty? && !(Hash === record_or_hash) && !polymorphic_mapping(record_or_hash)
-            # What polymorphic_url does with action: as the only option.
-            HelperMethodBuilder.polymorphic_method(self, record_or_hash, action, :url, options)
-          else
-            polymorphic_url(record_or_hash, options.merge(action: action))
-          end
+          polymorphic_url(record_or_hash, options.merge(action: action))
         end
 
         def polymorphic_path_for_action(action, record_or_hash, options)
-          if options.empty? && !(Hash === record_or_hash) && !polymorphic_mapping(record_or_hash)
-            # What polymorphic_path does with action: as the only option.
-            HelperMethodBuilder.polymorphic_method(self, record_or_hash, action, :path, options)
-          else
-            polymorphic_path(record_or_hash, options.merge(action: action))
-          end
+          polymorphic_path(record_or_hash, options.merge(action: action))
         end
 
         def polymorphic_mapping(record)
