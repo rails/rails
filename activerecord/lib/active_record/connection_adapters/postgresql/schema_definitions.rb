@@ -480,7 +480,7 @@ module ActiveRecord
         end
 
         def remove_exclusion_constraint(expression = nil, **options)
-          drop_constraint(@td.conn.send(:exclusion_constraint_for!, name, expression: expression, **options).name)
+          drop_constraint(@td.conn.send(:exclusion_constraint_for!, name, expression: expression, **options.slice(:name)).name)
         end
 
         def add_unique_constraint(column_name = nil, **options)
