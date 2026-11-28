@@ -104,7 +104,7 @@ module ActiveRecord
   class HasManyThroughAssociationPolymorphicSourceError < ActiveRecordError # :nodoc:
     def initialize(owner_class_name = nil, reflection = nil, source_reflection = nil)
       if owner_class_name && reflection && source_reflection
-        super("Cannot have a has_many :through association '#{owner_class_name}##{reflection.name}' on the polymorphic object '#{source_reflection.class_name}##{source_reflection.name}' without 'source_type'. Try adding 'source_type: \"#{reflection.name.to_s.classify}\"' to 'has_many :through' definition.")
+        super("Cannot have a #{reflection.macro} :through association '#{owner_class_name}##{reflection.name}' on the polymorphic object '#{source_reflection.class_name}##{source_reflection.name}' without 'source_type'. Try adding 'source_type: \"#{reflection.name.to_s.classify}\"' to '#{reflection.macro} :through' definition.")
       else
         super("Cannot have a has_many :through association.")
       end
@@ -124,7 +124,7 @@ module ActiveRecord
   class HasManyThroughAssociationPointlessSourceTypeError < ActiveRecordError # :nodoc:
     def initialize(owner_class_name = nil, reflection = nil, source_reflection = nil)
       if owner_class_name && reflection && source_reflection
-        super("Cannot have a has_many :through association '#{owner_class_name}##{reflection.name}' with a :source_type option if the '#{reflection.through_reflection.class_name}##{source_reflection.name}' is not polymorphic. Try removing :source_type on your association.")
+        super("Cannot have a #{reflection.macro} :through association '#{owner_class_name}##{reflection.name}' with a :source_type option if the '#{reflection.through_reflection.class_name}##{source_reflection.name}' is not polymorphic. Try removing :source_type on your association.")
       else
         super("Cannot have a has_many :through association.")
       end
@@ -157,7 +157,7 @@ module ActiveRecord
         through_reflection      = reflection.through_reflection
         source_reflection_names = reflection.source_reflection_names
         source_associations     = reflection.through_reflection.klass._reflections.keys
-        super("Could not find the source association(s) #{source_reflection_names.collect(&:inspect).to_sentence(two_words_connector: ' or ', last_word_connector: ', or ')} in model #{through_reflection.klass}. Try 'has_many #{reflection.name.inspect}, :through => #{through_reflection.name.inspect}, :source => <name>'. Is it one of #{source_associations.to_sentence(two_words_connector: ' or ', last_word_connector: ', or ')}?")
+        super("Could not find the source association(s) #{source_reflection_names.collect(&:inspect).to_sentence(two_words_connector: ' or ', last_word_connector: ', or ')} in model #{through_reflection.klass}. Try '#{reflection.macro} #{reflection.name.inspect}, :through => #{through_reflection.name.inspect}, :source => <name>'. Is it one of #{source_associations.to_sentence(two_words_connector: ' or ', last_word_connector: ', or ')}?")
       else
         super("Could not find the source association(s).")
       end
@@ -167,7 +167,7 @@ module ActiveRecord
   class HasManyThroughOrderError < ActiveRecordError # :nodoc:
     def initialize(owner_class_name = nil, reflection = nil, through_reflection = nil)
       if owner_class_name && reflection && through_reflection
-        super("Cannot have a has_many :through association '#{owner_class_name}##{reflection.name}' which goes through '#{owner_class_name}##{through_reflection.name}' before the through association is defined.")
+        super("Cannot have a #{reflection.macro} :through association '#{owner_class_name}##{reflection.name}' which goes through '#{owner_class_name}##{through_reflection.name}' before the through association is defined.")
       else
         super("Cannot have a has_many :through association before the through association is defined.")
       end
