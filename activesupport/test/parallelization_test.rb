@@ -333,16 +333,37 @@ class ParallelizationTest < ActiveSupport::TestCase
     end
   end
 
-  test "shutdown calls run_cleanup_hooks" do
+  test "shutdown calls shutdown_hooks" do
     called = false
-    ActiveSupport::Testing::Parallelization.run_cleanup_hook { called = true }
+    ActiveSupport::Testing::Parallelization.shutdown_hook { called = true }
 
     parallelization = ActiveSupport::Testing::Parallelization.new(1)
     parallelization.start
     parallelization.shutdown
 
-    assert called, "run_cleanup_hooks should be called during shutdown"
+    assert called, "shutdown_hooks should be called during shutdown"
   ensure
+    ActiveSupport::Testing::Parallelization.class_variable_get(:@@shutdown_hooks).pop
+  end
+
+  test "run_cleanup_hooks run once in each worker with the worker number" do
+    reader, writer = IO.pipe
+    ActiveSupport::Testing::Parallelization.run_cleanup_hook do |number|
+      writer.puts "#{Process.pid}:#{number.inspect}"
+    end
+
+    parallelization = ActiveSupport::Testing::Parallelization.new(2)
+    parallelization.start
+    parallelization.shutdown
+    writer.close
+
+    calls = reader.read.lines(chomp: true).map { |line| line.split(":") }
+
+    assert_equal ["0", "1"], calls.map(&:last).sort
+    assert_not_includes calls.map(&:first), Process.pid.to_s, "run_cleanup_hooks should not run in the parent process"
+  ensure
+    reader&.close
+    writer&.close
     ActiveSupport::Testing::Parallelization.class_variable_get(:@@run_cleanup_hooks).pop
   end
 
