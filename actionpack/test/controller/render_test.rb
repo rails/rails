@@ -1041,6 +1041,13 @@ class HttpCacheForeverTest < ActionController::TestCase
         render plain: "hello"
       end
     end
+
+    def cache_me_forever_with_local_last_modified
+      last_modified = Time.new(2011, 1, 1, 9, 0, 0, "+09:00")
+      http_cache_forever(last_modified: last_modified) do
+        render plain: last_modified.utc_offset.to_s
+      end
+    end
   end
 
   tests HttpCacheForeverController
@@ -1075,6 +1082,13 @@ class HttpCacheForeverTest < ActionController::TestCase
     get :cache_me_forever, params: { last_modified: now.iso8601 }
     assert_response :ok
     assert_equal now.utc.httpdate, @response.headers["Last-Modified"]
+  end
+
+  def test_cache_does_not_convert_the_given_last_modified_to_utc_in_place
+    get :cache_me_forever_with_local_last_modified
+    assert_response :ok
+    assert_equal "Sat, 01 Jan 2011 00:00:00 GMT", @response.headers["Last-Modified"]
+    assert_equal "32400", @response.body
   end
 
   def test_cache_response_code_with_etag

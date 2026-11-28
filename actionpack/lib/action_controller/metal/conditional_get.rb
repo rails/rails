@@ -322,7 +322,7 @@ module ActionController
       expires_in 100.years, public: public, immutable: true
 
       yield if stale?(etag: request.fullpath,
-                      last_modified: (last_modified || Time.new(2011, 1, 1)).utc,
+                      last_modified: (last_modified || Time.new(2011, 1, 1)).getutc,
                       public: public)
     end
 
