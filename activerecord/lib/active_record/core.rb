@@ -529,9 +529,10 @@ module ActiveRecord
       init_internals
       initialize_internals_callback
 
+      yield self if block_given?
+
       super
 
-      yield self if block_given?
       _run_initialize_callbacks
     end
 
