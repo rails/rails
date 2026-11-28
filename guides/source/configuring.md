@@ -2610,7 +2610,7 @@ Configures which exceptions are unwrapped. Wrapper exceptions will have their ca
 instead of themselves.
 
 ```ruby
-config.action_dispatch.wrapper_exceptions += [WrapperException]
+config.action_dispatch.wrapper_exceptions += ["WrapperException"]
 
 begin
   raise OriginalException
