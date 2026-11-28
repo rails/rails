@@ -1,3 +1,9 @@
+*   Enqueue `ActiveStorage::AnalyzeJob` once when the same blob object is attached to several records in one commit.
+
+    Each attachment's commit callback saw the blob as unanalyzed and enqueued its own job.
+
+    *Andrew Fader*
+
 *   Preserve committed proxy responses when a storage error interrupts a
     streamed download.
 
